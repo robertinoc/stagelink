@@ -198,6 +198,7 @@ SHOPIFY_STOREFRONT_TOKEN=   # Solo plan Pro
 - [x] Catálogo de componentes shadcn por pantalla (`docs/ux/components.md`)
 - [x] Props y validaciones de bloques MVP (`docs/ux/blocks-catalog.md`)
 - [x] Orden de construcción definido (`docs/ux/build-order.md`)
+- [x] Backlog Asana + milestones + rutina diaria (`docs/project/asana-setup.md`)
 - [ ] Monorepo inicializado
 - [ ] Schema de base de datos (migración SQL)
 - [ ] Auth integrada
