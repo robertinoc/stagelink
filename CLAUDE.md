@@ -194,6 +194,10 @@ SHOPIFY_STOREFRONT_TOKEN=   # Solo plan Pro
 - [x] Modelo de entidades definido (`docs/architecture/entities.md`)
 - [x] Flujos de aplicación documentados (`docs/architecture/flows.md`)
 - [x] ADRs de arquitectura (`docs/adr/`)
+- [x] Wireframes low-fi de todas las pantallas (`docs/ux/wireframes.md`)
+- [x] Catálogo de componentes shadcn por pantalla (`docs/ux/components.md`)
+- [x] Props y validaciones de bloques MVP (`docs/ux/blocks-catalog.md`)
+- [x] Orden de construcción definido (`docs/ux/build-order.md`)
 - [ ] Monorepo inicializado
 - [ ] Schema de base de datos (migración SQL)
 - [ ] Auth integrada
