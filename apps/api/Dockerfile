@@ -40,4 +40,5 @@ ENV NODE_ENV=production
 EXPOSE 4001
 
 # Run migrations then start (prisma via absolute path, exec → node is PID 1)
-CMD ["sh", "-c", "/app/node_modules/.bin/prisma migrate deploy && exec node dist/main"]
+# PORT is printed to confirm Railway's injected value vs our default 4001
+CMD ["sh", "-c", "echo '>>> PORT='$PORT && /app/node_modules/.bin/prisma migrate deploy && echo '>>> Starting node on port '$PORT && exec node dist/main"]
