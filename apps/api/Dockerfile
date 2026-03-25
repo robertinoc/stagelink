@@ -54,7 +54,8 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 
 WORKDIR /app/apps/api
 
-EXPOSE ${PORT:-4001}
+EXPOSE 4001
 
-# Run migrations then start
-CMD ["sh", "-c", "pnpm db:migrate:prod && node dist/main"]
+# Run migrations with prisma binary directly (no pnpm wrapper), then start with exec
+# so node becomes PID 1 and receives signals correctly.
+CMD ["sh", "-c", "/app/node_modules/.bin/prisma migrate deploy && exec node dist/main"]
