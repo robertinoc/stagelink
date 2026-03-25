@@ -1,15 +1,27 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import configuration from './config/configuration';
+import { validationSchema } from './config/validation';
+import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ArtistsModule } from './modules/artists/artists.module';
 import { PagesModule } from './modules/pages/pages.module';
 import { BlocksModule } from './modules/blocks/blocks.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { BillingModule } from './modules/billing/billing.module';
-import { CommonModule } from './modules/common/common.module';
 
 @Module({
   imports: [
-    CommonModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      validationSchema,
+      validationOptions: {
+        abortEarly: false,
+        allowUnknown: true,
+      },
+    }),
+    HealthModule,
     AuthModule,
     ArtistsModule,
     PagesModule,

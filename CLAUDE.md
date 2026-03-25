@@ -68,17 +68,29 @@ apps/
 │       │   └── index.ts                # Re-exports @stagelink/types + UI types
 │       └── middleware.ts               # next-intl locale routing
 └── api/                    # NestJS — puerto 4001
+    ├── .env.example        # Variables de entorno documentadas
     └── src/
-        ├── main.ts
-        ├── app.module.ts
+        ├── main.ts         # Bootstrap: CORS, ValidationPipe, HttpExceptionFilter, shutdown hooks
+        ├── app.module.ts   # AppModule con ConfigModule global + todos los módulos
+        ├── config/
+        │   ├── configuration.ts  # Config tipada por dominios (app/db/workos/stripe/s3/shopify)
+        │   └── validation.ts     # Joi schema (DATABASE_URL requerida en producción)
+        ├── common/
+        │   ├── filters/
+        │   │   └── http-exception.filter.ts  # Formato consistente de errores
+        │   ├── constants/index.ts            # DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
+        │   ├── utils/response.util.ts        # ok<T>() helper para respuestas tipadas
+        │   ├── decorators/index.ts           # Placeholder (CurrentUser, Public, Roles)
+        │   ├── guards/index.ts               # Placeholder (JwtAuthGuard, RolesGuard)
+        │   └── interceptors/index.ts         # Placeholder (TransformInterceptor)
         └── modules/
-            ├── auth/       # WorkOS AuthKit
-            ├── artists/    # CRUD artistas + username lookup
-            ├── pages/      # CRUD páginas públicas
-            ├── blocks/     # CRUD bloques
-            ├── analytics/  # Eventos + PostHog
-            ├── billing/    # Stripe suscripciones
-            └── common/     # Global providers, pipes, guards
+            ├── health/     # GET /api/health — status, uptime, environment
+            ├── auth/       # WorkOS AuthKit (stub: GET /api/auth/session)
+            ├── artists/    # CRUD artistas + username lookup (stub)
+            ├── pages/      # CRUD páginas públicas (stub)
+            ├── blocks/     # CRUD bloques (stub)
+            ├── analytics/  # Eventos + PostHog (stub)
+            └── billing/    # Stripe suscripciones (stub)
 packages/
 ├── types/                  # Interfaces compartidas (Artist, Page, Block, User)
 ├── ui/                     # Wrappers shadcn + primitivos custom
@@ -272,6 +284,7 @@ SHOPIFY_STOREFRONT_TOKEN=   # Solo plan Pro
 - [x] shadcn/ui instalado (Button, Card, Input, Badge, Separator, Dialog, Sheet)
 - [x] Layouts: marketing (Navbar+Footer), auth (centrado), app (Sidebar+Topbar)
 - [x] Páginas placeholder: Home, Pricing, Login, Signup, Dashboard, Settings, [username]
+- [x] Scaffold backend NestJS completo (ConfigModule, ValidationPipe, exception filter, health, módulos stub)
 - [ ] Schema de base de datos (migración SQL)
 - [ ] Auth integrada (WorkOS)
 - [ ] Editor de bloques
