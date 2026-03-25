@@ -12,11 +12,8 @@ RUN apk add --no-cache openssl
 RUN npm install -g pnpm@latest --ignore-scripts
 WORKDIR /app
 
-# ---- Stage 2: Install all dependencies ----
+# ---- Stage 2: Install all dependencies (includes devDeps like husky) ----
 FROM base AS deps
-# Disable husky in CI/Docker (it's a devDep not available in --prod installs)
-ENV HUSKY=0
-# Copy workspace manifests first for better layer caching
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/types/package.json ./packages/types/
@@ -34,8 +31,6 @@ RUN pnpm --filter @stagelink/api build
 # ---- Stage 4: Production runtime ----
 FROM base AS runner
 ENV NODE_ENV=production
-# Disable husky — not installed in production deps
-ENV HUSKY=0
 
 # Copy workspace manifests
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
@@ -44,12 +39,15 @@ COPY packages/types/package.json ./packages/types/
 COPY packages/config/package.json ./packages/config/
 COPY packages/ui/package.json ./packages/ui/
 
-# Copy prisma schema before install (needed for @prisma/client postinstall → generate)
+# Copy prisma schema (needed for prisma generate + prisma migrate deploy at runtime)
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
 
-# Install production deps only
-# prisma is a regular dependency so `prisma migrate deploy` is available
-RUN pnpm install --frozen-lockfile --prod
+# Install production deps with --ignore-scripts to avoid husky (devDep) crashing
+# the prepare lifecycle hook. We then run prisma generate explicitly below.
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts
+
+# Regenerate Prisma client for this platform (since we skipped postinstall scripts)
+RUN pnpm --filter @stagelink/api exec prisma generate
 
 # Copy compiled output
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
