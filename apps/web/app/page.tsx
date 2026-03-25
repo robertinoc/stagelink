@@ -1,4 +1,4 @@
-import StageLinkLandingPage from "@/stagelink_landing_page_nextjs";
+import StageLinkLandingPage from '@/components/LandingPage';
 
 export default function Home() {
   return <StageLinkLandingPage />;

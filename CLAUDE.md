@@ -29,18 +29,43 @@ Monorepo pnpm con workspaces:
 
 ```
 apps/
-├── web/          # Next.js frontend
-└── api/          # NestJS backend
-packages/         # Código compartido (tipos, validaciones, etc.)
+├── web/                    # Next.js 15 (App Router) — puerto 3000
+│   ├── app/                # Rutas (App Router)
+│   ├── components/         # Componentes de la app (incluye LandingPage.jsx)
+│   ├── features/           # Feature modules (dashboard, editor, public-page)
+│   ├── lib/                # Utilities, hooks, helpers
+│   ├── next.config.ts
+│   ├── postcss.config.mjs
+│   ├── eslint.config.mjs
+│   └── tsconfig.json
+└── api/                    # NestJS — puerto 3001
+    └── src/
+        ├── main.ts
+        ├── app.module.ts
+        └── modules/
+            ├── auth/       # WorkOS AuthKit
+            ├── artists/    # CRUD artistas + username lookup
+            ├── pages/      # CRUD páginas públicas
+            ├── blocks/     # CRUD bloques
+            ├── analytics/  # Eventos + PostHog
+            ├── billing/    # Stripe suscripciones
+            └── common/     # Global providers, pipes, guards
+packages/
+├── types/                  # Interfaces compartidas (Artist, Page, Block, User)
+├── ui/                     # Wrappers shadcn + primitivos custom
+└── config/                 # ESLint, tsconfig y prettier configs compartidas
+infra/
+└── docker/
+    └── docker-compose.yml  # PostgreSQL 16 + MinIO (S3 local)
 docs/
 ├── architecture/
-│   ├── entities.md   # DER + definición completa de tablas
-│   └── flows.md      # Flujos: registro, dashboard, página pública, analytics
+│   ├── entities.md         # DER + definición completa de tablas
+│   └── flows.md            # Flujos: registro, dashboard, página pública
 └── adr/
-    ├── 001-username-resolution.md    # Resolución por username vs UUID/subdomain
-    ├── 002-user-artist-ownership.md  # Ownership 1:N user→artist
-    └── 003-custom-domain-future.md   # Custom domain diferido a Fase 2
-mvp.md                # PRD del MVP con criterios de aceptación
+    ├── 001-username-resolution.md
+    ├── 002-user-artist-ownership.md
+    └── 003-custom-domain-future.md
+mvp.md                      # PRD del MVP con criterios de aceptación
 ```
 
 ---
@@ -48,10 +73,21 @@ mvp.md                # PRD del MVP con criterios de aceptación
 ## Comandos
 
 ```bash
-pnpm dev          # Levanta web + api en modo desarrollo
-pnpm build        # Build de producción (todos los workspaces)
-pnpm lint         # ESLint en todo el monorepo
-pnpm test         # Tests en todos los workspaces
+pnpm dev              # Levanta web (4000) + api (4001) en paralelo
+pnpm build            # Build de producción (todos los workspaces)
+pnpm lint             # ESLint en todo el monorepo
+pnpm typecheck        # tsc --noEmit en todos los workspaces
+pnpm format           # Prettier write
+pnpm format:check     # Prettier check (CI)
+pnpm test             # Tests en todos los workspaces
+
+# Por workspace:
+pnpm --filter @stagelink/web dev
+pnpm --filter @stagelink/api dev
+pnpm --filter @stagelink/web build
+
+# Infra local:
+cd infra/docker && docker compose up -d   # PostgreSQL + MinIO
 ```
 
 ---
@@ -86,36 +122,36 @@ request → Cloudflare → Vercel → Next.js middleware
 
 ## Modelos de Datos Principales
 
-| Tabla | Descripción |
-|---|---|
-| `users` | Cuenta del usuario (vinculada a WorkOS) |
-| `artists` | Perfil artístico (username, nombre, bio, avatar, cover) |
-| `pages` | Página pública del artista (configuración, visibilidad) |
-| `blocks` | Bloques de contenido ordenados (link, music, video, fan_capture) |
-| `analytics_events` | Eventos crudos (page_view, link_click) |
-| `subscribers` | Emails capturados via bloque fan capture |
-| `subscriptions` | Estado de suscripción Stripe por artista |
+| Tabla              | Descripción                                                      |
+| ------------------ | ---------------------------------------------------------------- |
+| `users`            | Cuenta del usuario (vinculada a WorkOS)                          |
+| `artists`          | Perfil artístico (username, nombre, bio, avatar, cover)          |
+| `pages`            | Página pública del artista (configuración, visibilidad)          |
+| `blocks`           | Bloques de contenido ordenados (link, music, video, fan_capture) |
+| `analytics_events` | Eventos crudos (page_view, link_click)                           |
+| `subscribers`      | Emails capturados via bloque fan capture                         |
+| `subscriptions`    | Estado de suscripción Stripe por artista                         |
 
 ---
 
 ## Tipos de Bloque (MVP)
 
-| Tipo | Descripción |
-|---|---|
-| `link` | URL genérica con título e icono |
-| `music` | Embed de Spotify o SoundCloud (auto-detecta por URL) |
-| `video` | Embed de YouTube o TikTok (auto-detecta por URL) |
-| `fan_capture` | Formulario de email con consentimiento |
+| Tipo          | Descripción                                          |
+| ------------- | ---------------------------------------------------- |
+| `link`        | URL genérica con título e icono                      |
+| `music`       | Embed de Spotify o SoundCloud (auto-detecta por URL) |
+| `video`       | Embed de YouTube o TikTok (auto-detecta por URL)     |
+| `fan_capture` | Formulario de email con consentimiento               |
 
 ---
 
 ## Planes
 
-| Plan | Precio | Límites |
-|---|---|---|
-| Free | $0 | Hasta 10 bloques, analytics básico, branding "Powered by StageLink" |
-| Pro | $5/mes | Links ilimitados, sin branding, analytics completo, custom domain, Shopify |
-| Pro+ | $9/mes | EPK builder, fan email capture, multi-language, features prioritarias |
+| Plan | Precio | Límites                                                                    |
+| ---- | ------ | -------------------------------------------------------------------------- |
+| Free | $0     | Hasta 10 bloques, analytics básico, branding "Powered by StageLink"        |
+| Pro  | $5/mes | Links ilimitados, sin branding, analytics completo, custom domain, Shopify |
+| Pro+ | $9/mes | EPK builder, fan email capture, multi-language, features prioritarias      |
 
 ### Feature Gating
 
@@ -170,16 +206,16 @@ SHOPIFY_STOREFRONT_TOKEN=   # Solo plan Pro
 
 ## Roadmap de Etapas
 
-| Etapa | Contenido | Horas est. |
-|---|---|---:|
-| 0 | Estrategia y definición | 12 h |
-| 1 | Fundaciones técnicas (monorepo, scaffold, deploy) | 22 h |
-| 2 | Plataforma core (DB, auth, S3, multi-tenant) | 34 h |
-| 3 | Constructor MVP (onboarding, editor de bloques, página pública) | 54 h |
-| 4 | Analytics y fan capture | 27 h |
-| 5 | Monetización (Stripe, feature gating) | 24 h |
-| 6 | Features Pro (Shopify, EPK, analytics pro, i18n) | 41 h |
-| 7 | AI + hardening + launch | 28 h |
+| Etapa | Contenido                                                       | Horas est. |
+| ----- | --------------------------------------------------------------- | ---------: |
+| 0     | Estrategia y definición                                         |       12 h |
+| 1     | Fundaciones técnicas (monorepo, scaffold, deploy)               |       22 h |
+| 2     | Plataforma core (DB, auth, S3, multi-tenant)                    |       34 h |
+| 3     | Constructor MVP (onboarding, editor de bloques, página pública) |       54 h |
+| 4     | Analytics y fan capture                                         |       27 h |
+| 5     | Monetización (Stripe, feature gating)                           |       24 h |
+| 6     | Features Pro (Shopify, EPK, analytics pro, i18n)                |       41 h |
+| 7     | AI + hardening + launch                                         |       28 h |
 
 **MVP funcional + pagos**: Etapas 0–5 (~173 h / ~17 semanas a 2 h/día)
 
@@ -199,7 +235,9 @@ SHOPIFY_STOREFRONT_TOKEN=   # Solo plan Pro
 - [x] Props y validaciones de bloques MVP (`docs/ux/blocks-catalog.md`)
 - [x] Orden de construcción definido (`docs/ux/build-order.md`)
 - [x] Backlog Asana + milestones + rutina diaria (`docs/project/asana-setup.md`)
-- [ ] Monorepo inicializado
+- [x] Monorepo inicializado (pnpm workspaces, apps/web, apps/api, packages/)
+- [x] Tooling configurado (ESLint, Prettier, Husky, lint-staged, commitlint)
+- [x] Build de producción de `apps/web` verificado ✓
 - [ ] Schema de base de datos (migración SQL)
 - [ ] Auth integrada
 - [ ] Editor de bloques
@@ -208,14 +246,14 @@ SHOPIFY_STOREFRONT_TOKEN=   # Solo plan Pro
 
 ## Patrones a Reutilizar
 
-| Patrón | Dónde aplicarlo |
-|---|---|
-| Multi-tenant por username | Middleware Next.js + guards NestJS |
-| Feature gating centralizado | Helper único importado desde `packages/` |
-| Presigned URLs para uploads | Módulo S3 en NestJS |
-| Webhook handlers idempotentes | Stripe events |
-| Ownership check en servicios | Todos los endpoints de escritura |
-| Discriminated union para bloques | Tipo `Block` con campo `type` |
+| Patrón                           | Dónde aplicarlo                          |
+| -------------------------------- | ---------------------------------------- |
+| Multi-tenant por username        | Middleware Next.js + guards NestJS       |
+| Feature gating centralizado      | Helper único importado desde `packages/` |
+| Presigned URLs para uploads      | Módulo S3 en NestJS                      |
+| Webhook handlers idempotentes    | Stripe events                            |
+| Ownership check en servicios     | Todos los endpoints de escritura         |
+| Discriminated union para bloques | Tipo `Block` con campo `type`            |
 
 ---
 
