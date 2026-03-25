@@ -1,0 +1,190 @@
+// =============================================================
+// StageLink — Prisma Schema
+// =============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================
+// USERS
+// Cuenta de plataforma vinculada a WorkOS.
+// Un user puede tener uno o más artists (MVP: uno por user).
+// =============================================================
+model User {
+  id          String   @id @default(cuid())
+  workosId    String   @unique @map("workos_id")
+  email       String   @unique
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  artists     Artist[]
+
+  @@map("users")
+}
+
+// =============================================================
+// ARTISTS
+// Perfil artístico con username único (clave multi-tenant).
+// =============================================================
+model Artist {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  username    String   @unique
+  displayName String   @map("display_name")
+  bio         String?
+  avatarUrl   String?  @map("avatar_url")
+  coverUrl    String?  @map("cover_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  page          Page?
+  subscription  Subscription?
+  analyticsEvents AnalyticsEvent[]
+
+  @@map("artists")
+}
+
+// =============================================================
+// PAGES
+// Página pública del artista (configuración, visibilidad).
+// Relación 1-to-1 con Artist.
+// =============================================================
+model Page {
+  id          String   @id @default(cuid())
+  artistId    String   @unique @map("artist_id")
+  title       String?
+  isPublished Boolean  @default(false) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  artist  Artist  @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  blocks  Block[]
+
+  @@map("pages")
+}
+
+// =============================================================
+// BLOCKS
+// Bloques de contenido ordenados en la página pública.
+// Discriminated union vía el campo `type`.
+// =============================================================
+enum BlockType {
+  link
+  music
+  video
+  fan_capture
+
+  @@map("block_type")
+}
+
+model Block {
+  id        String    @id @default(cuid())
+  pageId    String    @map("page_id")
+  type      BlockType
+  title     String?
+  url       String?
+  position  Int       @default(0)
+  isVisible Boolean   @default(true) @map("is_visible")
+  metadata  Json?     // Datos extra por tipo (ej: embedId para música/video)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  page        Page             @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  clickEvents AnalyticsEvent[]
+  subscribers Subscriber[]
+
+  @@index([pageId, position])
+  @@map("blocks")
+}
+
+// =============================================================
+// ANALYTICS EVENTS
+// Eventos crudos de page_view y link_click.
+// IP hasheada para deduplicación sin almacenar PII.
+// =============================================================
+enum EventType {
+  page_view
+  link_click
+
+  @@map("event_type")
+}
+
+model AnalyticsEvent {
+  id         String    @id @default(cuid())
+  artistId   String    @map("artist_id")
+  blockId    String?   @map("block_id")   // Solo para link_click
+  eventType  EventType @map("event_type")
+  ipHash     String    @map("ip_hash")    // SHA-256 de IP — deduplicación
+  country    String?
+  device     String?
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  artist  Artist  @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  block   Block?  @relation(fields: [blockId], references: [id], onDelete: SetNull)
+
+  @@index([artistId, createdAt])
+  @@index([artistId, eventType, createdAt])
+  @@map("analytics_events")
+}
+
+// =============================================================
+// SUBSCRIBERS
+// Emails capturados vía bloque fan_capture.
+// =============================================================
+model Subscriber {
+  id        String   @id @default(cuid())
+  blockId   String   @map("block_id")
+  email     String
+  consent   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  block Block @relation(fields: [blockId], references: [id], onDelete: Cascade)
+
+  @@unique([blockId, email])
+  @@map("subscribers")
+}
+
+// =============================================================
+// SUBSCRIPTIONS
+// Estado de suscripción Stripe por artista.
+// =============================================================
+enum PlanTier {
+  free
+  pro
+  pro_plus
+
+  @@map("plan_tier")
+}
+
+enum SubscriptionStatus {
+  active
+  canceled
+  past_due
+  trialing
+  incomplete
+
+  @@map("subscription_status")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  artistId             String             @unique @map("artist_id")
+  plan                 PlanTier           @default(free)
+  status               SubscriptionStatus @default(active)
+  stripeCustomerId     String?            @map("stripe_customer_id")
+  stripeSubscriptionId String?            @map("stripe_subscription_id")
+  currentPeriodEnd     DateTime?          @map("current_period_end")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}

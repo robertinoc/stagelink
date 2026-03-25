@@ -1,6 +1,7 @@
 {
   "extends": "../../packages/config/tsconfig/nestjs.json",
   "compilerOptions": {
+    "outDir": "./dist",
     "paths": {
       "@stagelink/types": ["../../packages/types/src"]
     }

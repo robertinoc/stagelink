@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation';
+import { PrismaModule } from './lib/prisma.module';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ArtistsModule } from './modules/artists/artists.module';
@@ -21,6 +22,7 @@ import { BillingModule } from './modules/billing/billing.module';
         allowUnknown: true,
       },
     }),
+    PrismaModule, // Global — PrismaService inyectable en todos los módulos
     HealthModule,
     AuthModule,
     ArtistsModule,
