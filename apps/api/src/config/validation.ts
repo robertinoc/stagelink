@@ -8,6 +8,8 @@ export const validationSchema = Joi.object({
   PORT: Joi.number().default(4001),
   APP_URL: Joi.string().default('http://localhost:4001'),
   FRONTEND_URL: Joi.string().default('http://localhost:4000'),
+  // Optional extra origins for CORS (comma-separated)
+  CORS_ALLOWED_ORIGINS: optionalString,
 
   // Required in production, optional in development
   DATABASE_URL: Joi.when('NODE_ENV', {

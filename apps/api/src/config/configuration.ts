@@ -4,6 +4,8 @@ export default (): Record<string, unknown> => ({
     port: parseInt(process.env.PORT ?? '4001', 10),
     url: process.env.APP_URL ?? 'http://localhost:4001',
     frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:4000',
+    // Optional comma-separated extra CORS origins (e.g. app.stagelink.io,staging.stagelink.io)
+    corsAllowedOrigins: process.env.CORS_ALLOWED_ORIGINS ?? '',
   },
   database: {
     url: process.env.DATABASE_URL,

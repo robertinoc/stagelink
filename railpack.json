@@ -1,0 +1,8 @@
+{
+  "build": {
+    "cmds": ["pnpm install --frozen-lockfile", "pnpm --filter @stagelink/api build"]
+  },
+  "deploy": {
+    "startCmd": "pnpm --filter @stagelink/api db:migrate:prod && pnpm --filter @stagelink/api start"
+  }
+}
