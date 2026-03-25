@@ -19,9 +19,14 @@ async function bootstrap(): Promise<void> {
   // Global prefix
   app.setGlobalPrefix('api');
 
-  // CORS
+  // CORS — origins driven solely by config (no hardcoded fallbacks in production)
+  const corsOrigins =
+    nodeEnv === 'development'
+      ? [frontendUrl, 'http://localhost:4000', 'http://localhost:4001']
+      : [frontendUrl];
+
   app.enableCors({
-    origin: [frontendUrl, 'http://localhost:4000'],
+    origin: corsOrigins,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     credentials: true,
   });
