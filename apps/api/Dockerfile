@@ -1,7 +1,8 @@
 # =============================================================
 # StageLink API — Multi-stage Docker build
-# Used for Fly.io or any Docker-based hosting.
-# For Railway, the railway.json (Nixpacks) is preferred.
+# Used by Railway (railway.json → builder: DOCKERFILE) and
+# any other Docker-based hosting (Fly.io, etc.).
+# Build context = repo root (monorepo).
 # =============================================================
 
 # ---- Stage 1: Base ----
