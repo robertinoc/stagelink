@@ -10,13 +10,23 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-separator": "^1.1.2",
+    "@radix-ui/react-slot": "^1.2.3",
     "@stagelink/types": "workspace:*",
     "@stagelink/ui": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "geist": "^1.3.0",
+    "lucide-react": "^0.511.0",
     "next": "^15.5.14",
+    "next-intl": "^3.26.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
     "@stagelink/config": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
