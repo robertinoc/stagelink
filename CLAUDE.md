@@ -73,7 +73,7 @@ mvp.md                      # PRD del MVP con criterios de aceptación
 ## Comandos
 
 ```bash
-pnpm dev              # Levanta web (3000) + api (3001) en paralelo
+pnpm dev              # Levanta web (4000) + api (4001) en paralelo
 pnpm build            # Build de producción (todos los workspaces)
 pnpm lint             # ESLint en todo el monorepo
 pnpm typecheck        # tsc --noEmit en todos los workspaces

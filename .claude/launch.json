@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "stagelink",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 3001
+      "name": "stagelink-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@stagelink/web", "dev"],
+      "port": 4000
     }
   ]
 }
