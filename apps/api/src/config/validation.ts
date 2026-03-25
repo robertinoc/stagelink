@@ -1,5 +1,8 @@
 import * as Joi from 'joi';
 
+// Shorthand: optional string that also accepts empty string ('' in .env files)
+const optionalString = Joi.string().optional().allow('');
+
 export const validationSchema = Joi.object({
   NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
   PORT: Joi.number().default(4001),
@@ -10,29 +13,30 @@ export const validationSchema = Joi.object({
   DATABASE_URL: Joi.when('NODE_ENV', {
     is: 'production',
     then: Joi.string().required(),
-    otherwise: Joi.string().optional(),
+    otherwise: optionalString,
   }),
 
-  // Auth — required when auth is implemented
-  WORKOS_CLIENT_ID: Joi.string().optional(),
-  WORKOS_API_KEY: Joi.string().optional(),
-  WORKOS_REDIRECT_URI: Joi.string().optional(),
+  // Auth — required when WorkOS is integrated (T2)
+  WORKOS_CLIENT_ID: optionalString,
+  WORKOS_API_KEY: optionalString,
+  WORKOS_REDIRECT_URI: optionalString,
 
-  // Payments — required when billing is implemented
-  STRIPE_SECRET_KEY: Joi.string().optional(),
-  STRIPE_WEBHOOK_SECRET: Joi.string().optional(),
+  // Payments — required when Stripe is integrated (T5)
+  STRIPE_SECRET_KEY: optionalString,
+  STRIPE_WEBHOOK_SECRET: optionalString,
 
-  // Analytics
-  POSTHOG_KEY: Joi.string().optional(),
+  // Analytics — optional in all envs
+  POSTHOG_KEY: optionalString,
   POSTHOG_HOST: Joi.string().default('https://app.posthog.com'),
 
-  // Storage
-  AWS_S3_BUCKET: Joi.string().optional(),
-  AWS_S3_REGION: Joi.string().optional(),
-  AWS_ACCESS_KEY_ID: Joi.string().optional(),
-  AWS_SECRET_ACCESS_KEY: Joi.string().optional(),
+  // Storage — optional until S3 module is implemented
+  AWS_S3_BUCKET: optionalString,
+  AWS_S3_REGION: optionalString,
+  AWS_ACCESS_KEY_ID: optionalString,
+  AWS_SECRET_ACCESS_KEY: optionalString,
+  AWS_S3_ENDPOINT: optionalString,
 
-  // E-commerce (Plan Pro)
-  SHOPIFY_STOREFRONT_TOKEN: Joi.string().optional(),
-  SHOPIFY_STORE_DOMAIN: Joi.string().optional(),
+  // E-commerce — Plan Pro only (T6)
+  SHOPIFY_STOREFRONT_TOKEN: optionalString,
+  SHOPIFY_STORE_DOMAIN: optionalString,
 });
