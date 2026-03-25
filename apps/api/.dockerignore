@@ -1,0 +1,38 @@
+# Dependencies (installed fresh in Docker)
+node_modules
+**/node_modules
+
+# Build output (compiled fresh in Docker)
+dist
+**/dist
+
+# Environment files (injected via platform env vars)
+.env
+.env.*
+!.env.example
+
+# Test files
+test
+**/*.spec.ts
+**/*.e2e-spec.ts
+coverage
+
+# Development tooling
+*.tsbuildinfo
+.eslintrc*
+
+# Git
+.git
+.gitignore
+
+# Docker itself
+Dockerfile
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
