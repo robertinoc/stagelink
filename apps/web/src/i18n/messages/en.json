@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "home": "Home",
+    "pricing": "Pricing",
+    "login": "Log in",
+    "signup": "Get started",
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "logout": "Log out"
+  },
+  "marketing": {
+    "hero": {
+      "title": "Your digital stage",
+      "subtitle": "One link for all your music, videos, merch and fans.",
+      "cta_primary": "Create your page",
+      "cta_secondary": "See an example"
+    },
+    "pricing": {
+      "title": "Simple pricing",
+      "subtitle": "Start free. Upgrade when you need more.",
+      "free": {
+        "name": "Free",
+        "price": "$0",
+        "description": "Perfect to get started",
+        "cta": "Start free"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "$5/mo",
+        "description": "For growing artists",
+        "cta": "Upgrade to Pro"
+      },
+      "pro_plus": {
+        "name": "Pro+",
+        "price": "$9/mo",
+        "description": "For serious professionals",
+        "cta": "Upgrade to Pro+"
+      }
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "no_account": "Don't have an account?",
+      "signup_link": "Sign up"
+    },
+    "signup": {
+      "title": "Create your stage",
+      "subtitle": "Join thousands of artists on StageLink",
+      "name": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Create account",
+      "have_account": "Already have an account?",
+      "login_link": "Sign in"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "subtitle": "Manage your artist page",
+    "stats": {
+      "page_views": "Page views",
+      "link_clicks": "Link clicks",
+      "subscribers": "Subscribers"
+    },
+    "empty": {
+      "title": "Your page is ready",
+      "description": "Start adding blocks to build your artist page.",
+      "cta": "Add first block"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": "Profile",
+    "account": "Account",
+    "billing": "Billing"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete"
+  }
+}

@@ -1,5 +1,21 @@
-export default function StageLinkLandingPage() {
-  const features = [
+'use client';
+
+interface Feature {
+  title: string;
+  description: string;
+}
+
+interface Plan {
+  name: string;
+  price: string;
+  description: string;
+  items: string[];
+  cta: string;
+  featured?: boolean;
+}
+
+export function LandingPage() {
+  const features: Feature[] = [
     {
       title: 'Built for artists',
       description:
@@ -22,7 +38,7 @@ export default function StageLinkLandingPage() {
     },
   ];
 
-  const blocks = [
+  const blocks: string[] = [
     'Music embeds',
     'Video embeds',
     'Event dates',
@@ -33,7 +49,7 @@ export default function StageLinkLandingPage() {
     'Smart links',
   ];
 
-  const plans = [
+  const plans: Plan[] = [
     {
       name: 'Free',
       price: '$0',

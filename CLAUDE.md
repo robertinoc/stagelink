@@ -29,16 +29,45 @@ Monorepo pnpm con workspaces:
 
 ```
 apps/
-├── web/                    # Next.js 15 (App Router) — puerto 3000
-│   ├── app/                # Rutas (App Router)
-│   ├── components/         # Componentes de la app (incluye LandingPage.jsx)
-│   ├── features/           # Feature modules (dashboard, editor, public-page)
-│   ├── lib/                # Utilities, hooks, helpers
-│   ├── next.config.ts
-│   ├── postcss.config.mjs
-│   ├── eslint.config.mjs
-│   └── tsconfig.json
-└── api/                    # NestJS — puerto 3001
+├── web/                    # Next.js 15 (App Router) — puerto 4000
+│   └── src/
+│       ├── app/
+│       │   ├── layout.tsx              # Root layout (fonts, metadata base)
+│       │   ├── globals.css             # CSS variables + Tailwind v4 theme
+│       │   └── [locale]/               # i18n routing (en / es)
+│       │       ├── layout.tsx          # NextIntlClientProvider
+│       │       ├── (marketing)/        # Navbar + Footer layout
+│       │       │   ├── page.tsx        # Home (LandingPage)
+│       │       │   └── pricing/        # Pricing page
+│       │       ├── (auth)/             # Centered auth layout
+│       │       │   ├── login/
+│       │       │   └── signup/
+│       │       ├── (app)/              # Dashboard layout (Sidebar + Topbar)
+│       │       │   ├── dashboard/
+│       │       │   └── settings/
+│       │       └── [username]/         # Página pública del artista
+│       ├── components/
+│       │   ├── ui/                     # shadcn/ui: Button, Card, Input, Badge, etc.
+│       │   ├── layout/                 # Navbar, Sidebar, Footer, PageContainer
+│       │   └── shared/                 # EmptyState, LoadingState
+│       ├── features/
+│       │   ├── marketing/              # LandingPage, hero, pricing
+│       │   ├── auth/                   # LoginForm, SignupForm
+│       │   ├── dashboard/              # DashboardWelcome, stats
+│       │   └── public-page/            # ArtistPagePlaceholder
+│       ├── i18n/
+│       │   ├── request.ts              # getRequestConfig (next-intl)
+│       │   └── messages/
+│       │       ├── en.json             # English (nav, marketing, auth, dashboard)
+│       │       └── es.json             # Spanish
+│       ├── lib/
+│       │   ├── utils.ts                # cn() helper (clsx + tailwind-merge)
+│       │   └── fonts.ts                # Geist Sans + Geist Mono (next/font)
+│       ├── hooks/
+│       ├── types/
+│       │   └── index.ts                # Re-exports @stagelink/types + UI types
+│       └── middleware.ts               # next-intl locale routing
+└── api/                    # NestJS — puerto 4001
     └── src/
         ├── main.ts
         ├── app.module.ts
@@ -238,8 +267,13 @@ SHOPIFY_STOREFRONT_TOKEN=   # Solo plan Pro
 - [x] Monorepo inicializado (pnpm workspaces, apps/web, apps/api, packages/)
 - [x] Tooling configurado (ESLint, Prettier, Husky, lint-staged, commitlint)
 - [x] Build de producción de `apps/web` verificado ✓
+- [x] Scaffold frontend completo (`src/` con i18n, layouts, shadcn/ui, rutas, placeholders)
+- [x] i18n configurado (next-intl, locales en/es, namespaces: nav/marketing/auth/dashboard)
+- [x] shadcn/ui instalado (Button, Card, Input, Badge, Separator, Dialog, Sheet)
+- [x] Layouts: marketing (Navbar+Footer), auth (centrado), app (Sidebar+Topbar)
+- [x] Páginas placeholder: Home, Pricing, Login, Signup, Dashboard, Settings, [username]
 - [ ] Schema de base de datos (migración SQL)
-- [ ] Auth integrada
+- [ ] Auth integrada (WorkOS)
 - [ ] Editor de bloques
 
 ---

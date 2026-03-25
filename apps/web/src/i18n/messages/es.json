@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "pricing": "Precios",
+    "login": "Iniciar sesión",
+    "signup": "Comenzar",
+    "dashboard": "Panel",
+    "settings": "Configuración",
+    "logout": "Cerrar sesión"
+  },
+  "marketing": {
+    "hero": {
+      "title": "Tu escenario digital",
+      "subtitle": "Un solo link para tu música, videos, merch y fans.",
+      "cta_primary": "Crear mi página",
+      "cta_secondary": "Ver un ejemplo"
+    },
+    "pricing": {
+      "title": "Precios simples",
+      "subtitle": "Empieza gratis. Sube de plan cuando lo necesites.",
+      "free": {
+        "name": "Gratis",
+        "price": "$0",
+        "description": "Perfecto para empezar",
+        "cta": "Empezar gratis"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "$5/mes",
+        "description": "Para artistas en crecimiento",
+        "cta": "Subir a Pro"
+      },
+      "pro_plus": {
+        "name": "Pro+",
+        "price": "$9/mes",
+        "description": "Para profesionales serios",
+        "cta": "Subir a Pro+"
+      }
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Bienvenido de vuelta",
+      "subtitle": "Iniciá sesión en tu cuenta",
+      "email": "Email",
+      "password": "Contraseña",
+      "submit": "Iniciar sesión",
+      "no_account": "¿No tenés cuenta?",
+      "signup_link": "Registrate"
+    },
+    "signup": {
+      "title": "Creá tu escenario",
+      "subtitle": "Unite a miles de artistas en StageLink",
+      "name": "Nombre completo",
+      "email": "Email",
+      "password": "Contraseña",
+      "submit": "Crear cuenta",
+      "have_account": "¿Ya tenés cuenta?",
+      "login_link": "Iniciá sesión"
+    }
+  },
+  "dashboard": {
+    "title": "Panel",
+    "welcome": "Bienvenido de vuelta",
+    "subtitle": "Administrá tu página de artista",
+    "stats": {
+      "page_views": "Visitas",
+      "link_clicks": "Clicks en links",
+      "subscribers": "Suscriptores"
+    },
+    "empty": {
+      "title": "Tu página está lista",
+      "description": "Empezá a agregar bloques para construir tu página.",
+      "cta": "Agregar primer bloque"
+    }
+  },
+  "settings": {
+    "title": "Configuración",
+    "profile": "Perfil",
+    "account": "Cuenta",
+    "billing": "Facturación"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Algo salió mal",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar"
+  }
+}
