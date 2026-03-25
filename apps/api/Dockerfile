@@ -37,8 +37,9 @@ RUN pnpm --filter @stagelink/api build
 WORKDIR /app/apps/api
 
 ENV NODE_ENV=production
-EXPOSE 4001
+EXPOSE 3000
 
-# Run migrations then start (prisma via absolute path, exec → node is PID 1)
-# PORT is printed to confirm Railway's injected value vs our default 4001
-CMD ["sh", "-c", "echo '>>> PORT='$PORT && /app/node_modules/.bin/prisma migrate deploy && echo '>>> Starting node on port '$PORT && exec node dist/main"]
+# Direct node invocation — no shell wrapper, node is PID 1.
+# Migrations run via Railway's Pre-Deploy Command in Settings:
+#   cd /app/apps/api && node /app/node_modules/.bin/prisma migrate deploy
+CMD ["node", "dist/main"]
