@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation';
@@ -12,6 +13,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { TenantModule } from './modules/tenant/tenant.module';
 import { PublicModule } from './modules/public/public.module';
+import { JwtAuthGuard } from './common/guards';
 
 @Module({
   imports: [
@@ -34,6 +36,13 @@ import { PublicModule } from './modules/public/public.module';
     BlocksModule,
     AnalyticsModule,
     BillingModule,
+  ],
+  providers: [
+    {
+      // Guard global: todos los endpoints requieren JWT salvo @Public()
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule {}

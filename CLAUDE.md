@@ -165,11 +165,33 @@ cd infra/docker && docker compose up -d   # PostgreSQL + MinIO
 
 ## Autenticación
 
-WorkOS AuthKit con middleware de protección. El dashboard requiere sesión activa. Las páginas públicas de artistas (`/[username]`) son accesibles sin login.
+WorkOS AuthKit implementado. Ver `docs/auth-workos.md` para documentación completa.
 
-- Login: `/api/auth/signin`
-- Logout: `/api/auth/signout`
-- Callback OAuth: `/api/auth/callback`
+### Flujo
+
+1. Login → WorkOS hosted UI → `/api/auth/callback` → session cookie cifrada
+2. Dashboard (App Router) → `withAuth()` server-side → redirect si no autenticado
+3. API calls → `Authorization: Bearer <accessToken>` → `JwtAuthGuard` valida JWT vía JWKS
+4. Primer request → provisioning de User interno en DB (workos_id, email, firstName, lastName)
+
+### Rutas de auth
+
+- Login: `/[locale]/login` → redirect a WorkOS
+- Signup: `/[locale]/signup` → redirect a WorkOS
+- Callback: `/api/auth/callback` (`handleAuth()`)
+- Logout: `/api/auth/signout` (`signOut()`)
+- Me: `GET /api/auth/me` (protegido, retorna User interno + artistIds)
+
+### Protección de rutas
+
+- **Frontend**: `(app)/layout.tsx` — `withAuth()` + `redirect('/login')` si no autenticado
+- **Backend**: `APP_GUARD` global `JwtAuthGuard` — todos los endpoints salvo `@Public()`
+- **Endpoints públicos**: `HealthController` y `PublicPagesController` decorados con `@Public()`
+
+### User interno (DB)
+
+WorkOS es el IdP. StageLink mantiene tabla `users` propia con `workos_id` como clave de vínculo.
+El user interno se crea/provisiona la primera vez que llega un JWT válido (lazy provisioning).
 
 ---
 
@@ -285,24 +307,28 @@ Usar un helper centralizado tanto en backend como en frontend para verificar el 
 ## Variables de Entorno
 
 ```
-# Frontend (apps/web)
-NEXT_PUBLIC_APP_URL=
-NEXT_PUBLIC_API_URL=          # URL del backend (http://localhost:4001 en dev)
-WORKOS_CLIENT_ID=
-WORKOS_API_KEY=
+# Frontend (apps/web/.env.local)
+NEXT_PUBLIC_APP_URL=                    # http://localhost:4000 en dev
+NEXT_PUBLIC_API_URL=                    # http://localhost:4001 en dev
+WORKOS_CLIENT_ID=                       # WorkOS Dashboard → API Keys
+WORKOS_API_KEY=                         # WorkOS Dashboard → API Keys (server-side)
+WORKOS_REDIRECT_URI=                    # http://localhost:4000/api/auth/callback
+WORKOS_COOKIE_PASSWORD=                 # openssl rand -base64 32 (mín 32 chars)
 
-# Backend (apps/api)
-DATABASE_URL=                 # PostgreSQL (requerida en producción)
-PORT=                         # Inyectado por Railway automáticamente
-WORKOS_API_KEY=
-AWS_BUCKET=
-AWS_REGION=
+# Backend (apps/api/.env)
+DATABASE_URL=                           # PostgreSQL (requerida en producción)
+PORT=                                   # Inyectado por Railway automáticamente
+WORKOS_CLIENT_ID=                       # Para construir URL JWKS
+WORKOS_API_KEY=                         # Para fetchear perfil en 1er login
+WORKOS_REDIRECT_URI=                    # http://localhost:4000/api/auth/callback
+AWS_S3_BUCKET=
+AWS_S3_REGION=
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
-POSTHOG_API_KEY=
-SHOPIFY_STOREFRONT_TOKEN=     # Solo plan Pro
+POSTHOG_KEY=
+SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
 ```
 
 ---
@@ -348,14 +374,20 @@ SHOPIFY_STOREFRONT_TOKEN=     # Solo plan Pro
   - `custom_domains` table en DB (pending/active/failed/disabled)
   - Frontend `[username]/page.tsx` con fetch real + `notFound()` correcto
   - `docs/multi-tenant.md` con arquitectura, decisiones y checklist
-
-### 🔄 En progreso (Etapa 2)
-
-- T2-2: WorkOS auth integration (JwtAuthGuard real)
+- **WorkOS Auth implementado** (T2-3)
+  - `JwtAuthGuard` real: valida JWT WorkOS vía JWKS con `jose`
+  - `APP_GUARD` global: todos los endpoints protegidos salvo `@Public()`
+  - Lazy provisioning: User interno creado en DB en el primer request autenticado
+  - `GET /api/auth/me` — retorna User interno + artistIds
+  - Frontend: `withAuth()` en `(app)/layout.tsx` → redirect a login si no autenticado
+  - `LoginForm`/`SignupForm` redirigen a WorkOS hosted UI (no manejan credentials)
+  - `/api/auth/callback` y `/api/auth/signout` vía `handleAuth()` / `signOut()`
+  - `lib/auth.ts` — helpers de sesión para Server Components y `apiFetch()` autenticado
+  - `docs/auth-workos.md` con flujo completo, variables, y próximos pasos
 
 ### ⏳ Pendiente
 
-- T2-3: Implementar queries Prisma reales en módulos stub (artists, pages, blocks)
+- T2-4: Implementar queries Prisma reales en módulos stub (artists, pages, blocks)
 - T2-4: S3 para uploads (avatars, covers)
 - Custom domains UI + DNS verification
 - Editor de bloques
@@ -371,6 +403,11 @@ SHOPIFY_STOREFRONT_TOKEN=     # Solo plan Pro
 | Reserved usernames               | `common/constants/reserved-usernames.ts`    | Validación en UI + backend                       |
 | Username normalization           | `common/utils/username.util.ts`             | Todos los inputs de username                     |
 | Public fetch helper              | `apps/web/src/lib/public-api.ts`            | Fetch sin auth con cache: no-store               |
+| Auth session (server)            | `apps/web/src/lib/auth.ts`                  | getSession(), apiFetch(), AuthSession type       |
+| Authenticated fetch (backend)    | `apps/web/src/lib/auth.ts` → `apiFetch()`   | Server Components que necesitan datos del API    |
+| @Public() opt-out de auth        | `common/decorators/index.ts`                | Endpoints públicos que no requieren JWT          |
+| @CurrentUser() en controllers    | `common/decorators/index.ts`                | Acceder al User interno en cualquier controller  |
+| Lazy user provisioning           | `common/guards/index.ts` → `resolveUser()`  | Primer request post-signup → crea User en DB     |
 | Feature gating centralizado      | Helper único importado desde `packages/`    | Verificar plan activo                            |
 | Presigned URLs para uploads      | Módulo S3 en NestJS                         | Avatars, covers                                  |
 | Webhook handlers idempotentes    | Stripe events                               | Billing                                          |
