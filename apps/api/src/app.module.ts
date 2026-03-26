@@ -10,6 +10,8 @@ import { PagesModule } from './modules/pages/pages.module';
 import { BlocksModule } from './modules/blocks/blocks.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { TenantModule } from './modules/tenant/tenant.module';
+import { PublicModule } from './modules/public/public.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { BillingModule } from './modules/billing/billing.module';
     PrismaModule, // Global — PrismaService inyectable en todos los módulos
     HealthModule,
     AuthModule,
+    TenantModule, // Resolución central de tenants (username → artistId, domain → artistId)
+    PublicModule, // Endpoints públicos: GET /api/public/pages/by-username/:username
     ArtistsModule,
     PagesModule,
     BlocksModule,
