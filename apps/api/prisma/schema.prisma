@@ -43,10 +43,11 @@ model Artist {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  page          Page?
-  subscription  Subscription?
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  page            Page?
+  subscription    Subscription?
   analyticsEvents AnalyticsEvent[]
+  customDomains   CustomDomain[]
 
   @@map("artists")
 }
@@ -149,6 +150,39 @@ model Subscriber {
 
   @@unique([blockId, email])
   @@map("subscribers")
+}
+
+// =============================================================
+// CUSTOM DOMAINS
+// Dominios personalizados vinculados a un artista.
+// La resolución actual es por username (/[username]).
+// Este modelo deja preparada la arquitectura para resolución
+// por dominio (e.g. robertinoc.com → artist).
+// La activación real (DNS verification, SSL) se implementa después.
+// =============================================================
+enum CustomDomainStatus {
+  pending   // Registrado, esperando verificación DNS
+  active    // Verificado y resolviendo correctamente
+  failed    // Verificación falló
+  disabled  // Desactivado manualmente
+
+  @@map("custom_domain_status")
+}
+
+model CustomDomain {
+  id        String             @id @default(cuid())
+  artistId  String             @map("artist_id")
+  domain    String             @unique // Normalizado: lowercase, sin www, sin trailing slash
+  isPrimary Boolean            @default(false) @map("is_primary")
+  status    CustomDomainStatus @default(pending)
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId])
+  @@index([domain, status])
+  @@map("custom_domains")
 }
 
 // =============================================================
