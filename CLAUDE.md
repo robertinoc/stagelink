@@ -13,11 +13,12 @@ Plataforma tipo Linktree enfocada en artistas (músicos, DJs, creadores visuales
 - **Auth**: WorkOS AuthKit (`@workos-inc/authkit-nextjs`)
 - **Backend**: NestJS sobre Node.js
 - **Base de datos**: PostgreSQL
+- **ORM**: Prisma (con migraciones en `apps/api/prisma/migrations/`)
 - **Storage**: AWS S3 (avatars, covers, assets de EPK)
 - **Pagos**: Stripe (suscripciones Free / Pro / Pro+)
 - **Analytics**: PostHog + eventos propios en DB
 - **i18n**: next-intl
-- **Deploy**: Vercel (frontend) + Railway o Fly.io (backend) + Cloudflare (DNS/CDN/proxy)
+- **Deploy**: Vercel (frontend) + Railway (backend, us-west2) + Cloudflare (DNS/CDN/proxy)
 - **AI**: LLM para bio generada (Fase 3, no acoplado a un proveedor específico)
 - **E-commerce**: Shopify Storefront API (plan Pro)
 
@@ -45,7 +46,7 @@ apps/
 │       │       ├── (app)/              # Dashboard layout (Sidebar + Topbar)
 │       │       │   ├── dashboard/
 │       │       │   └── settings/
-│       │       └── [username]/         # Página pública del artista
+│       │       └── [username]/         # Página pública del artista (multi-tenant)
 │       ├── components/
 │       │   ├── ui/                     # shadcn/ui: Button, Card, Input, Badge, etc.
 │       │   ├── layout/                 # Navbar, Sidebar, Footer, PageContainer
@@ -62,51 +63,55 @@ apps/
 │       │       └── es.json             # Spanish
 │       ├── lib/
 │       │   ├── utils.ts                # cn() helper (clsx + tailwind-merge)
-│       │   └── fonts.ts                # Geist Sans + Geist Mono (next/font)
+│       │   ├── fonts.ts                # Geist Sans + Geist Mono (next/font)
+│       │   └── public-api.ts           # fetchPublicPage() — fetch tipado sin auth
 │       ├── hooks/
 │       ├── types/
 │       │   └── index.ts                # Re-exports @stagelink/types + UI types
 │       └── middleware.ts               # next-intl locale routing
 └── api/                    # NestJS — puerto 4001
+    ├── Dockerfile          # Single-stage build (pnpm, single-stage para preservar symlinks)
     ├── .env.example        # Variables de entorno documentadas
+    ├── prisma/
+    │   ├── schema.prisma   # Schema completo (User, Artist, Page, Block, etc.)
+    │   └── migrations/     # Migraciones SQL aplicadas en orden
     └── src/
         ├── main.ts         # Bootstrap: CORS, ValidationPipe, HttpExceptionFilter, shutdown hooks
         ├── app.module.ts   # AppModule con ConfigModule global + todos los módulos
         ├── config/
         │   ├── configuration.ts  # Config tipada por dominios (app/db/workos/stripe/s3/shopify)
         │   └── validation.ts     # Joi schema (DATABASE_URL requerida en producción)
+        ├── lib/
+        │   ├── prisma.service.ts  # PrismaService (lazy connect, OnModuleDestroy)
+        │   └── prisma.module.ts   # Global PrismaModule
         ├── common/
         │   ├── filters/
         │   │   └── http-exception.filter.ts  # Formato consistente de errores
-        │   ├── constants/index.ts            # DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
-        │   ├── utils/response.util.ts        # ok<T>() helper para respuestas tipadas
+        │   ├── constants/
+        │   │   ├── index.ts                  # DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
+        │   │   └── reserved-usernames.ts     # Set<string> de usernames bloqueados (80+)
+        │   ├── utils/
+        │   │   ├── response.util.ts          # ok<T>() helper para respuestas tipadas
+        │   │   └── username.util.ts          # normalizeUsername(), validateUsernameFormat()
         │   ├── decorators/index.ts           # Placeholder (CurrentUser, Public, Roles)
         │   ├── guards/index.ts               # Placeholder (JwtAuthGuard, RolesGuard)
         │   └── interceptors/index.ts         # Placeholder (TransformInterceptor)
         └── modules/
             ├── health/     # GET /api/health — status, uptime, environment
             ├── auth/       # WorkOS AuthKit (stub: GET /api/auth/session)
+            ├── tenant/     # TenantResolverService — resolución central username→artistId
+            ├── public/     # GET /api/public/pages/by-username/:username (sin auth)
             ├── artists/    # CRUD artistas + username lookup (stub)
             ├── pages/      # CRUD páginas públicas (stub)
             ├── blocks/     # CRUD bloques (stub)
             ├── analytics/  # Eventos + PostHog (stub)
             └── billing/    # Stripe suscripciones (stub)
 packages/
-├── types/                  # Interfaces compartidas (Artist, Page, Block, User)
+├── types/                  # Interfaces compartidas (Artist, Page, Block, User, PublicPageResponse)
 ├── ui/                     # Wrappers shadcn + primitivos custom
 └── config/                 # ESLint, tsconfig y prettier configs compartidas
-infra/
-└── docker/
-    └── docker-compose.yml  # PostgreSQL 16 + MinIO (S3 local)
 docs/
-├── architecture/
-│   ├── entities.md         # DER + definición completa de tablas
-│   └── flows.md            # Flujos: registro, dashboard, página pública
-└── adr/
-    ├── 001-username-resolution.md
-    ├── 002-user-artist-ownership.md
-    └── 003-custom-domain-future.md
-mvp.md                      # PRD del MVP con criterios de aceptación
+└── multi-tenant.md         # Decisiones arquitectónicas, política de username, caching, dominios
 ```
 
 ---
@@ -127,9 +132,34 @@ pnpm --filter @stagelink/web dev
 pnpm --filter @stagelink/api dev
 pnpm --filter @stagelink/web build
 
+# DB (requiere DB local corriendo):
+pnpm --filter @stagelink/api db:migrate      # prisma migrate dev
+pnpm --filter @stagelink/api db:migrate:prod # prisma migrate deploy
+pnpm --filter @stagelink/api db:generate     # prisma generate
+pnpm --filter @stagelink/api db:studio       # Prisma Studio
+
 # Infra local:
 cd infra/docker && docker compose up -d   # PostgreSQL + MinIO
 ```
+
+---
+
+## Deploy
+
+### Railway (backend)
+
+- **URL producción**: `https://stagelink-production-18c8.up.railway.app`
+- **Health check**: `GET /api/health`
+- **Region**: us-west2 (Legacy)
+- **Builder**: Dockerfile (`apps/api/Dockerfile`)
+- **Pre-Deploy Command**: `pnpm --filter @stagelink/api exec prisma migrate deploy`
+- **Custom Start Command**: vacío (usa `CMD ["node", "dist/main"]` del Dockerfile)
+- **Puerto**: 3000 (inyectado por Railway via `PORT` env var)
+
+### Vercel (frontend)
+
+- Conectado a GitHub main branch
+- Auto-deploy en cada push a main
 
 ---
 
@@ -145,33 +175,63 @@ WorkOS AuthKit con middleware de protección. El dashboard requiere sesión acti
 
 ## Arquitectura Multi-Tenant
 
-Cada artista tiene un `username` único que actúa como identificador de tenant:
+Cada artista tiene un `username` único que actúa como identificador de tenant. Ver `docs/multi-tenant.md` para la documentación completa.
 
-- **URL pública**: `stagelink.io/username`
-- **Resolución**: `username` → `artist` → `page` + `blocks`
-- **Ownership**: cada `user` puede tener uno o más `artists` (MVP: uno por usuario)
-- **Custom domain** (plan Pro+): preparado en DB, implementación en Fase 2
-
-### Flujo de request público
+### Resolución por username (implementado)
 
 ```
-request → Cloudflare → Vercel → Next.js middleware
-  → lookup username en DB → render SSR/ISR con profile + blocks
+GET /[username]
+  → fetchPublicPage(username)  [apps/web/src/lib/public-api.ts]
+    → GET /api/public/pages/by-username/:username
+      → TenantResolverService.resolveByUsername()
+        → normaliza username → busca en DB → retorna artistId
+      → PublicPagesService.loadPublicPage(artistId)
+        → carga page + blocks filtrados por artistId
+      ← { artist: { username, displayName, bio, ... }, blocks: [...] }
+  → notFound() si no existe o no publicado
+  → renderiza ArtistPage con datos del tenant
 ```
+
+### Resolución por dominio (preparado, no activo)
+
+```
+GET /api/public/pages/by-domain (Host header)
+  → TenantResolverService.resolveByDomain(host)
+    → isPlatformHost() — bloquea *.stagelink.com, *.vercel.app, *.railway.app, localhost
+    → strip www → busca custom_domain con status='active'
+    → retorna artistId si existe
+```
+
+### Política de usernames
+
+| Regla         | Valor                                                             |
+| ------------- | ----------------------------------------------------------------- |
+| Caracteres    | `[a-z0-9_-]` — lowercase, dígitos, guión, underscore              |
+| Longitud      | Mín 3, máx 30                                                     |
+| Límites       | Debe empezar y terminar con `[a-z0-9]`                            |
+| Prohibido     | `--`, `__`, unicode, espacios, puntos                             |
+| Normalización | Siempre lowercase + trim antes de guardar y buscar                |
+| Reserved      | Ver `reserved-usernames.ts` (80+ palabras: api, admin, www, etc.) |
+
+### Caching
+
+- Actualmente `cache: 'no-store'` en `fetchPublicPage()` — sin riesgo de mezcla entre tenants
+- Migrar a ISR con `next: { tags: ['artist:username'] }` cuando el volumen lo justifique
 
 ---
 
 ## Modelos de Datos Principales
 
-| Tabla              | Descripción                                                      |
-| ------------------ | ---------------------------------------------------------------- |
-| `users`            | Cuenta del usuario (vinculada a WorkOS)                          |
-| `artists`          | Perfil artístico (username, nombre, bio, avatar, cover)          |
-| `pages`            | Página pública del artista (configuración, visibilidad)          |
-| `blocks`           | Bloques de contenido ordenados (link, music, video, fan_capture) |
-| `analytics_events` | Eventos crudos (page_view, link_click)                           |
-| `subscribers`      | Emails capturados via bloque fan capture                         |
-| `subscriptions`    | Estado de suscripción Stripe por artista                         |
+| Tabla              | Descripción                                                          |
+| ------------------ | -------------------------------------------------------------------- |
+| `users`            | Cuenta del usuario (vinculada a WorkOS)                              |
+| `artists`          | Perfil artístico (username único = clave multi-tenant)               |
+| `pages`            | Página pública del artista (1-to-1 con Artist)                       |
+| `blocks`           | Bloques de contenido ordenados (link, music, video, fan_capture)     |
+| `custom_domains`   | Dominios personalizados por artista (pending/active/failed/disabled) |
+| `analytics_events` | Eventos crudos (page_view, link_click)                               |
+| `subscribers`      | Emails capturados via bloque fan capture                             |
+| `subscriptions`    | Estado de suscripción Stripe por artista                             |
 
 ---
 
@@ -218,6 +278,7 @@ Usar un helper centralizado tanto en backend como en frontend para verificar el 
 - CSP/CORS configurados correctamente
 - Presigned URLs para uploads a S3 (nunca exponer claves de AWS al cliente)
 - Registrar en audit trail: create/update/publish/delete de páginas y bloques
+- Endpoints públicos (`/api/public/`) no exponen userId, IDs internos, datos de suscripción
 
 ---
 
@@ -226,12 +287,13 @@ Usar un helper centralizado tanto en backend como en frontend para verificar el 
 ```
 # Frontend (apps/web)
 NEXT_PUBLIC_APP_URL=
+NEXT_PUBLIC_API_URL=          # URL del backend (http://localhost:4001 en dev)
 WORKOS_CLIENT_ID=
 WORKOS_API_KEY=
-NEXT_PUBLIC_API_URL=
 
 # Backend (apps/api)
-DATABASE_URL=
+DATABASE_URL=                 # PostgreSQL (requerida en producción)
+PORT=                         # Inyectado por Railway automáticamente
 WORKOS_API_KEY=
 AWS_BUCKET=
 AWS_REGION=
@@ -240,67 +302,80 @@ AWS_SECRET_ACCESS_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 POSTHOG_API_KEY=
-SHOPIFY_STOREFRONT_TOKEN=   # Solo plan Pro
+SHOPIFY_STOREFRONT_TOKEN=     # Solo plan Pro
 ```
 
 ---
 
 ## Roadmap de Etapas
 
-| Etapa | Contenido                                                       | Horas est. |
-| ----- | --------------------------------------------------------------- | ---------: |
-| 0     | Estrategia y definición                                         |       12 h |
-| 1     | Fundaciones técnicas (monorepo, scaffold, deploy)               |       22 h |
-| 2     | Plataforma core (DB, auth, S3, multi-tenant)                    |       34 h |
-| 3     | Constructor MVP (onboarding, editor de bloques, página pública) |       54 h |
-| 4     | Analytics y fan capture                                         |       27 h |
-| 5     | Monetización (Stripe, feature gating)                           |       24 h |
-| 6     | Features Pro (Shopify, EPK, analytics pro, i18n)                |       41 h |
-| 7     | AI + hardening + launch                                         |       28 h |
-
-**MVP funcional + pagos**: Etapas 0–5 (~173 h / ~17 semanas a 2 h/día)
+| Etapa | Contenido                                                       | Estado         |
+| ----- | --------------------------------------------------------------- | -------------- |
+| 0     | Estrategia y definición                                         | ✅ Completo    |
+| 1     | Fundaciones técnicas (monorepo, scaffold, deploy)               | ✅ Completo    |
+| 2     | Plataforma core (DB, auth, multi-tenant)                        | 🔄 En progreso |
+| 3     | Constructor MVP (onboarding, editor de bloques, página pública) | ⏳ Pendiente   |
+| 4     | Analytics y fan capture                                         | ⏳ Pendiente   |
+| 5     | Monetización (Stripe, feature gating)                           | ⏳ Pendiente   |
+| 6     | Features Pro (Shopify, EPK, analytics pro, i18n)                | ⏳ Pendiente   |
+| 7     | AI + hardening + launch                                         | ⏳ Pendiente   |
 
 ---
 
 ## Estado Actual del Proyecto
 
-- [x] PRD del MVP definido (`mvp.md`)
-- [x] Plan de proyecto con estimaciones (`stagelink_project_plan.md`)
-- [x] Backlog importado en Asana (`stagelink_asana_import.csv`)
-- [x] Landing page diseñada (`stagelink_landing_page_nextjs.jsx`)
-- [x] Modelo de entidades definido (`docs/architecture/entities.md`)
-- [x] Flujos de aplicación documentados (`docs/architecture/flows.md`)
-- [x] ADRs de arquitectura (`docs/adr/`)
-- [x] Wireframes low-fi de todas las pantallas (`docs/ux/wireframes.md`)
-- [x] Catálogo de componentes shadcn por pantalla (`docs/ux/components.md`)
-- [x] Props y validaciones de bloques MVP (`docs/ux/blocks-catalog.md`)
-- [x] Orden de construcción definido (`docs/ux/build-order.md`)
-- [x] Backlog Asana + milestones + rutina diaria (`docs/project/asana-setup.md`)
-- [x] Monorepo inicializado (pnpm workspaces, apps/web, apps/api, packages/)
-- [x] Tooling configurado (ESLint, Prettier, Husky, lint-staged, commitlint)
-- [x] Build de producción de `apps/web` verificado ✓
-- [x] Scaffold frontend completo (`src/` con i18n, layouts, shadcn/ui, rutas, placeholders)
-- [x] i18n configurado (next-intl, locales en/es, namespaces: nav/marketing/auth/dashboard)
-- [x] shadcn/ui instalado (Button, Card, Input, Badge, Separator, Dialog, Sheet)
-- [x] Layouts: marketing (Navbar+Footer), auth (centrado), app (Sidebar+Topbar)
-- [x] Páginas placeholder: Home, Pricing, Login, Signup, Dashboard, Settings, [username]
-- [x] Scaffold backend NestJS completo (ConfigModule, ValidationPipe, exception filter, health, módulos stub)
-- [ ] Schema de base de datos (migración SQL)
-- [ ] Auth integrada (WorkOS)
-- [ ] Editor de bloques
+### ✅ Completado
+
+- PRD del MVP definido (`mvp.md`)
+- Plan de proyecto con estimaciones
+- Monorepo inicializado (pnpm workspaces, apps/web, apps/api, packages/)
+- Tooling configurado (ESLint, Prettier, Husky, lint-staged, commitlint)
+- Scaffold frontend completo (i18n, layouts, shadcn/ui, rutas, placeholders)
+- i18n configurado (next-intl, locales en/es)
+- Layouts: marketing (Navbar+Footer), auth (centrado), app (Sidebar+Topbar)
+- Scaffold backend NestJS completo (ConfigModule, ValidationPipe, exception filter, health, módulos stub)
+- Schema Prisma completo (User, Artist, Page, Block, Subscription, Analytics, Subscriber, CustomDomain)
+- Railway deploy funcionando (`GET /api/health` → 200 en producción)
+  - Single-stage Dockerfile (preserva symlinks pnpm)
+  - CMD directo `node dist/main` (sin shell wrapper)
+  - Pre-Deploy Command: `pnpm --filter @stagelink/api exec prisma migrate deploy`
+- **Multi-tenant resolution implementado** (T2-1)
+  - `TenantResolverService`: resolución central por username y por dominio
+  - `GET /api/public/pages/by-username/:username` — endpoint público sin auth
+  - `GET /api/public/pages/by-domain` — preparado para custom domains
+  - Reserved usernames (80+): `api`, `admin`, `www`, `stagelink`, etc.
+  - Username normalization + validación estricta centralizada
+  - `custom_domains` table en DB (pending/active/failed/disabled)
+  - Frontend `[username]/page.tsx` con fetch real + `notFound()` correcto
+  - `docs/multi-tenant.md` con arquitectura, decisiones y checklist
+
+### 🔄 En progreso (Etapa 2)
+
+- T2-2: WorkOS auth integration (JwtAuthGuard real)
+
+### ⏳ Pendiente
+
+- T2-3: Implementar queries Prisma reales en módulos stub (artists, pages, blocks)
+- T2-4: S3 para uploads (avatars, covers)
+- Custom domains UI + DNS verification
+- Editor de bloques
+- Analytics
 
 ---
 
 ## Patrones a Reutilizar
 
-| Patrón                           | Dónde aplicarlo                          |
-| -------------------------------- | ---------------------------------------- |
-| Multi-tenant por username        | Middleware Next.js + guards NestJS       |
-| Feature gating centralizado      | Helper único importado desde `packages/` |
-| Presigned URLs para uploads      | Módulo S3 en NestJS                      |
-| Webhook handlers idempotentes    | Stripe events                            |
-| Ownership check en servicios     | Todos los endpoints de escritura         |
-| Discriminated union para bloques | Tipo `Block` con campo `type`            |
+| Patrón                           | Archivo                                     | Reuse For                                        |
+| -------------------------------- | ------------------------------------------- | ------------------------------------------------ |
+| Tenant resolution centralizada   | `modules/tenant/tenant-resolver.service.ts` | Cualquier endpoint que necesite resolver artista |
+| Reserved usernames               | `common/constants/reserved-usernames.ts`    | Validación en UI + backend                       |
+| Username normalization           | `common/utils/username.util.ts`             | Todos los inputs de username                     |
+| Public fetch helper              | `apps/web/src/lib/public-api.ts`            | Fetch sin auth con cache: no-store               |
+| Feature gating centralizado      | Helper único importado desde `packages/`    | Verificar plan activo                            |
+| Presigned URLs para uploads      | Módulo S3 en NestJS                         | Avatars, covers                                  |
+| Webhook handlers idempotentes    | Stripe events                               | Billing                                          |
+| Ownership check en servicios     | `common/guards/index.ts`                    | Todos los endpoints de escritura                 |
+| Discriminated union para bloques | Tipo `Block` con campo `type`               | Editor de bloques                                |
 
 ---
 
