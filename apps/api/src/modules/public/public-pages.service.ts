@@ -33,7 +33,8 @@ export class PublicPagesService {
     const tenant = await this.tenantResolver.resolveByUsername(rawUsername);
 
     if (!tenant) {
-      throw new NotFoundException(`Artist not found: ${rawUsername}`);
+      // Mensaje genérico — no reflejar input del usuario en la respuesta.
+      throw new NotFoundException('Artist not found');
     }
 
     return this.loadPublicPage(tenant.artistId);
@@ -50,7 +51,8 @@ export class PublicPagesService {
     const tenant = await this.tenantResolver.resolveByDomain(host);
 
     if (!tenant) {
-      throw new NotFoundException(`No artist found for domain: ${host}`);
+      // Mensaje genérico — no reflejar el Host header en la respuesta.
+      throw new NotFoundException('Not found');
     }
 
     return this.loadPublicPage(tenant.artistId);

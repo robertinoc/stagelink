@@ -10,10 +10,9 @@ interface ArtistPageProps {
 /**
  * Metadata dinámica por tenant.
  *
- * Se llama fetchPublicPage dos veces (aquí y en el Server Component),
- * pero Next.js deduplica automáticamente las fetches con la misma URL
- * dentro del mismo render (Request Memoization).
- * Ref: https://nextjs.org/docs/app/building-your-application/caching#request-memoization
+ * `fetchPublicPage` está wrapped con `React.cache()`, por lo que esta llamada
+ * y la del Server Component comparten el resultado — una sola request HTTP
+ * al backend por pageview, aunque se llame dos veces en el mismo render tree.
  */
 export async function generateMetadata({ params }: ArtistPageProps): Promise<Metadata> {
   const { username } = await params;
@@ -41,13 +40,14 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
  *
  * Flujo:
  * 1. fetchPublicPage(username) → GET /api/public/pages/by-username/:username
- * 2. Si 404 (no existe / no publicada) → notFound() → muestra página 404
- * 3. Si existe → renderiza con los datos del tenant correcto
+ * 2. Si 404 → notFound() → página 404 con HTTP 404 real
+ * 3. Si 5xx → Next.js propaga el error → error.tsx lo maneja
+ * 4. Si existe → renderiza con datos del tenant correcto
  *
  * Seguridad:
- * - El backend filtra todo por artistId (identificador interno)
+ * - El backend filtra todo por artistId (identificador interno estable)
  * - cache: 'no-store' evita mezclar contenido entre tenants
- * - notFound() devuelve 404 HTTP real, no solo UI vacía
+ * - notFound() retorna 404 HTTP real, no solo UI vacía
  */
 export default async function ArtistPage({ params }: ArtistPageProps) {
   const { username } = await params;
