@@ -18,10 +18,22 @@ export const validationSchema = Joi.object({
     otherwise: optionalString,
   }),
 
-  // Auth — required when WorkOS is integrated (T2)
-  WORKOS_CLIENT_ID: optionalString,
-  WORKOS_API_KEY: optionalString,
-  WORKOS_REDIRECT_URI: optionalString,
+  // Auth — required in production, optional in development
+  WORKOS_CLIENT_ID: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required(),
+    otherwise: optionalString,
+  }),
+  WORKOS_API_KEY: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required(),
+    otherwise: optionalString,
+  }),
+  WORKOS_REDIRECT_URI: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().uri().required(),
+    otherwise: optionalString,
+  }),
 
   // Payments — required when Stripe is integrated (T5)
   STRIPE_SECRET_KEY: optionalString,

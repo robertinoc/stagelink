@@ -1,22 +1,19 @@
 /**
- * Auth DTOs — WorkOS AuthKit flow.
+ * DTOs del módulo de autenticación.
  *
- * Note: WorkOS handles the OAuth redirect and callback automatically.
- * These DTOs are for internal session shape documentation only.
- * The actual JWT validation happens in JwtAuthGuard (T2).
+ * AuthenticatedUser: representa al usuario interno de StageLink
+ * tal como se expone en GET /api/auth/me.
+ * Nunca incluye datos sensibles (workosId queda fuera).
  */
 
-export interface AuthUser {
-  /** WorkOS User ID (sub claim in JWT) */
+export interface AuthenticatedUser {
+  /** ID interno de StageLink */
   id: string;
   email: string;
-  firstName?: string;
-  lastName?: string;
-  /** Resolved from DB after first sign-in */
-  artistId?: string;
-}
-
-export interface SessionResponseDto {
-  user: AuthUser | null;
-  isAuthenticated: boolean;
+  firstName: string | null;
+  lastName: string | null;
+  avatarUrl: string | null;
+  /** IDs de los artistas administrados por este usuario */
+  artistIds: string[];
+  createdAt: Date;
 }

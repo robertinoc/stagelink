@@ -2,39 +2,34 @@
 
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import Link from 'next/link';
 
-export function SignupForm() {
+interface SignupFormProps {
+  /** URL de sign-up de WorkOS (generada server-side con getSignUpUrl()) */
+  signUpUrl: string;
+}
+
+/**
+ * SignupForm — formulario de registro con WorkOS AuthKit.
+ *
+ * No maneja credenciales directamente. El registro ocurre en la
+ * hosted UI de WorkOS:
+ *   1. El botón redirige a la URL de WorkOS (signUpUrl)
+ *   2. WorkOS registra al usuario (email/password, social, SSO)
+ *   3. WorkOS redirige a /api/auth/callback con el authorization code
+ *   4. El callback handler crea la sesión y redirige al dashboard
+ *   5. JwtAuthGuard en el backend provisiona el User interno (primer request)
+ */
+export function SignupForm({ signUpUrl }: SignupFormProps) {
   const t = useTranslations('auth.signup');
 
   return (
     <Card>
       <CardContent className="pt-6">
-        <form className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="name">
-              {t('name')}
-            </label>
-            <Input id="name" type="text" placeholder="Your name" autoComplete="name" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="email">
-              {t('email')}
-            </label>
-            <Input id="email" type="email" placeholder="you@example.com" autoComplete="email" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="password">
-              {t('password')}
-            </label>
-            <Input id="password" type="password" autoComplete="new-password" />
-          </div>
-          <Button type="submit" className="w-full">
-            {t('submit')}
-          </Button>
-        </form>
+        <Button className="w-full" asChild>
+          <a href={signUpUrl}>{t('submit')}</a>
+        </Button>
       </CardContent>
       <CardFooter className="justify-center text-sm text-muted-foreground">
         {t('have_account')}&nbsp;

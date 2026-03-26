@@ -1,6 +1,7 @@
 import { Controller, Get, Headers, Param } from '@nestjs/common';
 import { PublicPagesService } from './public-pages.service';
 import { PublicPageResponseDto } from './dto/public-page-response.dto';
+import { Public } from '../../common/decorators';
 
 /**
  * PublicPagesController — endpoints públicos de páginas de artistas.
@@ -18,6 +19,7 @@ import { PublicPageResponseDto } from './dto/public-page-response.dto';
  *   (cuando llegue el soporte de custom domains, el frontend
  *    o el reverse proxy forward este header correctamente)
  */
+@Public()
 @Controller('public/pages')
 export class PublicPagesController {
   constructor(private readonly publicPagesService: PublicPagesService) {}
