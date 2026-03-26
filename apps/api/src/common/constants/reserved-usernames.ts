@@ -78,6 +78,19 @@ export const RESERVED_USERNAMES: ReadonlySet<string> = new Set([
   'cookies',
   'dmca',
 
+  // ── Códigos de locale (evita colisión con rutas i18n) ────────
+  // Agregar aquí cada nuevo locale antes de habilitarlo en next-intl.
+  'en',
+  'es',
+  'fr',
+  'pt',
+  'de',
+  'it',
+  'ja',
+  'zh',
+  'ar',
+  'ru',
+
   // ── Dominios / infra de plataforma ───────────────────────────
   'www',
   'staging',

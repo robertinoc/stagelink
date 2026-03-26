@@ -1,49 +1,56 @@
+import { cache } from 'react';
 import type { PublicPageResponse } from '@stagelink/types';
 
 /**
  * public-api.ts — helpers para consumir endpoints públicos del API.
  *
- * Estos helpers son para uso en Server Components (SSR).
+ * Para uso exclusivo en Server Components (SSR).
  * No requieren autenticación.
  *
  * Caching:
- * - Se usa `cache: 'no-store'` para evitar mezclar contenido entre tenants.
- * - En el futuro, se puede cambiar a `next: { tags: [`artist:${username}`] }`
- *   para ISR con revalidación por tag, una vez que estemos seguros de que
- *   Next.js no mezcla tenants por key de caché.
- * - Ver: docs/multi-tenant.md — sección "Caching y SSR"
+ * - `cache: 'no-store'` evita que Next.js persista respuestas entre requests,
+ *   eliminando el riesgo de servir contenido de un tenant a otro.
+ * - `React.cache()` deduplica llamadas con el mismo argumento dentro del mismo
+ *   render tree (mismo request). Así `generateMetadata` y el Server Component
+ *   comparten el resultado sin hacer dos requests al backend.
+ * - Migrar a ISR: reemplazar `cache: 'no-store'` por
+ *   `next: { tags: ['artist:username'], revalidate: 60 }` cuando el volumen
+ *   lo justifique. Ver: docs/multi-tenant.md — sección "Caching y SSR".
  */
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4001';
 
+async function _fetchPublicPage(username: string): Promise<PublicPageResponse | null> {
+  const res = await fetch(
+    `${API_URL}/api/public/pages/by-username/${encodeURIComponent(username)}`,
+    { cache: 'no-store' },
+  );
+
+  if (res.status === 404) return null;
+
+  if (res.status >= 500) {
+    // Error de infraestructura — propagar para que Next.js muestre error.tsx,
+    // no silenciar como 404 (ocultaría fallos reales del backend).
+    throw new Error(`[public-api] Backend error ${res.status} fetching page for "${username}"`);
+  }
+
+  if (!res.ok) {
+    console.error(`[public-api] Unexpected ${res.status} fetching page for "${username}"`);
+    return null;
+  }
+
+  return (await res.json()) as PublicPageResponse;
+}
+
 /**
  * Obtiene la página pública de un artista por username.
  *
- * @returns PublicPageResponse si existe y está publicada, null si no.
- *          Retorna null para cualquier error (404, 500, red, etc.).
+ * Wrapped con `React.cache()` para deduplicar dentro del mismo render:
+ * `generateMetadata` y el Server Component llaman a esta función con el
+ * mismo username → una sola request HTTP al backend por pageview.
+ *
+ * @returns PublicPageResponse si el artista existe y su página está publicada.
+ *          Retorna null si no existe (404).
+ * @throws Error si el backend devuelve 5xx (deja que Next.js maneje el error).
  */
-export async function fetchPublicPage(username: string): Promise<PublicPageResponse | null> {
-  try {
-    const res = await fetch(
-      `${API_URL}/api/public/pages/by-username/${encodeURIComponent(username)}`,
-      {
-        cache: 'no-store', // Sin caché — cada request va al backend
-      },
-    );
-
-    if (res.status === 404) return null;
-
-    if (!res.ok) {
-      // Error inesperado — loguear pero no crashear
-      console.error(`[public-api] Unexpected error fetching page for "${username}": ${res.status}`);
-      return null;
-    }
-
-    const data = (await res.json()) as PublicPageResponse;
-    return data;
-  } catch (error) {
-    // Error de red o parse — retornar null para mostrar 404
-    console.error(`[public-api] Network error fetching page for "${username}":`, error);
-    return null;
-  }
-}
+export const fetchPublicPage = cache(_fetchPublicPage);
