@@ -16,6 +16,8 @@ import { PublicModule } from './modules/public/public.module';
 import { JwtAuthGuard } from './common/guards';
 import { S3Module } from './lib/s3/s3.module';
 import { AssetsModule } from './modules/assets/assets.module';
+import { MembershipModule } from './modules/membership/membership.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { AssetsModule } from './modules/assets/assets.module';
     }),
     PrismaModule, // Global — PrismaService inyectable en todos los módulos
     S3Module, // Global — S3Service inyectable en todos los módulos
+    MembershipModule, // Global — MembershipService inyectable en todos los módulos
+    AuditModule, // Global — AuditService inyectable en todos los módulos
     HealthModule,
     AuthModule,
     TenantModule, // Resolución central de tenants (username → artistId, domain → artistId)

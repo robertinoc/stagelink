@@ -1,13 +1,9 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, Logger } from '@nestjs/common';
 import type { User } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
 import { S3Service } from '../../lib/s3/s3.service';
+import { MembershipService } from '../membership/membership.service';
+import { AuditService } from '../audit/audit.service';
 import { ASSET_CONFIG, PRESIGNED_URL_TTL_SECONDS } from './assets.constants';
 import type { AssetDto, CreateUploadIntentDto, UploadIntentResponseDto } from './dto';
 
@@ -18,6 +14,8 @@ export class AssetsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly s3: S3Service,
+    private readonly membershipService: MembershipService,
+    private readonly auditService: AuditService,
   ) {}
 
   /**
@@ -31,13 +29,8 @@ export class AssetsService {
     dto: CreateUploadIntentDto,
     user: User,
   ): Promise<UploadIntentResponseDto> {
-    // 1. Ownership check — user must own this artist
-    const artist = await this.prisma.artist.findUnique({
-      where: { id: dto.artistId },
-      select: { id: true, userId: true },
-    });
-    if (!artist) throw new NotFoundException('Artist not found');
-    if (artist.userId !== user.id) throw new ForbiddenException('Access denied');
+    // 1. Membership check — user must have write access to this artist
+    await this.membershipService.validateAccess(user.id, dto.artistId, 'write');
 
     // 2. Validate asset kind config
     const config = ASSET_CONFIG[dto.kind];
@@ -85,6 +78,14 @@ export class AssetsService {
       `Upload intent created: assetId=${asset.id} kind=${dto.kind} artistId=${dto.artistId}`,
     );
 
+    this.auditService.log({
+      actorId: user.id,
+      action: 'asset.upload.intent',
+      entityType: 'asset',
+      entityId: asset.id,
+      metadata: { artistId: dto.artistId, kind: dto.kind },
+    });
+
     return {
       assetId: asset.id,
       uploadUrl,
@@ -103,11 +104,11 @@ export class AssetsService {
   async confirmUpload(assetId: string, user: User): Promise<AssetDto> {
     const asset = await this.prisma.asset.findUnique({
       where: { id: assetId },
-      include: { artist: { select: { id: true, userId: true } } },
     });
 
     if (!asset) throw new NotFoundException('Asset not found');
-    if (asset.artist.userId !== user.id) throw new ForbiddenException('Access denied');
+    // Membership check — user must have write access to this artist
+    await this.membershipService.validateAccess(user.id, asset.artistId, 'write');
     if (asset.status !== 'pending') {
       throw new BadRequestException(`Asset is already ${asset.status}`);
     }
@@ -134,6 +135,14 @@ export class AssetsService {
     }
 
     this.logger.log(`Upload confirmed: assetId=${assetId} kind=${asset.kind}`);
+
+    this.auditService.log({
+      actorId: user.id,
+      action: 'asset.upload.confirm',
+      entityType: 'asset',
+      entityId: assetId,
+      metadata: { artistId: asset.artistId, kind: asset.kind },
+    });
 
     return this.toDto(updated);
   }

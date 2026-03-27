@@ -1,3 +1,16 @@
+// ── Membership ────────────────────────────────────────────────
+
+export type ArtistRole = 'owner' | 'admin' | 'editor' | 'viewer';
+
+export interface ArtistMembership {
+  id: string;
+  artistId: string;
+  userId: string;
+  role: ArtistRole;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ── Tipos internos (autenticados) ────────────────────────────
 
 export type ArtistCategory =
