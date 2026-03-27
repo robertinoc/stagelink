@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
+import { getSession } from '@/lib/auth';
+import { ArtistProfileSettings } from '@/features/artist/components/ArtistProfileSettings';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('settings');
@@ -7,16 +10,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SettingsPage() {
-  const t = await getTranslations('settings');
+  const session = await getSession();
+  if (!session) redirect('/login');
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-sm text-muted-foreground">Manage your account settings.</p>
+        <h1 className="text-2xl font-bold">Settings</h1>
+        <p className="text-sm text-muted-foreground">Manage your artist profile and assets.</p>
       </div>
-      <div className="rounded-lg border p-8 text-center text-muted-foreground">
-        Settings coming soon.
-      </div>
+
+      <ArtistProfileSettings accessToken={session.accessToken} />
     </div>
   );
 }

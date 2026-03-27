@@ -1,0 +1,42 @@
+import { Body, Controller, Param, Post } from '@nestjs/common';
+import type { User } from '@prisma/client';
+import { CurrentUser } from '../../common/decorators';
+import { AssetsService } from './assets.service';
+import { CreateUploadIntentDto } from './dto';
+
+/**
+ * AssetsController — upload pipeline endpoints.
+ *
+ * All routes require JWT auth (APP_GUARD global).
+ *
+ * Routes:
+ *   POST /api/assets/upload-intent   → create intent + presigned PUT URL
+ *   POST /api/assets/:id/confirm     → confirm upload + update artist
+ */
+@Controller('assets')
+export class AssetsController {
+  constructor(private readonly assetsService: AssetsService) {}
+
+  /**
+   * POST /api/assets/upload-intent
+   *
+   * Request a presigned PUT URL for a direct browser → S3 upload.
+   * Backend validates ownership, mime type, and size.
+   * Returns an Asset record (status: pending) + presigned URL.
+   */
+  @Post('upload-intent')
+  createUploadIntent(@Body() dto: CreateUploadIntentDto, @CurrentUser() user: User) {
+    return this.assetsService.createUploadIntent(dto, user);
+  }
+
+  /**
+   * POST /api/assets/:id/confirm
+   *
+   * Confirm that a browser upload to S3 completed successfully.
+   * Marks the asset as `uploaded` and updates the artist's avatar/cover.
+   */
+  @Post(':id/confirm')
+  confirmUpload(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.assetsService.confirmUpload(id, user);
+  }
+}

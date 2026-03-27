@@ -43,12 +43,35 @@ export const validationSchema = Joi.object({
   POSTHOG_KEY: optionalString,
   POSTHOG_HOST: Joi.string().default('https://app.posthog.com'),
 
-  // Storage — optional until S3 module is implemented
-  AWS_S3_BUCKET: optionalString,
-  AWS_S3_REGION: optionalString,
-  AWS_ACCESS_KEY_ID: optionalString,
-  AWS_SECRET_ACCESS_KEY: optionalString,
+  // Storage — required in production
+  AWS_S3_BUCKET: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required(),
+    otherwise: optionalString,
+  }),
+  AWS_S3_REGION: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required(),
+    otherwise: optionalString,
+  }),
+  AWS_ACCESS_KEY_ID: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required(),
+    otherwise: optionalString,
+  }),
+  AWS_SECRET_ACCESS_KEY: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required(),
+    otherwise: optionalString,
+  }),
+  // Optional: MinIO endpoint for local dev / non-AWS S3-compatible providers
   AWS_S3_ENDPOINT: optionalString,
+  // Public base URL for delivery (e.g. https://assets.stagelink.io or https://<bucket>.s3.<region>.amazonaws.com)
+  AWS_S3_PUBLIC_BASE_URL: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().uri().required(),
+    otherwise: optionalString,
+  }),
 
   // E-commerce — Plan Pro only (T6)
   SHOPIFY_STOREFRONT_TOKEN: optionalString,

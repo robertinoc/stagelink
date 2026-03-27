@@ -11,6 +11,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AssetKind {
+  avatar
+  cover
+
+  @@map("asset_kind")
+}
+
+enum AssetStatus {
+  pending
+  uploaded
+  failed
+  deleted
+
+  @@map("asset_status")
+}
+
 // =============================================================
 // USERS
 // Cuenta de plataforma vinculada a WorkOS.
@@ -27,6 +43,7 @@ model User {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   artists     Artist[]
+  assets      Asset[]  @relation("UserAssets")
 
   @@map("users")
 }
@@ -41,16 +58,21 @@ model Artist {
   username    String   @unique
   displayName String   @map("display_name")
   bio         String?
-  avatarUrl   String?  @map("avatar_url")
-  coverUrl    String?  @map("cover_url")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  avatarUrl     String?  @map("avatar_url")
+  coverUrl      String?  @map("cover_url")
+  avatarAssetId String?  @unique @map("avatar_asset_id")
+  coverAssetId  String?  @unique @map("cover_asset_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   page            Page?
   subscription    Subscription?
   analyticsEvents AnalyticsEvent[]
   customDomains   CustomDomain[]
+  assets          Asset[]  @relation("ArtistAssets")
+  avatarAsset     Asset?   @relation("ArtistAvatar", fields: [avatarAssetId], references: [id], onDelete: SetNull)
+  coverAsset      Asset?   @relation("ArtistCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
 
   @@map("artists")
 }
@@ -224,4 +246,35 @@ model Subscription {
   artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
+}
+
+// =============================================================
+// ASSETS
+// Archivos subidos por artistas (avatar, cover, etc.).
+// El backend controla el object key y el presigned URL.
+// El cliente nunca sube directamente con credenciales propias.
+// =============================================================
+model Asset {
+  id               String      @id @default(cuid())
+  artistId         String      @map("artist_id")
+  kind             AssetKind
+  storageProvider  String      @default("s3") @map("storage_provider")
+  bucket           String
+  objectKey        String      @unique @map("object_key")
+  originalFilename String?     @map("original_filename")
+  mimeType         String      @map("mime_type")
+  sizeBytes        Int         @map("size_bytes")
+  deliveryUrl      String?     @map("delivery_url")
+  status           AssetStatus @default(pending)
+  createdByUserId  String      @map("created_by_user_id")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  artist        Artist  @relation("ArtistAssets", fields: [artistId], references: [id], onDelete: Cascade)
+  createdByUser User    @relation("UserAssets", fields: [createdByUserId], references: [id])
+  avatarArtist  Artist? @relation("ArtistAvatar")
+  coverArtist   Artist? @relation("ArtistCover")
+
+  @@index([artistId, kind])
+  @@map("assets")
 }
