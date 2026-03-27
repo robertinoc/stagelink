@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
@@ -97,8 +97,8 @@ export class ArtistsService {
   async remove(id: string, userId: string, ipAddress?: string) {
     await this.membershipService.validateAccess(userId, id, 'owner');
 
-    const artist = await this.prisma.artist.findUnique({ where: { id } });
-    if (!artist) throw new NotFoundException('Artist not found');
+    // Fetch before delete for audit log metadata (artist is guaranteed to exist at this point)
+    const artist = await this.prisma.artist.findUniqueOrThrow({ where: { id } });
 
     await this.prisma.artist.delete({ where: { id } });
 

@@ -115,7 +115,7 @@ model ArtistMembership {
 // =============================================================
 model AuditLog {
   id         String   @id @default(cuid())
-  actorId    String   @map("actor_id")
+  actorId    String?  @map("actor_id")
   action     String
   entityType String   @map("entity_type")
   entityId   String   @map("entity_id")
@@ -123,7 +123,7 @@ model AuditLog {
   ipAddress  String?  @map("ip_address")
   createdAt  DateTime @default(now()) @map("created_at")
 
-  actor User @relation(fields: [actorId], references: [id])
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([actorId])
   @@index([entityType, entityId])
