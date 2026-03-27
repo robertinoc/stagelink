@@ -18,6 +18,15 @@ enum AssetKind {
   @@map("asset_kind")
 }
 
+enum ArtistRole {
+  owner
+  admin
+  editor
+  viewer
+
+  @@map("artist_role")
+}
+
 enum AssetStatus {
   pending
   uploaded
@@ -44,6 +53,8 @@ model User {
 
   artists     Artist[]
   assets      Asset[]  @relation("UserAssets")
+  memberships ArtistMembership[]
+  auditLogs   AuditLog[]
 
   @@map("users")
 }
@@ -73,8 +84,50 @@ model Artist {
   assets          Asset[]  @relation("ArtistAssets")
   avatarAsset     Asset?   @relation("ArtistAvatar", fields: [avatarAssetId], references: [id], onDelete: SetNull)
   coverAsset      Asset?   @relation("ArtistCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
+  memberships     ArtistMembership[]
 
   @@map("artists")
+}
+
+// =============================================================
+// ARTIST MEMBERSHIPS
+// Fuente de verdad para autorización multi-usuario por artista.
+// Reemplaza la comprobación artist.userId === user.id.
+// =============================================================
+model ArtistMembership {
+  id        String     @id @default(cuid())
+  artistId  String     @map("artist_id")
+  userId    String     @map("user_id")
+  role      ArtistRole @default(viewer)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([artistId, userId])
+  @@map("artist_memberships")
+}
+
+// =============================================================
+// AUDIT LOGS
+// Registro inmutable de acciones sensibles. Fire-and-forget.
+// =============================================================
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String   @map("actor_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  metadata   Json?
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor User @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
 }
 
 // =============================================================

@@ -14,6 +14,7 @@ import { createRemoteJWKSet, jwtVerify } from 'jose';
 import type { User } from '@prisma/client';
 import { IS_PUBLIC_KEY, OWNERSHIP_KEY, type OwnershipMeta } from '../decorators';
 import { PrismaService } from '../../lib/prisma.service';
+import { MembershipService } from '../../modules/membership/membership.service';
 import { getWorkOS } from '../../lib/workos';
 
 /**
@@ -133,20 +134,22 @@ export class JwtAuthGuard implements CanActivate {
 }
 
 /**
- * OwnershipGuard — verifica que request.user sea dueño del recurso solicitado.
+ * OwnershipGuard — verifica que request.user sea miembro del artista
+ * con el nivel de acceso requerido.
  *
- * Requiere que el endpoint esté decorado con @CheckOwnership(resource, param).
+ * Requiere que el endpoint esté decorado con @CheckOwnership(resource, param, access?).
  * Sin ese decorator, el guard rechaza el request por defecto (fail-closed).
  *
- * Cadena de ownership soportada:
- *   artist → artist.userId
- *   page   → page.artist.userId
- *   block  → block.page.artist.userId
+ * Flujo:
+ *   1. Lee metadata de @CheckOwnership
+ *   2. Extrae el param del request
+ *   3. Llama membershipService.resolveArtistIdForResource(resource, paramValue) → artistId
+ *   4. Si no existe → 404 (no revela si el recurso existe en otro tenant)
+ *   5. Llama membershipService.validateAccess(userId, artistId, access) → lanza 403 si insuficiente
  *
  * Uso:
- *   @CheckOwnership('page', 'pageId')
+ *   @CheckOwnership('page', 'pageId', 'write')
  *   @UseGuards(OwnershipGuard)
- *   @Get(':pageId/blocks')
  */
 @Injectable()
 export class OwnershipGuard implements CanActivate {
@@ -154,7 +157,7 @@ export class OwnershipGuard implements CanActivate {
 
   constructor(
     private readonly reflector: Reflector,
-    private readonly prisma: PrismaService,
+    private readonly membershipService: MembershipService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -164,7 +167,6 @@ export class OwnershipGuard implements CanActivate {
     ]);
 
     // Fail-closed: si no hay metadata de ownership configurada, denegar.
-    // Evita que un guard aplicado accidentalmente sin @CheckOwnership pase silencioso.
     if (!meta) {
       this.logger.error(
         'OwnershipGuard applied without @CheckOwnership decorator — denying by default',
@@ -185,58 +187,20 @@ export class OwnershipGuard implements CanActivate {
       throw new ForbiddenException(`Missing route param: ${meta.param}`);
     }
 
-    const ownerUserId = await this.resolveOwner(meta.resource, paramValue);
+    // Resolve to artistId
+    const artistId = await this.membershipService.resolveArtistIdForResource(
+      meta.resource,
+      paramValue,
+    );
 
-    if (!ownerUserId) {
+    if (!artistId) {
       throw new NotFoundException(`${meta.resource} not found`);
     }
 
-    if (ownerUserId !== user.id) {
-      this.logger.warn(
-        `Ownership denied: userId=${user.id} tried to access ${meta.resource}=${paramValue} owned by userId=${ownerUserId}`,
-      );
-      throw new ForbiddenException('Access denied');
-    }
+    // validateAccess throws 404/403 as appropriate
+    await this.membershipService.validateAccess(user.id, artistId, meta.access ?? 'read');
 
     return true;
-  }
-
-  /**
-   * Resuelve el userId propietario del recurso dado.
-   * Cada case sube la cadena de ownership hasta llegar a artist.userId.
-   */
-  private async resolveOwner(
-    resource: OwnershipMeta['resource'],
-    id: string,
-  ): Promise<string | null> {
-    switch (resource) {
-      case 'artist': {
-        const artist = await this.prisma.artist.findUnique({
-          where: { id },
-          select: { userId: true },
-        });
-        return artist?.userId ?? null;
-      }
-
-      case 'page': {
-        const page = await this.prisma.page.findUnique({
-          where: { id },
-          select: { artist: { select: { userId: true } } },
-        });
-        return page?.artist.userId ?? null;
-      }
-
-      case 'block': {
-        const block = await this.prisma.block.findUnique({
-          where: { id },
-          select: { page: { select: { artist: { select: { userId: true } } } } },
-        });
-        return block?.page.artist.userId ?? null;
-      }
-
-      default:
-        return null;
-    }
   }
 }
 

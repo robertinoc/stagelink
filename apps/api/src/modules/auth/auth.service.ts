@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { User } from '@prisma/client';
-import { PrismaService } from '../../lib/prisma.service';
+import { MembershipService } from '../membership/membership.service';
 import type { AuthenticatedUser } from './dto';
 
 /**
@@ -12,20 +12,18 @@ import type { AuthenticatedUser } from './dto';
  */
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly membershipService: MembershipService) {}
 
   /**
    * Construye la respuesta para GET /api/auth/me.
    *
    * Incluye los artistIds del usuario para que el frontend pueda
    * resolver ownership sin hacer una segunda request.
+   * Usa MembershipService para obtener todos los artistas donde el usuario
+   * tiene membresía (no solo los que creó directamente).
    */
   async buildMeResponse(user: User): Promise<AuthenticatedUser> {
-    // Cargar artistIds del usuario en una sola query
-    const artists = await this.prisma.artist.findMany({
-      where: { userId: user.id },
-      select: { id: true },
-    });
+    const artistIds = await this.membershipService.getArtistIdsForUser(user.id);
 
     return {
       id: user.id,
@@ -33,7 +31,7 @@ export class AuthService {
       firstName: user.firstName,
       lastName: user.lastName,
       avatarUrl: user.avatarUrl,
-      artistIds: artists.map((a) => a.id),
+      artistIds,
       createdAt: user.createdAt,
     };
   }
