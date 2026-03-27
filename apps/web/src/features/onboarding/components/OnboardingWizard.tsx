@@ -10,6 +10,20 @@ import { completeOnboarding } from '@/lib/api/onboarding';
 import type { ArtistCategory } from '@stagelink/types';
 import { Loader2 } from 'lucide-react';
 
+/**
+ * Suggests a username from a display name.
+ * Mirrors backend normalization: lowercase, replace invalid chars with hyphens,
+ * strip leading/trailing hyphens, max 30 chars.
+ */
+function suggestUsername(displayName: string): string {
+  return displayName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 30);
+}
+
 type WizardStep = 1 | 2 | 3 | 4;
 
 interface WizardState {
@@ -97,7 +111,12 @@ export function OnboardingWizard({ accessToken, locale }: OnboardingWizardProps)
             <StepName
               initialValue={data.displayName}
               onNext={(displayName) => {
-                setData((prev) => ({ ...prev, displayName }));
+                setData((prev) => ({
+                  ...prev,
+                  displayName,
+                  // Pre-suggest username only if the user hasn't typed one yet
+                  username: prev.username || suggestUsername(displayName),
+                }));
                 setStep(2);
               }}
             />

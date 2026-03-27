@@ -1,9 +1,10 @@
-import { IsString, IsNotEmpty, IsEnum, IsOptional, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, MinLength, MaxLength } from 'class-validator';
 import { ArtistCategory } from '@prisma/client';
 
 export class CheckUsernameQueryDto {
   @IsString()
   @IsNotEmpty()
+  @MaxLength(30)
   value!: string;
 }
 
@@ -22,8 +23,4 @@ export class CompleteOnboardingDto {
 
   @IsEnum(ArtistCategory)
   category!: ArtistCategory;
-
-  @IsOptional()
-  @IsString()
-  assetId?: string;
 }
