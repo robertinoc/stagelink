@@ -87,5 +87,48 @@
     "cancel": "Cancel",
     "edit": "Edit",
     "delete": "Delete"
+  },
+  "onboarding": {
+    "title": "StageLink",
+    "subtitle": "Let's set up your artist page",
+    "step": "Step {step} of {total}",
+    "stepName": {
+      "heading": "What's your artist name?",
+      "description": "This is the name your fans will see on your page.",
+      "label": "Artist name",
+      "placeholder": "e.g. The Midnight, DJ Snake, Rosalía...",
+      "continue": "Continue"
+    },
+    "stepUsername": {
+      "heading": "Choose your username",
+      "description": "Your public URL",
+      "label": "Username",
+      "placeholder": "yourname",
+      "available": "{username} is available",
+      "continue": "Continue",
+      "back": "Back"
+    },
+    "stepCategory": {
+      "heading": "What kind of artist are you?",
+      "description": "Pick the one that fits best. You can always update this later.",
+      "continue": "Continue",
+      "back": "Back"
+    },
+    "stepAvatar": {
+      "heading": "Add a profile photo",
+      "description": "Optional — you can always add or change it later from your settings.",
+      "choose": "Choose photo",
+      "change": "Change photo",
+      "skip": "Skip for now"
+    },
+    "creating": "Creating your artist page…",
+    "errors": {
+      "username_taken": "This username is already taken.",
+      "username_reserved": "This username is reserved.",
+      "username_invalid": "Only letters, numbers, hyphens and underscores are allowed.",
+      "username_too_short": "Username must be at least 3 characters.",
+      "username_too_long": "Username must be 30 characters or less.",
+      "generic": "Something went wrong. Please try again."
+    }
   }
 }

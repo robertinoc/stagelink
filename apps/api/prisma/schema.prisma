@@ -18,6 +18,22 @@ enum AssetKind {
   @@map("asset_kind")
 }
 
+enum ArtistCategory {
+  musician
+  dj
+  actor
+  actress
+  painter
+  visual_artist
+  performer
+  creator
+  band
+  producer
+  other
+
+  @@map("artist_category")
+}
+
 enum ArtistRole {
   owner
   admin
@@ -69,6 +85,7 @@ model Artist {
   username    String   @unique
   displayName String   @map("display_name")
   bio         String?
+  category    ArtistCategory @default(other) @map("category")
   avatarUrl     String?  @map("avatar_url")
   coverUrl      String?  @map("cover_url")
   avatarAssetId String?  @unique @map("avatar_asset_id")
