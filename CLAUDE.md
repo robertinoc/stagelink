@@ -402,6 +402,18 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - Storage: Cloudflare R2 (S3-compatible, sin egress fees)
   - `docs/assets-s3.md` con pipeline, CORS, IAM policy, MinIO local, QA checklist
 
+### T3-1 — Artist Onboarding (completed)
+
+- 4-step onboarding wizard: Name → Username → Category → Avatar (optional)
+- Route: /[locale]/onboarding (inside (app) protected group)
+- Redirect logic: /dashboard → /onboarding if no artists; /onboarding → /dashboard if has artists
+- Backend: OnboardingModule with /api/onboarding/username-check + /api/onboarding/complete
+- Transactional: artist + page + membership created atomically in one Prisma $transaction
+- Avatar upload: reuses S3 presigned URL pipeline (step 4, optional, non-blocking on failure)
+- ArtistCategory enum added to Artist model (11 values): musician, dj, actor, actress, painter, visual_artist, performer, creator, band, producer, other
+- @stagelink/types ArtistCategory updated to match DB enum
+- Docs: apps/api/docs/artist-onboarding.md
+
 ### ⏳ Pendiente
 
 - T2-5: Implementar queries Prisma reales en módulos stub (artists, pages, blocks)

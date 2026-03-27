@@ -18,6 +18,7 @@ import { S3Module } from './lib/s3/s3.module';
 import { AssetsModule } from './modules/assets/assets.module';
 import { MembershipModule } from './modules/membership/membership.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { AuditModule } from './modules/audit/audit.module';
     AnalyticsModule,
     BillingModule,
     AssetsModule,
+    OnboardingModule,
   ],
   providers: [
     {

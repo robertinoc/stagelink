@@ -17,8 +17,12 @@ export type ArtistCategory =
   | 'musician'
   | 'dj'
   | 'actor'
-  | 'comedian'
-  | 'dancer'
+  | 'actress'
+  | 'painter'
+  | 'visual_artist'
+  | 'performer'
+  | 'creator'
+  | 'band'
   | 'producer'
   | 'other';
 
