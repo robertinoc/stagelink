@@ -26,14 +26,15 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
       const res = await apiFetch('/api/auth/me', { accessToken: session.accessToken });
       if (res.ok) {
         const me = (await res.json()) as AuthMeResponse;
+        // No artist yet → send to onboarding wizard
         if (me.artistIds.length === 0) {
           redirect(`/${locale}/onboarding`);
         }
       }
     } catch {
-      // If we can't fetch, show dashboard anyway
+      // If we can't fetch, show dashboard anyway (backend may be starting up)
     }
   }
 
-  return <DashboardWelcome />;
+  return <DashboardWelcome locale={locale} />;
 }

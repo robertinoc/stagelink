@@ -1,11 +1,16 @@
 'use client';
 
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EmptyState } from '@/components/shared/EmptyState';
+import { Button } from '@/components/ui/button';
 import { Eye, Link2, Users } from 'lucide-react';
 
-export function DashboardWelcome() {
+interface DashboardWelcomeProps {
+  locale: string;
+}
+
+export function DashboardWelcome({ locale }: DashboardWelcomeProps) {
   const t = useTranslations('dashboard');
 
   const stats = [
@@ -37,11 +42,14 @@ export function DashboardWelcome() {
         ))}
       </div>
 
-      <EmptyState
-        title={t('empty.title')}
-        description={t('empty.description')}
-        action={{ label: t('empty.cta'), onClick: () => {} }}
-      />
+      {/* Empty state — prompts user to start building their page */}
+      <div className="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed gap-3 px-6 py-12 text-center">
+        <h3 className="text-base font-semibold">{t('empty.title')}</h3>
+        <p className="max-w-sm text-sm text-muted-foreground">{t('empty.description')}</p>
+        <Button asChild className="mt-2">
+          <Link href={`/${locale}/dashboard/page`}>{t('empty.cta')}</Link>
+        </Button>
+      </div>
     </div>
   );
 }
