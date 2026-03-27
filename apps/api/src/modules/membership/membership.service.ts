@@ -1,9 +1,10 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { type ArtistRole } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
 
 export type AccessLevel = 'read' | 'write' | 'admin' | 'owner';
 
-const ROLE_WEIGHTS: Record<string, number> = {
+const ROLE_WEIGHTS: Record<ArtistRole, number> = {
   viewer: 1,
   editor: 2,
   admin: 3,
@@ -91,19 +92,5 @@ export class MembershipService {
       default:
         return null;
     }
-  }
-
-  /**
-   * Creates an owner membership for a newly created artist.
-   * Called from ArtistsService.create() within a transaction.
-   */
-  async createOwnership(artistId: string, userId: string) {
-    return this.prisma.artistMembership.create({
-      data: {
-        artistId,
-        userId,
-        role: 'owner',
-      },
-    });
   }
 }

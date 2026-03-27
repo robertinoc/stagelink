@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
 
 export interface AuditPayload {
-  actorId: string;
+  actorId: string | null;
   action: string;
   entityType: string;
   entityId: string;

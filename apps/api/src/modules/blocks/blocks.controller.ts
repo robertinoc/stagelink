@@ -4,6 +4,7 @@ import type { User } from '@prisma/client';
 import { BlocksService, CreateBlockDto, UpdateBlockDto, ReorderBlocksDto } from './blocks.service';
 import { OwnershipGuard } from '../../common/guards';
 import { CheckOwnership, CurrentUser } from '../../common/decorators';
+import { extractClientIp } from '../../common/utils/request.utils';
 
 @Controller('blocks')
 export class BlocksController {
@@ -26,7 +27,7 @@ export class BlocksController {
    */
   @Post()
   create(@Body() dto: CreateBlockDto, @CurrentUser() user: User, @Req() req: Request) {
-    const ip = req.headers['x-forwarded-for'] as string | undefined;
+    const ip = extractClientIp(req);
     return this.blocksService.create(dto, user.id, ip);
   }
 
@@ -42,7 +43,7 @@ export class BlocksController {
     @CurrentUser() user: User,
     @Req() req: Request,
   ) {
-    const ip = req.headers['x-forwarded-for'] as string | undefined;
+    const ip = extractClientIp(req);
     return this.blocksService.update(id, dto, user.id, ip);
   }
 
@@ -53,7 +54,7 @@ export class BlocksController {
   @CheckOwnership('block', 'id', 'write')
   @UseGuards(OwnershipGuard)
   remove(@Param('id') id: string, @CurrentUser() user: User, @Req() req: Request) {
-    const ip = req.headers['x-forwarded-for'] as string | undefined;
+    const ip = extractClientIp(req);
     return this.blocksService.remove(id, user.id, ip);
   }
 
@@ -69,7 +70,7 @@ export class BlocksController {
     @CurrentUser() user: User,
     @Req() req: Request,
   ) {
-    const ip = req.headers['x-forwarded-for'] as string | undefined;
+    const ip = extractClientIp(req);
     return this.blocksService.reorder(pageId, dto, user.id, ip);
   }
 }

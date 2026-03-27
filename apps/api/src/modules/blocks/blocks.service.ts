@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { type BlockType, Prisma } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
@@ -127,14 +128,21 @@ export class BlocksService {
     if (!artistId) throw new NotFoundException('Page not found');
     await this.membershipService.validateAccess(userId, artistId, 'write');
 
-    await this.prisma.$transaction(
-      dto.blocks.map(({ id, position }) =>
-        this.prisma.block.update({
-          where: { id, pageId },
-          data: { position },
-        }),
-      ),
-    );
+    try {
+      await this.prisma.$transaction(
+        dto.blocks.map(({ id, position }) =>
+          this.prisma.block.update({
+            where: { id, pageId },
+            data: { position },
+          }),
+        ),
+      );
+    } catch (err) {
+      if (err instanceof PrismaClientKnownRequestError && err.code === 'P2025') {
+        throw new NotFoundException('One or more blocks not found for this page');
+      }
+      throw err;
+    }
 
     this.auditService.log({
       actorId: userId,

@@ -4,6 +4,7 @@ import type { User } from '@prisma/client';
 import { PagesService, UpdatePageDto } from './pages.service';
 import { OwnershipGuard } from '../../common/guards';
 import { CheckOwnership, CurrentUser } from '../../common/decorators';
+import { extractClientIp } from '../../common/utils/request.utils';
 
 @Controller('pages')
 export class PagesController {
@@ -27,7 +28,7 @@ export class PagesController {
     @CurrentUser() user: User,
     @Req() req: Request,
   ) {
-    const ip = req.headers['x-forwarded-for'] as string | undefined;
+    const ip = extractClientIp(req);
     return this.pagesService.update(pageId, dto, user.id, ip);
   }
 }
