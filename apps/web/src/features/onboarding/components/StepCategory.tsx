@@ -11,7 +11,6 @@ const CATEGORIES: { value: ArtistCategory; label: string; emoji: string }[] = [
   { value: 'band', label: 'Band', emoji: '🎵' },
   { value: 'producer', label: 'Producer', emoji: '🎛️' },
   { value: 'actor', label: 'Actor', emoji: '🎭' },
-  { value: 'actress', label: 'Actress', emoji: '🎬' },
   { value: 'painter', label: 'Painter', emoji: '🎨' },
   { value: 'visual_artist', label: 'Visual Artist', emoji: '🖼️' },
   { value: 'performer', label: 'Performer', emoji: '🌟' },

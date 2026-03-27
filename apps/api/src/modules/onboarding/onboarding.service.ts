@@ -73,6 +73,14 @@ export class OnboardingService {
     user: User,
     ipAddress?: string,
   ): Promise<OnboardingResult> {
+    // Guard: prevent creating more than one artist via onboarding endpoint
+    const existingCount = await this.prisma.artistMembership.count({
+      where: { userId: user.id },
+    });
+    if (existingCount > 0) {
+      throw new ConflictException('You already have an artist. Use the dashboard to manage it.');
+    }
+
     // Normalize and validate username
     const normalized = normalizeUsername(dto.username);
     const formatResult = validateUsernameFormat(normalized);
@@ -83,19 +91,7 @@ export class OnboardingService {
       throw new BadRequestException(`Username "${normalized}" is reserved`);
     }
 
-    // Validate optional assetId (must belong to this user and be uploaded)
-    if (dto.assetId) {
-      const asset = await this.prisma.asset.findUnique({
-        where: { id: dto.assetId },
-        select: { id: true, createdByUserId: true, status: true },
-      });
-      if (!asset || asset.createdByUserId !== user.id) {
-        throw new BadRequestException('Invalid asset reference');
-      }
-      if (asset.status !== 'uploaded') {
-        throw new BadRequestException('Asset upload not confirmed yet');
-      }
-    }
+    const displayName = dto.displayName.trim();
 
     // Atomic transaction: create artist + page + membership
     let result: { artistId: string; pageId: string };
@@ -106,7 +102,7 @@ export class OnboardingService {
           data: {
             userId: user.id,
             username: normalized,
-            displayName: dto.displayName.trim(),
+            displayName,
             category: dto.category as ArtistCategory,
           },
         });
@@ -115,7 +111,7 @@ export class OnboardingService {
         const page = await tx.page.create({
           data: {
             artistId: artist.id,
-            title: `${dto.displayName.trim()}'s Page`,
+            title: `${artist.displayName}'s Page`,
             isPublished: false,
           },
         });
@@ -142,35 +138,6 @@ export class OnboardingService {
       throw err;
     }
 
-    // Link avatar asset if provided (outside transaction — non-critical)
-    if (dto.assetId) {
-      try {
-        const asset = await this.prisma.asset.findUnique({
-          where: { id: dto.assetId },
-          select: { deliveryUrl: true },
-        });
-        if (asset?.deliveryUrl) {
-          await this.prisma.artist.update({
-            where: { id: result.artistId },
-            data: {
-              avatarAssetId: dto.assetId,
-              avatarUrl: asset.deliveryUrl,
-            },
-          });
-          // Also update the asset with the newly created artistId
-          await this.prisma.asset.update({
-            where: { id: dto.assetId },
-            data: { artistId: result.artistId },
-          });
-        }
-      } catch (assetErr) {
-        // Non-blocking: artist was created successfully, avatar linking failed
-        this.logger.warn(
-          `Failed to link avatar asset ${dto.assetId} to artist ${result.artistId}: ${assetErr instanceof Error ? assetErr.message : String(assetErr)}`,
-        );
-      }
-    }
-
     this.auditService.log({
       actorId: user.id,
       action: 'artist.onboarding.complete',
@@ -178,9 +145,8 @@ export class OnboardingService {
       entityId: result.artistId,
       metadata: {
         username: normalized,
-        displayName: dto.displayName.trim(),
+        displayName,
         category: dto.category,
-        hasAvatar: !!dto.assetId,
       },
       ipAddress,
     });
@@ -192,7 +158,7 @@ export class OnboardingService {
     return {
       artistId: result.artistId,
       username: normalized,
-      displayName: dto.displayName.trim(),
+      displayName,
       pageId: result.pageId,
     };
   }
