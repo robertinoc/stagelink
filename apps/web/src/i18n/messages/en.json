@@ -109,12 +109,6 @@
       "coming_soon_description": "Language, notifications, security and more will be configurable here."
     }
   },
-  "settings": {
-    "title": "Settings",
-    "profile": "Profile",
-    "account": "Account",
-    "billing": "Billing"
-  },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",

@@ -1,17 +1,16 @@
-'use client';
-
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { getTranslations, getLocale } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Eye, Link2, Users } from 'lucide-react';
 
-interface DashboardWelcomeProps {
-  locale: string;
-}
-
-export function DashboardWelcome({ locale }: DashboardWelcomeProps) {
-  const t = useTranslations('dashboard');
+/**
+ * Server component — no client bundle weight.
+ * Reads locale via getLocale() so callers don't need to thread it as a prop.
+ */
+export async function DashboardWelcome() {
+  const t = await getTranslations('dashboard');
+  const locale = await getLocale();
 
   const stats = [
     { label: t('stats.page_views'), value: '—', icon: Eye },

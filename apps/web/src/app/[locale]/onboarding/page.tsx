@@ -7,13 +7,23 @@ interface OnboardingPageProps {
   params: Promise<{ locale: string }>;
 }
 
+/**
+ * Onboarding lives OUTSIDE the (app) route group intentionally.
+ *
+ * The (app) layout wraps every page with AppShell (sidebar + topbar).
+ * New users who haven't created an artist yet should see a clean,
+ * distraction-free wizard — not the full app chrome with "—" for
+ * artist name and disabled nav items.
+ *
+ * Auth is provided by [locale]/layout.tsx (i18n) + this page's own
+ * getSession() check. The (app) layout auth guard does NOT apply here.
+ */
 export default async function OnboardingPage({ params }: OnboardingPageProps) {
   const { locale } = await params;
   const session = await getSession();
 
-  // Layout already redirects unauthenticated users, but getSession() returns
-  // null | AuthSession — this redirect is required for TypeScript to narrow the
-  // type before accessing session.accessToken below.
+  // getSession() returns AuthSession | null — this redirect is required for
+  // TypeScript to narrow the type before accessing session.accessToken below.
   if (!session) {
     redirect(`/${locale}/login`);
   }

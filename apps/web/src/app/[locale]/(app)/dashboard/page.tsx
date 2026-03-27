@@ -26,5 +26,5 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
     }
   }
 
-  return <DashboardWelcome locale={locale} />;
+  return <DashboardWelcome />;
 }
