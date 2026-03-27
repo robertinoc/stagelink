@@ -1,21 +1,21 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { BlocksService } from './blocks.service';
-import { JwtAuthGuard, OwnershipGuard } from '../../common/guards';
+import { OwnershipGuard } from '../../common/guards';
+import { CheckOwnership } from '../../common/decorators';
 
 @Controller('blocks')
-@UseGuards(JwtAuthGuard) // All block endpoints require authentication
 export class BlocksController {
   constructor(private readonly blocksService: BlocksService) {}
 
   /**
    * GET /api/blocks/:pageId
-   * Returns ordered blocks for a given page.
-   * Ownership check: requester must own the artist that owns this page.
    *
-   * TODO (T2): Implement OwnershipGuard with real JWT + DB lookup.
-   * For now, JwtAuthGuard stub allows all requests — safe because no real DB yet.
+   * Returns ordered blocks for a given page.
+   * Ownership enforced: request.user must own the artist that owns this page.
+   * JwtAuthGuard is applied globally via APP_GUARD — no need to repeat it here.
    */
   @Get(':pageId')
+  @CheckOwnership('page', 'pageId')
   @UseGuards(OwnershipGuard)
   findByPage(@Param('pageId') pageId: string) {
     return this.blocksService.findByPage(pageId);

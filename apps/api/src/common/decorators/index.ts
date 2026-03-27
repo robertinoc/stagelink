@@ -30,3 +30,26 @@ export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionC
  */
 export const ROLES_KEY = 'roles';
 export const Roles = (...roles: string[]) => SetMetadata(ROLES_KEY, roles);
+
+/**
+ * @CheckOwnership(resource, param) — configures OwnershipGuard for a route.
+ *
+ * Tells OwnershipGuard which route param to read and which DB resource to look
+ * up to verify that request.user owns the resource.
+ *
+ * Usage:
+ *   @CheckOwnership('artist', 'artistId')   → verifies artist.userId === user.id
+ *   @CheckOwnership('page',   'pageId')     → verifies page→artist.userId === user.id
+ *   @CheckOwnership('block',  'blockId')    → verifies block→page→artist.userId === user.id
+ *
+ * Always pair with @UseGuards(OwnershipGuard).
+ */
+export const OWNERSHIP_KEY = 'ownership';
+
+export interface OwnershipMeta {
+  resource: 'artist' | 'page' | 'block';
+  param: string;
+}
+
+export const CheckOwnership = (resource: OwnershipMeta['resource'], param: string) =>
+  SetMetadata(OWNERSHIP_KEY, { resource, param } satisfies OwnershipMeta);
