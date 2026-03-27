@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 import { withAuth } from '@workos-inc/authkit-nextjs';
-import { Sidebar } from '@/components/layout/Sidebar';
+import { getArtist } from '@/lib/api/artists';
+import { getAuthMe } from '@/lib/api/me';
+import { AppShell } from '@/components/layout/AppShell';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -8,51 +10,36 @@ interface AppLayoutProps {
 }
 
 /**
- * Layout de la app protegida (dashboard, settings, etc.).
+ * Layout de la app protegida (dashboard, settings, onboarding, etc.).
  *
- * Protección server-side:
- *   - Si no hay sesión válida → redirect al login page (preserva locale)
- *   - Si hay sesión → renderiza el layout con datos del usuario
+ * Responsabilidades:
+ *   1. Auth guard — redirige a /login si no hay sesión válida.
+ *   2. Carga datos del artista (el primero de artistIds) para el shell:
+ *      - Si el usuario aún no tiene artista (primera vez / en onboarding)
+ *        se pasa artist=null y el shell muestra el estado vacío.
+ *      - Fallos de red degradan gracefully (artist=null), sin romper la página.
+ *   3. Renderiza AppShell con sidebar + topbar responsivos.
  *
- * El check ocurre en el server antes de renderizar cualquier hijo,
- * por lo que nunca se expone contenido privado a usuarios no autenticados.
+ * La redirección a /onboarding (cuando no hay artistas) ocurre en
+ * dashboard/page.tsx — no aquí — para evitar interferir con la propia
+ * página de onboarding que vive bajo este mismo layout.
  */
 export default async function AppLayout({ children, params }: AppLayoutProps) {
   const { locale } = await params;
-  const { user } = await withAuth();
+  const { user, accessToken } = await withAuth();
 
-  // Redirigir a login si no hay sesión
+  // Auth guard: redirigir a login si no hay sesión
   if (!user) {
     redirect(`/${locale}/login`);
   }
 
-  const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email;
+  // Intentar cargar el artista del usuario para el shell (sidebar/topbar).
+  // Errores son silenciosos — la página sigue funcionando sin datos de artista.
+  let artist = null;
+  const me = await getAuthMe(accessToken);
+  if (me?.artistIds[0]) {
+    artist = await getArtist(me.artistIds[0], accessToken);
+  }
 
-  return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar locale={locale} />
-      <div className="flex flex-1 flex-col overflow-y-auto">
-        <header className="flex h-14 items-center border-b px-6">
-          <div className="ml-auto flex items-center gap-3">
-            {/* Avatar con iniciales del usuario */}
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold"
-              title={displayName}
-            >
-              {(user.firstName?.charAt(0) ?? user.email.charAt(0)).toUpperCase()}
-            </div>
-            {/* Logout link — /api/auth/signout es una API route, no una page */}
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a
-              href="/api/auth/signout"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Log out
-            </a>
-          </div>
-        </header>
-        <main className="flex-1 p-6">{children}</main>
-      </div>
-    </div>
-  );
+  return <AppShell artist={artist}>{children}</AppShell>;
 }

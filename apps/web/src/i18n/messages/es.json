@@ -5,8 +5,13 @@
     "login": "Iniciar sesión",
     "signup": "Comenzar",
     "dashboard": "Panel",
+    "my_page": "Mi Página",
+    "analytics": "Analíticas",
+    "profile": "Perfil",
+    "billing": "Facturación",
     "settings": "Configuración",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "view_page": "Ver mi página"
   },
   "marketing": {
     "hero": {
@@ -72,13 +77,37 @@
       "title": "Tu página está lista",
       "description": "Empezá a agregar bloques para construir tu página.",
       "cta": "Agregar primer bloque"
+    },
+    "page": {
+      "title": "Mi Página",
+      "description": "Construí y personalizá tu página de artista.",
+      "coming_soon": "Constructor de página próximamente",
+      "coming_soon_description": "Acá vas a poder construir tu página con bloques, links y multimedia."
+    },
+    "analytics": {
+      "title": "Analíticas",
+      "description": "Seguí el rendimiento de tu página.",
+      "coming_soon": "Analíticas próximamente",
+      "coming_soon_description": "Pronto vas a ver visitas, clicks en links e insights de tu audiencia."
+    },
+    "profile": {
+      "title": "Perfil",
+      "description": "Administrá tu perfil de artista y tus assets.",
+      "cover": "Imagen de portada",
+      "avatar": "Foto de perfil"
+    },
+    "billing": {
+      "title": "Facturación",
+      "description": "Administrá tu suscripción y métodos de pago.",
+      "coming_soon": "Facturación próximamente",
+      "coming_soon_description": "La gestión de suscripciones y detalles de facturación estarán disponibles acá."
+    },
+    "settings": {
+      "title": "Configuración",
+      "description": "Configurá las preferencias de tu cuenta.",
+      "coming_soon": "Configuración de cuenta próximamente",
+      "coming_soon_description": "Idioma, notificaciones, seguridad y más se podrán configurar acá."
     }
-  },
-  "settings": {
-    "title": "Configuración",
-    "profile": "Perfil",
-    "account": "Cuenta",
-    "billing": "Facturación"
   },
   "common": {
     "loading": "Cargando...",

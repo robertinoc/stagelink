@@ -1,12 +1,16 @@
-'use client';
-
-import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { getTranslations, getLocale } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EmptyState } from '@/components/shared/EmptyState';
+import { Button } from '@/components/ui/button';
 import { Eye, Link2, Users } from 'lucide-react';
 
-export function DashboardWelcome() {
-  const t = useTranslations('dashboard');
+/**
+ * Server component — no client bundle weight.
+ * Reads locale via getLocale() so callers don't need to thread it as a prop.
+ */
+export async function DashboardWelcome() {
+  const t = await getTranslations('dashboard');
+  const locale = await getLocale();
 
   const stats = [
     { label: t('stats.page_views'), value: '—', icon: Eye },
@@ -37,11 +41,14 @@ export function DashboardWelcome() {
         ))}
       </div>
 
-      <EmptyState
-        title={t('empty.title')}
-        description={t('empty.description')}
-        action={{ label: t('empty.cta'), onClick: () => {} }}
-      />
+      {/* Empty state — prompts user to start building their page */}
+      <div className="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed gap-3 px-6 py-12 text-center">
+        <h3 className="text-base font-semibold">{t('empty.title')}</h3>
+        <p className="max-w-sm text-sm text-muted-foreground">{t('empty.description')}</p>
+        <Button asChild className="mt-2">
+          <Link href={`/${locale}/dashboard/page`}>{t('empty.cta')}</Link>
+        </Button>
+      </div>
     </div>
   );
 }

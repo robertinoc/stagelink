@@ -5,8 +5,13 @@
     "login": "Log in",
     "signup": "Get started",
     "dashboard": "Dashboard",
+    "my_page": "My Page",
+    "analytics": "Analytics",
+    "profile": "Profile",
+    "billing": "Billing",
     "settings": "Settings",
-    "logout": "Log out"
+    "logout": "Log out",
+    "view_page": "View my page"
   },
   "marketing": {
     "hero": {
@@ -72,13 +77,37 @@
       "title": "Your page is ready",
       "description": "Start adding blocks to build your artist page.",
       "cta": "Add first block"
+    },
+    "page": {
+      "title": "My Page",
+      "description": "Build and customize your artist page.",
+      "coming_soon": "Page builder coming soon",
+      "coming_soon_description": "This is where you'll build your artist page with blocks, links, and media."
+    },
+    "analytics": {
+      "title": "Analytics",
+      "description": "Track how your page is performing.",
+      "coming_soon": "Analytics coming soon",
+      "coming_soon_description": "Soon you'll see page views, link clicks, and audience insights here."
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Manage your artist profile and assets.",
+      "cover": "Cover Image",
+      "avatar": "Profile Picture"
+    },
+    "billing": {
+      "title": "Billing",
+      "description": "Manage your subscription and payment methods.",
+      "coming_soon": "Billing coming soon",
+      "coming_soon_description": "Subscription management and billing details will be available here."
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Configure your account preferences.",
+      "coming_soon": "Account settings coming soon",
+      "coming_soon_description": "Language, notifications, security and more will be configurable here."
     }
-  },
-  "settings": {
-    "title": "Settings",
-    "profile": "Profile",
-    "account": "Account",
-    "billing": "Billing"
   },
   "common": {
     "loading": "Loading...",
