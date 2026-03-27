@@ -14,7 +14,7 @@ Plataforma tipo Linktree enfocada en artistas (músicos, DJs, creadores visuales
 - **Backend**: NestJS sobre Node.js
 - **Base de datos**: PostgreSQL
 - **ORM**: Prisma (con migraciones en `apps/api/prisma/migrations/`)
-- **Storage**: AWS S3 (avatars, covers, assets de EPK)
+- **Storage**: Cloudflare R2 / AWS S3-compatible (avatars, covers, assets de EPK)
 - **Pagos**: Stripe (suscripciones Free / Pro / Pro+)
 - **Analytics**: PostHog + eventos propios en DB
 - **i18n**: next-intl
@@ -83,7 +83,10 @@ apps/
         │   └── validation.ts     # Joi schema (DATABASE_URL requerida en producción)
         ├── lib/
         │   ├── prisma.service.ts  # PrismaService (lazy connect, OnModuleDestroy)
-        │   └── prisma.module.ts   # Global PrismaModule
+        │   ├── prisma.module.ts   # Global PrismaModule
+        │   └── s3/
+        │       ├── s3.service.ts  # Presigned PUT URL, object key strategy, delivery URL
+        │       └── s3.module.ts   # @Global() S3Module
         ├── common/
         │   ├── filters/
         │   │   └── http-exception.filter.ts  # Formato consistente de errores
@@ -102,16 +105,19 @@ apps/
             ├── tenant/     # TenantResolverService — resolución central username→artistId
             ├── public/     # GET /api/public/pages/by-username/:username (sin auth)
             ├── artists/    # CRUD artistas + username lookup (stub)
+            ├── assets/     # Upload pipeline: POST /upload-intent + POST /:id/confirm
             ├── pages/      # CRUD páginas públicas (stub)
             ├── blocks/     # CRUD bloques (stub)
             ├── analytics/  # Eventos + PostHog (stub)
             └── billing/    # Stripe suscripciones (stub)
 packages/
-├── types/                  # Interfaces compartidas (Artist, Page, Block, User, PublicPageResponse)
+├── types/                  # Interfaces compartidas (Artist, Page, Block, User, Asset, PublicPageResponse)
 ├── ui/                     # Wrappers shadcn + primitivos custom
 └── config/                 # ESLint, tsconfig y prettier configs compartidas
 docs/
-└── multi-tenant.md         # Decisiones arquitectónicas, política de username, caching, dominios
+├── multi-tenant.md         # Decisiones arquitectónicas, política de username, caching, dominios
+├── auth-workos.md          # Flujo auth, rutas, variables, provisioning, seguridad
+└── assets-s3.md            # Pipeline S3, CORS, IAM, object key strategy, MinIO local, QA checklist
 ```
 
 ---
@@ -248,6 +254,7 @@ GET /api/public/pages/by-domain (Host header)
 | ------------------ | -------------------------------------------------------------------- |
 | `users`            | Cuenta del usuario (vinculada a WorkOS)                              |
 | `artists`          | Perfil artístico (username único = clave multi-tenant)               |
+| `assets`           | Assets subidos (avatar, cover) — presigned URL pipeline              |
 | `pages`            | Página pública del artista (1-to-1 con Artist)                       |
 | `blocks`           | Bloques de contenido ordenados (link, music, video, fan_capture)     |
 | `custom_domains`   | Dominios personalizados por artista (pending/active/failed/disabled) |
@@ -321,10 +328,12 @@ PORT=                                   # Inyectado por Railway automáticamente
 WORKOS_CLIENT_ID=                       # Para construir URL JWKS
 WORKOS_API_KEY=                         # Para fetchear perfil en 1er login
 WORKOS_REDIRECT_URI=                    # http://localhost:4000/api/auth/callback
-AWS_S3_BUCKET=
-AWS_S3_REGION=
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
+AWS_S3_BUCKET=                          # Nombre del bucket (ej: stagelink-assets)
+AWS_S3_REGION=                          # auto (R2) o us-east-1 (AWS)
+AWS_ACCESS_KEY_ID=                      # R2 o IAM access key
+AWS_SECRET_ACCESS_KEY=                  # R2 o IAM secret key
+AWS_S3_ENDPOINT=                        # Solo para R2/MinIO: https://<account>.r2.cloudflarestorage.com
+AWS_S3_PUBLIC_BASE_URL=                 # URL pública base para delivery de assets
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 POSTHOG_KEY=
@@ -384,11 +393,19 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - `/api/auth/callback` y `/api/auth/signout` vía `handleAuth()` / `signOut()`
   - `lib/auth.ts` — helpers de sesión para Server Components y `apiFetch()` autenticado
   - `docs/auth-workos.md` con flujo completo, variables, y próximos pasos
+- **S3 Asset Pipeline implementado** (T2-4)
+  - `S3Service` — presigned PUT URL, object key strategy (`artists/{id}/{kind}/{uuid}.ext`), delivery URL
+  - `AssetsModule` — `POST /api/assets/upload-intent` + `POST /api/assets/:id/confirm`
+  - `Asset` model en Prisma — lifecycle pending → uploaded, FK en Artist (avatarAssetId/coverAssetId)
+  - Validación server-side: ownership, MIME type, tamaño (avatar 5MB / cover 8MB)
+  - Frontend: `AvatarUpload` + `CoverUpload` con progress bar, settings page integrada
+  - Storage: Cloudflare R2 (S3-compatible, sin egress fees)
+  - `docs/assets-s3.md` con pipeline, CORS, IAM policy, MinIO local, QA checklist
 
 ### ⏳ Pendiente
 
-- T2-4: Implementar queries Prisma reales en módulos stub (artists, pages, blocks)
-- T2-4: S3 para uploads (avatars, covers)
+- T2-5: Implementar queries Prisma reales en módulos stub (artists, pages, blocks)
+- Public access en bucket R2 + CORS para uploads desde browser
 - Custom domains UI + DNS verification
 - Editor de bloques
 - Analytics
@@ -397,22 +414,24 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
 
 ## Patrones a Reutilizar
 
-| Patrón                           | Archivo                                     | Reuse For                                        |
-| -------------------------------- | ------------------------------------------- | ------------------------------------------------ |
-| Tenant resolution centralizada   | `modules/tenant/tenant-resolver.service.ts` | Cualquier endpoint que necesite resolver artista |
-| Reserved usernames               | `common/constants/reserved-usernames.ts`    | Validación en UI + backend                       |
-| Username normalization           | `common/utils/username.util.ts`             | Todos los inputs de username                     |
-| Public fetch helper              | `apps/web/src/lib/public-api.ts`            | Fetch sin auth con cache: no-store               |
-| Auth session (server)            | `apps/web/src/lib/auth.ts`                  | getSession(), apiFetch(), AuthSession type       |
-| Authenticated fetch (backend)    | `apps/web/src/lib/auth.ts` → `apiFetch()`   | Server Components que necesitan datos del API    |
-| @Public() opt-out de auth        | `common/decorators/index.ts`                | Endpoints públicos que no requieren JWT          |
-| @CurrentUser() en controllers    | `common/decorators/index.ts`                | Acceder al User interno en cualquier controller  |
-| Lazy user provisioning           | `common/guards/index.ts` → `resolveUser()`  | Primer request post-signup → crea User en DB     |
-| Feature gating centralizado      | Helper único importado desde `packages/`    | Verificar plan activo                            |
-| Presigned URLs para uploads      | Módulo S3 en NestJS                         | Avatars, covers                                  |
-| Webhook handlers idempotentes    | Stripe events                               | Billing                                          |
-| Ownership check en servicios     | `common/guards/index.ts`                    | Todos los endpoints de escritura                 |
-| Discriminated union para bloques | Tipo `Block` con campo `type`               | Editor de bloques                                |
+| Patrón                           | Archivo                                                        | Reuse For                                        |
+| -------------------------------- | -------------------------------------------------------------- | ------------------------------------------------ |
+| Tenant resolution centralizada   | `modules/tenant/tenant-resolver.service.ts`                    | Cualquier endpoint que necesite resolver artista |
+| Reserved usernames               | `common/constants/reserved-usernames.ts`                       | Validación en UI + backend                       |
+| Username normalization           | `common/utils/username.util.ts`                                | Todos los inputs de username                     |
+| Public fetch helper              | `apps/web/src/lib/public-api.ts`                               | Fetch sin auth con cache: no-store               |
+| Auth session (server)            | `apps/web/src/lib/auth.ts`                                     | getSession(), apiFetch(), AuthSession type       |
+| Authenticated fetch (backend)    | `apps/web/src/lib/auth.ts` → `apiFetch()`                      | Server Components que necesitan datos del API    |
+| @Public() opt-out de auth        | `common/decorators/index.ts`                                   | Endpoints públicos que no requieren JWT          |
+| @CurrentUser() en controllers    | `common/decorators/index.ts`                                   | Acceder al User interno en cualquier controller  |
+| Lazy user provisioning           | `common/guards/index.ts` → `resolveUser()`                     | Primer request post-signup → crea User en DB     |
+| Feature gating centralizado      | Helper único importado desde `packages/`                       | Verificar plan activo                            |
+| Presigned PUT URL para uploads   | `lib/s3/s3.service.ts` → `generatePresignedPutUrl()`           | Avatars, covers, cualquier asset futuro          |
+| Upload pipeline (intent+confirm) | `modules/assets/` → `createUploadIntent()` + `confirmUpload()` | Cualquier nuevo tipo de asset                    |
+| Asset config centralizada        | `modules/assets/assets.constants.ts`                           | Agregar nuevos kinds con MIME + size limits      |
+| Webhook handlers idempotentes    | Stripe events                                                  | Billing                                          |
+| Ownership check en servicios     | `common/guards/index.ts`                                       | Todos los endpoints de escritura                 |
+| Discriminated union para bloques | Tipo `Block` con campo `type`                                  | Editor de bloques                                |
 
 ---
 

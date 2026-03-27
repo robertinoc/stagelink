@@ -28,6 +28,8 @@ export default (): Record<string, unknown> => ({
     region: process.env.AWS_S3_REGION,
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    endpoint: process.env.AWS_S3_ENDPOINT,
+    publicBaseUrl: process.env.AWS_S3_PUBLIC_BASE_URL,
   },
   shopify: {
     storefrontToken: process.env.SHOPIFY_STOREFRONT_TOKEN,
