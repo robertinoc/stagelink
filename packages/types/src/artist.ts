@@ -29,14 +29,25 @@ export type ArtistCategory =
 export interface Artist {
   id: string;
   userId: string;
-  username: string; // unique, resolves public URL
+  username: string; // unique, resolves public URL — NOT editable after creation
   displayName: string;
-  bio?: string;
-  avatarUrl?: string;
-  coverUrl?: string;
+  bio: string | null;
+  avatarUrl: string | null;
+  coverUrl: string | null;
   category: ArtistCategory;
-  createdAt: Date;
-  updatedAt: Date;
+  // Social links (all optional)
+  instagramUrl: string | null;
+  tiktokUrl: string | null;
+  youtubeUrl: string | null;
+  spotifyUrl: string | null;
+  soundcloudUrl: string | null;
+  websiteUrl: string | null;
+  contactEmail: string | null;
+  // SEO metadata
+  seoTitle: string | null;
+  seoDescription: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ── Tipos públicos (sin autenticación) ───────────────────────

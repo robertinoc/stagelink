@@ -92,9 +92,40 @@
     },
     "profile": {
       "title": "Profile",
-      "description": "Manage your artist profile and assets.",
-      "cover": "Cover Image",
-      "avatar": "Profile Picture"
+      "description": "Manage your artist profile, images, social links and SEO.",
+      "sections": {
+        "images": "Images",
+        "images_hint": "Changes are saved immediately after uploading.",
+        "basic": "Basic Info",
+        "social": "Social & Contact",
+        "social_hint": "Add your links so fans can find you everywhere. Leave blank to hide.",
+        "seo": "SEO & Discoverability",
+        "seo_hint": "Control how your page appears in search results."
+      },
+      "fields": {
+        "display_name": "Artist name",
+        "bio": "Short bio",
+        "category": "Category",
+        "instagram": "Instagram",
+        "tiktok": "TikTok",
+        "youtube": "YouTube",
+        "spotify": "Spotify",
+        "soundcloud": "SoundCloud",
+        "website": "Website",
+        "contact_email": "Contact email",
+        "contact_email_hint": "Public booking or press contact. Not used for login.",
+        "seo_title": "Page title",
+        "seo_title_hint": "Recommended: 50–60 characters",
+        "seo_description": "Meta description",
+        "seo_description_hint": "Recommended: 120–160 characters",
+        "username_readonly_hint": "Username changes require identity verification and are not available yet."
+      },
+      "save": "Save profile",
+      "saving": "Saving…",
+      "saved": "Profile saved successfully.",
+      "unsaved": "You have unsaved changes.",
+      "cover": "Cover image",
+      "avatar": "Profile picture"
     },
     "billing": {
       "title": "Billing",

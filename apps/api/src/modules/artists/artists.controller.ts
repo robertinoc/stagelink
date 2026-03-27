@@ -1,7 +1,8 @@
 import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Req } from '@nestjs/common';
 import type { Request } from 'express';
 import type { User } from '@prisma/client';
-import { ArtistsService, CreateArtistDto, UpdateArtistDto } from './artists.service';
+import { ArtistsService } from './artists.service';
+import { CreateArtistDto, UpdateArtistDto } from './dto';
 import { OwnershipGuard } from '../../common/guards';
 import { CheckOwnership, CurrentUser } from '../../common/decorators';
 import { extractClientIp } from '../../common/utils/request.utils';
@@ -31,7 +32,12 @@ export class ArtistsController {
     return this.artistsService.create(dto, user.id, ip);
   }
 
-  /** PATCH /api/artists/:id */
+  /**
+   * PATCH /api/artists/:id — update artist profile fields.
+   * Username, avatar and cover are NOT updatable here:
+   *   - Username: immutable (multi-tenant key).
+   *   - Avatar/cover: managed via POST /api/assets/upload-intent + confirm.
+   */
   @Patch(':id')
   @CheckOwnership('artist', 'id', 'write')
   @UseGuards(OwnershipGuard)
