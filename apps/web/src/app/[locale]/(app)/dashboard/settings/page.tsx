@@ -17,7 +17,7 @@ export default async function DashboardSettingsPage() {
         <p className="text-sm text-muted-foreground">{t('description')}</p>
       </div>
 
-      <ComingSoon title={t('title')} description={t('description')} />
+      <ComingSoon title={t('coming_soon')} description={t('coming_soon_description')} />
     </div>
   );
 }

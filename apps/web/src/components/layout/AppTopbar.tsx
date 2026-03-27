@@ -2,17 +2,19 @@
 
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import type { Artist } from '@/lib/api/artists';
 
 interface AppTopbarProps {
-  locale: string;
   artist: Artist | null;
   /** Callback wired to the mobile Sheet open handler. */
   onMenuOpen: () => void;
 }
 
-export function AppTopbar({ locale, artist, onMenuOpen }: AppTopbarProps) {
+export function AppTopbar({ artist, onMenuOpen }: AppTopbarProps) {
+  const t = useTranslations('nav');
+  const locale = useLocale();
   const initials = artist?.displayName ? artist.displayName.charAt(0).toUpperCase() : '?';
 
   return (
@@ -66,7 +68,7 @@ export function AppTopbar({ locale, artist, onMenuOpen }: AppTopbarProps) {
           href="/api/auth/signout"
           className="text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          Log out
+          {t('logout')}
         </a>
       </div>
     </header>

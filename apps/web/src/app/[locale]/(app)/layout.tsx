@@ -1,16 +1,12 @@
 import { redirect } from 'next/navigation';
 import { withAuth } from '@workos-inc/authkit-nextjs';
-import { apiFetch } from '@/lib/auth';
 import { getArtist } from '@/lib/api/artists';
+import { getAuthMe } from '@/lib/api/me';
 import { AppShell } from '@/components/layout/AppShell';
 
 interface AppLayoutProps {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
-}
-
-interface AuthMeResponse {
-  artistIds: string[];
 }
 
 /**
@@ -40,22 +36,10 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
   // Intentar cargar el artista del usuario para el shell (sidebar/topbar).
   // Errores son silenciosos — la página sigue funcionando sin datos de artista.
   let artist = null;
-  try {
-    const meRes = await apiFetch('/api/auth/me', { accessToken });
-    if (meRes.ok) {
-      const me = (await meRes.json()) as AuthMeResponse;
-      const artistId = me.artistIds[0];
-      if (artistId) {
-        artist = await getArtist(artistId, accessToken);
-      }
-    }
-  } catch {
-    // Silencioso — degradación graceful
+  const me = await getAuthMe(accessToken);
+  if (me?.artistIds[0]) {
+    artist = await getArtist(me.artistIds[0], accessToken);
   }
 
-  return (
-    <AppShell locale={locale} artist={artist}>
-      {children}
-    </AppShell>
-  );
+  return <AppShell artist={artist}>{children}</AppShell>;
 }

@@ -104,7 +104,9 @@
     },
     "settings": {
       "title": "Settings",
-      "description": "Configure your account preferences."
+      "description": "Configure your account preferences.",
+      "coming_soon": "Account settings coming soon",
+      "coming_soon_description": "Language, notifications, security and more will be configurable here."
     }
   },
   "settings": {

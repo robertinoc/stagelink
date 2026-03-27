@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   LayoutDashboard,
   Globe,
@@ -34,14 +34,14 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 interface AppSidebarProps {
-  locale: string;
   artist: Artist | null;
   /** Called after a nav link is clicked — used by mobile sheet to close itself. */
   onNavigate?: () => void;
 }
 
-export function AppSidebar({ locale, artist, onNavigate }: AppSidebarProps) {
+export function AppSidebar({ artist, onNavigate }: AppSidebarProps) {
   const pathname = usePathname();
+  const locale = useLocale();
   const t = useTranslations();
 
   /** Returns true when the nav item should render as active. */

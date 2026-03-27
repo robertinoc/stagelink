@@ -15,6 +15,9 @@ interface DashboardProfilePageProps {
 
 export default async function DashboardProfilePage({ params }: DashboardProfilePageProps) {
   const { locale } = await params;
+  // The (app) layout already guarantees auth, but getSession() returns
+  // AuthSession | null. This redirect is needed for TypeScript to narrow the
+  // type before accessing session.accessToken — it will never fire at runtime.
   const session = await getSession();
   if (!session) redirect(`/${locale}/login`);
 
