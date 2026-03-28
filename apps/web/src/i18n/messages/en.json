@@ -140,6 +140,62 @@
       "coming_soon_description": "Language, notifications, security and more will be configurable here."
     }
   },
+  "blocks": {
+    "title": "My Page",
+    "description": "Build your artist page with blocks.",
+    "add_block": "Add block",
+    "empty_title": "No blocks yet",
+    "empty_description": "Add your first block to start building your page.",
+    "loading": "Loading blocks...",
+    "error": "Failed to load blocks.",
+    "published": "Published",
+    "draft": "Draft",
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "delete_confirm": "Are you sure you want to delete this block? This action cannot be undone.",
+    "saving": "Saving...",
+    "save_error": "Failed to save changes.",
+    "types": {
+      "links": "Links",
+      "music_embed": "Music",
+      "video_embed": "Video",
+      "email_capture": "Email Capture"
+    },
+    "type_descriptions": {
+      "links": "Add clickable links to your profiles, website or anywhere.",
+      "music_embed": "Embed a track or playlist from Spotify, SoundCloud and more.",
+      "video_embed": "Embed a video from YouTube, Vimeo or TikTok.",
+      "email_capture": "Collect email addresses from your fans."
+    },
+    "fields": {
+      "title": "Block title (optional)",
+      "title_placeholder": "e.g. My Links, Latest Release...",
+      "label": "Label",
+      "url": "URL",
+      "add_link": "Add link",
+      "remove_link": "Remove",
+      "provider": "Platform",
+      "embed_url": "Embed URL",
+      "embed_url_hint": "Paste the full URL of the track, video or playlist.",
+      "headline": "Headline",
+      "headline_placeholder": "e.g. Join my community",
+      "button_label": "Button label",
+      "button_label_placeholder": "e.g. Subscribe",
+      "description": "Description (optional)",
+      "placeholder_text": "Email placeholder (optional)",
+      "placeholder_text_placeholder": "e.g. your@email.com"
+    },
+    "create_dialog": {
+      "title": "Add a block",
+      "subtitle": "Choose the type of block to add to your page."
+    },
+    "edit_sheet": {
+      "title": "Edit block",
+      "save": "Save changes"
+    }
+  },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",

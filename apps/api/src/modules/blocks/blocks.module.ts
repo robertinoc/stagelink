@@ -1,9 +1,15 @@
 import { Module } from '@nestjs/common';
-import { BlocksController } from './blocks.controller';
+import { BlocksController, PagesBlocksController } from './blocks.controller';
 import { BlocksService } from './blocks.service';
 
+/**
+ * BlocksModule
+ *
+ * MembershipService and AuditService are @Global() — PrismaModule too.
+ * No need to import their modules here.
+ */
 @Module({
-  controllers: [BlocksController],
+  controllers: [BlocksController, PagesBlocksController],
   providers: [BlocksService],
   exports: [BlocksService],
 })

@@ -179,28 +179,28 @@ model Page {
 // =============================================================
 // BLOCKS
 // Bloques de contenido ordenados en la página pública.
-// Discriminated union vía el campo `type`.
+// Discriminated union vía el campo `type` + config JSON validada
+// server-side según el tipo (ver blocks/schemas/block-config.schema.ts).
 // =============================================================
 enum BlockType {
-  link
-  music
-  video
-  fan_capture
+  links
+  music_embed
+  video_embed
+  email_capture
 
   @@map("block_type")
 }
 
 model Block {
-  id        String    @id @default(cuid())
-  pageId    String    @map("page_id")
-  type      BlockType
-  title     String?
-  url       String?
-  position  Int       @default(0)
-  isVisible Boolean   @default(true) @map("is_visible")
-  metadata  Json?     // Datos extra por tipo (ej: embedId para música/video)
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  id          String    @id @default(cuid())
+  pageId      String    @map("page_id")
+  type        BlockType
+  title       String?   // Etiqueta visible opcional (display label)
+  config      Json      @default("{}") // Shape validado por tipo en el backend
+  position    Int       @default(0)
+  isPublished Boolean   @default(false) @map("is_published")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   page        Page             @relation(fields: [pageId], references: [id], onDelete: Cascade)
   clickEvents AnalyticsEvent[]
