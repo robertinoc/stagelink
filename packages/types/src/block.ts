@@ -9,10 +9,38 @@ export type BlockType = (typeof BLOCK_TYPES)[number];
 
 // ─── Config shapes per block type ────────────────────────────────────────────
 
+/**
+ * Acotado set of icon keys for link items.
+ * Validated server-side; unknown values are rejected.
+ * To add a new icon: add the key here, add a mapping in
+ * LINK_ICON_LABELS (web) and the icon renderer in LinksBlockRenderer.
+ */
+export const LINK_ICONS = [
+  'spotify',
+  'apple_music',
+  'soundcloud',
+  'youtube',
+  'instagram',
+  'tiktok',
+  'facebook',
+  'x',
+  'website',
+  'mail',
+  'ticket',
+  'link',
+  'generic',
+] as const;
+
+export type LinkIcon = (typeof LINK_ICONS)[number];
+
 export interface LinkItem {
-  label: string;
-  url: string;
-  iconUrl?: string;
+  /** Stable cuid — used as analytics identifier. Never changes after creation. */
+  id: string;
+  label: string; // max 100 chars
+  url: string; // https:// or http:// only
+  icon?: LinkIcon; // optional; falls back to 'link' on render
+  sortOrder: number; // 0-indexed; normalized to 0..n-1 on every save
+  openInNewTab?: boolean; // default true
 }
 
 export interface LinksBlockConfig {

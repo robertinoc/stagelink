@@ -174,8 +174,13 @@
       "title_placeholder": "e.g. My Links, Latest Release...",
       "label": "Label",
       "url": "URL",
+      "link_n": "Link {n}",
       "add_link": "Add link",
       "remove_link": "Remove",
+      "move_up": "Move up",
+      "move_down": "Move down",
+      "icon_none": "No icon",
+      "open_in_new_tab": "Open in new tab",
       "provider": "Platform",
       "embed_url": "Embed URL",
       "embed_url_hint": "Paste the full URL of the track, video or playlist.",
@@ -194,7 +199,10 @@
     "edit_sheet": {
       "title": "Edit block",
       "save": "Save changes"
-    }
+    },
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel"
   },
   "common": {
     "loading": "Loading...",

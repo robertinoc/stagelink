@@ -164,7 +164,7 @@ function CreateBlockDialog({
 
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={handleClose} disabled={saving}>
-                {t('../../common.cancel')}
+                {t('cancel')}
               </Button>
               <Button onClick={handleCreate} disabled={saving}>
                 {saving ? t('saving') : t('add_block')}
@@ -254,7 +254,7 @@ function EditBlockSheet({
 
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={onClose} disabled={saving}>
-                  {t('../../common.cancel')}
+                  {t('cancel')}
                 </Button>
                 <Button onClick={handleSave} disabled={saving}>
                   {saving ? t('saving') : t('edit_sheet.save')}
@@ -354,7 +354,7 @@ function BlockRow({
         {/* Actions */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button size="sm" variant="ghost" onClick={onEdit}>
-            Edit
+            {t('edit')}
           </Button>
           <Button size="sm" variant="ghost" onClick={handleTogglePublish} disabled={toggling}>
             {block.isPublished ? t('unpublish') : t('publish')}
@@ -366,7 +366,7 @@ function BlockRow({
             disabled={deleting}
             className="text-destructive hover:text-destructive"
           >
-            Delete
+            {t('delete')}
           </Button>
         </div>
       </CardContent>

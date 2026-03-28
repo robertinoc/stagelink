@@ -7,15 +7,14 @@
 
 // ── Bloques ────────────────────────────────────────────────────
 
-export type PublicBlockType = 'link' | 'music' | 'video' | 'fan_capture';
+export type PublicBlockType = 'links' | 'music_embed' | 'video_embed' | 'email_capture';
 
 export interface PublicBlockDto {
   id: string;
   type: PublicBlockType;
   title: string | null;
-  url: string | null;
   position: number;
-  metadata: Record<string, unknown> | null;
+  config: Record<string, unknown>;
 }
 
 // ── Artista (campos públicos) ──────────────────────────────────

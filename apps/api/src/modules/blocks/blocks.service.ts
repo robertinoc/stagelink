@@ -52,29 +52,34 @@ export class BlocksService {
     validateBlockTitle(dto.title);
     validateBlockConfig(dto.type as BlockType, dto.config);
 
-    const blockCount = await this.prisma.block.count({ where: { pageId } });
-    if (blockCount >= MAX_BLOCKS_PER_PAGE) {
-      throw new UnprocessableEntityException(
-        `A page can have at most ${MAX_BLOCKS_PER_PAGE} blocks`,
-      );
-    }
+    // Wrap count + position lookup + insert in a single transaction so two
+    // concurrent creates on the same page cannot race past the block limit or
+    // land on the same position value.
+    const block = await this.prisma.$transaction(async (tx) => {
+      const blockCount = await tx.block.count({ where: { pageId } });
+      if (blockCount >= MAX_BLOCKS_PER_PAGE) {
+        throw new UnprocessableEntityException(
+          `A page can have at most ${MAX_BLOCKS_PER_PAGE} blocks`,
+        );
+      }
 
-    const last = await this.prisma.block.findFirst({
-      where: { pageId },
-      orderBy: { position: 'desc' },
-      select: { position: true },
-    });
-    const position = (last?.position ?? -1) + 1;
+      const last = await tx.block.findFirst({
+        where: { pageId },
+        orderBy: { position: 'desc' },
+        select: { position: true },
+      });
+      const position = (last?.position ?? -1) + 1;
 
-    const block = await this.prisma.block.create({
-      data: {
-        pageId,
-        type: dto.type as BlockType,
-        title: dto.title?.trim() ?? null,
-        config: dto.config as Prisma.InputJsonValue,
-        position,
-        isPublished: false,
-      },
+      return tx.block.create({
+        data: {
+          pageId,
+          type: dto.type as BlockType,
+          title: dto.title?.trim() ?? null,
+          config: dto.config as Prisma.InputJsonValue,
+          position,
+          isPublished: false,
+        },
+      });
     });
 
     this.auditService.log({
@@ -171,6 +176,19 @@ export class BlocksService {
     const positions = dto.blocks.map((b) => b.position);
     if (new Set(positions).size !== positions.length) {
       throw new BadRequestException('Duplicate positions in reorder request');
+    }
+
+    // Ensure the payload covers every block on the page so positions remain
+    // consistent. A partial reorder would leave gaps/collisions in DB state.
+    const pageBlockIds = await this.prisma.block
+      .findMany({ where: { pageId }, select: { id: true } })
+      .then((rows) => rows.map((r) => r.id).sort());
+    const payloadIds = dto.blocks.map((b) => b.id).sort();
+    if (
+      pageBlockIds.length !== payloadIds.length ||
+      pageBlockIds.some((id, i) => id !== payloadIds[i])
+    ) {
+      throw new BadRequestException('Reorder payload must include all blocks on the page');
     }
 
     try {
