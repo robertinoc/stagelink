@@ -1,8 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
 import { type BlockType } from '@prisma/client';
+import { LINK_ICONS } from '@stagelink/types';
 
 // =============================================================
-// Block Config Validation
+// Block Config Validation + Enrichment
 //
 // Per-type validation for the `config` JSON field on blocks.
 // Pure TypeScript — no extra dependencies required.
@@ -10,10 +11,17 @@ import { type BlockType } from '@prisma/client';
 // Security mitigations:
 //   - Blocks javascript:, data:, vbscript:, blob: protocols (XSS)
 //   - Allowlist for embed providers (prevents arbitrary iframes)
+//   - Backend derives embedUrl from sourceUrl — client never sends raw embed URLs
 //   - Max length on all string fields (oversized payload protection)
 //   - Max items on arrays (unbounded growth protection)
 //   - Plain object assertion (prototype pollution protection)
 //   - Exhaustive switch — TS error if new BlockType added without handler
+//
+// Embed flow for music_embed / video_embed:
+//   Client sends: { provider, sourceUrl }
+//   validateBlockConfig: checks provider in allowlist, assertSafeUrl(sourceUrl)
+//   enrichBlockConfig:   parses sourceUrl → derives embedUrl + resourceType
+//   DB write:            full enriched config { provider, sourceUrl, embedUrl, resourceType }
 // =============================================================
 
 const MAX_TITLE_LENGTH = 200;
@@ -28,21 +36,6 @@ const MAX_LINK_ITEMS = 20;
 const BLOCKED_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'blob:'];
 const MUSIC_PROVIDERS = ['spotify', 'apple_music', 'soundcloud', 'youtube'] as const;
 const VIDEO_PROVIDERS = ['youtube', 'vimeo', 'tiktok'] as const;
-const LINK_ICONS = [
-  'spotify',
-  'apple_music',
-  'soundcloud',
-  'youtube',
-  'instagram',
-  'tiktok',
-  'facebook',
-  'x',
-  'website',
-  'mail',
-  'ticket',
-  'link',
-  'generic',
-] as const;
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -50,10 +43,11 @@ function assertSafeUrl(url: unknown, field: string): void {
   if (typeof url !== 'string') {
     throw new BadRequestException(`${field} must be a string`);
   }
-  if (url.length === 0 || url.length > MAX_URL_LENGTH) {
+  const trimmed = url.trim();
+  if (trimmed.length === 0 || trimmed.length > MAX_URL_LENGTH) {
     throw new BadRequestException(`${field} must be between 1 and ${MAX_URL_LENGTH} characters`);
   }
-  const lower = url.toLowerCase().trim();
+  const lower = trimmed.toLowerCase();
   for (const proto of BLOCKED_PROTOCOLS) {
     if (lower.startsWith(proto)) {
       throw new BadRequestException(`${field}: protocol "${proto}" is not allowed`);
@@ -161,22 +155,30 @@ function validateLinksConfig(c: Record<string, unknown>): void {
   }
 }
 
+/**
+ * Validates music_embed config: checks provider allowlist and sourceUrl safety.
+ * Does NOT derive embedUrl — that happens in enrichBlockConfig.
+ */
 function validateMusicEmbedConfig(c: Record<string, unknown>): void {
   if (!MUSIC_PROVIDERS.includes(c['provider'] as (typeof MUSIC_PROVIDERS)[number])) {
     throw new BadRequestException(
       `music_embed config.provider must be one of: ${MUSIC_PROVIDERS.join(', ')}`,
     );
   }
-  assertSafeUrl(c['embedUrl'], 'music_embed config.embedUrl');
+  assertSafeUrl(c['sourceUrl'], 'music_embed config.sourceUrl');
 }
 
+/**
+ * Validates video_embed config: checks provider allowlist and sourceUrl safety.
+ * Does NOT derive embedUrl — that happens in enrichBlockConfig.
+ */
 function validateVideoEmbedConfig(c: Record<string, unknown>): void {
   if (!VIDEO_PROVIDERS.includes(c['provider'] as (typeof VIDEO_PROVIDERS)[number])) {
     throw new BadRequestException(
       `video_embed config.provider must be one of: ${VIDEO_PROVIDERS.join(', ')}`,
     );
   }
-  assertSafeUrl(c['embedUrl'], 'video_embed config.embedUrl');
+  assertSafeUrl(c['sourceUrl'], 'video_embed config.sourceUrl');
 }
 
 function validateEmailCaptureConfig(c: Record<string, unknown>): void {
@@ -198,12 +200,211 @@ function validateEmailCaptureConfig(c: Record<string, unknown>): void {
   );
 }
 
+// ─── URL parsing + embed derivation ──────────────────────────────────────────
+//
+// Each function parses a user-supplied sourceUrl for the given provider,
+// derives a safe embedUrl, and infers a resourceType string.
+// Throws BadRequestException if the URL cannot be resolved.
+//
+// Provider notes:
+//   Spotify      — open.spotify.com/{type}/{id}        → embed/{type}/{id}
+//   Apple Music  — music.apple.com/…                   → embed.music.apple.com/…
+//   SoundCloud   — soundcloud.com/…                    → w.soundcloud.com/player/ widget
+//   YouTube      — youtu.be/ID, /watch?v=ID, /shorts/ID → youtube.com/embed/ID
+//   Vimeo        — vimeo.com/{id}[/{hash}]             → player.vimeo.com/video/{id}
+//   TikTok       — tiktok.com/@user/video/{id}         → tiktok.com/embed/v2/{id}
+
+interface EmbedResult {
+  embedUrl: string;
+  resourceType: string;
+}
+
+function parseMusicUrl(provider: (typeof MUSIC_PROVIDERS)[number], sourceUrl: string): EmbedResult {
+  let url: URL;
+  try {
+    url = new URL(sourceUrl.trim());
+  } catch {
+    throw new BadRequestException(`music_embed config.sourceUrl is not a valid URL`);
+  }
+
+  switch (provider) {
+    case 'spotify': {
+      if (url.hostname !== 'open.spotify.com') {
+        throw new BadRequestException(
+          `music_embed: Spotify URLs must start with https://open.spotify.com/`,
+        );
+      }
+      // pathname: /{type}/{id} — strip query params from embed URL
+      const parts = url.pathname.split('/').filter(Boolean);
+      const [type, id] = parts;
+      if (!type || !id) {
+        throw new BadRequestException(
+          `music_embed: Could not extract track/album/playlist from Spotify URL`,
+        );
+      }
+      const SPOTIFY_TYPES: Record<string, string> = {
+        track: 'track',
+        album: 'album',
+        playlist: 'playlist',
+        artist: 'artist',
+        episode: 'episode',
+        show: 'episode',
+      };
+      const resourceType = SPOTIFY_TYPES[type] ?? 'track';
+      return {
+        embedUrl: `https://open.spotify.com/embed/${type}/${id}`,
+        resourceType,
+      };
+    }
+
+    case 'apple_music': {
+      if (!url.hostname.endsWith('music.apple.com')) {
+        throw new BadRequestException(
+          `music_embed: Apple Music URLs must start with https://music.apple.com/`,
+        );
+      }
+      // Infer resourceType from path segments
+      const pathLower = url.pathname.toLowerCase();
+      let resourceType = 'album';
+      if (pathLower.includes('/playlist/')) resourceType = 'playlist';
+      else if (pathLower.includes('/album/')) resourceType = 'album';
+      else if (pathLower.includes('/song/')) resourceType = 'track';
+      else if (pathLower.includes('/artist/')) resourceType = 'artist';
+      return {
+        embedUrl: `https://embed.music.apple.com${url.pathname}`,
+        resourceType,
+      };
+    }
+
+    case 'soundcloud': {
+      if (!url.hostname.includes('soundcloud.com')) {
+        throw new BadRequestException(
+          `music_embed: SoundCloud URLs must start with https://soundcloud.com/`,
+        );
+      }
+      const pathParts = url.pathname.split('/').filter(Boolean);
+      // /user/track → track, /user/sets/… → playlist, /user → artist
+      let resourceType = 'track';
+      if (pathParts.includes('sets')) resourceType = 'set';
+      else if (pathParts.length === 1) resourceType = 'artist';
+      const params = new URLSearchParams({
+        url: sourceUrl.trim(),
+        visual: 'true',
+        hide_related: 'true',
+        show_comments: 'false',
+        show_user: 'true',
+        show_reposts: 'false',
+        auto_play: 'false',
+      });
+      return {
+        embedUrl: `https://w.soundcloud.com/player/?${params.toString()}`,
+        resourceType,
+      };
+    }
+
+    case 'youtube': {
+      // Handles: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID
+      let videoId: string | null = null;
+      if (url.hostname === 'youtu.be') {
+        videoId = url.pathname.slice(1).split('/')[0] ?? null;
+      } else if (url.hostname.includes('youtube.com')) {
+        videoId = url.searchParams.get('v');
+        if (!videoId && url.pathname.startsWith('/shorts/')) {
+          videoId = url.pathname.replace('/shorts/', '').split('/')[0] ?? null;
+        }
+      }
+      if (!videoId) {
+        throw new BadRequestException(`music_embed: Could not extract video ID from YouTube URL`);
+      }
+      return {
+        embedUrl: `https://www.youtube.com/embed/${videoId}`,
+        resourceType: 'track',
+      };
+    }
+  }
+}
+
+function parseVideoUrl(provider: (typeof VIDEO_PROVIDERS)[number], sourceUrl: string): EmbedResult {
+  let url: URL;
+  try {
+    url = new URL(sourceUrl.trim());
+  } catch {
+    throw new BadRequestException(`video_embed config.sourceUrl is not a valid URL`);
+  }
+
+  switch (provider) {
+    case 'youtube': {
+      let videoId: string | null = null;
+      let resourceType = 'video';
+      if (url.hostname === 'youtu.be') {
+        videoId = url.pathname.slice(1).split('/')[0] ?? null;
+      } else if (url.hostname.includes('youtube.com')) {
+        if (url.pathname.startsWith('/shorts/')) {
+          videoId = url.pathname.replace('/shorts/', '').split('/')[0] ?? null;
+          resourceType = 'short';
+        } else {
+          videoId = url.searchParams.get('v');
+        }
+      }
+      if (!videoId) {
+        throw new BadRequestException(`video_embed: Could not extract video ID from YouTube URL`);
+      }
+      return {
+        embedUrl: `https://www.youtube.com/embed/${videoId}`,
+        resourceType,
+      };
+    }
+
+    case 'vimeo': {
+      if (!url.hostname.includes('vimeo.com')) {
+        throw new BadRequestException(`video_embed: Vimeo URLs must start with https://vimeo.com/`);
+      }
+      const parts = url.pathname.split('/').filter(Boolean);
+      const videoId = parts[0];
+      if (!videoId || !/^\d+$/.test(videoId)) {
+        throw new BadRequestException(
+          `video_embed: Could not extract numeric video ID from Vimeo URL`,
+        );
+      }
+      // Preserve private hash if present (vimeo.com/{id}/{hash})
+      const hash = parts[1] && /^[a-f0-9]+$/i.test(parts[1]) ? parts[1] : undefined;
+      const hashParam = hash ? `?h=${hash}` : '';
+      return {
+        embedUrl: `https://player.vimeo.com/video/${videoId}${hashParam}`,
+        resourceType: 'video',
+      };
+    }
+
+    case 'tiktok': {
+      if (!url.hostname.includes('tiktok.com')) {
+        throw new BadRequestException(
+          `video_embed: TikTok URLs must start with https://www.tiktok.com/`,
+        );
+      }
+      const match = url.pathname.match(/\/video\/(\d+)/);
+      const videoId = match?.[1];
+      if (!videoId) {
+        throw new BadRequestException(`video_embed: Could not extract video ID from TikTok URL`);
+      }
+      return {
+        embedUrl: `https://www.tiktok.com/embed/v2/${videoId}`,
+        resourceType: 'video',
+      };
+    }
+  }
+}
+
 // ─── public API ───────────────────────────────────────────────────────────────
 
 /**
  * Validates that `config` matches the expected shape for `type`.
  * Throws BadRequestException with a descriptive message on failure.
  * Call this in the service before any DB write.
+ *
+ * For music_embed / video_embed, validates that:
+ *   - provider is in the allowlist
+ *   - sourceUrl is a safe http(s) URL
+ * Does NOT derive embedUrl — call enrichBlockConfig after validate.
  */
 export function validateBlockConfig(type: BlockType, config: unknown): void {
   assertPlainObject(config);
@@ -228,6 +429,57 @@ export function validateBlockConfig(type: BlockType, config: unknown): void {
       throw new BadRequestException(`Unknown block type: ${String(_exhaustive)}`);
     }
   }
+}
+
+/**
+ * Post-validation enrichment for embed blocks.
+ *
+ * Parses sourceUrl and derives embedUrl + resourceType server-side.
+ * Returns the enriched config object (a new object — does not mutate).
+ * For non-embed block types, returns the config unchanged.
+ *
+ * Call order: validateBlockConfig → enrichBlockConfig → DB write.
+ */
+export function enrichBlockConfig(
+  type: BlockType,
+  config: Record<string, unknown>,
+): Record<string, unknown> {
+  if (type === 'music_embed') {
+    const provider = config['provider'] as (typeof MUSIC_PROVIDERS)[number];
+    const sourceUrl = config['sourceUrl'] as string;
+    const result = parseMusicUrl(provider, sourceUrl);
+    return { ...config, embedUrl: result.embedUrl, resourceType: result.resourceType };
+  }
+
+  if (type === 'video_embed') {
+    const provider = config['provider'] as (typeof VIDEO_PROVIDERS)[number];
+    const sourceUrl = config['sourceUrl'] as string;
+    const result = parseVideoUrl(provider, sourceUrl);
+    return { ...config, embedUrl: result.embedUrl, resourceType: result.resourceType };
+  }
+
+  return config;
+}
+
+/**
+ * Trims URL whitespace from link item URLs before DB write.
+ * Returns a new config object — does not mutate the input.
+ * Safe to call for any block type; only touches links blocks.
+ */
+export function sanitizeBlockConfig(
+  type: BlockType,
+  config: Record<string, unknown>,
+): Record<string, unknown> {
+  if (type !== 'links') return config;
+  if (!Array.isArray(config['items'])) return config;
+
+  return {
+    ...config,
+    items: (config['items'] as Record<string, unknown>[]).map((item) => ({
+      ...item,
+      url: typeof item['url'] === 'string' ? item['url'].trim() : item['url'],
+    })),
+  };
 }
 
 /**

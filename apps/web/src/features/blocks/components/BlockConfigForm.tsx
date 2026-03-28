@@ -207,6 +207,19 @@ const MUSIC_PROVIDERS = [
   { value: 'youtube', label: 'YouTube' },
 ] as const;
 
+type MusicHintKey =
+  | 'source_url_hint_spotify'
+  | 'source_url_hint_apple_music'
+  | 'source_url_hint_soundcloud'
+  | 'source_url_hint_youtube_music';
+
+const MUSIC_PROVIDER_HINT: Record<MusicEmbedBlockConfig['provider'], MusicHintKey> = {
+  spotify: 'source_url_hint_spotify',
+  apple_music: 'source_url_hint_apple_music',
+  soundcloud: 'source_url_hint_soundcloud',
+  youtube: 'source_url_hint_youtube_music',
+};
+
 function MusicEmbedForm({
   config,
   onChange,
@@ -216,6 +229,11 @@ function MusicEmbedForm({
 }) {
   const t = useTranslations('blocks.fields');
 
+  function handleProviderChange(provider: MusicEmbedBlockConfig['provider']) {
+    // Reset sourceUrl when provider changes — old URL won't parse for new provider
+    onChange({ ...config, provider, sourceUrl: '', embedUrl: '', resourceType: 'track' });
+  }
+
   return (
     <div className="space-y-3">
       <div>
@@ -223,10 +241,7 @@ function MusicEmbedForm({
         <select
           value={config.provider}
           onChange={(e) =>
-            onChange({
-              ...config,
-              provider: e.target.value as MusicEmbedBlockConfig['provider'],
-            })
+            handleProviderChange(e.target.value as MusicEmbedBlockConfig['provider'])
           }
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         >
@@ -238,16 +253,18 @@ function MusicEmbedForm({
         </select>
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium">{t('embed_url')}</label>
+        <label className="mb-1 block text-sm font-medium">{t('source_url')}</label>
         <input
           type="url"
-          placeholder="https://open.spotify.com/track/..."
-          value={config.embedUrl}
-          onChange={(e) => onChange({ ...config, embedUrl: e.target.value })}
+          placeholder={t(MUSIC_PROVIDER_HINT[config.provider])}
+          value={config.sourceUrl}
+          onChange={(e) => onChange({ ...config, sourceUrl: e.target.value })}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           maxLength={2048}
         />
-        <p className="mt-1 text-xs text-muted-foreground">{t('embed_url_hint')}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {t(MUSIC_PROVIDER_HINT[config.provider])}
+        </p>
       </div>
     </div>
   );
@@ -261,6 +278,17 @@ const VIDEO_PROVIDERS = [
   { value: 'tiktok', label: 'TikTok' },
 ] as const;
 
+type VideoHintKey =
+  | 'source_url_hint_youtube_video'
+  | 'source_url_hint_vimeo'
+  | 'source_url_hint_tiktok';
+
+const VIDEO_PROVIDER_HINT: Record<VideoEmbedBlockConfig['provider'], VideoHintKey> = {
+  youtube: 'source_url_hint_youtube_video',
+  vimeo: 'source_url_hint_vimeo',
+  tiktok: 'source_url_hint_tiktok',
+};
+
 function VideoEmbedForm({
   config,
   onChange,
@@ -270,6 +298,11 @@ function VideoEmbedForm({
 }) {
   const t = useTranslations('blocks.fields');
 
+  function handleProviderChange(provider: VideoEmbedBlockConfig['provider']) {
+    // Reset sourceUrl when provider changes — old URL won't parse for new provider
+    onChange({ ...config, provider, sourceUrl: '', embedUrl: '', resourceType: 'video' });
+  }
+
   return (
     <div className="space-y-3">
       <div>
@@ -277,10 +310,7 @@ function VideoEmbedForm({
         <select
           value={config.provider}
           onChange={(e) =>
-            onChange({
-              ...config,
-              provider: e.target.value as VideoEmbedBlockConfig['provider'],
-            })
+            handleProviderChange(e.target.value as VideoEmbedBlockConfig['provider'])
           }
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         >
@@ -292,16 +322,18 @@ function VideoEmbedForm({
         </select>
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium">{t('embed_url')}</label>
+        <label className="mb-1 block text-sm font-medium">{t('source_url')}</label>
         <input
           type="url"
-          placeholder="https://youtube.com/watch?v=..."
-          value={config.embedUrl}
-          onChange={(e) => onChange({ ...config, embedUrl: e.target.value })}
+          placeholder={t(VIDEO_PROVIDER_HINT[config.provider])}
+          value={config.sourceUrl}
+          onChange={(e) => onChange({ ...config, sourceUrl: e.target.value })}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           maxLength={2048}
         />
-        <p className="mt-1 text-xs text-muted-foreground">{t('embed_url_hint')}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {t(VIDEO_PROVIDER_HINT[config.provider])}
+        </p>
       </div>
     </div>
   );
@@ -384,9 +416,9 @@ export function defaultConfig(type: BlockType): BlockConfig {
         ],
       };
     case 'music_embed':
-      return { provider: 'spotify', embedUrl: '' };
+      return { provider: 'spotify', sourceUrl: '', embedUrl: '', resourceType: 'track' };
     case 'video_embed':
-      return { provider: 'youtube', embedUrl: '' };
+      return { provider: 'youtube', sourceUrl: '', embedUrl: '', resourceType: 'video' };
     case 'email_capture':
       return { headline: '', buttonLabel: 'Subscribe' };
   }
