@@ -256,7 +256,7 @@ function MusicEmbedForm({
         <label className="mb-1 block text-sm font-medium">{t('source_url')}</label>
         <input
           type="url"
-          placeholder={t(MUSIC_PROVIDER_HINT[config.provider])}
+          placeholder="https://..."
           value={config.sourceUrl}
           onChange={(e) => onChange({ ...config, sourceUrl: e.target.value })}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -325,7 +325,7 @@ function VideoEmbedForm({
         <label className="mb-1 block text-sm font-medium">{t('source_url')}</label>
         <input
           type="url"
-          placeholder={t(VIDEO_PROVIDER_HINT[config.provider])}
+          placeholder="https://..."
           value={config.sourceUrl}
           onChange={(e) => onChange({ ...config, sourceUrl: e.target.value })}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"

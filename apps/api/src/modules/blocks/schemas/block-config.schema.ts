@@ -219,6 +219,20 @@ interface EmbedResult {
   resourceType: string;
 }
 
+// ─── Hostname allowlists ──────────────────────────────────────────────────────
+//
+// Explicit Sets prevent subdomain bypass attacks.
+// 'evil-soundcloud.com.attacker.com'.includes('soundcloud.com') === true
+// but a Set check on the full hostname rejects it.
+
+const YOUTUBE_HOSTNAMES = new Set(['www.youtube.com', 'youtube.com', 'm.youtube.com', 'youtu.be']);
+const SOUNDCLOUD_HOSTNAMES = new Set(['soundcloud.com', 'www.soundcloud.com', 'm.soundcloud.com']);
+const VIMEO_HOSTNAMES = new Set(['vimeo.com', 'www.vimeo.com']);
+const TIKTOK_HOSTNAMES = new Set(['www.tiktok.com', 'tiktok.com', 'vm.tiktok.com']);
+
+// Accepted Spotify path types — unknown types are rejected, not silently passed through.
+const SPOTIFY_RESOURCE_TYPES = new Set(['track', 'album', 'playlist', 'artist', 'episode', 'show']);
+
 function parseMusicUrl(provider: (typeof MUSIC_PROVIDERS)[number], sourceUrl: string): EmbedResult {
   let url: URL;
   try {
@@ -242,15 +256,13 @@ function parseMusicUrl(provider: (typeof MUSIC_PROVIDERS)[number], sourceUrl: st
           `music_embed: Could not extract track/album/playlist from Spotify URL`,
         );
       }
-      const SPOTIFY_TYPES: Record<string, string> = {
-        track: 'track',
-        album: 'album',
-        playlist: 'playlist',
-        artist: 'artist',
-        episode: 'episode',
-        show: 'episode',
-      };
-      const resourceType = SPOTIFY_TYPES[type] ?? 'track';
+      if (!SPOTIFY_RESOURCE_TYPES.has(type)) {
+        throw new BadRequestException(
+          `music_embed: Unrecognized Spotify resource type "${type}". Expected: track, album, playlist, artist, episode`,
+        );
+      }
+      // Normalize 'show' → 'episode' for resourceType; the embed path keeps 'show'
+      const resourceType = type === 'show' ? 'episode' : type;
       return {
         embedUrl: `https://open.spotify.com/embed/${type}/${id}`,
         resourceType,
@@ -258,7 +270,8 @@ function parseMusicUrl(provider: (typeof MUSIC_PROVIDERS)[number], sourceUrl: st
     }
 
     case 'apple_music': {
-      if (!url.hostname.endsWith('music.apple.com')) {
+      // Exact match — endsWith('music.apple.com') would accept 'evil-music.apple.com'
+      if (url.hostname !== 'music.apple.com') {
         throw new BadRequestException(
           `music_embed: Apple Music URLs must start with https://music.apple.com/`,
         );
@@ -277,7 +290,7 @@ function parseMusicUrl(provider: (typeof MUSIC_PROVIDERS)[number], sourceUrl: st
     }
 
     case 'soundcloud': {
-      if (!url.hostname.includes('soundcloud.com')) {
+      if (!SOUNDCLOUD_HOSTNAMES.has(url.hostname)) {
         throw new BadRequestException(
           `music_embed: SoundCloud URLs must start with https://soundcloud.com/`,
         );
@@ -285,7 +298,7 @@ function parseMusicUrl(provider: (typeof MUSIC_PROVIDERS)[number], sourceUrl: st
       const pathParts = url.pathname.split('/').filter(Boolean);
       // /user/track → track, /user/sets/… → playlist, /user → artist
       let resourceType = 'track';
-      if (pathParts.includes('sets')) resourceType = 'set';
+      if (pathParts.includes('sets')) resourceType = 'playlist';
       else if (pathParts.length === 1) resourceType = 'artist';
       const params = new URLSearchParams({
         url: sourceUrl.trim(),
@@ -304,10 +317,13 @@ function parseMusicUrl(provider: (typeof MUSIC_PROVIDERS)[number], sourceUrl: st
 
     case 'youtube': {
       // Handles: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID
+      if (!YOUTUBE_HOSTNAMES.has(url.hostname)) {
+        throw new BadRequestException(`music_embed: YouTube URLs must use youtube.com or youtu.be`);
+      }
       let videoId: string | null = null;
       if (url.hostname === 'youtu.be') {
         videoId = url.pathname.slice(1).split('/')[0] ?? null;
-      } else if (url.hostname.includes('youtube.com')) {
+      } else {
         videoId = url.searchParams.get('v');
         if (!videoId && url.pathname.startsWith('/shorts/')) {
           videoId = url.pathname.replace('/shorts/', '').split('/')[0] ?? null;
@@ -334,11 +350,14 @@ function parseVideoUrl(provider: (typeof VIDEO_PROVIDERS)[number], sourceUrl: st
 
   switch (provider) {
     case 'youtube': {
+      if (!YOUTUBE_HOSTNAMES.has(url.hostname)) {
+        throw new BadRequestException(`video_embed: YouTube URLs must use youtube.com or youtu.be`);
+      }
       let videoId: string | null = null;
       let resourceType = 'video';
       if (url.hostname === 'youtu.be') {
         videoId = url.pathname.slice(1).split('/')[0] ?? null;
-      } else if (url.hostname.includes('youtube.com')) {
+      } else {
         if (url.pathname.startsWith('/shorts/')) {
           videoId = url.pathname.replace('/shorts/', '').split('/')[0] ?? null;
           resourceType = 'short';
@@ -356,7 +375,7 @@ function parseVideoUrl(provider: (typeof VIDEO_PROVIDERS)[number], sourceUrl: st
     }
 
     case 'vimeo': {
-      if (!url.hostname.includes('vimeo.com')) {
+      if (!VIMEO_HOSTNAMES.has(url.hostname)) {
         throw new BadRequestException(`video_embed: Vimeo URLs must start with https://vimeo.com/`);
       }
       const parts = url.pathname.split('/').filter(Boolean);
@@ -376,7 +395,7 @@ function parseVideoUrl(provider: (typeof VIDEO_PROVIDERS)[number], sourceUrl: st
     }
 
     case 'tiktok': {
-      if (!url.hostname.includes('tiktok.com')) {
+      if (!TIKTOK_HOSTNAMES.has(url.hostname)) {
         throw new BadRequestException(
           `video_embed: TikTok URLs must start with https://www.tiktok.com/`,
         );
