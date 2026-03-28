@@ -225,7 +225,10 @@
   "public_page": {
     "no_blocks": "Todavía no hay contenido aquí.",
     "powered_by": "Creado con",
-    "powered_by_brand": "StageLink"
+    "powered_by_brand": "StageLink",
+    "not_found_title": "Página no encontrada",
+    "not_found_description": "Esta página de artista no existe o todavía no fue publicada.",
+    "not_found_cta": "Ir al inicio"
   },
   "common": {
     "loading": "Cargando...",

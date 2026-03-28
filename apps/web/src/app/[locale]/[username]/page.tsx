@@ -19,7 +19,7 @@ interface ArtistPageProps {
  *   description: seoDescription → bio → generic fallback
  */
 export async function generateMetadata({ params }: ArtistPageProps): Promise<Metadata> {
-  const { username } = await params;
+  const { username, locale } = await params;
   const page = await fetchPublicPage(username);
 
   if (!page) {
@@ -39,7 +39,9 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
     artist.seoDescription ?? artist.bio ?? `Check out ${artist.displayName}'s page on StageLink`;
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
-  const canonical = `${appUrl}/${artist.username}`;
+  // TODO: move public artist pages to /{username} (no locale prefix) for clean share URLs.
+  // Until then, canonical includes the locale so it resolves to a real URL.
+  const canonical = `${appUrl}/${locale}/${artist.username}`;
 
   return {
     title,
@@ -55,14 +57,20 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
       title: artist.seoTitle ?? artist.displayName,
       description,
       url: canonical,
-      images: artist.avatarUrl ? [{ url: artist.avatarUrl }] : [],
+      // Prefer cover (wide format) for social previews; fall back to avatar.
+      images: artist.coverUrl
+        ? [{ url: artist.coverUrl, width: 1200, height: 630, alt: artist.displayName }]
+        : artist.avatarUrl
+          ? [{ url: artist.avatarUrl, width: 400, height: 400, alt: artist.displayName }]
+          : [],
       type: 'profile',
     },
     twitter: {
-      card: 'summary',
+      // summary_large_image when a wide cover is available, summary otherwise.
+      card: artist.coverUrl ? 'summary_large_image' : 'summary',
       title: artist.seoTitle ?? artist.displayName,
       description,
-      images: artist.avatarUrl ? [artist.avatarUrl] : [],
+      images: artist.coverUrl ? [artist.coverUrl] : artist.avatarUrl ? [artist.avatarUrl] : [],
     },
   };
 }
