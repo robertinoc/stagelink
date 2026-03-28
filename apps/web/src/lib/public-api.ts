@@ -18,7 +18,9 @@ import type { PublicPageResponse } from '@stagelink/types';
  *   lo justifique. Ver: docs/multi-tenant.md — sección "Caching y SSR".
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4001';
+// API_URL is a private server-only variable (not NEXT_PUBLIC_*) — never sent to the browser.
+// public-api.ts is imported only in Server Components so this is safe.
+const API_URL = process.env.API_URL ?? 'http://localhost:4001';
 
 async function _fetchPublicPage(username: string): Promise<PublicPageResponse | null> {
   const res = await fetch(
@@ -27,6 +29,11 @@ async function _fetchPublicPage(username: string): Promise<PublicPageResponse | 
   );
 
   if (res.status === 404) return null;
+
+  if (res.status === 429) {
+    // Rate-limited — propagate so Next.js renders error.tsx (not silently 404).
+    throw new Error(`[public-api] Rate limited (429) fetching page for "${username}"`);
+  }
 
   if (res.status >= 500) {
     // Error de infraestructura — propagar para que Next.js muestre error.tsx,

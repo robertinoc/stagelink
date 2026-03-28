@@ -4,7 +4,7 @@ import { fetchPublicPage } from '@/lib/public-api';
 import { ArtistPageView } from '@/features/public-page/components/ArtistPageView';
 
 interface ArtistPageProps {
-  params: Promise<{ username: string; locale: string }>;
+  params: Promise<{ username: string }>;
 }
 
 /**
@@ -17,9 +17,11 @@ interface ArtistPageProps {
  * SEO fields priority:
  *   title:       seoTitle → displayName (@username) — StageLink
  *   description: seoDescription → bio → generic fallback
+ *
+ * Canonical apunta a /{username} (sin prefijo de locale) — URL de sharing limpia.
  */
 export async function generateMetadata({ params }: ArtistPageProps): Promise<Metadata> {
-  const { username, locale } = await params;
+  const { username } = await params;
   const page = await fetchPublicPage(username);
 
   if (!page) {
@@ -39,9 +41,7 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
     artist.seoDescription ?? artist.bio ?? `Check out ${artist.displayName}'s page on StageLink`;
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
-  // TODO: move public artist pages to /{username} (no locale prefix) for clean share URLs.
-  // Until then, canonical includes the locale so it resolves to a real URL.
-  const canonical = `${appUrl}/${locale}/${artist.username}`;
+  const canonical = `${appUrl}/${artist.username}`;
 
   return {
     title,

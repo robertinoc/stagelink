@@ -34,7 +34,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
         <div className="relative h-40 w-full sm:h-56">
           <Image
             src={artist.coverUrl}
-            alt={`${artist.displayName} cover`}
+            alt={t('cover_image_alt', { name: artist.displayName })}
             fill
             className="object-cover"
             priority

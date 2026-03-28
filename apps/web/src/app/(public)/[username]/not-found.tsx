@@ -1,14 +1,26 @@
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
+
+function detectLocale(acceptLanguage: string): 'en' | 'es' {
+  const primary = acceptLanguage.split(',')[0]?.split(';')[0]?.trim().toLowerCase() ?? '';
+  return primary.startsWith('es') ? 'es' : 'en';
+}
 
 /**
  * Not-found boundary for artist pages.
  *
  * Triggered by notFound() in the Server Component when the backend returns 404.
  * Next.js serves this with a real HTTP 404 status code.
+ *
+ * Uses explicit locale detection (not middleware context) since notFound()
+ * may render outside the layout's setRequestLocale scope.
  */
 export default async function ArtistNotFound() {
-  const t = await getTranslations('public_page');
+  const headersList = await headers();
+  const acceptLanguage = headersList.get('accept-language') ?? '';
+  const locale = detectLocale(acceptLanguage);
+  const t = await getTranslations({ locale, namespace: 'public_page' });
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-4 text-center">
