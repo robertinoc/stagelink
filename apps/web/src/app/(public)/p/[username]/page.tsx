@@ -1,7 +1,10 @@
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { fetchPublicPage } from '@/lib/public-api';
 import { ArtistPageView } from '@/features/public-page/components/ArtistPageView';
+import { detectLocale } from '@/lib/detect-locale';
 
 interface ArtistPageProps {
   params: Promise<{ username: string }>;
@@ -33,30 +36,40 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
 
   const { artist } = page;
 
+  // Detect locale from Accept-Language for the description fallback.
+  // generateMetadata runs before the layout sets setRequestLocale, so we
+  // detect explicitly rather than relying on middleware context.
+  const headersList = await headers();
+  const locale = detectLocale(headersList.get('accept-language') ?? '');
+  const t = await getTranslations({ locale, namespace: 'public_page' });
+
   const title = artist.seoTitle
     ? `${artist.seoTitle} — StageLink`
     : `${artist.displayName} (@${artist.username}) — StageLink`;
 
   const description =
-    artist.seoDescription ?? artist.bio ?? `Check out ${artist.displayName}'s page on StageLink`;
+    artist.seoDescription ??
+    artist.bio ??
+    t('seo_description_fallback', { name: artist.displayName });
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
-  const canonical = `${appUrl}/${artist.username}`;
+  // Canonical must be absolute — relative canonicals are ignored by Google.
+  // If NEXT_PUBLIC_APP_URL is unset we omit canonical entirely and mark the
+  // page noindex so it isn't crawled under an unknown/localhost domain.
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const canonical = appUrl ? `${appUrl}/${artist.username}` : undefined;
 
   return {
     title,
     description,
-    alternates: {
-      canonical,
-    },
+    ...(canonical && { alternates: { canonical } }),
     robots: {
-      index: true,
+      index: !!canonical,
       follow: true,
     },
     openGraph: {
       title: artist.seoTitle ?? artist.displayName,
       description,
-      url: canonical,
+      ...(canonical && { url: canonical }),
       // Prefer cover (wide format) for social previews; fall back to avatar.
       images: artist.coverUrl
         ? [{ url: artist.coverUrl, width: 1200, height: 630, alt: artist.displayName }]
@@ -89,6 +102,24 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
  * - cache: 'no-store' evita mezclar contenido entre tenants
  * - notFound() retorna 404 HTTP real, no solo UI vacía
  */
+/**
+ * Builds a JSON-LD Person schema for the artist page.
+ * Helps Google generate rich results for artist profiles.
+ */
+function buildJsonLd(
+  artist: NonNullable<Awaited<ReturnType<typeof fetchPublicPage>>>['artist'],
+  canonical: string | undefined,
+): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: artist.displayName,
+    ...(artist.bio && { description: artist.bio }),
+    ...(canonical && { url: canonical }),
+    ...(artist.avatarUrl && { image: artist.avatarUrl }),
+  };
+}
+
 export default async function ArtistPage({ params }: ArtistPageProps) {
   const { username } = await params;
   const page = await fetchPublicPage(username);
@@ -97,5 +128,17 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
     notFound();
   }
 
-  return <ArtistPageView page={page} />;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const canonical = appUrl ? `${appUrl}/${page.artist.username}` : undefined;
+  const jsonLd = buildJsonLd(page.artist, canonical);
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ArtistPageView page={page} />
+    </>
+  );
 }

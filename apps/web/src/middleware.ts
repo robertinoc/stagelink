@@ -19,21 +19,32 @@ const intlMiddleware = createMiddleware({
  * route lives at app/(public)/p/[username] — no naming collision with [locale].
  * The browser URL remains /{username} because rewrites are transparent.
  *
- * Rule: single-segment paths that are NOT a supported locale are rewrtten
- * to /p/{username} and served by app/(public)/p/[username].
+ * Rules:
+ * 1. /p/{username} → 301 to /{username} — block direct access to the internal
+ *    rewrite target to prevent duplicate content (different URL, same page).
+ * 2. Single-segment non-locale paths → rewrite to /p/{username}.
+ * 3. Everything else → intl middleware (locale prefix handling).
  */
 export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const segments = pathname.split('/').filter(Boolean);
 
+  // Rule 1: redirect direct access to the internal rewrite target.
+  // Prevents crawlers from indexing /p/{username} as a duplicate of /{username}.
+  if (segments[0] === 'p' && segments.length === 2) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${segments[1]}`;
+    return NextResponse.redirect(url, 301);
+  }
+
+  // Rule 2: artist username — rewrite /{username} → /p/{username} transparently.
   if (segments.length === 1 && !LOCALES.includes(segments[0] as SupportedLocale)) {
-    // Rewrite /{username} → /p/{username} transparently.
-    // Browser URL stays /{username}; Next.js resolves app/(public)/p/[username].
     const url = request.nextUrl.clone();
     url.pathname = `/p/${segments[0]}`;
     return NextResponse.rewrite(url);
   }
 
+  // Rule 3: everything else through the intl middleware.
   return intlMiddleware(request);
 }
 

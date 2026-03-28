@@ -2,18 +2,8 @@ import { headers } from 'next/headers';
 import type { AbstractIntlMessages } from 'next-intl';
 import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
-
-type PublicLocale = 'en' | 'es';
-
-/**
- * Detects the preferred locale from the Accept-Language header.
- * Public artist pages are served without a locale URL prefix, so locale
- * is inferred from the browser rather than the URL.
- */
-function detectLocale(acceptLanguage: string): PublicLocale {
-  const primary = acceptLanguage.split(',')[0]?.split(';')[0]?.trim().toLowerCase() ?? '';
-  return primary.startsWith('es') ? 'es' : 'en';
-}
+import { detectLocale } from '@/lib/detect-locale';
+import { geistSans, geistMono } from '@/lib/fonts';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -22,11 +12,12 @@ interface PublicLayoutProps {
 /**
  * Layout for public artist pages at /{username}.
  *
- * Provides next-intl context without relying on the i18n middleware
- * (which is bypassed for these routes). Locale is detected from
- * Accept-Language and set via setRequestLocale for Server Components.
- * NextIntlClientProvider makes translations available to Client Components
- * (e.g. EmailCaptureRenderer).
+ * Owns <html lang> and <body> (root layout delegates html/body to child
+ * layouts so each route tree sets the correct lang attribute).
+ *
+ * Locale is detected from Accept-Language (no URL prefix on public pages)
+ * and set via setRequestLocale for Server Components. NextIntlClientProvider
+ * makes translations available to Client Components (e.g. EmailCaptureRenderer).
  */
 export default async function PublicArtistLayout({ children }: PublicLayoutProps) {
   const headersList = await headers();
@@ -40,8 +31,12 @@ export default async function PublicArtistLayout({ children }: PublicLayoutProps
   const messages = (await import(`@/i18n/messages/${locale}.json`)).default as AbstractIntlMessages;
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      {children}
-    </NextIntlClientProvider>
+    <html lang={locale} suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {children}
+        </NextIntlClientProvider>
+      </body>
+    </html>
   );
 }
