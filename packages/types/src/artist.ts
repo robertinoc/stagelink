@@ -52,16 +52,15 @@ export interface Artist {
 
 // ── Tipos públicos (sin autenticación) ───────────────────────
 
-export type PublicBlockType = 'link' | 'music' | 'video' | 'fan_capture';
+import type { BlockType, BlockConfig } from './block';
 
 /** Bloque visible públicamente en una página de artista */
 export interface PublicBlock {
   id: string;
-  type: PublicBlockType;
+  type: BlockType;
   title: string | null;
-  url: string | null;
   position: number;
-  metadata: Record<string, unknown> | null;
+  config: BlockConfig;
 }
 
 /** Datos públicos del artista — sin userId ni datos privados */
