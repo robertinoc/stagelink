@@ -49,10 +49,10 @@ export interface LinksBlockConfig {
 
 /**
  * Resource types for music embed blocks.
- *   track | album | playlist | artist | episode
  * Derived by the backend from the sourceUrl path — never sent by the client.
+ * SoundCloud playlists (path: /sets/…) are normalized to 'playlist'.
  */
-export type MusicResourceType = 'track' | 'album' | 'playlist' | 'artist' | 'episode' | 'set';
+export type MusicResourceType = 'track' | 'album' | 'playlist' | 'artist' | 'episode';
 
 export interface MusicEmbedBlockConfig {
   provider: 'spotify' | 'apple_music' | 'soundcloud' | 'youtube';

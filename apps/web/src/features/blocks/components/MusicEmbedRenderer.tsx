@@ -78,6 +78,7 @@ export function MusicEmbedRenderer({ title, config }: MusicEmbedRendererProps) {
             className="absolute inset-0 h-full w-full"
             frameBorder="0"
             allow={PROVIDER_ALLOW[provider]}
+            allowFullScreen
             loading="lazy"
           />
         </div>
