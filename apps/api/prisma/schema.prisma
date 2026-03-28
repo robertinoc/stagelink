@@ -89,6 +89,17 @@ model Artist {
   coverUrl      String?  @map("cover_url")
   avatarAssetId String?  @unique @map("avatar_asset_id")
   coverAssetId  String?  @unique @map("cover_asset_id")
+  // Social links
+  instagramUrl  String?  @map("instagram_url")
+  tiktokUrl     String?  @map("tiktok_url")
+  youtubeUrl    String?  @map("youtube_url")
+  spotifyUrl    String?  @map("spotify_url")
+  soundcloudUrl String?  @map("soundcloud_url")
+  websiteUrl    String?  @map("website_url")
+  contactEmail  String?  @map("contact_email")
+  // SEO
+  seoTitle      String?  @map("seo_title")
+  seoDescription String? @map("seo_description")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
