@@ -421,9 +421,10 @@ export function BlockManager({ pageId, accessToken }: Props) {
 
     // Optimistic update
     const reordered = [...blocks];
-    const tempPos = reordered[index].position;
-    reordered[index] = { ...reordered[index], position: reordered[swapIndex].position };
-    reordered[swapIndex] = { ...reordered[swapIndex], position: tempPos };
+    const blockA = reordered[index]!;
+    const blockB = reordered[swapIndex]!;
+    reordered[index] = { ...blockA, position: blockB.position };
+    reordered[swapIndex] = { ...blockB, position: blockA.position };
     reordered.sort((a, b) => a.position - b.position);
     setBlocks(reordered);
 
