@@ -202,7 +202,19 @@
     },
     "edit": "Editar",
     "delete": "Eliminar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "renderer": {
+      "embed_unavailable": "Vista previa no disponible",
+      "email_capture": {
+        "email_placeholder": "tu@email.com",
+        "submitting": "Suscribiendo…",
+        "success_heading": "¡Ya estás dentro!",
+        "success_message": "Gracias por suscribirte.",
+        "error": "Algo salió mal. Por favor, intentá de nuevo.",
+        "invalid_email": "Por favor ingresá un email válido.",
+        "preview_hint": "El formulario está inactivo en modo vista previa."
+      }
+    }
   },
   "common": {
     "loading": "Cargando...",

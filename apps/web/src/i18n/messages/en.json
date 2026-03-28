@@ -202,7 +202,19 @@
     },
     "edit": "Edit",
     "delete": "Delete",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "renderer": {
+      "embed_unavailable": "Preview unavailable",
+      "email_capture": {
+        "email_placeholder": "your@email.com",
+        "submitting": "Subscribing…",
+        "success_heading": "You're in!",
+        "success_message": "Thanks for subscribing.",
+        "error": "Something went wrong. Please try again.",
+        "invalid_email": "Please enter a valid email address.",
+        "preview_hint": "Form is inactive in preview mode."
+      }
+    }
   },
   "common": {
     "loading": "Loading...",
