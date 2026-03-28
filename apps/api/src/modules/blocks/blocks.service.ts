@@ -9,7 +9,11 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
-import { validateBlockConfig, validateBlockTitle } from './schemas/block-config.schema';
+import {
+  validateBlockConfig,
+  validateBlockTitle,
+  sanitizeBlockConfig,
+} from './schemas/block-config.schema';
 import { CreateBlockDto, UpdateBlockDto, ReorderBlocksDto } from './dto';
 
 // Maximum blocks allowed per page — prevents unbounded data growth.
@@ -51,6 +55,10 @@ export class BlocksService {
 
     validateBlockTitle(dto.title);
     validateBlockConfig(dto.type as BlockType, dto.config);
+    const cleanConfig = sanitizeBlockConfig(
+      dto.type as BlockType,
+      dto.config as Record<string, unknown>,
+    );
 
     // Wrap count + position lookup + insert in a single transaction so two
     // concurrent creates on the same page cannot race past the block limit or
@@ -75,7 +83,7 @@ export class BlocksService {
           pageId,
           type: dto.type as BlockType,
           title: dto.title?.trim() ?? null,
-          config: dto.config as Prisma.InputJsonValue,
+          config: cleanConfig as Prisma.InputJsonValue,
           position,
           isPublished: false,
         },
@@ -116,6 +124,7 @@ export class BlocksService {
           : {};
       mergedConfig = { ...existing, ...dto.config };
       validateBlockConfig(block.type, mergedConfig);
+      mergedConfig = sanitizeBlockConfig(block.type, mergedConfig);
     }
 
     const updated = await this.prisma.block.update({

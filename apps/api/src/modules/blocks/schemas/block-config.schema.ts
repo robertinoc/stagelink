@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { type BlockType } from '@prisma/client';
+import { LINK_ICONS as LINK_ICONS_SHARED } from '@stagelink/types';
 
 // =============================================================
 // Block Config Validation
@@ -28,21 +29,10 @@ const MAX_LINK_ITEMS = 20;
 const BLOCKED_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'blob:'];
 const MUSIC_PROVIDERS = ['spotify', 'apple_music', 'soundcloud', 'youtube'] as const;
 const VIDEO_PROVIDERS = ['youtube', 'vimeo', 'tiktok'] as const;
-const LINK_ICONS = [
-  'spotify',
-  'apple_music',
-  'soundcloud',
-  'youtube',
-  'instagram',
-  'tiktok',
-  'facebook',
-  'x',
-  'website',
-  'mail',
-  'ticket',
-  'link',
-  'generic',
-] as const;
+// Single source of truth — imported from the shared types package.
+// Adding a new icon: update LINK_ICONS in @stagelink/types; validation here
+// and the frontend renderer will pick it up automatically.
+const LINK_ICONS = LINK_ICONS_SHARED;
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -50,10 +40,11 @@ function assertSafeUrl(url: unknown, field: string): void {
   if (typeof url !== 'string') {
     throw new BadRequestException(`${field} must be a string`);
   }
-  if (url.length === 0 || url.length > MAX_URL_LENGTH) {
+  const trimmed = url.trim();
+  if (trimmed.length === 0 || trimmed.length > MAX_URL_LENGTH) {
     throw new BadRequestException(`${field} must be between 1 and ${MAX_URL_LENGTH} characters`);
   }
-  const lower = url.toLowerCase().trim();
+  const lower = trimmed.toLowerCase();
   for (const proto of BLOCKED_PROTOCOLS) {
     if (lower.startsWith(proto)) {
       throw new BadRequestException(`${field}: protocol "${proto}" is not allowed`);
@@ -236,6 +227,40 @@ export function validateBlockConfig(type: BlockType, config: unknown): void {
 export function validateBlockTitle(title: unknown): void {
   if (title === undefined || title === null) return;
   assertNonEmptyString(title, 'title', MAX_TITLE_LENGTH);
+}
+
+/**
+ * Returns a sanitized copy of `config` with URL fields trimmed of whitespace.
+ * Call this after `validateBlockConfig` passes, before writing to the DB.
+ * Only mutates string URL fields; all other values are passed through as-is.
+ */
+export function sanitizeBlockConfig(
+  type: BlockType,
+  config: Record<string, unknown>,
+): Record<string, unknown> {
+  switch (type) {
+    case 'links': {
+      const items = config['items'] as Array<Record<string, unknown>>;
+      return {
+        ...config,
+        items: items.map((item) => ({
+          ...item,
+          url: typeof item['url'] === 'string' ? item['url'].trim() : item['url'],
+        })),
+      };
+    }
+    case 'music_embed':
+    case 'video_embed':
+      return {
+        ...config,
+        embedUrl:
+          typeof config['embedUrl'] === 'string' ? config['embedUrl'].trim() : config['embedUrl'],
+      };
+    case 'email_capture':
+      return config;
+    default:
+      return config;
+  }
 }
 
 export { MUSIC_PROVIDERS, VIDEO_PROVIDERS, LINK_ICONS, MAX_LINK_ITEMS };

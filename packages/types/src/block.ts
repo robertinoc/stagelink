@@ -34,7 +34,7 @@ export const LINK_ICONS = [
 export type LinkIcon = (typeof LINK_ICONS)[number];
 
 export interface LinkItem {
-  /** Stable cuid — used as analytics identifier. Never changes after creation. */
+  /** Stable id (UUID) — used as analytics identifier. Never changes after creation. */
   id: string;
   label: string; // max 100 chars
   url: string; // https:// or http:// only
