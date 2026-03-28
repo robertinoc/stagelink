@@ -1,9 +1,9 @@
 import { headers } from 'next/headers';
+import type { AbstractIntlMessages } from 'next-intl';
 import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 
-const LOCALES = ['en', 'es'] as const;
-type PublicLocale = (typeof LOCALES)[number];
+type PublicLocale = 'en' | 'es';
 
 /**
  * Detects the preferred locale from the Accept-Language header.
@@ -37,10 +37,7 @@ export default async function PublicArtistLayout({ children }: PublicLayoutProps
   // (getTranslations calls without explicit locale will use this).
   setRequestLocale(locale);
 
-  const messages = (await import(`@/i18n/messages/${locale}.json`)).default as Record<
-    string,
-    unknown
-  >;
+  const messages = (await import(`@/i18n/messages/${locale}.json`)).default as AbstractIntlMessages;
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
