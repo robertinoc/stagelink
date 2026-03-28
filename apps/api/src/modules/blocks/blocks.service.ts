@@ -173,6 +173,19 @@ export class BlocksService {
       throw new BadRequestException('Duplicate positions in reorder request');
     }
 
+    // Ensure the payload covers every block on the page so positions remain
+    // consistent. A partial reorder would leave gaps/collisions in DB state.
+    const pageBlockIds = await this.prisma.block
+      .findMany({ where: { pageId }, select: { id: true } })
+      .then((rows) => rows.map((r) => r.id).sort());
+    const payloadIds = dto.blocks.map((b) => b.id).sort();
+    if (
+      pageBlockIds.length !== payloadIds.length ||
+      pageBlockIds.some((id, i) => id !== payloadIds[i])
+    ) {
+      throw new BadRequestException('Reorder payload must include all blocks on the page');
+    }
+
     try {
       await this.prisma.$transaction(
         dto.blocks.map(({ id, position }) =>

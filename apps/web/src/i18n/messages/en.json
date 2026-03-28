@@ -194,7 +194,10 @@
     "edit_sheet": {
       "title": "Edit block",
       "save": "Save changes"
-    }
+    },
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel"
   },
   "common": {
     "loading": "Loading...",

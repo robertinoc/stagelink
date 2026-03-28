@@ -194,7 +194,10 @@
     "edit_sheet": {
       "title": "Editar bloque",
       "save": "Guardar cambios"
-    }
+    },
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "cancel": "Cancelar"
   },
   "common": {
     "loading": "Cargando...",

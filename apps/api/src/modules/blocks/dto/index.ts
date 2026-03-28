@@ -74,7 +74,7 @@ export class ReorderBlockDto {
 export class ReorderBlocksDto {
   @IsArray()
   @ArrayMinSize(1)
-  @ArrayMaxSize(100)
+  @ArrayMaxSize(50) // matches MAX_BLOCKS_PER_PAGE
   @ValidateNested({ each: true })
   @Type(() => ReorderBlockDto)
   blocks!: ReorderBlockDto[];

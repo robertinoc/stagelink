@@ -14,7 +14,7 @@ import type {
  */
 export async function getBlocks(pageId: string, accessToken: string): Promise<Block[]> {
   const res = await apiFetch(`/api/pages/${pageId}/blocks`, { accessToken });
-  if (!res.ok) return [];
+  if (!res.ok) throw new Error(`Failed to load blocks (${res.status})`);
   return res.json() as Promise<Block[]>;
 }
 
