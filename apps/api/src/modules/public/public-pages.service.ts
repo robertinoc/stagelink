@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { PrismaService } from '../../lib/prisma.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
 import { PublicPageResponseDto, PublicBlockDto } from './dto/public-page-response.dto';
@@ -59,6 +59,47 @@ export class PublicPagesService {
   }
 
   /**
+   * Stores an email subscription for a published email_capture block.
+   *
+   * - Verifies the block exists and is published.
+   * - Verifies the block type is email_capture.
+   * - Upserts the subscriber (idempotent — no error if already subscribed).
+   * - Returns void; callers receive 201 on creation or 200 on duplicate.
+   *
+   * @throws NotFoundException   if blockId doesn't exist or block is not published
+   * @throws UnprocessableEntityException if the block is not an email_capture type
+   */
+  async createSubscriber(blockId: string, email: string): Promise<{ created: boolean }> {
+    const block = await this.prisma.block.findUnique({
+      where: { id: blockId },
+      select: { type: true, isPublished: true },
+    });
+
+    if (!block || !block.isPublished) {
+      throw new NotFoundException('Block not found');
+    }
+
+    if (block.type !== 'email_capture') {
+      throw new UnprocessableEntityException('Block does not accept email subscriptions');
+    }
+
+    const existing = await this.prisma.subscriber.findUnique({
+      where: { blockId_email: { blockId, email: email.toLowerCase().trim() } },
+      select: { id: true },
+    });
+
+    if (existing) {
+      return { created: false };
+    }
+
+    await this.prisma.subscriber.create({
+      data: { blockId, email: email.toLowerCase().trim() },
+    });
+
+    return { created: true };
+  }
+
+  /**
    * Carga la página y bloques públicos de un artista por su ID interno.
    *
    * Todos los accesos a datos públicos deben pasar por aquí,
@@ -75,6 +116,8 @@ export class PublicPagesService {
             bio: true,
             avatarUrl: true,
             coverUrl: true,
+            seoTitle: true,
+            seoDescription: true,
           },
         },
         blocks: {
@@ -105,6 +148,8 @@ export class PublicPagesService {
         bio: page.artist.bio,
         avatarUrl: page.artist.avatarUrl,
         coverUrl: page.artist.coverUrl,
+        seoTitle: page.artist.seoTitle,
+        seoDescription: page.artist.seoDescription,
       },
       blocks: page.blocks.map(
         (block): PublicBlockDto => ({

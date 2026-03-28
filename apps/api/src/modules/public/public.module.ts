@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TenantModule } from '../tenant/tenant.module';
 import { PublicPagesController } from './public-pages.controller';
+import { PublicBlocksController } from './public-blocks.controller';
 import { PublicPagesService } from './public-pages.service';
 
 /**
@@ -11,7 +12,7 @@ import { PublicPagesService } from './public-pages.service';
  */
 @Module({
   imports: [TenantModule],
-  controllers: [PublicPagesController],
+  controllers: [PublicPagesController, PublicBlocksController],
   providers: [PublicPagesService],
 })
 export class PublicModule {}

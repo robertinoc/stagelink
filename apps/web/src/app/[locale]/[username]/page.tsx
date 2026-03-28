@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { fetchPublicPage } from '@/lib/public-api';
-import { ArtistPagePlaceholder } from '@/features/public-page/components/ArtistPagePlaceholder';
+import { ArtistPageView } from '@/features/public-page/components/ArtistPageView';
 
 interface ArtistPageProps {
   params: Promise<{ username: string; locale: string }>;
@@ -13,6 +13,10 @@ interface ArtistPageProps {
  * `fetchPublicPage` está wrapped con `React.cache()`, por lo que esta llamada
  * y la del Server Component comparten el resultado — una sola request HTTP
  * al backend por pageview, aunque se llame dos veces en el mismo render tree.
+ *
+ * SEO fields priority:
+ *   title:       seoTitle → displayName (@username) — StageLink
+ *   description: seoDescription → bio → generic fallback
  */
 export async function generateMetadata({ params }: ArtistPageProps): Promise<Metadata> {
   const { username } = await params;
@@ -21,16 +25,44 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
   if (!page) {
     return {
       title: 'Artist not found — StageLink',
+      robots: { index: false, follow: false },
     };
   }
 
+  const { artist } = page;
+
+  const title = artist.seoTitle
+    ? `${artist.seoTitle} — StageLink`
+    : `${artist.displayName} (@${artist.username}) — StageLink`;
+
+  const description =
+    artist.seoDescription ?? artist.bio ?? `Check out ${artist.displayName}'s page on StageLink`;
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+  const canonical = `${appUrl}/${artist.username}`;
+
   return {
-    title: `${page.artist.displayName} (@${page.artist.username}) — StageLink`,
-    description: page.artist.bio ?? `Check out ${page.artist.displayName}'s page on StageLink`,
+    title,
+    description,
+    alternates: {
+      canonical,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
     openGraph: {
-      title: page.artist.displayName,
-      description: page.artist.bio ?? undefined,
-      images: page.artist.avatarUrl ? [{ url: page.artist.avatarUrl }] : [],
+      title: artist.seoTitle ?? artist.displayName,
+      description,
+      url: canonical,
+      images: artist.avatarUrl ? [{ url: artist.avatarUrl }] : [],
+      type: 'profile',
+    },
+    twitter: {
+      card: 'summary',
+      title: artist.seoTitle ?? artist.displayName,
+      description,
+      images: artist.avatarUrl ? [artist.avatarUrl] : [],
     },
   };
 }
@@ -57,7 +89,5 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
     notFound();
   }
 
-  // ArtistPagePlaceholder recibe los datos del tenant resuelto.
-  // En el futuro, se reemplaza por ArtistPageView con el editor completo.
-  return <ArtistPagePlaceholder username={page.artist.username} />;
+  return <ArtistPageView page={page} />;
 }
