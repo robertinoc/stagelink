@@ -34,7 +34,7 @@ export const LINK_ICONS = [
 export type LinkIcon = (typeof LINK_ICONS)[number];
 
 export interface LinkItem {
-  /** Stable cuid — used as analytics identifier. Never changes after creation. */
+  /** Stable id (UUID) — used as analytics identifier. Never changes after creation. */
   id: string;
   label: string; // max 100 chars
   url: string; // https:// or http:// only
@@ -47,14 +47,38 @@ export interface LinksBlockConfig {
   items: LinkItem[];
 }
 
+/**
+ * Resource types for music embed blocks.
+ *   track | album | playlist | artist | episode
+ * Derived by the backend from the sourceUrl path — never sent by the client.
+ */
+export type MusicResourceType = 'track' | 'album' | 'playlist' | 'artist' | 'episode' | 'set';
+
 export interface MusicEmbedBlockConfig {
   provider: 'spotify' | 'apple_music' | 'soundcloud' | 'youtube';
+  /** URL pasted by the user (share link). Persisted as-is. */
+  sourceUrl: string;
+  /** Embed-safe URL derived by the backend. Never modified by the client. */
   embedUrl: string;
+  /** Resource type inferred from sourceUrl path by the backend. */
+  resourceType: MusicResourceType;
 }
+
+/**
+ * Resource types for video embed blocks.
+ *   video | short
+ * Derived by the backend from the sourceUrl path — never sent by the client.
+ */
+export type VideoResourceType = 'video' | 'short';
 
 export interface VideoEmbedBlockConfig {
   provider: 'youtube' | 'vimeo' | 'tiktok';
+  /** URL pasted by the user (share link). Persisted as-is. */
+  sourceUrl: string;
+  /** Embed-safe URL derived by the backend. Never modified by the client. */
   embedUrl: string;
+  /** Resource type inferred from sourceUrl path by the backend. */
+  resourceType: VideoResourceType;
 }
 
 export interface EmailCaptureBlockConfig {

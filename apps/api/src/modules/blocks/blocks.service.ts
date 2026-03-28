@@ -9,7 +9,12 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
-import { validateBlockConfig, validateBlockTitle } from './schemas/block-config.schema';
+import {
+  validateBlockConfig,
+  validateBlockTitle,
+  enrichBlockConfig,
+  sanitizeBlockConfig,
+} from './schemas/block-config.schema';
 import { CreateBlockDto, UpdateBlockDto, ReorderBlocksDto } from './dto';
 
 // Maximum blocks allowed per page — prevents unbounded data growth.
@@ -50,7 +55,12 @@ export class BlocksService {
     await this.membershipService.validateAccess(userId, artistId, 'write');
 
     validateBlockTitle(dto.title);
-    validateBlockConfig(dto.type as BlockType, dto.config);
+    const blockType = dto.type as BlockType;
+    validateBlockConfig(blockType, dto.config);
+    const enrichedConfig = sanitizeBlockConfig(
+      blockType,
+      enrichBlockConfig(blockType, dto.config as Record<string, unknown>),
+    );
 
     // Wrap count + position lookup + insert in a single transaction so two
     // concurrent creates on the same page cannot race past the block limit or
@@ -73,9 +83,9 @@ export class BlocksService {
       return tx.block.create({
         data: {
           pageId,
-          type: dto.type as BlockType,
+          type: blockType,
           title: dto.title?.trim() ?? null,
-          config: dto.config as Prisma.InputJsonValue,
+          config: enrichedConfig as Prisma.InputJsonValue,
           position,
           isPublished: false,
         },
@@ -108,22 +118,23 @@ export class BlocksService {
       validateBlockTitle(dto.title);
     }
 
-    let mergedConfig: Record<string, unknown> | undefined;
+    let enrichedConfig: Record<string, unknown> | undefined;
     if (dto.config !== undefined) {
       const existing =
         typeof block.config === 'object' && block.config !== null
           ? (block.config as Record<string, unknown>)
           : {};
-      mergedConfig = { ...existing, ...dto.config };
+      const mergedConfig = { ...existing, ...dto.config };
       validateBlockConfig(block.type, mergedConfig);
+      enrichedConfig = sanitizeBlockConfig(block.type, enrichBlockConfig(block.type, mergedConfig));
     }
 
     const updated = await this.prisma.block.update({
       where: { id: blockId },
       data: {
         ...(dto.title !== undefined && { title: dto.title.trim() || null }),
-        ...(mergedConfig !== undefined && {
-          config: mergedConfig as Prisma.InputJsonValue,
+        ...(enrichedConfig !== undefined && {
+          config: enrichedConfig as Prisma.InputJsonValue,
         }),
       },
     });
