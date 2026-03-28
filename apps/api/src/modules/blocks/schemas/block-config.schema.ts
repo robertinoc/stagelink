@@ -36,6 +36,10 @@ const MAX_LINK_ITEMS = 20;
 const BLOCKED_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'blob:'];
 const MUSIC_PROVIDERS = ['spotify', 'apple_music', 'soundcloud', 'youtube'] as const;
 const VIDEO_PROVIDERS = ['youtube', 'vimeo', 'tiktok'] as const;
+// Single source of truth — imported from the shared types package.
+// Adding a new icon: update LINK_ICONS in @stagelink/types; validation here
+// and the frontend renderer will pick it up automatically.
+const LINK_ICONS = LINK_ICONS_SHARED;
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
