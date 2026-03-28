@@ -28,6 +28,21 @@ const MAX_LINK_ITEMS = 20;
 const BLOCKED_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'blob:'];
 const MUSIC_PROVIDERS = ['spotify', 'apple_music', 'soundcloud', 'youtube'] as const;
 const VIDEO_PROVIDERS = ['youtube', 'vimeo', 'tiktok'] as const;
+const LINK_ICONS = [
+  'spotify',
+  'apple_music',
+  'soundcloud',
+  'youtube',
+  'instagram',
+  'tiktok',
+  'facebook',
+  'x',
+  'website',
+  'mail',
+  'ticket',
+  'link',
+  'generic',
+] as const;
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -95,15 +110,53 @@ function validateLinksConfig(c: Record<string, unknown>): void {
   if (items.length > MAX_LINK_ITEMS) {
     throw new BadRequestException(`links config.items must have at most ${MAX_LINK_ITEMS} items`);
   }
+
+  const seenIds = new Set<string>();
+  const seenSortOrders = new Set<number>();
+
   for (const [i, item] of items.entries()) {
     if (typeof item !== 'object' || item === null || Array.isArray(item)) {
       throw new BadRequestException(`links config.items[${i}] must be an object`);
     }
     const it = item as Record<string, unknown>;
+
+    // id — stable identifier, used for analytics
+    if (typeof it['id'] !== 'string' || it['id'].trim().length === 0) {
+      throw new BadRequestException(`links config.items[${i}].id must be a non-empty string`);
+    }
+    if (seenIds.has(it['id'] as string)) {
+      throw new BadRequestException(`links config.items[${i}].id must be unique within the block`);
+    }
+    seenIds.add(it['id'] as string);
+
     assertNonEmptyString(it['label'], `links config.items[${i}].label`, MAX_LABEL_LENGTH);
     assertSafeUrl(it['url'], `links config.items[${i}].url`);
-    if (it['iconUrl'] !== undefined) {
-      assertSafeUrl(it['iconUrl'], `links config.items[${i}].iconUrl`);
+
+    // icon — optional, must be a known key if present
+    if (it['icon'] !== undefined && it['icon'] !== null) {
+      if (!LINK_ICONS.includes(it['icon'] as (typeof LINK_ICONS)[number])) {
+        throw new BadRequestException(
+          `links config.items[${i}].icon must be one of: ${LINK_ICONS.join(', ')}`,
+        );
+      }
+    }
+
+    // sortOrder — required, non-negative integer, unique within block
+    if (!Number.isInteger(it['sortOrder']) || (it['sortOrder'] as number) < 0) {
+      throw new BadRequestException(
+        `links config.items[${i}].sortOrder must be a non-negative integer`,
+      );
+    }
+    if (seenSortOrders.has(it['sortOrder'] as number)) {
+      throw new BadRequestException(
+        `links config.items[${i}].sortOrder must be unique within the block`,
+      );
+    }
+    seenSortOrders.add(it['sortOrder'] as number);
+
+    // openInNewTab — optional boolean
+    if (it['openInNewTab'] !== undefined && typeof it['openInNewTab'] !== 'boolean') {
+      throw new BadRequestException(`links config.items[${i}].openInNewTab must be a boolean`);
     }
   }
 }
@@ -185,4 +238,4 @@ export function validateBlockTitle(title: unknown): void {
   assertNonEmptyString(title, 'title', MAX_TITLE_LENGTH);
 }
 
-export { MUSIC_PROVIDERS, VIDEO_PROVIDERS, MAX_LINK_ITEMS };
+export { MUSIC_PROVIDERS, VIDEO_PROVIDERS, LINK_ICONS, MAX_LINK_ITEMS };

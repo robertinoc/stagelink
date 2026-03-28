@@ -5,10 +5,13 @@ import type {
   BlockType,
   BlockConfig,
   LinksBlockConfig,
+  LinkItem,
+  LinkIcon,
   MusicEmbedBlockConfig,
   VideoEmbedBlockConfig,
   EmailCaptureBlockConfig,
 } from '@stagelink/types';
+import { LINK_ICONS } from '@stagelink/types';
 
 interface Props {
   type: BlockType;
@@ -17,6 +20,41 @@ interface Props {
 }
 
 // ─── Links ────────────────────────────────────────────────────────────────────
+
+/**
+ * Human-readable label + emoji for each icon key.
+ * Keep in sync with LINK_ICONS in @stagelink/types.
+ */
+const LINK_ICON_OPTIONS: { value: LinkIcon; label: string }[] = [
+  { value: 'spotify', label: '🎵 Spotify' },
+  { value: 'apple_music', label: '🎵 Apple Music' },
+  { value: 'soundcloud', label: '🔊 SoundCloud' },
+  { value: 'youtube', label: '▶️ YouTube' },
+  { value: 'instagram', label: '📸 Instagram' },
+  { value: 'tiktok', label: '🎬 TikTok' },
+  { value: 'facebook', label: '👥 Facebook' },
+  { value: 'x', label: '✕ X (Twitter)' },
+  { value: 'website', label: '🌐 Website' },
+  { value: 'mail', label: '✉️ Email' },
+  { value: 'ticket', label: '🎫 Ticket' },
+  { value: 'link', label: '🔗 Link' },
+  { value: 'generic', label: '⭐ Generic' },
+];
+
+function newLinkItem(sortOrder: number): LinkItem {
+  return {
+    id: crypto.randomUUID(),
+    label: '',
+    url: '',
+    sortOrder,
+    openInNewTab: true,
+  };
+}
+
+/** Normalise sortOrder to match array index (0..n-1). */
+function normaliseSortOrders(items: LinkItem[]): LinkItem[] {
+  return items.map((item, i) => ({ ...item, sortOrder: i }));
+}
 
 function LinksForm({
   config,
@@ -29,25 +67,61 @@ function LinksForm({
 
   const items = config.items ?? [];
 
-  function updateItem(index: number, field: 'label' | 'url', value: string) {
-    const updated = items.map((item, i) => (i === index ? { ...item, [field]: value } : item));
-    onChange({ ...config, items: updated });
+  function updateItem(index: number, patch: Partial<LinkItem>) {
+    const updated = items.map((item, i) => (i === index ? { ...item, ...patch } : item));
+    onChange({ ...config, items: normaliseSortOrders(updated) });
   }
 
   function addItem() {
-    onChange({ ...config, items: [...items, { label: '', url: '' }] });
+    const updated = [...items, newLinkItem(items.length)];
+    onChange({ ...config, items: normaliseSortOrders(updated) });
   }
 
   function removeItem(index: number) {
-    onChange({ ...config, items: items.filter((_, i) => i !== index) });
+    const updated = items.filter((_, i) => i !== index);
+    onChange({ ...config, items: normaliseSortOrders(updated) });
+  }
+
+  function moveItem(index: number, direction: 'up' | 'down') {
+    const swapIndex = direction === 'up' ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= items.length) return;
+    const updated = [...items];
+    const a = updated[index]!;
+    const b = updated[swapIndex]!;
+    updated[index] = b;
+    updated[swapIndex] = a;
+    onChange({ ...config, items: normaliseSortOrders(updated) });
   }
 
   return (
     <div className="space-y-3">
       {items.map((item, index) => (
-        <div key={index} className="space-y-2 rounded-lg border p-3">
+        <div key={item.id} className="space-y-2 rounded-lg border p-3">
+          {/* Item header — order controls + remove */}
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Link {index + 1}</span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => moveItem(index, 'up')}
+                disabled={index === 0}
+                title={t('move_up')}
+                className="rounded p-0.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-30"
+              >
+                ▲
+              </button>
+              <button
+                type="button"
+                onClick={() => moveItem(index, 'down')}
+                disabled={index === items.length - 1}
+                title={t('move_down')}
+                className="rounded p-0.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-30"
+              >
+                ▼
+              </button>
+              <span className="ml-1 text-sm font-medium text-muted-foreground">
+                {t('link_n', { n: index + 1 })}
+              </span>
+            </div>
             {items.length > 1 && (
               <button
                 type="button"
@@ -58,24 +132,59 @@ function LinksForm({
               </button>
             )}
           </div>
+
+          {/* Label */}
           <input
             type="text"
             placeholder={t('label')}
             value={item.label}
-            onChange={(e) => updateItem(index, 'label', e.target.value)}
+            onChange={(e) => updateItem(index, { label: e.target.value })}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             maxLength={100}
           />
+
+          {/* URL */}
           <input
             type="url"
             placeholder="https://..."
             value={item.url}
-            onChange={(e) => updateItem(index, 'url', e.target.value)}
+            onChange={(e) => updateItem(index, { url: e.target.value })}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             maxLength={2048}
           />
+
+          {/* Icon + open in new tab — same row */}
+          <div className="flex items-center gap-3">
+            <select
+              value={item.icon ?? ''}
+              onChange={(e) =>
+                updateItem(index, {
+                  icon: e.target.value ? (e.target.value as LinkIcon) : undefined,
+                })
+              }
+              className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">{t('icon_none')}</option>
+              {LINK_ICON_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+
+            <label className="flex cursor-pointer items-center gap-1.5 text-sm text-muted-foreground select-none">
+              <input
+                type="checkbox"
+                checked={item.openInNewTab ?? true}
+                onChange={(e) => updateItem(index, { openInNewTab: e.target.checked })}
+                className="h-4 w-4 rounded border-input"
+              />
+              {t('open_in_new_tab')}
+            </label>
+          </div>
         </div>
       ))}
+
       {items.length < 20 && (
         <button
           type="button"
@@ -263,7 +372,17 @@ function EmailCaptureForm({
 export function defaultConfig(type: BlockType): BlockConfig {
   switch (type) {
     case 'links':
-      return { items: [{ label: '', url: '' }] };
+      return {
+        items: [
+          {
+            id: crypto.randomUUID(),
+            label: '',
+            url: '',
+            sortOrder: 0,
+            openInNewTab: true,
+          },
+        ],
+      };
     case 'music_embed':
       return { provider: 'spotify', embedUrl: '' };
     case 'video_embed':
