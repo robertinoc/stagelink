@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { confirmUpload, requestUploadIntent, uploadToS3 } from '@/lib/api/assets';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -22,10 +22,18 @@ export function AvatarUpload({
   onSuccess,
 }: AvatarUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const blobUrlRef = useRef<string | null>(null); // tracks current blob URL for cleanup
   const [preview, setPreview] = useState<string | null>(null);
   const [state, setState] = useState<UploadState>('idle');
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+
+  // Revoke blob URL on unmount to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+    };
+  }, []);
 
   const displayUrl = preview ?? currentAvatarUrl ?? null;
 
@@ -47,8 +55,14 @@ export function AvatarUpload({
       return;
     }
 
+    // Revoke previous blob URL before creating a new one
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+    }
+
     // Local preview
     const objectUrl = URL.createObjectURL(file);
+    blobUrlRef.current = objectUrl;
     setPreview(objectUrl);
     setError(null);
     setState('uploading');
@@ -61,8 +75,13 @@ export function AvatarUpload({
       // 2. Upload directly to S3
       await uploadToS3(intent.uploadUrl, file, setProgress);
 
-      // 3. Confirm with backend
+      // 3. Confirm with backend — backend updates artist.avatarUrl + avatarAssetId
       const asset = await confirmUpload(intent.assetId, accessToken);
+
+      // Revoke blob URL — CDN URL is now available
+      URL.revokeObjectURL(objectUrl);
+      blobUrlRef.current = null;
+      setPreview(null);
 
       setState('success');
       if (asset.deliveryUrl) onSuccess(asset.deliveryUrl);

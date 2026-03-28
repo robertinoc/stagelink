@@ -3,6 +3,7 @@
 import type { UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import type { ProfileFormValues } from '../schemas/profile.schema';
 
 interface ProfileSeoSectionProps {
@@ -11,8 +12,21 @@ interface ProfileSeoSectionProps {
   username: string; // readonly — shown for context
 }
 
-const textareaClass =
-  'flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none';
+/**
+ * Derives the public base URL from the environment variable.
+ * Falls back to 'stagelink.co' so the display is always meaningful.
+ * The full URL is shown as read-only context — it is not editable here.
+ */
+function getPublicHost(): string {
+  const raw = process.env['NEXT_PUBLIC_APP_URL'] ?? '';
+  try {
+    return new URL(raw).host;
+  } catch {
+    return 'stagelink.co';
+  }
+}
+
+const PUBLIC_HOST = getPublicHost();
 
 export function ProfileSeoSection({ form, disabled, username }: ProfileSeoSectionProps) {
   const {
@@ -38,7 +52,7 @@ export function ProfileSeoSection({ form, disabled, username }: ProfileSeoSectio
         <div className="space-y-1.5">
           <p className="text-sm font-medium">Your public URL</p>
           <div className="flex h-9 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
-            stagelink.co/<span className="font-medium text-foreground">{username}</span>
+            {PUBLIC_HOST}/<span className="font-medium text-foreground">{username}</span>
           </div>
           <p className="text-xs text-muted-foreground">
             Username changes require identity verification and are not available yet.
@@ -75,11 +89,11 @@ export function ProfileSeoSection({ form, disabled, username }: ProfileSeoSectio
           <label htmlFor="seoDescription" className="text-sm font-medium">
             Meta description
           </label>
-          <textarea
+          <Textarea
             id="seoDescription"
             placeholder="A short description of your music, style and what fans can find here…"
             disabled={disabled}
-            className={textareaClass}
+            className="min-h-[80px]"
             {...register('seoDescription')}
           />
           <div className="flex justify-between">

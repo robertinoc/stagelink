@@ -3,6 +3,7 @@
 import type { UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   ARTIST_CATEGORIES,
   ARTIST_CATEGORY_LABELS,
@@ -14,9 +15,8 @@ interface ProfileBasicInfoProps {
   disabled: boolean;
 }
 
-const textareaClass =
-  'flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none';
-
+// Native <select> — shadcn Select (Radix-based) is not yet installed.
+// Tracked as P2 tech debt. This class mirrors shadcn Input styles.
 const selectClass =
   'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
 
@@ -56,11 +56,11 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
           <label htmlFor="bio" className="text-sm font-medium">
             Short bio
           </label>
-          <textarea
+          <Textarea
             id="bio"
             placeholder="Tell your fans a bit about yourself…"
             disabled={disabled}
-            className={textareaClass}
+            className="min-h-[100px]"
             {...register('bio')}
           />
           <div className="flex justify-between">
