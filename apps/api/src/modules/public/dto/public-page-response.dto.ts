@@ -25,6 +25,8 @@ export interface PublicArtistDto {
   bio: string | null;
   avatarUrl: string | null;
   coverUrl: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
 }
 
 // ── Respuesta completa de página pública ──────────────────────
