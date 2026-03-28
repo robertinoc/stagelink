@@ -4,7 +4,7 @@ import { fetchPublicPage } from '@/lib/public-api';
 import { ArtistPageView } from '@/features/public-page/components/ArtistPageView';
 
 interface ArtistPageProps {
-  params: Promise<{ username: string; locale: string }>;
+  params: Promise<{ username: string }>;
 }
 
 /**
@@ -17,6 +17,8 @@ interface ArtistPageProps {
  * SEO fields priority:
  *   title:       seoTitle → displayName (@username) — StageLink
  *   description: seoDescription → bio → generic fallback
+ *
+ * Canonical apunta a /{username} (sin prefijo de locale) — URL de sharing limpia.
  */
 export async function generateMetadata({ params }: ArtistPageProps): Promise<Metadata> {
   const { username } = await params;
@@ -55,14 +57,20 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
       title: artist.seoTitle ?? artist.displayName,
       description,
       url: canonical,
-      images: artist.avatarUrl ? [{ url: artist.avatarUrl }] : [],
+      // Prefer cover (wide format) for social previews; fall back to avatar.
+      images: artist.coverUrl
+        ? [{ url: artist.coverUrl, width: 1200, height: 630, alt: artist.displayName }]
+        : artist.avatarUrl
+          ? [{ url: artist.avatarUrl, width: 400, height: 400, alt: artist.displayName }]
+          : [],
       type: 'profile',
     },
     twitter: {
-      card: 'summary',
+      // summary_large_image when a wide cover is available, summary otherwise.
+      card: artist.coverUrl ? 'summary_large_image' : 'summary',
       title: artist.seoTitle ?? artist.displayName,
       description,
-      images: artist.avatarUrl ? [artist.avatarUrl] : [],
+      images: artist.coverUrl ? [artist.coverUrl] : artist.avatarUrl ? [artist.avatarUrl] : [],
     },
   };
 }

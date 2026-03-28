@@ -3,8 +3,11 @@
 /**
  * Error boundary for artist pages.
  *
- * Catches unexpected errors (5xx from backend, network failures, render errors)
- * without crashing the entire app. Must be a Client Component.
+ * Handles unexpected server errors (5xx) that propagate from the Server Component.
+ * Must be a Client Component — Next.js requires error boundaries to be client-side.
+ *
+ * Note: Does not use next-intl here since the error may occur before the layout
+ * has a chance to set up the intl context. Static English strings are intentional.
  */
 export default function ArtistError({
   reset,
@@ -21,7 +24,7 @@ export default function ArtistError({
       </p>
       <button
         onClick={reset}
-        className="mt-6 rounded-full bg-white px-5 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100 transition-colors"
+        className="mt-6 rounded-full bg-white px-5 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100"
       >
         Try again
       </button>
