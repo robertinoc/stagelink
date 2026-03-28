@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { fetchPublicPage } from '@/lib/public-api';
-import { ArtistPagePlaceholder } from '@/features/public-page/components/ArtistPagePlaceholder';
+import { ArtistPageView } from '@/features/public-page/components/ArtistPageView';
 
 interface ArtistPageProps {
   params: Promise<{ username: string; locale: string }>;
@@ -57,7 +57,5 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
     notFound();
   }
 
-  // ArtistPagePlaceholder recibe los datos del tenant resuelto.
-  // En el futuro, se reemplaza por ArtistPageView con el editor completo.
-  return <ArtistPagePlaceholder username={page.artist.username} />;
+  return <ArtistPageView page={page} />;
 }

@@ -1,21 +1,29 @@
-import type { Block } from '@stagelink/types';
-import {
-  isLinksBlock,
-  isMusicEmbedBlock,
-  isVideoEmbedBlock,
-  isEmailCaptureBlock,
-  type LinksBlockConfig,
-  type MusicEmbedBlockConfig,
-  type VideoEmbedBlockConfig,
-  type EmailCaptureBlockConfig,
+import type {
+  BlockType,
+  BlockConfig,
+  LinksBlockConfig,
+  MusicEmbedBlockConfig,
+  VideoEmbedBlockConfig,
+  EmailCaptureBlockConfig,
 } from '@stagelink/types';
 import { LinksBlockRenderer } from './LinksBlockRenderer';
 import { MusicEmbedRenderer } from './MusicEmbedRenderer';
 import { VideoEmbedRenderer } from './VideoEmbedRenderer';
 import { EmailCaptureRenderer } from './EmailCaptureRenderer';
 
+/**
+ * Minimal block shape accepted by BlockRenderer.
+ * Compatible with both the authenticated `Block` type and the public `PublicBlock` type.
+ */
+interface RenderableBlock {
+  id: string;
+  type: BlockType;
+  title: string | null;
+  config: BlockConfig;
+}
+
 interface BlockRendererProps {
-  block: Block;
+  block: RenderableBlock;
   /**
    * Analytics hook for links blocks. Receives (blockId, itemId) on click.
    * Only wired up on the public page — omit in dashboard preview.
@@ -24,10 +32,12 @@ interface BlockRendererProps {
 }
 
 /**
- * Dispatches a Block to the correct type-specific renderer.
+ * Dispatches a block to the correct type-specific renderer.
  *
  * - Server-renderable: LinksBlock, MusicEmbed, VideoEmbed (no client state)
  * - Client component: EmailCapture (form state)
+ *
+ * Accepts both the authenticated `Block` and the public `PublicBlock` shape.
  *
  * Usage (dashboard preview):
  *   <BlockRenderer block={block} />
@@ -36,7 +46,7 @@ interface BlockRendererProps {
  *   <BlockRenderer block={block} onLinkClick={trackClick} />
  */
 export function BlockRenderer({ block, onLinkClick }: BlockRendererProps) {
-  if (isLinksBlock(block)) {
+  if (block.type === 'links') {
     return (
       <LinksBlockRenderer
         title={block.title}
@@ -47,19 +57,19 @@ export function BlockRenderer({ block, onLinkClick }: BlockRendererProps) {
     );
   }
 
-  if (isMusicEmbedBlock(block)) {
+  if (block.type === 'music_embed') {
     return (
       <MusicEmbedRenderer title={block.title} config={block.config as MusicEmbedBlockConfig} />
     );
   }
 
-  if (isVideoEmbedBlock(block)) {
+  if (block.type === 'video_embed') {
     return (
       <VideoEmbedRenderer title={block.title} config={block.config as VideoEmbedBlockConfig} />
     );
   }
 
-  if (isEmailCaptureBlock(block)) {
+  if (block.type === 'email_capture') {
     return (
       <EmailCaptureRenderer
         title={block.title}
