@@ -1,30 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { type BlockType, Prisma } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
+import { validateBlockConfig, validateBlockTitle } from './schemas/block-config.schema';
+import { CreateBlockDto, UpdateBlockDto, ReorderBlocksDto } from './dto';
 
-export interface CreateBlockDto {
-  pageId: string;
-  type: BlockType;
-  title?: string;
-  url?: string;
-  metadata?: Record<string, unknown>;
-}
-
-export interface UpdateBlockDto {
-  type?: BlockType;
-  title?: string;
-  url?: string;
-  metadata?: Record<string, unknown>;
-  position?: number;
-  isVisible?: boolean;
-}
-
-export interface ReorderBlocksDto {
-  blocks: Array<{ id: string; position: number }>;
-}
+// Maximum blocks allowed per page — prevents unbounded data growth.
+const MAX_BLOCKS_PER_PAGE = 50;
 
 @Injectable()
 export class BlocksService {
@@ -34,9 +23,14 @@ export class BlocksService {
     private readonly auditService: AuditService,
   ) {}
 
+  // ─── List ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Returns all blocks for a page ordered by position asc.
+   * Caller must have at least read access on the artist.
+   */
   async findByPage(pageId: string, userId: string) {
-    const artistId = await this.membershipService.resolveArtistIdForResource('page', pageId);
-    if (!artistId) throw new NotFoundException('Page not found');
+    const artistId = await this.resolvePageArtist(pageId);
     await this.membershipService.validateAccess(userId, artistId, 'read');
 
     return this.prisma.block.findMany({
@@ -45,27 +39,41 @@ export class BlocksService {
     });
   }
 
-  async create(dto: CreateBlockDto, userId: string, ipAddress?: string) {
-    const artistId = await this.membershipService.resolveArtistIdForResource('page', dto.pageId);
-    if (!artistId) throw new NotFoundException('Page not found');
+  // ─── Create ───────────────────────────────────────────────────────────────
+
+  /**
+   * Creates a new block at the end of the page's list.
+   * Enforces per-page block limit and validates config for the given type.
+   */
+  async create(pageId: string, dto: CreateBlockDto, userId: string, ipAddress?: string) {
+    const artistId = await this.resolvePageArtist(pageId);
     await this.membershipService.validateAccess(userId, artistId, 'write');
 
-    // Get max position
-    const maxPositionBlock = await this.prisma.block.findFirst({
-      where: { pageId: dto.pageId },
+    validateBlockTitle(dto.title);
+    validateBlockConfig(dto.type as BlockType, dto.config);
+
+    const blockCount = await this.prisma.block.count({ where: { pageId } });
+    if (blockCount >= MAX_BLOCKS_PER_PAGE) {
+      throw new UnprocessableEntityException(
+        `A page can have at most ${MAX_BLOCKS_PER_PAGE} blocks`,
+      );
+    }
+
+    const last = await this.prisma.block.findFirst({
+      where: { pageId },
       orderBy: { position: 'desc' },
       select: { position: true },
     });
-    const nextPosition = (maxPositionBlock?.position ?? -1) + 1;
+    const position = (last?.position ?? -1) + 1;
 
     const block = await this.prisma.block.create({
       data: {
-        pageId: dto.pageId,
-        type: dto.type,
-        title: dto.title ?? null,
-        url: dto.url ?? null,
-        metadata: (dto.metadata ?? {}) as Prisma.InputJsonValue,
-        position: nextPosition,
+        pageId,
+        type: dto.type as BlockType,
+        title: dto.title?.trim() ?? null,
+        config: dto.config as Prisma.InputJsonValue,
+        position,
+        isPublished: false,
       },
     });
 
@@ -74,24 +82,44 @@ export class BlocksService {
       action: 'block.create',
       entityType: 'block',
       entityId: block.id,
-      metadata: { pageId: dto.pageId, type: dto.type },
+      metadata: { pageId, type: dto.type },
       ipAddress,
     });
 
     return block;
   }
 
+  // ─── Update ───────────────────────────────────────────────────────────────
+
+  /**
+   * Updates title and/or config of a block.
+   * Config is deep-merged with existing config then re-validated for the type.
+   */
   async update(blockId: string, dto: UpdateBlockDto, userId: string, ipAddress?: string) {
-    const artistId = await this.membershipService.resolveArtistIdForResource('block', blockId);
-    if (!artistId) throw new NotFoundException('Block not found');
+    const { block, artistId } = await this.resolveBlock(blockId);
     await this.membershipService.validateAccess(userId, artistId, 'write');
 
-    const { metadata, ...rest } = dto;
-    const block = await this.prisma.block.update({
+    if (dto.title !== undefined) {
+      validateBlockTitle(dto.title);
+    }
+
+    let mergedConfig: Record<string, unknown> | undefined;
+    if (dto.config !== undefined) {
+      const existing =
+        typeof block.config === 'object' && block.config !== null
+          ? (block.config as Record<string, unknown>)
+          : {};
+      mergedConfig = { ...existing, ...dto.config };
+      validateBlockConfig(block.type, mergedConfig);
+    }
+
+    const updated = await this.prisma.block.update({
       where: { id: blockId },
       data: {
-        ...rest,
-        ...(metadata !== undefined && { metadata: metadata as Prisma.InputJsonValue }),
+        ...(dto.title !== undefined && { title: dto.title.trim() || null }),
+        ...(mergedConfig !== undefined && {
+          config: mergedConfig as Prisma.InputJsonValue,
+        }),
       },
     });
 
@@ -104,35 +132,52 @@ export class BlocksService {
       ipAddress,
     });
 
-    return block;
+    return updated;
   }
 
-  async remove(blockId: string, userId: string, ipAddress?: string) {
-    const artistId = await this.membershipService.resolveArtistIdForResource('block', blockId);
-    if (!artistId) throw new NotFoundException('Block not found');
-    await this.membershipService.validateAccess(userId, artistId, 'write');
+  // ─── Delete ───────────────────────────────────────────────────────────────
 
-    await this.prisma.block.delete({ where: { id: blockId } });
+  /**
+   * Hard-deletes a block. Position gaps are harmless — blocks render by
+   * sort order, not by contiguity.
+   * Audit is written before deletion so entityId is still meaningful.
+   */
+  async remove(blockId: string, userId: string, ipAddress?: string) {
+    const { block, artistId } = await this.resolveBlock(blockId);
+    await this.membershipService.validateAccess(userId, artistId, 'write');
 
     this.auditService.log({
       actorId: userId,
       action: 'block.delete',
       entityType: 'block',
       entityId: blockId,
+      metadata: { type: block.type, pageId: block.pageId },
       ipAddress,
     });
+
+    await this.prisma.block.delete({ where: { id: blockId } });
   }
 
+  // ─── Reorder ──────────────────────────────────────────────────────────────
+
+  /**
+   * Batch-updates positions for a set of blocks.
+   * The `pageId` constraint in each UPDATE prevents cross-page position injection.
+   */
   async reorder(pageId: string, dto: ReorderBlocksDto, userId: string, ipAddress?: string) {
-    const artistId = await this.membershipService.resolveArtistIdForResource('page', pageId);
-    if (!artistId) throw new NotFoundException('Page not found');
+    const artistId = await this.resolvePageArtist(pageId);
     await this.membershipService.validateAccess(userId, artistId, 'write');
+
+    const positions = dto.blocks.map((b) => b.position);
+    if (new Set(positions).size !== positions.length) {
+      throw new BadRequestException('Duplicate positions in reorder request');
+    }
 
     try {
       await this.prisma.$transaction(
         dto.blocks.map(({ id, position }) =>
           this.prisma.block.update({
-            where: { id, pageId },
+            where: { id, pageId }, // pageId ensures block belongs to this page
             data: { position },
           }),
         ),
@@ -157,5 +202,70 @@ export class BlocksService {
       where: { pageId },
       orderBy: { position: 'asc' },
     });
+  }
+
+  // ─── Publish / Unpublish ──────────────────────────────────────────────────
+
+  /**
+   * Marks a block as published (visible on the public page).
+   */
+  async publish(blockId: string, userId: string, ipAddress?: string) {
+    const { artistId } = await this.resolveBlock(blockId);
+    await this.membershipService.validateAccess(userId, artistId, 'write');
+
+    const block = await this.prisma.block.update({
+      where: { id: blockId },
+      data: { isPublished: true },
+    });
+
+    this.auditService.log({
+      actorId: userId,
+      action: 'block.publish',
+      entityType: 'block',
+      entityId: blockId,
+      ipAddress,
+    });
+
+    return block;
+  }
+
+  /**
+   * Marks a block as unpublished (hidden from the public page).
+   */
+  async unpublish(blockId: string, userId: string, ipAddress?: string) {
+    const { artistId } = await this.resolveBlock(blockId);
+    await this.membershipService.validateAccess(userId, artistId, 'write');
+
+    const block = await this.prisma.block.update({
+      where: { id: blockId },
+      data: { isPublished: false },
+    });
+
+    this.auditService.log({
+      actorId: userId,
+      action: 'block.unpublish',
+      entityType: 'block',
+      entityId: blockId,
+      ipAddress,
+    });
+
+    return block;
+  }
+
+  // ─── Private helpers ──────────────────────────────────────────────────────
+
+  private async resolvePageArtist(pageId: string): Promise<string> {
+    const artistId = await this.membershipService.resolveArtistIdForResource('page', pageId);
+    if (!artistId) throw new NotFoundException('Page not found');
+    return artistId;
+  }
+
+  private async resolveBlock(blockId: string) {
+    const block = await this.prisma.block.findUnique({
+      where: { id: blockId },
+      include: { page: { select: { artistId: true } } },
+    });
+    if (!block) throw new NotFoundException('Block not found');
+    return { block, artistId: block.page.artistId };
   }
 }
