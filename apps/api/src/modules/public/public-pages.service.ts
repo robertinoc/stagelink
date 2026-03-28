@@ -78,15 +78,14 @@ export class PublicPagesService {
           },
         },
         blocks: {
-          where: { isVisible: true },
+          where: { isPublished: true },
           orderBy: { position: 'asc' },
           select: {
             id: true,
             type: true,
             title: true,
-            url: true,
             position: true,
-            metadata: true,
+            config: true,
           },
         },
       },
@@ -112,9 +111,8 @@ export class PublicPagesService {
           id: block.id,
           type: block.type,
           title: block.title,
-          url: block.url,
           position: block.position,
-          metadata: (block.metadata as Record<string, unknown>) ?? null,
+          config: (block.config as Record<string, unknown>) ?? {},
         }),
       ),
     };
