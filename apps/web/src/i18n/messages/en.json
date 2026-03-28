@@ -222,6 +222,11 @@
       }
     }
   },
+  "public_page": {
+    "no_blocks": "Nothing here yet.",
+    "powered_by": "Powered by",
+    "powered_by_brand": "StageLink"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",

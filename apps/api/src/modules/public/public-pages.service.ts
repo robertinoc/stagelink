@@ -116,6 +116,8 @@ export class PublicPagesService {
             bio: true,
             avatarUrl: true,
             coverUrl: true,
+            seoTitle: true,
+            seoDescription: true,
           },
         },
         blocks: {
@@ -146,6 +148,8 @@ export class PublicPagesService {
         bio: page.artist.bio,
         avatarUrl: page.artist.avatarUrl,
         coverUrl: page.artist.coverUrl,
+        seoTitle: page.artist.seoTitle,
+        seoDescription: page.artist.seoDescription,
       },
       blocks: page.blocks.map(
         (block): PublicBlockDto => ({

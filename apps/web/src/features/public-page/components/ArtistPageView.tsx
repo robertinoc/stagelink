@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { getTranslations } from 'next-intl/server';
 import type { PublicPageResponse } from '@stagelink/types';
 import { BlockRenderer } from '@/features/blocks/components/BlockRenderer';
 
@@ -22,7 +23,8 @@ interface ArtistPageViewProps {
  *   │  └────────────────────────────────────────────────────┘ │
  *   └────────────────────────────────────────────────────────┘
  */
-export function ArtistPageView({ page }: ArtistPageViewProps) {
+export async function ArtistPageView({ page }: ArtistPageViewProps) {
+  const t = await getTranslations('public_page');
   const { artist, blocks } = page;
 
   return (
@@ -78,12 +80,12 @@ export function ArtistPageView({ page }: ArtistPageViewProps) {
             ))}
           </div>
         ) : (
-          <p className="text-center text-sm text-zinc-600">Nothing here yet.</p>
+          <p className="text-center text-sm text-zinc-600">{t('no_blocks')}</p>
         )}
 
         {/* Footer */}
         <p className="mt-12 text-center text-xs text-zinc-700">
-          Powered by <span className="text-zinc-500">StageLink</span>
+          {t('powered_by')} <span className="text-zinc-500">{t('powered_by_brand')}</span>
         </p>
       </div>
     </div>
