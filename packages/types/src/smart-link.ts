@@ -31,7 +31,10 @@ export interface SmartLinkDestination {
   platform: SmartLinkPlatform;
   /** The URL visitors are redirected to. Must be https:// or http://. */
   url: string;
-  /** Optional human-readable label shown in the dashboard, e.g. "App Store". */
+  /**
+   * Optional internal label for the artist's dashboard only, e.g. "App Store".
+   * Not shown to visitors — not part of the redirect or public page rendering.
+   */
   label?: string;
 }
 

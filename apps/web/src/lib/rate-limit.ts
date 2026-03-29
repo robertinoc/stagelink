@@ -1,5 +1,10 @@
 /**
- * Simple in-memory sliding-window rate limiter.
+ * Simple in-memory fixed-window rate limiter.
+ *
+ * Each identity gets a counter that resets every `windowMs`. This is a fixed
+ * (not sliding) window — a burst at the end of window N and the start of
+ * window N+1 can exceed `max` in a short span. Acceptable for v1; replace with
+ * a sliding-log or token-bucket algorithm if precision matters.
  *
  * ⚠️  In-memory only — resets on cold starts and does NOT coordinate across
  * multiple serverless function instances (Vercel, AWS Lambda, etc.).
@@ -33,7 +38,7 @@ if (typeof setInterval !== 'undefined') {
 }
 
 export interface RateLimitOptions {
-  /** Sliding window duration in milliseconds. Default: 60 000 (1 min). */
+  /** Window duration in milliseconds. Default: 60 000 (1 min). */
   windowMs?: number;
   /** Maximum requests allowed per window. Default: 30. */
   max?: number;

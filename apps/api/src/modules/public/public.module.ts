@@ -5,6 +5,7 @@ import { PublicPagesController } from './public-pages.controller';
 import { PublicBlocksController } from './public-blocks.controller';
 import { PublicSmartLinksController } from './public-smart-links.controller';
 import { PublicPagesService } from './public-pages.service';
+import { PublicRateLimitGuard } from '../../common/guards/public-rate-limit.guard';
 
 /**
  * PublicModule — endpoints públicos sin autenticación.
@@ -16,6 +17,6 @@ import { PublicPagesService } from './public-pages.service';
 @Module({
   imports: [TenantModule, SmartLinksModule],
   controllers: [PublicPagesController, PublicBlocksController, PublicSmartLinksController],
-  providers: [PublicPagesService],
+  providers: [PublicPagesService, PublicRateLimitGuard],
 })
 export class PublicModule {}
