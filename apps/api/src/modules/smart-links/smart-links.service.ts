@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
   ForbiddenException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -121,6 +122,26 @@ export class SmartLinksService {
   async remove(smartLinkId: string, userId: string, ipAddress?: string) {
     const { artistId } = await this.resolveSmartLink(smartLinkId, userId);
 
+    // Block deletion when the SmartLink is still referenced by at least one
+    // block config, to prevent published pages from silently showing broken links.
+    // The artist must remove the reference from their block(s) first.
+    const [refResult] = await this.prisma.$queryRaw<[{ count: bigint }]>`
+      SELECT COUNT(*) AS count
+      FROM blocks
+      WHERE EXISTS (
+        SELECT 1
+        FROM jsonb_array_elements(config::jsonb->'items') AS item
+        WHERE item->>'smartLinkId' = ${smartLinkId}
+      )
+    `;
+    const refCount = Number(refResult?.count ?? 0);
+    if (refCount > 0) {
+      throw new ConflictException(
+        `This smart link is used in ${refCount} block${refCount === 1 ? '' : 's'}. ` +
+          'Remove it from all blocks before deleting.',
+      );
+    }
+
     this.auditService.log({
       actorId: userId,
       action: 'smart_link.delete',
@@ -165,6 +186,11 @@ export class SmartLinksService {
 
     const destinations = smartLink.destinations as unknown as SmartLinkDestination[];
 
+    // Defensive guard — corrupted or empty JSON column must not cause a runtime crash.
+    if (!Array.isArray(destinations) || destinations.length === 0) {
+      throw new NotFoundException('Smart link not found');
+    }
+
     // 1. Exact platform match
     const exact = destinations.find((d) => d.platform === platform);
     const resolved = exact ?? destinations.find((d) => d.platform === 'all');
@@ -172,8 +198,16 @@ export class SmartLinksService {
     if (!resolved) throw new NotFoundException('Smart link not found');
 
     // Fire-and-forget analytics — do not await; redirect latency must not be affected.
-    // TODO: move to a dedicated smart_link_clicks table once the analytics pipeline
-    //       is extended. For now, the audit log captures platform, attribution, and IP.
+    //
+    // TODO (P2): migrate click tracking out of audit_logs into a dedicated
+    //   `smart_link_clicks` table with columns:
+    //     smart_link_id, destination_id, platform, resolved_platform,
+    //     from_block_id, from_item_id, ip_hash (SHA-256, not raw), clicked_at.
+    //   Rationale: audit_logs is a security trail, not a metrics store. At
+    //   moderate traffic (≥10k clicks/day) this table becomes noisy and expensive
+    //   to query for dashboards. IP hashing preserves deduplication capability
+    //   without storing PII. Bot traffic (detected at the web tier) should set a
+    //   flag so it can be excluded from artist-facing click counts.
     void this.auditService.log({
       actorId: null, // null = unauthenticated / public action
       action: 'smart_link.resolve',

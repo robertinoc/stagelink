@@ -10,11 +10,13 @@ import {
   ArrayMaxSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { SMART_LINK_PLATFORMS } from '@stagelink/types';
+import { SMART_LINK_PLATFORMS, MAX_URL_LENGTH } from '@stagelink/types';
 
 const MAX_LABEL_LENGTH = 100;
 const MAX_DEST_LABEL_LENGTH = 100;
-// Derived from SMART_LINK_PLATFORMS — stays in sync automatically if a new platform is added.
+// One destination per platform — capped at the number of distinct platform values.
+// If a new platform is added to SMART_LINK_PLATFORMS, this increases automatically.
+// Invariant: at most one destination per platform (enforced separately in service).
 const MAX_DESTINATIONS = SMART_LINK_PLATFORMS.length;
 
 // =============================================================
@@ -30,6 +32,7 @@ export class SmartLinkDestinationDto {
   platform!: (typeof SMART_LINK_PLATFORMS)[number];
 
   @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
+  @MaxLength(MAX_URL_LENGTH)
   url!: string;
 
   @IsOptional()
