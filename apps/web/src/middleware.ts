@@ -20,6 +20,7 @@ const intlMiddleware = createMiddleware({
  * The browser URL remains /{username} because rewrites are transparent.
  *
  * Rules:
+ * 0. /go/[id] — bypass intl middleware entirely (route handler, not a page).
  * 1. /p/{username} → 301 to /{username} — block direct access to the internal
  *    rewrite target to prevent duplicate content (different URL, same page).
  * 2. Single-segment non-locale paths → rewrite to /p/{username}.
@@ -29,7 +30,7 @@ export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const segments = pathname.split('/').filter(Boolean);
 
-  // Rule 1 (pre-check): smart link redirect paths — bypass intl middleware entirely.
+  // Rule 0: smart link redirect paths — bypass intl middleware entirely.
   // /go/[id] is a Next.js route handler, not a page — no locale prefix needed.
   if (segments[0] === 'go' && segments.length === 2) {
     return NextResponse.next();

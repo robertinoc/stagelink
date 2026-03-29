@@ -19,9 +19,10 @@ interface ArtistPageProps {
  *
  * SEO fields priority:
  *   title:       seoTitle → displayName (@username) — StageLink
- *   description: seoDescription → bio → generic fallback
+ *   description: seoDescription → bio → generic fallback (i18n)
  *
  * Canonical apunta a /{username} (sin prefijo de locale) — URL de sharing limpia.
+ * Si NEXT_PUBLIC_APP_URL no está definida, se omite canonical y se marca noindex.
  */
 export async function generateMetadata({ params }: ArtistPageProps): Promise<Metadata> {
   const { username } = await params;
@@ -89,20 +90,6 @@ export async function generateMetadata({ params }: ArtistPageProps): Promise<Met
 }
 
 /**
- * Página pública de artista — resuelve tenant por username.
- *
- * Flujo:
- * 1. fetchPublicPage(username) → GET /api/public/pages/by-username/:username
- * 2. Si 404 → notFound() → página 404 con HTTP 404 real
- * 3. Si 5xx → Next.js propaga el error → error.tsx lo maneja
- * 4. Si existe → renderiza con datos del tenant correcto
- *
- * Seguridad:
- * - El backend filtra todo por artistId (identificador interno estable)
- * - cache: 'no-store' evita mezclar contenido entre tenants
- * - notFound() retorna 404 HTTP real, no solo UI vacía
- */
-/**
  * Builds a JSON-LD Person schema for the artist page.
  * Helps Google generate rich results for artist profiles.
  */
@@ -120,6 +107,20 @@ function buildJsonLd(
   };
 }
 
+/**
+ * Página pública de artista — resuelve tenant por username.
+ *
+ * Flujo:
+ * 1. fetchPublicPage(username) → GET /api/public/pages/by-username/:username
+ * 2. Si 404 → notFound() → página 404 con HTTP 404 real
+ * 3. Si 5xx → Next.js propaga el error → error.tsx lo maneja
+ * 4. Si existe → renderiza con datos del tenant correcto
+ *
+ * Seguridad:
+ * - El backend filtra todo por artistId (identificador interno estable)
+ * - cache: 'no-store' evita mezclar contenido entre tenants
+ * - notFound() retorna 404 HTTP real, no solo UI vacía
+ */
 export default async function ArtistPage({ params }: ArtistPageProps) {
   const { username } = await params;
   const page = await fetchPublicPage(username);
