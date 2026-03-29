@@ -9,6 +9,8 @@
  * Intentionally simple — no i18n dependency since this route bypasses the
  * intl middleware and has no locale context.
  */
+import Link from 'next/link';
+
 export default function SmartLinkNotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-4 text-center">
@@ -17,12 +19,12 @@ export default function SmartLinkNotFound() {
       <p className="mt-2 text-sm text-zinc-400">
         This link doesn&apos;t have a destination for your device, or it may no longer be active.
       </p>
-      <a
+      <Link
         href="/"
         className="mt-6 rounded-full bg-white px-5 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100"
       >
         Go home
-      </a>
+      </Link>
     </div>
   );
 }
