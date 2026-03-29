@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { type BlockType } from '@prisma/client';
-import { LINK_ICONS } from '@stagelink/types';
+import { LINK_ICONS as LINK_ICONS_SHARED, LINK_ITEM_KINDS } from '@stagelink/types';
 
 // =============================================================
 // Block Config Validation + Enrichment
@@ -128,7 +128,33 @@ function validateLinksConfig(c: Record<string, unknown>): void {
     seenIds.add(it['id'] as string);
 
     assertNonEmptyString(it['label'], `links config.items[${i}].label`, MAX_LABEL_LENGTH);
-    assertSafeUrl(it['url'], `links config.items[${i}].url`);
+
+    // kind — optional; defaults to 'url' when absent (backward-compatible)
+    const kind = it['kind'] ?? 'url';
+    if (!LINK_ITEM_KINDS.includes(kind as (typeof LINK_ITEM_KINDS)[number])) {
+      throw new BadRequestException(
+        `links config.items[${i}].kind must be one of: ${LINK_ITEM_KINDS.join(', ')}`,
+      );
+    }
+
+    if (kind === 'smart_link') {
+      // smartLinkId — required for smart link items
+      if (typeof it['smartLinkId'] !== 'string' || it['smartLinkId'].trim().length === 0) {
+        throw new BadRequestException(
+          `links config.items[${i}].smartLinkId must be a non-empty string when kind is "smart_link"`,
+        );
+      }
+      // url must be empty for smart link items (the frontend leaves it blank;
+      // the renderer builds the href from smartLinkId at runtime).
+      if (it['url'] !== undefined && it['url'] !== '') {
+        throw new BadRequestException(
+          `links config.items[${i}].url must be empty when kind is "smart_link"`,
+        );
+      }
+    } else {
+      // kind === 'url' (or absent) — validate as external URL
+      assertSafeUrl(it['url'], `links config.items[${i}].url`);
+    }
 
     // icon — optional, must be a known key if present
     if (it['icon'] !== undefined && it['icon'] !== null) {
@@ -500,7 +526,11 @@ export function sanitizeBlockConfig(
     ...config,
     items: (config['items'] as Record<string, unknown>[]).map((item) => ({
       ...item,
-      url: typeof item['url'] === 'string' ? item['url'].trim() : item['url'],
+      // Only trim url for 'url' kind items — smart_link items have an empty url field.
+      url:
+        item['kind'] !== 'smart_link' && typeof item['url'] === 'string'
+          ? item['url'].trim()
+          : item['url'],
     })),
   };
 }

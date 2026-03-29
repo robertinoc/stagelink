@@ -29,6 +29,12 @@ export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const segments = pathname.split('/').filter(Boolean);
 
+  // Rule 1 (pre-check): smart link redirect paths — bypass intl middleware entirely.
+  // /go/[id] is a Next.js route handler, not a page — no locale prefix needed.
+  if (segments[0] === 'go' && segments.length === 2) {
+    return NextResponse.next();
+  }
+
   // Rule 1: redirect direct access to the internal rewrite target.
   // Prevents crawlers from indexing /p/{username} as a duplicate of /{username}.
   if (segments[0] === 'p' && segments.length === 2) {

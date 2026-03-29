@@ -49,7 +49,7 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
         <p className="text-sm text-muted-foreground">{t('description')}</p>
       </div>
 
-      <BlockManager pageId={page.id} accessToken={session.accessToken} />
+      <BlockManager pageId={page.id} artistId={artistId} accessToken={session.accessToken} />
     </div>
   );
 }

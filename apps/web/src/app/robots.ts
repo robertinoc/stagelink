@@ -21,6 +21,7 @@ export default function robots(): MetadataRoute.Robots {
           '/en/', // App shell (authenticated routes)
           '/es/', // App shell — Spanish locale
           '/p/', // Internal rewrite target — canonical is /{username}
+          '/go/', // Smart link redirect handler — not indexable content
         ],
       },
     ],

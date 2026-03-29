@@ -7,16 +7,24 @@ import type {
   LinksBlockConfig,
   LinkItem,
   LinkIcon,
+  LinkItemKind,
   MusicEmbedBlockConfig,
   VideoEmbedBlockConfig,
   EmailCaptureBlockConfig,
 } from '@stagelink/types';
 import { LINK_ICONS } from '@stagelink/types';
+import { SmartLinkPicker } from './SmartLinkForm';
 
 interface Props {
   type: BlockType;
   config: BlockConfig;
   onChange: (config: BlockConfig) => void;
+  /**
+   * Required for the smart link picker inside the links block form.
+   * When absent, the smart link option is hidden.
+   */
+  artistId?: string;
+  accessToken?: string;
 }
 
 // ─── Links ────────────────────────────────────────────────────────────────────
@@ -48,6 +56,7 @@ function newLinkItem(sortOrder: number): LinkItem {
     url: '',
     sortOrder,
     openInNewTab: true,
+    kind: 'url',
   };
 }
 
@@ -59,11 +68,16 @@ function normaliseSortOrders(items: LinkItem[]): LinkItem[] {
 function LinksForm({
   config,
   onChange,
+  artistId,
+  accessToken,
 }: {
   config: LinksBlockConfig;
   onChange: (c: LinksBlockConfig) => void;
+  artistId?: string;
+  accessToken?: string;
 }) {
   const t = useTranslations('blocks.fields');
+  const canUseSmartLinks = !!(artistId && accessToken);
 
   const items = config.items ?? [];
 
@@ -95,95 +109,139 @@ function LinksForm({
 
   return (
     <div className="space-y-3">
-      {items.map((item, index) => (
-        <div key={item.id} className="space-y-2 rounded-lg border p-3">
-          {/* Item header — order controls + remove */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => moveItem(index, 'up')}
-                disabled={index === 0}
-                title={t('move_up')}
-                className="rounded p-0.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-30"
-              >
-                ▲
-              </button>
-              <button
-                type="button"
-                onClick={() => moveItem(index, 'down')}
-                disabled={index === items.length - 1}
-                title={t('move_down')}
-                className="rounded p-0.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-30"
-              >
-                ▼
-              </button>
-              <span className="ml-1 text-sm font-medium text-muted-foreground">
-                {t('link_n', { n: index + 1 })}
-              </span>
+      {items.map((item, index) => {
+        const itemKind: LinkItemKind = item.kind ?? 'url';
+        return (
+          <div key={item.id} className="space-y-2 rounded-lg border p-3">
+            {/* Item header — order controls + remove */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => moveItem(index, 'up')}
+                  disabled={index === 0}
+                  title={t('move_up')}
+                  className="rounded p-0.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-30"
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveItem(index, 'down')}
+                  disabled={index === items.length - 1}
+                  title={t('move_down')}
+                  className="rounded p-0.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-30"
+                >
+                  ▼
+                </button>
+                <span className="ml-1 text-sm font-medium text-muted-foreground">
+                  {t('link_n', { n: index + 1 })}
+                </span>
+              </div>
+              {items.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeItem(index)}
+                  className="text-xs text-destructive hover:underline"
+                >
+                  {t('remove_link')}
+                </button>
+              )}
             </div>
-            {items.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeItem(index)}
-                className="text-xs text-destructive hover:underline"
-              >
-                {t('remove_link')}
-              </button>
+
+            {/* Label */}
+            <input
+              type="text"
+              placeholder={t('label')}
+              value={item.label}
+              onChange={(e) => updateItem(index, { label: e.target.value })}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              maxLength={100}
+            />
+
+            {/* Kind selector — only shown when smart links are available */}
+            {canUseSmartLinks && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateItem(index, { kind: 'url', url: '', smartLinkId: undefined })
+                  }
+                  className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    itemKind === 'url'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-input text-muted-foreground hover:border-primary hover:text-primary'
+                  }`}
+                >
+                  {t('kind_url')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateItem(index, { kind: 'smart_link', url: '', smartLinkId: undefined })
+                  }
+                  className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    itemKind === 'smart_link'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-input text-muted-foreground hover:border-primary hover:text-primary'
+                  }`}
+                >
+                  {t('kind_smart_link')}
+                </button>
+              </div>
             )}
-          </div>
 
-          {/* Label */}
-          <input
-            type="text"
-            placeholder={t('label')}
-            value={item.label}
-            onChange={(e) => updateItem(index, { label: e.target.value })}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            maxLength={100}
-          />
-
-          {/* URL */}
-          <input
-            type="url"
-            placeholder="https://..."
-            value={item.url}
-            onChange={(e) => updateItem(index, { url: e.target.value })}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            maxLength={2048}
-          />
-
-          {/* Icon + open in new tab — same row */}
-          <div className="flex items-center gap-3">
-            <select
-              value={item.icon ?? ''}
-              onChange={(e) =>
-                updateItem(index, {
-                  icon: e.target.value ? (e.target.value as LinkIcon) : undefined,
-                })
-              }
-              className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">{t('icon_none')}</option>
-              {LINK_ICON_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-
-            <label className="flex cursor-pointer items-center gap-1.5 text-sm text-muted-foreground select-none">
-              <input
-                type="checkbox"
-                checked={item.openInNewTab ?? true}
-                onChange={(e) => updateItem(index, { openInNewTab: e.target.checked })}
-                className="h-4 w-4 rounded border-input"
+            {/* URL (for 'url' kind) or SmartLinkPicker (for 'smart_link' kind) */}
+            {itemKind === 'smart_link' && artistId && accessToken ? (
+              <SmartLinkPicker
+                artistId={artistId}
+                accessToken={accessToken}
+                selectedId={item.smartLinkId ?? null}
+                onSelect={(smartLinkId) => updateItem(index, { smartLinkId, url: '' })}
               />
-              {t('open_in_new_tab')}
-            </label>
+            ) : (
+              <input
+                type="url"
+                placeholder="https://..."
+                value={item.url}
+                onChange={(e) => updateItem(index, { url: e.target.value })}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                maxLength={2048}
+              />
+            )}
+
+            {/* Icon + open in new tab — same row */}
+            <div className="flex items-center gap-3">
+              <select
+                value={item.icon ?? ''}
+                onChange={(e) =>
+                  updateItem(index, {
+                    icon: e.target.value ? (e.target.value as LinkIcon) : undefined,
+                  })
+                }
+                className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">{t('icon_none')}</option>
+                {LINK_ICON_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+
+              <label className="flex cursor-pointer items-center gap-1.5 text-sm text-muted-foreground select-none">
+                <input
+                  type="checkbox"
+                  checked={item.openInNewTab ?? true}
+                  onChange={(e) => updateItem(index, { openInNewTab: e.target.checked })}
+                  className="h-4 w-4 rounded border-input"
+                />
+                {t('open_in_new_tab')}
+              </label>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {items.length < 20 && (
         <button
@@ -426,10 +484,17 @@ export function defaultConfig(type: BlockType): BlockConfig {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function BlockConfigForm({ type, config, onChange }: Props) {
+export function BlockConfigForm({ type, config, onChange, artistId, accessToken }: Props) {
   switch (type) {
     case 'links':
-      return <LinksForm config={config as LinksBlockConfig} onChange={(c) => onChange(c)} />;
+      return (
+        <LinksForm
+          config={config as LinksBlockConfig}
+          onChange={(c) => onChange(c)}
+          artistId={artistId}
+          accessToken={accessToken}
+        />
+      );
     case 'music_embed':
       return (
         <MusicEmbedForm config={config as MusicEmbedBlockConfig} onChange={(c) => onChange(c)} />

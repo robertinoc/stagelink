@@ -112,6 +112,7 @@ model Artist {
   avatarAsset     Asset?   @relation("ArtistAvatar", fields: [avatarAssetId], references: [id], onDelete: SetNull)
   coverAsset      Asset?   @relation("ArtistCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
   memberships     ArtistMembership[]
+  smartLinks      SmartLink[]
 
   @@map("artists")
 }
@@ -326,6 +327,27 @@ model Subscription {
   artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
+}
+
+// =============================================================
+// SMART LINKS
+// Un SmartLink es una URL corta única que redirige a distintos
+// destinos según la plataforma del visitante (iOS/Android/desktop).
+// Las destinations se almacenan como JSON array validado server-side.
+// =============================================================
+model SmartLink {
+  id           String   @id @default(cuid())
+  artistId     String   @map("artist_id")
+  label        String   // Nombre interno del artista, ej. "Nuevo álbum"
+  destinations Json     @default("[]") // SmartLinkDestination[]
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId])
+  @@map("smart_links")
 }
 
 // =============================================================
