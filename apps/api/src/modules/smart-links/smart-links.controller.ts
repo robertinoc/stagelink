@@ -40,7 +40,7 @@ function extractClientIp(req: Request): string | undefined {
   const forwarded = req.headers['x-forwarded-for'];
   if (!forwarded) return undefined;
   const raw = Array.isArray(forwarded) ? forwarded[0] : forwarded;
-  return raw.split(',')[0]?.trim() || undefined;
+  return (raw ?? '').split(',')[0]?.trim() || undefined;
 }
 
 @Controller()

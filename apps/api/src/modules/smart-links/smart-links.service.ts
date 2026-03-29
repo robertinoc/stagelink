@@ -163,7 +163,7 @@ export class SmartLinksService {
       throw new NotFoundException('Smart link not found');
     }
 
-    const destinations = smartLink.destinations as SmartLinkDestination[];
+    const destinations = smartLink.destinations as unknown as SmartLinkDestination[];
 
     // 1. Exact platform match
     const exact = destinations.find((d) => d.platform === platform);
@@ -175,7 +175,7 @@ export class SmartLinksService {
     // TODO: move to a dedicated smart_link_clicks table once the analytics pipeline
     //       is extended. For now, the audit log captures platform, attribution, and IP.
     void this.auditService.log({
-      actorId: 'public' as string, // public (unauthenticated) action sentinel
+      actorId: null, // null = unauthenticated / public action
       action: 'smart_link.resolve',
       entityType: 'smart_link',
       entityId: smartLinkId,
