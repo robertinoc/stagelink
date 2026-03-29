@@ -216,9 +216,21 @@
       "save_error": "Failed to save smart link.",
       "cancel": "Cancel",
       "loading": "Loading smart links…",
+      "load_error": "Failed to load smart links.",
+      "retry": "Retry",
       "no_smart_links": "No smart links yet.",
       "new_smart_link": "Create new smart link",
-      "edit": "Edit"
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleting": "Deleting…",
+      "delete_confirm": "Delete this smart link? Any blocks using it will show a broken link. This cannot be undone.",
+      "delete_error": "Failed to delete smart link.",
+      "platform": {
+        "ios": "🍎 iOS (iPhone / iPad)",
+        "android": "🤖 Android",
+        "desktop": "🖥️ Desktop",
+        "all": "🌐 All platforms (fallback)"
+      }
     },
     "create_dialog": {
       "title": "Add a block",

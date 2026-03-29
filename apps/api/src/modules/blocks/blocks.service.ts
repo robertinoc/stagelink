@@ -16,6 +16,7 @@ import {
   sanitizeBlockConfig,
 } from './schemas/block-config.schema';
 import { CreateBlockDto, UpdateBlockDto, ReorderBlocksDto } from './dto';
+import { SmartLinksService } from '../smart-links/smart-links.service';
 
 // Maximum blocks allowed per page — prevents unbounded data growth.
 const MAX_BLOCKS_PER_PAGE = 50;
@@ -26,6 +27,7 @@ export class BlocksService {
     private readonly prisma: PrismaService,
     private readonly membershipService: MembershipService,
     private readonly auditService: AuditService,
+    private readonly smartLinksService: SmartLinksService,
   ) {}
 
   // ─── List ─────────────────────────────────────────────────────────────────
@@ -57,6 +59,16 @@ export class BlocksService {
     validateBlockTitle(dto.title);
     const blockType = dto.type as BlockType;
     validateBlockConfig(blockType, dto.config);
+
+    // Guard: verify that any referenced smartLinkIds belong to this artist.
+    // Prevents IDOR where a user embeds another artist's SmartLink in their block.
+    if (blockType === 'links') {
+      await this.smartLinksService.verifySmartLinkOwnership(
+        dto.config as Record<string, unknown>,
+        artistId,
+      );
+    }
+
     const enrichedConfig = sanitizeBlockConfig(
       blockType,
       enrichBlockConfig(blockType, dto.config as Record<string, unknown>),
@@ -126,6 +138,12 @@ export class BlocksService {
           : {};
       const mergedConfig = { ...existing, ...dto.config };
       validateBlockConfig(block.type, mergedConfig);
+
+      // Guard: verify that any referenced smartLinkIds belong to this artist.
+      if (block.type === 'links') {
+        await this.smartLinksService.verifySmartLinkOwnership(mergedConfig, artistId);
+      }
+
       enrichedConfig = sanitizeBlockConfig(block.type, enrichBlockConfig(block.type, mergedConfig));
     }
 

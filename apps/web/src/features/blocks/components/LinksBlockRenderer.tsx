@@ -121,8 +121,13 @@ export function LinksBlockRenderer({
       <div className="flex flex-col gap-2">
         {items.map((item) => {
           // smart_link items route through /go/[id] for platform-aware redirect.
-          const href =
-            item.kind === 'smart_link' && item.smartLinkId ? `/go/${item.smartLinkId}` : item.url;
+          // When blockId is available (public page context), append ?from=<blockId>:<itemId>
+          // for per-item click attribution in the backend analytics/audit log.
+          let href = item.url;
+          if (item.kind === 'smart_link' && item.smartLinkId) {
+            const base = `/go/${item.smartLinkId}`;
+            href = blockId ? `${base}?from=${encodeURIComponent(`${blockId}:${item.id}`)}` : base;
+          }
           return (
             <LinksBlockItem
               key={item.id}

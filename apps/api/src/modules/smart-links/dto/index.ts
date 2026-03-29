@@ -14,7 +14,8 @@ import { SMART_LINK_PLATFORMS } from '@stagelink/types';
 
 const MAX_LABEL_LENGTH = 100;
 const MAX_DEST_LABEL_LENGTH = 100;
-const MAX_DESTINATIONS = 4; // one per platform variant
+// Derived from SMART_LINK_PLATFORMS — stays in sync automatically if a new platform is added.
+const MAX_DESTINATIONS = SMART_LINK_PLATFORMS.length;
 
 // =============================================================
 // SmartLinkDestinationDto — sub-object inside create/update payloads

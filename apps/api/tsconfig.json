@@ -6,6 +6,9 @@
       "@stagelink/types": ["../../packages/types/src"]
     }
   },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  },
   "include": ["src", "test"],
   "exclude": ["node_modules", "dist"]
 }

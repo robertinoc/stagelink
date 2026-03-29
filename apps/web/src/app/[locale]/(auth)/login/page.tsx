@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { withAuth, getSignInUrl } from '@workos-inc/authkit-nextjs';
+import { withAuth } from '@workos-inc/authkit-nextjs';
 import { LoginForm } from '@/features/auth/components/LoginForm';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -23,16 +23,14 @@ export default async function LoginPage({ params }: LoginPageProps) {
     redirect(`/${locale}/dashboard`);
   }
 
-  // Construir URL de sign-in de WorkOS para el Server Action
-  const signInUrl = await getSignInUrl();
-
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t('subtitle')}</p>
       </div>
-      <LoginForm signInUrl={signInUrl} />
+      {/* signInUrl points to the route handler which calls getSignInUrl() server-side */}
+      <LoginForm signInUrl="/api/auth/signin" />
     </div>
   );
 }

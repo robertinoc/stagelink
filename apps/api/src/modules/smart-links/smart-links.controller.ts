@@ -26,6 +26,23 @@ import { CreateSmartLinkDto, UpdateSmartLinkDto } from './dto';
  * All routes require JWT auth (global JwtAuthGuard).
  * Membership is validated in SmartLinksService.
  */
+
+/**
+ * Extract the original client IP from a potentially comma-separated
+ * X-Forwarded-For header (format: client, proxy1, proxy2).
+ *
+ * Takes the first (leftmost) entry — the original client — rather than the
+ * raw header string, which may include multiple comma-separated values.
+ * Ensure your reverse proxy strips untrusted client-supplied XFF values so
+ * the leftmost entry is always the real client (not attacker-controlled).
+ */
+function extractClientIp(req: Request): string | undefined {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (!forwarded) return undefined;
+  const raw = Array.isArray(forwarded) ? forwarded[0] : forwarded;
+  return (raw ?? '').split(',')[0]?.trim() || undefined;
+}
+
 @Controller()
 export class SmartLinksController {
   constructor(private readonly smartLinksService: SmartLinksService) {}
@@ -46,16 +63,14 @@ export class SmartLinksController {
     @Req() req: Request,
   ) {
     const userId = (req as Request & { user: { sub: string } }).user.sub;
-    const ip = req.headers['x-forwarded-for'] as string | undefined;
-    return this.smartLinksService.create(artistId, dto, userId, ip);
+    return this.smartLinksService.create(artistId, dto, userId, extractClientIp(req));
   }
 
   /** PATCH /api/smart-links/:id */
   @Patch('smart-links/:id')
   update(@Param('id') id: string, @Body() dto: UpdateSmartLinkDto, @Req() req: Request) {
     const userId = (req as Request & { user: { sub: string } }).user.sub;
-    const ip = req.headers['x-forwarded-for'] as string | undefined;
-    return this.smartLinksService.update(id, dto, userId, ip);
+    return this.smartLinksService.update(id, dto, userId, extractClientIp(req));
   }
 
   /** DELETE /api/smart-links/:id */
@@ -63,7 +78,6 @@ export class SmartLinksController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string, @Req() req: Request) {
     const userId = (req as Request & { user: { sub: string } }).user.sub;
-    const ip = req.headers['x-forwarded-for'] as string | undefined;
-    await this.smartLinksService.remove(id, userId, ip);
+    await this.smartLinksService.remove(id, userId, extractClientIp(req));
   }
 }

@@ -12,8 +12,12 @@ CREATE TYPE "artist_category" AS ENUM (
   'visual_artist', 'performer', 'creator', 'band', 'producer', 'other'
 );
 
+ALTER TABLE "artists" ALTER COLUMN "category" DROP DEFAULT;
+
 ALTER TABLE "artists"
   ALTER COLUMN "category" TYPE "artist_category"
   USING "category"::text::"artist_category";
+
+ALTER TABLE "artists" ALTER COLUMN "category" SET DEFAULT 'other';
 
 DROP TYPE "artist_category_old";

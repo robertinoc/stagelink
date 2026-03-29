@@ -13,6 +13,14 @@ export const SMART_LINK_PLATFORMS = ['ios', 'android', 'desktop', 'all'] as cons
 export type SmartLinkPlatform = (typeof SMART_LINK_PLATFORMS)[number];
 
 /**
+ * Maximum URL length for SmartLink destinations and link items.
+ * Single source of truth — used by the API service, block-config schema, and form inputs.
+ * RFC 9110 has no hard limit; 2048 chars is a safe practical limit that avoids
+ * issues with older browsers and proxies.
+ */
+export const MAX_URL_LENGTH = 2_048;
+
+/**
  * A single redirect target within a SmartLink.
  * Stored as a JSON array on the SmartLink model.
  */

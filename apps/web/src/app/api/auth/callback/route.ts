@@ -11,4 +11,4 @@ import { handleAuth } from '@workos-inc/authkit-nextjs';
  *
  * La URL de este handler debe coincidir exactamente con WORKOS_REDIRECT_URI.
  */
-export const GET = handleAuth({ returnPathname: '/dashboard' });
+export const GET = handleAuth({ returnPathname: '/en/dashboard' });
