@@ -36,6 +36,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
             src={artist.coverUrl}
             alt={t('cover_image_alt', { name: artist.displayName })}
             fill
+            sizes="100vw"
             className="object-cover"
             priority
           />

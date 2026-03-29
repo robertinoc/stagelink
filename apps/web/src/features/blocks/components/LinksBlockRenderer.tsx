@@ -58,6 +58,9 @@ function LinksBlockItem({
   openInNewTab = true,
   onClickTrack,
 }: LinkItemProps) {
+  // Empty url means the item is not yet fully configured — skip rendering.
+  if (!url) return null;
+
   return (
     <a
       href={url}
@@ -116,19 +119,24 @@ export function LinksBlockRenderer({
     <div className="space-y-3">
       {title && <h3 className="text-center text-base font-semibold">{title}</h3>}
       <div className="flex flex-col gap-2">
-        {items.map((item) => (
-          <LinksBlockItem
-            key={item.id}
-            id={item.id}
-            label={item.label}
-            url={item.url}
-            icon={item.icon}
-            openInNewTab={item.openInNewTab}
-            onClickTrack={
-              onLinkClick && blockId ? (itemId) => onLinkClick(blockId, itemId) : undefined
-            }
-          />
-        ))}
+        {items.map((item) => {
+          // smart_link items route through /go/[id] for platform-aware redirect.
+          const href =
+            item.kind === 'smart_link' && item.smartLinkId ? `/go/${item.smartLinkId}` : item.url;
+          return (
+            <LinksBlockItem
+              key={item.id}
+              id={item.id}
+              label={item.label}
+              url={href}
+              icon={item.icon}
+              openInNewTab={item.openInNewTab}
+              onClickTrack={
+                onLinkClick && blockId ? (itemId) => onLinkClick(blockId, itemId) : undefined
+              }
+            />
+          );
+        })}
       </div>
     </div>
   );

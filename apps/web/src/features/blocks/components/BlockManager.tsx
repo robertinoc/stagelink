@@ -36,6 +36,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 
 interface Props {
   pageId: string;
+  artistId: string;
   accessToken: string;
 }
 
@@ -53,12 +54,14 @@ const BLOCK_TYPE_ICONS: Record<BlockType, string> = {
 function CreateBlockDialog({
   open,
   pageId,
+  artistId,
   accessToken,
   onCreated,
   onClose,
 }: {
   open: boolean;
   pageId: string;
+  artistId: string;
   accessToken: string;
   onCreated: (block: Block) => void;
   onClose: () => void;
@@ -158,7 +161,15 @@ function CreateBlockDialog({
               />
             </div>
 
-            {config && <BlockConfigForm type={selectedType} config={config} onChange={setConfig} />}
+            {config && (
+              <BlockConfigForm
+                type={selectedType}
+                config={config}
+                onChange={setConfig}
+                artistId={artistId}
+                accessToken={accessToken}
+              />
+            )}
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
@@ -181,11 +192,13 @@ function CreateBlockDialog({
 
 function EditBlockSheet({
   block,
+  artistId,
   accessToken,
   onUpdated,
   onClose,
 }: {
   block: Block | null;
+  artistId: string;
   accessToken: string;
   onUpdated: (block: Block) => void;
   onClose: () => void;
@@ -248,7 +261,13 @@ function EditBlockSheet({
                 />
               </div>
 
-              <BlockConfigForm type={block.type} config={config} onChange={setConfig} />
+              <BlockConfigForm
+                type={block.type}
+                config={config}
+                onChange={setConfig}
+                artistId={artistId}
+                accessToken={accessToken}
+              />
 
               {error && <p className="text-sm text-destructive">{error}</p>}
 
@@ -376,7 +395,7 @@ function BlockRow({
 
 // ─── Main BlockManager ────────────────────────────────────────────────────────
 
-export function BlockManager({ pageId, accessToken }: Props) {
+export function BlockManager({ pageId, artistId, accessToken }: Props) {
   const t = useTranslations('blocks');
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [loading, setLoading] = useState(true);
@@ -499,6 +518,7 @@ export function BlockManager({ pageId, accessToken }: Props) {
       <CreateBlockDialog
         open={createOpen}
         pageId={pageId}
+        artistId={artistId}
         accessToken={accessToken}
         onCreated={handleCreated}
         onClose={() => setCreateOpen(false)}
@@ -506,6 +526,7 @@ export function BlockManager({ pageId, accessToken }: Props) {
 
       <EditBlockSheet
         block={editingBlock}
+        artistId={artistId}
         accessToken={accessToken}
         onUpdated={(updated) => {
           handleUpdated(updated);

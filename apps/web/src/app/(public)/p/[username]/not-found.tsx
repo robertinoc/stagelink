@@ -1,11 +1,7 @@
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
-
-function detectLocale(acceptLanguage: string): 'en' | 'es' {
-  const primary = acceptLanguage.split(',')[0]?.split(';')[0]?.trim().toLowerCase() ?? '';
-  return primary.startsWith('es') ? 'es' : 'en';
-}
+import { detectLocale } from '@/lib/detect-locale';
 
 /**
  * Not-found boundary for artist pages.

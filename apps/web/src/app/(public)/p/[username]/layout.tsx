@@ -2,18 +2,7 @@ import { headers } from 'next/headers';
 import type { AbstractIntlMessages } from 'next-intl';
 import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
-
-type PublicLocale = 'en' | 'es';
-
-/**
- * Detects the preferred locale from the Accept-Language header.
- * Public artist pages are served without a locale URL prefix, so locale
- * is inferred from the browser rather than the URL.
- */
-function detectLocale(acceptLanguage: string): PublicLocale {
-  const primary = acceptLanguage.split(',')[0]?.split(';')[0]?.trim().toLowerCase() ?? '';
-  return primary.startsWith('es') ? 'es' : 'en';
-}
+import { detectLocale } from '@/lib/detect-locale';
 
 interface PublicLayoutProps {
   children: React.ReactNode;

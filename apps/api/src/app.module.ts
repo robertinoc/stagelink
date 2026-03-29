@@ -19,6 +19,7 @@ import { AssetsModule } from './modules/assets/assets.module';
 import { MembershipModule } from './modules/membership/membership.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
+import { SmartLinksModule } from './modules/smart-links/smart-links.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { OnboardingModule } from './modules/onboarding/onboarding.module';
     BillingModule,
     AssetsModule,
     OnboardingModule,
+    SmartLinksModule,
   ],
   providers: [
     {

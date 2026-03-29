@@ -33,14 +33,30 @@ export const LINK_ICONS = [
 
 export type LinkIcon = (typeof LINK_ICONS)[number];
 
+/**
+ * Determines how a link item resolves on click.
+ *   'url'        — direct external link (default, backward-compatible)
+ *   'smart_link' — routes through /go/{smartLinkId} for platform-aware redirect
+ */
+export const LINK_ITEM_KINDS = ['url', 'smart_link'] as const;
+export type LinkItemKind = (typeof LINK_ITEM_KINDS)[number];
+
 export interface LinkItem {
   /** Stable id (UUID) — used as analytics identifier. Never changes after creation. */
   id: string;
   label: string; // max 100 chars
-  url: string; // https:// or http:// only
+  /**
+   * For kind 'url':        a https:// / http:// destination URL.
+   * For kind 'smart_link': empty string (href is built from smartLinkId at render time).
+   */
+  url: string;
   icon?: LinkIcon; // optional; falls back to 'link' on render
   sortOrder: number; // 0-indexed; normalized to 0..n-1 on every save
   openInNewTab?: boolean; // default true
+  /** Link item behaviour. Defaults to 'url' when absent (backward-compatible). */
+  kind?: LinkItemKind;
+  /** Required when kind === 'smart_link'. The SmartLink entity id. */
+  smartLinkId?: string;
 }
 
 export interface LinksBlockConfig {

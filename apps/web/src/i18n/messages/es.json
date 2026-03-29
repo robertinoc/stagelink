@@ -181,6 +181,8 @@
       "move_down": "Bajar",
       "icon_none": "Sin ícono",
       "open_in_new_tab": "Abrir en nueva pestaña",
+      "kind_url": "URL directa",
+      "kind_smart_link": "Smart Link",
       "provider": "Plataforma",
       "source_url": "URL",
       "source_url_hint_spotify": "ej. https://open.spotify.com/track/…",
@@ -197,6 +199,26 @@
       "description": "Descripción (opcional)",
       "placeholder_text": "Placeholder del email (opcional)",
       "placeholder_text_placeholder": "ej. tu@email.com"
+    },
+    "smart_link": {
+      "destination": "Destino",
+      "destinations": "Destinos",
+      "add_destination": "Agregar destino",
+      "remove_destination": "Eliminar",
+      "destination_label_placeholder": "Etiqueta (opcional, ej. App Store)",
+      "label": "Nombre interno",
+      "label_placeholder": "ej. Nuevo álbum",
+      "label_required": "El nombre es obligatorio.",
+      "destinations_required": "Se requiere al menos un destino.",
+      "url_required": "Todos los destinos deben tener una URL.",
+      "save": "Guardar smart link",
+      "saving": "Guardando…",
+      "save_error": "Error al guardar el smart link.",
+      "cancel": "Cancelar",
+      "loading": "Cargando smart links…",
+      "no_smart_links": "Aún no hay smart links.",
+      "new_smart_link": "Crear nuevo smart link",
+      "edit": "Editar"
     },
     "create_dialog": {
       "title": "Agregar un bloque",
@@ -227,6 +249,7 @@
     "powered_by": "Creado con",
     "powered_by_brand": "StageLink",
     "cover_image_alt": "Imagen de portada de {name}",
+    "seo_description_fallback": "Visitá la página de {name} en StageLink",
     "not_found_title": "Página no encontrada",
     "not_found_description": "Esta página de artista no existe o todavía no fue publicada.",
     "not_found_cta": "Ir al inicio"

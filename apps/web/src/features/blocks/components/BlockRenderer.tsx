@@ -39,6 +39,14 @@ interface BlockRendererProps {
  *
  * Accepts both the authenticated `Block` and the public `PublicBlock` shape.
  *
+ * Config validation: `config` arrives as `Record<string, unknown>` from the
+ * public API and is cast to the expected type. Individual renderers may fail if
+ * the backend returns an unexpected shape. Malformed blocks are skipped (null)
+ * so one bad block doesn't crash the whole page.
+ *
+ * TODO: replace casts with Zod parse-or-skip per block type when validation
+ * schemas are added to @stagelink/types.
+ *
  * Usage (dashboard preview):
  *   <BlockRenderer block={block} />
  *
@@ -46,6 +54,13 @@ interface BlockRendererProps {
  *   <BlockRenderer block={block} onLinkClick={trackClick} />
  */
 export function BlockRenderer({ block, onLinkClick }: BlockRendererProps) {
+  // Guard against null/undefined config — a malformed backend response shouldn't
+  // crash the entire page; skip the block and log for investigation.
+  if (!block.config) {
+    console.error(`[BlockRenderer] Block ${block.id} (${block.type}) has no config — skipping`);
+    return null;
+  }
+
   if (block.type === 'links') {
     return (
       <LinksBlockRenderer
@@ -79,5 +94,7 @@ export function BlockRenderer({ block, onLinkClick }: BlockRendererProps) {
     );
   }
 
+  // Unknown block type — future-proof: skip rather than crash.
+  console.error(`[BlockRenderer] Unknown block type "${block.type}" for block ${block.id}`);
   return null;
 }
