@@ -216,9 +216,21 @@
       "save_error": "Error al guardar el smart link.",
       "cancel": "Cancelar",
       "loading": "Cargando smart links…",
+      "load_error": "No se pudieron cargar los smart links.",
+      "retry": "Reintentar",
       "no_smart_links": "Aún no hay smart links.",
       "new_smart_link": "Crear nuevo smart link",
-      "edit": "Editar"
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "deleting": "Eliminando…",
+      "delete_confirm": "¿Eliminar este smart link? Los bloques que lo usen mostrarán un link roto. Esta acción no se puede deshacer.",
+      "delete_error": "Error al eliminar el smart link.",
+      "platform": {
+        "ios": "🍎 iOS (iPhone / iPad)",
+        "android": "🤖 Android",
+        "desktop": "🖥️ Escritorio",
+        "all": "🌐 Todas las plataformas (fallback)"
+      }
     },
     "create_dialog": {
       "title": "Agregar un bloque",

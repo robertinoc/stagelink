@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { type BlockType } from '@prisma/client';
-import { LINK_ICONS as LINK_ICONS_SHARED, LINK_ITEM_KINDS } from '@stagelink/types';
+import { LINK_ICONS as LINK_ICONS_SHARED, LINK_ITEM_KINDS, MAX_URL_LENGTH } from '@stagelink/types';
 
 // =============================================================
 // Block Config Validation + Enrichment
@@ -26,7 +26,7 @@ import { LINK_ICONS as LINK_ICONS_SHARED, LINK_ITEM_KINDS } from '@stagelink/typ
 
 const MAX_TITLE_LENGTH = 200;
 const MAX_LABEL_LENGTH = 100;
-const MAX_URL_LENGTH = 2048;
+// MAX_URL_LENGTH imported from @stagelink/types — single source of truth.
 const MAX_HEADLINE_LENGTH = 100;
 const MAX_DESCRIPTION_LENGTH = 300;
 const MAX_BUTTON_LABEL_LENGTH = 50;

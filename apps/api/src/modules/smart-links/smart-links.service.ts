@@ -10,14 +10,13 @@ import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
 import { CreateSmartLinkDto, UpdateSmartLinkDto } from './dto';
 import type { SmartLinkDestination, SmartLinkPlatform } from '@stagelink/types';
-import { SMART_LINK_PLATFORMS } from '@stagelink/types';
+import { SMART_LINK_PLATFORMS, MAX_URL_LENGTH } from '@stagelink/types';
 import { randomUUID } from 'crypto';
 
 // Maximum smart links per artist — prevents unbounded data growth.
 const MAX_SMART_LINKS_PER_ARTIST = 50;
 
-// Maximum destination URL length (mirrors block-config.schema.ts).
-const MAX_URL_LENGTH = 2048;
+// MAX_URL_LENGTH is imported from @stagelink/types — single source of truth.
 
 @Injectable()
 export class SmartLinksService {
@@ -145,8 +144,16 @@ export class SmartLinksService {
    *   3. NotFoundException
    *
    * Only active SmartLinks are resolved. Inactive ones return 404.
+   *
+   * @param context.from       Optional attribution string from the link renderer
+   *                           (format: `${blockId}:${itemId}`). Logged for analytics.
+   * @param context.ipAddress  Visitor IP for the click audit record.
    */
-  async resolve(smartLinkId: string, platform: SmartLinkPlatform): Promise<{ url: string }> {
+  async resolve(
+    smartLinkId: string,
+    platform: SmartLinkPlatform,
+    context?: { from?: string; ipAddress?: string },
+  ): Promise<{ url: string }> {
     const smartLink = await this.prisma.smartLink.findUnique({
       where: { id: smartLinkId },
       select: { destinations: true, isActive: true },
@@ -160,13 +167,58 @@ export class SmartLinksService {
 
     // 1. Exact platform match
     const exact = destinations.find((d) => d.platform === platform);
-    if (exact) return { url: exact.url };
+    const resolved = exact ?? destinations.find((d) => d.platform === 'all');
 
-    // 2. Catch-all
-    const catchAll = destinations.find((d) => d.platform === 'all');
-    if (catchAll) return { url: catchAll.url };
+    if (!resolved) throw new NotFoundException('Smart link not found');
 
-    throw new NotFoundException('Smart link not found');
+    // Fire-and-forget analytics — do not await; redirect latency must not be affected.
+    // TODO: move to a dedicated smart_link_clicks table once the analytics pipeline
+    //       is extended. For now, the audit log captures platform, attribution, and IP.
+    void this.auditService.log({
+      actorId: 'public' as string, // public (unauthenticated) action sentinel
+      action: 'smart_link.resolve',
+      entityType: 'smart_link',
+      entityId: smartLinkId,
+      metadata: {
+        platform,
+        resolvedPlatform: resolved.platform,
+        ...(context?.from && { from: context.from }),
+      },
+      ipAddress: context?.ipAddress,
+    });
+
+    return { url: resolved.url };
+  }
+
+  // ─── Ownership verification ───────────────────────────────────────────────
+
+  /**
+   * Verifies that every `smartLinkId` referenced in a links block config
+   * belongs to `artistId`. Throws ForbiddenException if any are cross-tenant.
+   *
+   * Call this in BlocksService after validateBlockConfig for 'links' blocks
+   * to prevent IDOR attacks where a user references another artist's SmartLink.
+   */
+  async verifySmartLinkOwnership(config: Record<string, unknown>, artistId: string): Promise<void> {
+    if (!Array.isArray(config['items'])) return;
+
+    const smartLinkIds = (config['items'] as Record<string, unknown>[])
+      .filter((item) => item['kind'] === 'smart_link' && typeof item['smartLinkId'] === 'string')
+      .map((item) => item['smartLinkId'] as string);
+
+    if (smartLinkIds.length === 0) return;
+
+    // Deduplicate — a user might reference the same SmartLink in multiple items.
+    const uniqueIds = [...new Set(smartLinkIds)];
+
+    const owned = await this.prisma.smartLink.findMany({
+      where: { id: { in: uniqueIds }, artistId },
+      select: { id: true },
+    });
+
+    if (owned.length !== uniqueIds.length) {
+      throw new ForbiddenException('One or more smartLinkIds do not belong to this artist');
+    }
   }
 
   // ─── Private helpers ──────────────────────────────────────────────────────

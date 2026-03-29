@@ -3,22 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import type { SmartLink, SmartLinkDestination, SmartLinkPlatform } from '@stagelink/types';
-import { SMART_LINK_PLATFORMS } from '@stagelink/types';
+import { SMART_LINK_PLATFORMS, MAX_URL_LENGTH } from '@stagelink/types';
 import {
   getSmartLinks,
   createSmartLink,
   updateSmartLink,
   deleteSmartLink,
 } from '@/lib/api/smart-links';
-
-// ─── Platform labels ──────────────────────────────────────────────────────────
-
-const PLATFORM_LABELS: Record<SmartLinkPlatform, string> = {
-  ios: '🍎 iOS (iPhone / iPad)',
-  android: '🤖 Android',
-  desktop: '🖥️ Desktop',
-  all: '🌐 All platforms (fallback)',
-};
 
 // ─── Destination row ──────────────────────────────────────────────────────────
 
@@ -58,7 +49,7 @@ function DestinationRow({
         )}
       </div>
 
-      {/* Platform */}
+      {/* Platform — labels come from i18n keys */}
       <select
         value={dest.platform}
         onChange={(e) => onChange({ ...dest, platform: e.target.value as SmartLinkPlatform })}
@@ -66,7 +57,7 @@ function DestinationRow({
       >
         {availablePlatforms.map((p) => (
           <option key={p} value={p}>
-            {PLATFORM_LABELS[p]}
+            {t(`platform.${p}`)}
           </option>
         ))}
       </select>
@@ -78,7 +69,7 @@ function DestinationRow({
         value={dest.url}
         onChange={(e) => onChange({ ...dest, url: e.target.value })}
         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-        maxLength={2048}
+        maxLength={MAX_URL_LENGTH}
       />
 
       {/* Optional label */}
@@ -156,19 +147,29 @@ function SmartLinkEditor({
       return;
     }
 
+    // P3-4: normalize empty/whitespace label strings to undefined before sending.
+    const normalizedDestinations = destinations.map((d) => ({
+      ...d,
+      label: d.label?.trim() || undefined,
+    }));
+
     setSaving(true);
     try {
       let result: SmartLink;
       if (smartLink) {
         result = await updateSmartLink(
           smartLink.id,
-          { label: label.trim(), destinations },
+          { label: label.trim(), destinations: normalizedDestinations },
           accessToken,
         );
       } else {
         result = await createSmartLink(
           artistId,
-          { label: label.trim(), destinations: destinations.map(({ id: _id, ...d }) => d) },
+          {
+            label: label.trim(),
+            // Strip the client-generated id — backend assigns stable UUIDs on create.
+            destinations: normalizedDestinations.map(({ id: _id, ...d }) => d),
+          },
           accessToken,
         );
       }
@@ -248,9 +249,9 @@ function SmartLinkEditor({
  * Displayed inside the LinksForm when the user selects kind='smart_link' for a link item.
  *
  * Shows:
- *   - A list of existing SmartLinks (select one)
+ *   - A list of existing SmartLinks (select one) with edit + delete actions
  *   - An inline editor to create a new SmartLink
- *   - The selected SmartLink's destinations as a summary
+ *   - The selected SmartLink's platform summary
  */
 export interface SmartLinkPickerProps {
   artistId: string;
@@ -269,15 +270,19 @@ export function SmartLinkPicker({
   const t = useTranslations('blocks.smart_link');
   const [smartLinks, setSmartLinks] = useState<SmartLink[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<SmartLink | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    setLoadError(false);
     try {
       const list = await getSmartLinks(artistId, accessToken);
       setSmartLinks(list);
     } catch {
-      // Silently fail — user will see empty list
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -300,6 +305,23 @@ export function SmartLinkPicker({
     setCreating(false);
     setEditing(null);
     onSelect(smartLink.id);
+  }
+
+  async function handleDelete(id: string) {
+    if (!window.confirm(t('delete_confirm'))) return;
+    setDeleteError(null);
+    setDeletingId(id);
+    try {
+      await deleteSmartLink(id, accessToken);
+      setSmartLinks((prev) => prev.filter((s) => s.id !== id));
+      // If the deleted link was selected, clear the selection.
+      // The parent LinksForm will show an empty smartLinkId — the user must pick another.
+      if (selectedId === id) onSelect('');
+    } catch {
+      setDeleteError(t('delete_error'));
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   if (creating) {
@@ -330,6 +352,20 @@ export function SmartLinkPicker({
     <div className="space-y-3">
       {loading ? (
         <p className="text-sm text-muted-foreground">{t('loading')}</p>
+      ) : loadError ? (
+        <div className="space-y-2">
+          <p className="text-sm text-destructive">{t('load_error')}</p>
+          <button
+            type="button"
+            onClick={() => {
+              setLoading(true);
+              void load();
+            }}
+            className="text-xs text-muted-foreground hover:underline"
+          >
+            {t('retry')}
+          </button>
+        </div>
       ) : smartLinks.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('no_smart_links')}</p>
       ) : (
@@ -352,23 +388,38 @@ export function SmartLinkPicker({
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{sl.label}</p>
                 <p className="text-xs text-muted-foreground">
-                  {sl.destinations.map((d) => PLATFORM_LABELS[d.platform]).join(' · ')}
+                  {sl.destinations.map((d) => t(`platform.${d.platform}`)).join(' · ')}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setEditing(sl);
-                }}
-                className="shrink-0 text-xs text-muted-foreground hover:text-foreground hover:underline"
-              >
-                {t('edit')}
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setEditing(sl);
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+                >
+                  {t('edit')}
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void handleDelete(sl.id);
+                  }}
+                  disabled={deletingId === sl.id}
+                  className="text-xs text-destructive hover:underline disabled:opacity-50"
+                >
+                  {deletingId === sl.id ? t('deleting') : t('delete')}
+                </button>
+              </div>
             </label>
           ))}
         </div>
       )}
+
+      {deleteError && <p className="text-sm text-destructive">{deleteError}</p>}
 
       <button
         type="button"
