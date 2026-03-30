@@ -138,6 +138,11 @@ export class BlocksService {
     const { block, artistId } = await this.resolveBlock(blockId);
     await this.membershipService.validateAccess(userId, artistId, 'write');
 
+    // Nothing to update — return current state without a DB write, audit log, or event.
+    if (dto.title === undefined && dto.config === undefined) {
+      return block;
+    }
+
     if (dto.title !== undefined) {
       validateBlockTitle(dto.title);
     }
