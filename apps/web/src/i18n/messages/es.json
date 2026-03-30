@@ -87,8 +87,41 @@
     "analytics": {
       "title": "Analíticas",
       "description": "Seguí el rendimiento de tu página.",
-      "coming_soon": "Analíticas próximamente",
-      "coming_soon_description": "Pronto vas a ver visitas, clicks en links e insights de tu audiencia."
+      "range": {
+        "7d": "Últimos 7 días",
+        "30d": "Últimos 30 días",
+        "90d": "Últimos 90 días"
+      },
+      "stats": {
+        "page_views": "Visitas a la página",
+        "link_clicks": "Clicks en links",
+        "ctr": "CTR",
+        "smart_link_resolutions": "Resoluciones de smart link",
+        "ctr_hint": "Clicks en links ÷ visitas a la página"
+      },
+      "top_links": {
+        "title": "Top links",
+        "description": "Links más clickeados en este período.",
+        "rank": "#",
+        "label": "Link",
+        "clicks": "Clicks",
+        "smart_link_badge": "Smart link",
+        "no_data": "No se registraron clicks en links en este período."
+      },
+      "empty": {
+        "title": "Sin actividad todavía",
+        "description": "Compartí tu página para empezar a ver analíticas.",
+        "cta_page": "Ver mi página",
+        "cta_links": "Agregar links"
+      },
+      "error": {
+        "title": "No se pudieron cargar las analíticas",
+        "description": "Hubo un problema al obtener los datos. Por favor intentá de nuevo.",
+        "retry": "Reintentar"
+      },
+      "notes": {
+        "basic_quality": "Analíticas básicas · Filtrado de bots aplicado en la ingesta · Deduplicación de visitantes únicos próximamente"
+      }
     },
     "profile": {
       "title": "Perfil",

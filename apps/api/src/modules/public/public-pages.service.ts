@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { PrismaService } from '../../lib/prisma.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
@@ -16,13 +17,34 @@ function isBotUserAgent(ua: string | undefined): boolean {
 }
 
 /**
+ * Hashes an IP address with SHA-256 for privacy-preserving storage.
+ * Enables deduplication without persisting raw PII.
+ * Uses 'unknown' as fallback — all unknown IPs map to the same hash.
+ */
+function hashIp(ip: string | undefined): string {
+  return createHash('sha256')
+    .update(ip ?? 'unknown')
+    .digest('hex');
+}
+
+/** Analytics context extracted from visitor request headers. */
+interface VisitorCtx {
+  locale?: string;
+  referrer?: string;
+  platform?: string;
+  userAgent?: string;
+  ip?: string; // Raw IP — hashed before storage, never persisted as-is
+}
+
+/**
  * PublicPagesService — carga datos públicos de una página de artista.
  *
  * Flujo de resolución:
  * 1. Delegar a TenantResolverService para obtener el artistId estable
  * 2. Usar ese artistId para cargar la página y sus bloques
- * 3. Filtrar solo bloques visibles (isVisible=true)
+ * 3. Filtrar solo bloques publicados
  * 4. Retornar solo campos públicos (sin userId, sin datos internos)
+ * 5. Persistir page_view event (fire-and-forget, non-bot only)
  *
  * El filtrado siempre se hace por artistId (identificador interno
  * estable), no por username. Esto evita data leakage entre tenants
@@ -41,17 +63,12 @@ export class PublicPagesService {
    *
    * @param rawUsername  The URL username segment.
    * @param ctx          Optional analytics context from request headers.
-   * @throws NotFoundException si el username no existe, no está publicado
-   *         o el artista no tiene página
+   * @throws NotFoundException si el username no existe o el artista no tiene página.
    */
-  async getPageByUsername(
-    rawUsername: string,
-    ctx?: { locale?: string; referrer?: string; platform?: string; userAgent?: string },
-  ): Promise<PublicPageResponseDto> {
+  async getPageByUsername(rawUsername: string, ctx?: VisitorCtx): Promise<PublicPageResponseDto> {
     const tenant = await this.tenantResolver.resolveByUsername(rawUsername);
 
     if (!tenant) {
-      // Mensaje genérico — no reflejar input del usuario en la respuesta.
       throw new NotFoundException('Artist not found');
     }
 
@@ -64,16 +81,12 @@ export class PublicPagesService {
    *
    * @param host - Host header normalizado (sin puerto, sin www)
    * @param ctx  - Optional analytics context from visitor request headers.
-   * @throws NotFoundException si el dominio no resuelve a ningún artista
+   * @throws NotFoundException si el dominio no resuelve a ningún artista.
    */
-  async getPageByDomain(
-    host: string,
-    ctx?: { locale?: string; referrer?: string; platform?: string; userAgent?: string },
-  ): Promise<PublicPageResponseDto> {
+  async getPageByDomain(host: string, ctx?: VisitorCtx): Promise<PublicPageResponseDto> {
     const tenant = await this.tenantResolver.resolveByDomain(host);
 
     if (!tenant) {
-      // Mensaje genérico — no reflejar el Host header en la respuesta.
       throw new NotFoundException('Not found');
     }
 
@@ -86,7 +99,6 @@ export class PublicPagesService {
    * - Verifies the block exists and is published.
    * - Verifies the block type is email_capture.
    * - Upserts the subscriber (idempotent — no error if already subscribed).
-   * - Returns void; callers receive 201 on creation or 200 on duplicate.
    *
    * @throws NotFoundException   if blockId doesn't exist or block is not published
    * @throws UnprocessableEntityException if the block is not an email_capture type
@@ -94,7 +106,6 @@ export class PublicPagesService {
   async createSubscriber(blockId: string, email: string): Promise<{ created: boolean }> {
     const block = await this.prisma.block.findUnique({
       where: { id: blockId },
-      // Also fetch the page (for artistId + pageId) so we can emit a typed event.
       select: {
         type: true,
         isPublished: true,
@@ -122,8 +133,6 @@ export class PublicPagesService {
     });
 
     // Duplicate submission — return early without emitting an event.
-    // Tracking re-submits would inflate fan_capture_submit counts and make
-    // them inconsistent with the actual subscriber count in the DB.
     if (existing) {
       return { created: false };
     }
@@ -146,21 +155,60 @@ export class PublicPagesService {
   }
 
   /**
+   * Records a link_click event from the public page.
+   * Called by the public link-click endpoint (browser reports click after user action).
+   *
+   * Fire-and-forget by design — invalid artistId or blockId silently fails
+   * (FK violation caught and dropped) to avoid impacting the visitor experience.
+   *
+   * @param artistId   Artist UUID.
+   * @param data       Click event data from the client.
+   * @param ip         Raw client IP (hashed before storage).
+   */
+  async recordLinkClick(
+    artistId: string,
+    data: {
+      blockId?: string;
+      linkItemId: string;
+      label?: string;
+      isSmartLink?: boolean;
+      smartLinkId?: string;
+    },
+    ip?: string,
+  ): Promise<void> {
+    // Silently swallow errors: FK violations (invalid artistId/blockId) or
+    // transient DB failures must never surface to the visitor.
+    await this.prisma.analyticsEvent
+      .create({
+        data: {
+          artistId,
+          eventType: 'link_click',
+          blockId: data.blockId ?? null,
+          ipHash: hashIp(ip),
+          linkItemId: data.linkItemId,
+          label: data.label ?? null,
+          isSmartLink: data.isSmartLink ?? false,
+          smartLinkId: data.smartLinkId ?? null,
+        },
+      })
+      .catch(() => {
+        // Fire-and-forget — recording failure is non-fatal.
+      });
+  }
+
+  /**
    * Carga la página y bloques públicos de un artista por su ID interno.
    *
    * Todos los accesos a datos públicos deben pasar por aquí,
    * garantizando que el filtrado sea siempre por artistId.
    *
-   * @param ctx  Optional analytics context — emits public_page_view event.
+   * @param ctx  Optional analytics context — persists page_view and emits PostHog event.
    */
-  private async loadPublicPage(
-    artistId: string,
-    ctx?: { locale?: string; referrer?: string; platform?: string; userAgent?: string },
-  ): Promise<PublicPageResponseDto> {
+  private async loadPublicPage(artistId: string, ctx?: VisitorCtx): Promise<PublicPageResponseDto> {
     const page = await this.prisma.page.findUnique({
       where: { artistId },
       select: {
-        id: true, // needed for page_view analytics event
+        id: true,
         artist: {
           select: {
             username: true,
@@ -186,18 +234,29 @@ export class PublicPagesService {
       },
     });
 
-    // En este punto ya sabemos que el artista existe y la página está publicada
-    // (fue verificado por TenantResolverService). Si page es null aquí,
-    // es una inconsistencia de datos que merece error.
     if (!page) {
       throw new NotFoundException('Page not found');
     }
 
-    // Fire-and-forget analytics — do not await; page load latency must not be affected.
-    // Context is omitted when the page is loaded server-side without a real visitor
-    // (e.g. generateMetadata in Next.js — same fetch is de-duped via React.cache).
+    // Persist page_view + emit PostHog event — both fire-and-forget.
+    // Context is omitted for server-only calls (e.g. generateMetadata in Next.js,
+    // de-duped via React.cache so only one request reaches this service per render).
     if (ctx && !isBotUserAgent(ctx.userAgent)) {
-      // Extract referrer domain only — full referrer URL is PII-adjacent.
+      // Persist to local DB — source of truth for the basic analytics dashboard.
+      // Errors are silently dropped to never impact page load latency.
+      void this.prisma.analyticsEvent
+        .create({
+          data: {
+            artistId,
+            eventType: 'page_view',
+            ipHash: hashIp(ctx.ip),
+          },
+        })
+        .catch(() => {
+          // DB write failure must never propagate to the visitor response.
+        });
+
+      // PostHog — external analytics (T4-4 advanced dashboard, T6-4 analytics pro).
       let referrer_domain: string | undefined;
       if (ctx.referrer) {
         try {
@@ -207,19 +266,15 @@ export class PublicPagesService {
         }
       }
 
-      this.posthog.capture(
-        ANALYTICS_EVENTS.PUBLIC_PAGE_VIEWED,
-        artistId, // stable identifier — groups events by artist in PostHog
-        {
-          artist_id: artistId,
-          username: page.artist.username,
-          environment: process.env.NODE_ENV ?? 'development',
-          page_id: page.id,
-          locale: ctx.locale ?? 'en',
-          ...(referrer_domain && { referrer_domain }),
-          ...(ctx.platform && { platform_detected: ctx.platform }),
-        },
-      );
+      this.posthog.capture(ANALYTICS_EVENTS.PUBLIC_PAGE_VIEWED, artistId, {
+        artist_id: artistId,
+        username: page.artist.username,
+        environment: process.env.NODE_ENV ?? 'development',
+        page_id: page.id,
+        locale: ctx.locale ?? 'en',
+        ...(referrer_domain && { referrer_domain }),
+        ...(ctx.platform && { platform_detected: ctx.platform }),
+      });
     }
 
     return {

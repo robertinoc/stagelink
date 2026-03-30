@@ -204,6 +204,10 @@ export class OwnershipGuard implements CanActivate {
   }
 }
 
+// ─── re-exports ──────────────────────────────────────────────────────────────
+
+export { PublicRateLimitGuard } from './public-rate-limit.guard';
+
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 function extractBearerToken(request: Request): string | null {
