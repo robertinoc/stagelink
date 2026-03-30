@@ -5,6 +5,16 @@ import { PublicPageResponseDto, PublicBlockDto } from './dto/public-page-respons
 import { PostHogService } from '../analytics/posthog.service';
 import { ANALYTICS_EVENTS } from '@stagelink/types';
 
+/** Known bot/crawler patterns. Intentionally conservative — false negatives
+ *  (counting a bot as a visitor) are less harmful than false positives. */
+const BOT_UA_RE =
+  /bot|crawl|spider|slurp|mediapartners|facebookexternalhit|twitterbot|linkedinbot|whatsapp|slack|discord|telegram|preview|fetch|wget|curl|python|java|go-http/i;
+
+function isBotUserAgent(ua: string | undefined): boolean {
+  if (!ua) return false;
+  return BOT_UA_RE.test(ua);
+}
+
 /**
  * PublicPagesService — carga datos públicos de una página de artista.
  *
@@ -36,7 +46,7 @@ export class PublicPagesService {
    */
   async getPageByUsername(
     rawUsername: string,
-    ctx?: { locale?: string; referrer?: string; platform?: string },
+    ctx?: { locale?: string; referrer?: string; platform?: string; userAgent?: string },
   ): Promise<PublicPageResponseDto> {
     const tenant = await this.tenantResolver.resolveByUsername(rawUsername);
 
@@ -53,9 +63,13 @@ export class PublicPagesService {
    * Preparado para uso con custom domains.
    *
    * @param host - Host header normalizado (sin puerto, sin www)
+   * @param ctx  - Optional analytics context from visitor request headers.
    * @throws NotFoundException si el dominio no resuelve a ningún artista
    */
-  async getPageByDomain(host: string): Promise<PublicPageResponseDto> {
+  async getPageByDomain(
+    host: string,
+    ctx?: { locale?: string; referrer?: string; platform?: string; userAgent?: string },
+  ): Promise<PublicPageResponseDto> {
     const tenant = await this.tenantResolver.resolveByDomain(host);
 
     if (!tenant) {
@@ -63,7 +77,7 @@ export class PublicPagesService {
       throw new NotFoundException('Not found');
     }
 
-    return this.loadPublicPage(tenant.artistId);
+    return this.loadPublicPage(tenant.artistId, ctx);
   }
 
   /**
@@ -107,16 +121,10 @@ export class PublicPagesService {
       select: { id: true },
     });
 
+    // Duplicate submission — return early without emitting an event.
+    // Tracking re-submits would inflate fan_capture_submit counts and make
+    // them inconsistent with the actual subscriber count in the DB.
     if (existing) {
-      // Duplicate — still fire the event so we can track re-submit attempts.
-      this.posthog.capture(ANALYTICS_EVENTS.FAN_CAPTURE_SUBMIT, block.page.artistId, {
-        artist_id: block.page.artistId,
-        username: block.page.artist.username,
-        environment: process.env.NODE_ENV ?? 'development',
-        page_id: block.page.id,
-        block_id: blockId,
-        success: true, // duplicate upsert is still a successful intent
-      });
       return { created: false };
     }
 
@@ -124,7 +132,8 @@ export class PublicPagesService {
       data: { blockId, email: email.toLowerCase().trim() },
     });
 
-    this.posthog.capture(ANALYTICS_EVENTS.FAN_CAPTURE_SUBMIT, block.page.artistId, {
+    // Only fire after confirmed DB write — success means a new subscriber was created.
+    this.posthog.capture(ANALYTICS_EVENTS.FAN_CAPTURE_SUBMITTED, block.page.artistId, {
       artist_id: block.page.artistId,
       username: block.page.artist.username,
       environment: process.env.NODE_ENV ?? 'development',
@@ -146,7 +155,7 @@ export class PublicPagesService {
    */
   private async loadPublicPage(
     artistId: string,
-    ctx?: { locale?: string; referrer?: string; platform?: string },
+    ctx?: { locale?: string; referrer?: string; platform?: string; userAgent?: string },
   ): Promise<PublicPageResponseDto> {
     const page = await this.prisma.page.findUnique({
       where: { artistId },
@@ -187,7 +196,7 @@ export class PublicPagesService {
     // Fire-and-forget analytics — do not await; page load latency must not be affected.
     // Context is omitted when the page is loaded server-side without a real visitor
     // (e.g. generateMetadata in Next.js — same fetch is de-duped via React.cache).
-    if (ctx) {
+    if (ctx && !isBotUserAgent(ctx.userAgent)) {
       // Extract referrer domain only — full referrer URL is PII-adjacent.
       let referrer_domain: string | undefined;
       if (ctx.referrer) {
@@ -199,7 +208,7 @@ export class PublicPagesService {
       }
 
       this.posthog.capture(
-        ANALYTICS_EVENTS.PUBLIC_PAGE_VIEW,
+        ANALYTICS_EVENTS.PUBLIC_PAGE_VIEWED,
         artistId, // stable identifier — groups events by artist in PostHog
         {
           artist_id: artistId,
@@ -214,6 +223,8 @@ export class PublicPagesService {
     }
 
     return {
+      artistId,
+      pageId: page.id,
       artist: {
         username: page.artist.username,
         displayName: page.artist.displayName,

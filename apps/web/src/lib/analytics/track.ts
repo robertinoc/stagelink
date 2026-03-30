@@ -48,7 +48,7 @@ export function trackPublicLinkClick(
   const { destination_url: _url, ...rest } = props;
   void _url; // consumed above
 
-  ph.capture(ANALYTICS_EVENTS.PUBLIC_LINK_CLICK, {
+  ph.capture(ANALYTICS_EVENTS.PUBLIC_LINK_CLICKED, {
     ...rest,
     ...(destination_domain && { destination_domain }),
   });

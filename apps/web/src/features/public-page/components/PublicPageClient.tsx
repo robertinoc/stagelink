@@ -30,10 +30,13 @@ interface PublicPageClientProps {
 }
 
 export function PublicPageClient({ page }: PublicPageClientProps) {
-  const { artist, blocks } = page;
+  const { artistId, pageId, artist, blocks } = page;
 
   /**
    * Called by BlockRenderer → LinksBlockRenderer when a link is clicked.
+   * NOTE: PostHog funnels between public_page_view (backend, distinctId=artist_id)
+   * and public_link_click (frontend, distinctId=anonymous cookie) must use
+   * "match by event property" on page_id — not person-based matching.
    *
    * @param blockId  ID of the links block that was clicked.
    * @param itemId   ID of the individual link item.
@@ -52,17 +55,11 @@ export function PublicPageClient({ page }: PublicPageClientProps) {
     // we use the configured URL (the domain is what matters for attribution).
     const destinationUrl = item.url || undefined;
 
-    // NOTE: The public API intentionally omits internal UUIDs from PublicPageResponse.
-    // For this client-side event, `artist_id` is the username (the stable public key).
-    // The backend's `public_page_view` event uses the real UUID — PostHog dashboards
-    // can join these events by `username` which is immutable and present in both.
     trackPublicLinkClick({
-      artist_id: artist.username,
+      artist_id: artistId,
       username: artist.username,
-      environment: process.env.NODE_ENV ?? 'production',
-      // page_id is not exposed in PublicPageResponse; the backend's page_view event
-      // has the real page UUID. block_id provides sufficient scoping here.
-      page_id: 'client',
+      environment: process.env.NEXT_PUBLIC_APP_ENV ?? process.env.NODE_ENV ?? 'development',
+      page_id: pageId,
       block_id: blockId,
       block_type: 'links',
       link_item_id: itemId,

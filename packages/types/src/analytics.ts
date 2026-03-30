@@ -4,8 +4,8 @@
 // This is the single source of truth for event names and
 // property shapes used by both the web and API tiers.
 //
-// Naming convention: snake_case, past tense where it describes
-// a completed action, noun_verb where it describes a state.
+// Naming convention: snake_case, past participle for all events
+// (describes a completed action: page_viewed, link_clicked, etc.)
 // =============================================================
 
 // ─── Event names ──────────────────────────────────────────────────────────────
@@ -18,13 +18,13 @@
 export const ANALYTICS_EVENTS = {
   // ── Public / visitor ──────────────────────────────────────
   /** A visitor loaded a public artist page. Emitted server-side. */
-  PUBLIC_PAGE_VIEW: 'public_page_view',
+  PUBLIC_PAGE_VIEWED: 'public_page_viewed',
   /** A visitor clicked a link/CTA item on a public page. Emitted client-side. */
-  PUBLIC_LINK_CLICK: 'public_link_click',
+  PUBLIC_LINK_CLICKED: 'public_link_clicked',
   /** A Smart Link was resolved to a platform-specific destination. Emitted server-side. */
   SMART_LINK_RESOLVED: 'smart_link_resolved',
   /** A visitor submitted their email on a fan capture block. Emitted server-side. */
-  FAN_CAPTURE_SUBMIT: 'fan_capture_submit',
+  FAN_CAPTURE_SUBMITTED: 'fan_capture_submitted',
 
   // ── Product / dashboard ───────────────────────────────────
   /** An artist completed the onboarding wizard. */
@@ -124,4 +124,6 @@ export interface BlockLifecycleProps extends BaseDashboardProps {
   block_id: string;
   block_type: string;
   page_id: string;
+  /** Fields changed — only present on block_updated events. */
+  updated_fields?: string[];
 }

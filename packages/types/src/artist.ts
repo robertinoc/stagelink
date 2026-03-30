@@ -76,6 +76,15 @@ export interface PublicArtist {
 
 /** Respuesta de GET /api/public/pages/by-username/:username */
 export interface PublicPageResponse {
+  /**
+   * Stable internal UUID for the artist. Included here specifically to enable
+   * client-side analytics events to use a consistent identifier that matches
+   * the server-side events (public_page_view, smart_link_resolved).
+   * This is NOT PII — it is a technical identifier with no user-facing exposure.
+   */
+  artistId: string;
+  /** Stable internal UUID for the page. Required for per-page analytics joins. */
+  pageId: string;
   artist: PublicArtist;
   blocks: PublicBlock[];
 }
