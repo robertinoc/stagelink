@@ -9,9 +9,10 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
+import { PostHogService } from '../analytics/posthog.service';
 import { CreateSmartLinkDto, UpdateSmartLinkDto } from './dto';
 import type { SmartLinkDestination, SmartLinkPlatform } from '@stagelink/types';
-import { SMART_LINK_PLATFORMS, MAX_URL_LENGTH } from '@stagelink/types';
+import { SMART_LINK_PLATFORMS, MAX_URL_LENGTH, ANALYTICS_EVENTS } from '@stagelink/types';
 import { randomUUID } from 'crypto';
 
 // Maximum smart links per artist — prevents unbounded data growth.
@@ -25,6 +26,7 @@ export class SmartLinksService {
     private readonly prisma: PrismaService,
     private readonly membershipService: MembershipService,
     private readonly auditService: AuditService,
+    private readonly posthog: PostHogService,
   ) {}
 
   // ─── List ─────────────────────────────────────────────────────────────────
@@ -177,7 +179,9 @@ export class SmartLinksService {
   ): Promise<{ url: string }> {
     const smartLink = await this.prisma.smartLink.findUnique({
       where: { id: smartLinkId },
-      select: { destinations: true, isActive: true },
+      // artistId is included so we can emit a typed analytics event without
+      // a second DB round-trip. Not exposed in the response.
+      select: { destinations: true, isActive: true, artistId: true },
     });
 
     if (!smartLink || !smartLink.isActive) {
@@ -197,17 +201,9 @@ export class SmartLinksService {
 
     if (!resolved) throw new NotFoundException('Smart link not found');
 
-    // Fire-and-forget analytics — do not await; redirect latency must not be affected.
-    //
-    // TODO (P2): migrate click tracking out of audit_logs into a dedicated
-    //   `smart_link_clicks` table with columns:
-    //     smart_link_id, destination_id, platform, resolved_platform,
-    //     from_block_id, from_item_id, ip_hash (SHA-256, not raw), clicked_at.
-    //   Rationale: audit_logs is a security trail, not a metrics store. At
-    //   moderate traffic (≥10k clicks/day) this table becomes noisy and expensive
-    //   to query for dashboards. IP hashing preserves deduplication capability
-    //   without storing PII. Bot traffic (detected at the web tier) should set a
-    //   flag so it can be excluded from artist-facing click counts.
+    // Fire-and-forget — do not await; redirect latency must not be affected.
+
+    // Audit trail (security log)
     void this.auditService.log({
       actorId: null, // null = unauthenticated / public action
       action: 'smart_link.resolve',
@@ -219,6 +215,17 @@ export class SmartLinksService {
         ...(context?.from && { from: context.from }),
       },
       ipAddress: context?.ipAddress,
+    });
+
+    // PostHog event — artist dashboard metrics.
+    // distinctId = artistId so all events for the same artist are grouped.
+    this.posthog.capture(ANALYTICS_EVENTS.SMART_LINK_RESOLVED, smartLink.artistId, {
+      smart_link_id: smartLinkId,
+      artist_id: smartLink.artistId,
+      platform_detected: platform,
+      resolved_platform: resolved.platform,
+      fallback_used: !exact,
+      environment: process.env.NODE_ENV ?? 'development',
     });
 
     return { url: resolved.url };

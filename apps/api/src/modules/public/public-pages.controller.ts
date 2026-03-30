@@ -2,6 +2,7 @@ import { Controller, Get, Headers, Param } from '@nestjs/common';
 import { PublicPagesService } from './public-pages.service';
 import { PublicPageResponseDto } from './dto/public-page-response.dto';
 import { Public } from '../../common/decorators';
+import { detectLocale } from '../../common/utils/locale.util';
 
 /**
  * PublicPagesController — endpoints públicos de páginas de artistas.
@@ -29,10 +30,28 @@ export class PublicPagesController {
    *
    * Resuelve la página pública de un artista por su username.
    * Retorna 404 si el username no existe o la página no está publicada.
+   *
+   * Analytics context is extracted from standard request headers:
+   *   - Accept-Language → locale (for dashboard segmentation)
+   *   - Referer         → referrer_domain only (privacy: domain, not full URL)
+   *   - Sec-CH-UA-Platform → platform_detected (Chromium client hint)
+   *
+   * Note: this endpoint is called server-side by Next.js SSR (via React.cache
+   * deduplication). The web tier forwards these headers from the original visitor
+   * request so that the event reflects the real visitor, not the Next.js server.
    */
   @Get('by-username/:username')
-  getByUsername(@Param('username') username: string): Promise<PublicPageResponseDto> {
-    return this.publicPagesService.getPageByUsername(username);
+  getByUsername(
+    @Param('username') username: string,
+    @Headers('accept-language') acceptLanguage?: string,
+    @Headers('referer') referer?: string,
+    @Headers('sec-ch-ua-platform') secChUaPlatform?: string,
+  ): Promise<PublicPageResponseDto> {
+    return this.publicPagesService.getPageByUsername(username, {
+      locale: acceptLanguage ? detectLocale(acceptLanguage) : undefined,
+      referrer: referer,
+      platform: secChUaPlatform?.replace(/"/g, '').toLowerCase() || undefined,
+    });
   }
 
   /**

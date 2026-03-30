@@ -30,6 +30,7 @@
     "class-validator": "^0.14.0",
     "joi": "^17.13.3",
     "jose": "^6.2.2",
+    "posthog-node": "^5.28.9",
     "prisma": "^5.22.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0"

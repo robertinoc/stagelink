@@ -3,6 +3,7 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import type { Locale } from '@/i18n/request';
 import { geistSans, geistMono } from '@/lib/fonts';
+import { PostHogProvider } from '@/lib/analytics/PostHogProvider';
 
 const locales = ['en', 'es'] as const;
 
@@ -20,7 +21,9 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
+          <PostHogProvider>{children}</PostHogProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
