@@ -214,31 +214,39 @@ model Block {
 
 // =============================================================
 // ANALYTICS EVENTS
-// Eventos crudos de page_view y link_click.
-// IP hasheada para deduplicación sin almacenar PII.
+// Raw events: page_view, link_click, smart_link_resolution.
+// IP hashed (SHA-256) to enable deduplication without storing PII.
+// Link-specific fields (linkItemId, label, etc.) are null for page_view.
 // =============================================================
 enum EventType {
   page_view
   link_click
+  smart_link_resolution
 
   @@map("event_type")
 }
 
 model AnalyticsEvent {
-  id         String    @id @default(cuid())
-  artistId   String    @map("artist_id")
-  blockId    String?   @map("block_id")   // Solo para link_click
-  eventType  EventType @map("event_type")
-  ipHash     String    @map("ip_hash")    // SHA-256 de IP — deduplicación
-  country    String?
-  device     String?
-  createdAt  DateTime  @default(now()) @map("created_at")
+  id          String    @id @default(cuid())
+  artistId    String    @map("artist_id")
+  blockId     String?   @map("block_id")      // link_click only
+  eventType   EventType @map("event_type")
+  ipHash      String    @map("ip_hash")        // SHA-256(ip) — deduplication
+  country     String?
+  device      String?
+  // Link-specific fields — null for page_view events
+  linkItemId  String?   @map("link_item_id")  // link_click / smart_link_resolution
+  label       String?                           // human-readable link label
+  isSmartLink Boolean   @default(false) @map("is_smart_link")
+  smartLinkId String?   @map("smart_link_id") // when isSmartLink = true
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   artist  Artist  @relation(fields: [artistId], references: [id], onDelete: Cascade)
   block   Block?  @relation(fields: [blockId], references: [id], onDelete: SetNull)
 
   @@index([artistId, createdAt])
   @@index([artistId, eventType, createdAt])
+  @@index([artistId, linkItemId, createdAt], map: "analytics_events_artist_link_idx")
   @@map("analytics_events")
 }
 

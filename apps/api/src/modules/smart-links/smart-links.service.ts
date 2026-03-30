@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import {
   Injectable,
   NotFoundException,
@@ -14,6 +15,12 @@ import { CreateSmartLinkDto, UpdateSmartLinkDto } from './dto';
 import type { SmartLinkDestination, SmartLinkPlatform } from '@stagelink/types';
 import { SMART_LINK_PLATFORMS, MAX_URL_LENGTH, ANALYTICS_EVENTS } from '@stagelink/types';
 import { randomUUID } from 'crypto';
+
+function hashIp(ip: string | undefined): string {
+  return createHash('sha256')
+    .update(ip ?? 'unknown')
+    .digest('hex');
+}
 
 // Maximum smart links per artist — prevents unbounded data growth.
 const MAX_SMART_LINKS_PER_ARTIST = 50;
@@ -227,6 +234,21 @@ export class SmartLinksService {
       fallback_used: !exact,
       environment: process.env.NODE_ENV ?? 'development',
     });
+
+    // Persist to local DB — source of truth for the basic analytics dashboard.
+    void this.prisma.analyticsEvent
+      .create({
+        data: {
+          artistId: smartLink.artistId,
+          eventType: 'smart_link_resolution',
+          ipHash: hashIp(context?.ipAddress),
+          isSmartLink: true,
+          smartLinkId,
+        },
+      })
+      .catch(() => {
+        // Fire-and-forget — recording failure must never block the redirect.
+      });
 
     return { url: resolved.url };
   }

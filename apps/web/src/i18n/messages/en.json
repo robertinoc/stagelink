@@ -87,8 +87,41 @@
     "analytics": {
       "title": "Analytics",
       "description": "Track how your page is performing.",
-      "coming_soon": "Analytics coming soon",
-      "coming_soon_description": "Soon you'll see page views, link clicks, and audience insights here."
+      "range": {
+        "7d": "Last 7 days",
+        "30d": "Last 30 days",
+        "90d": "Last 90 days"
+      },
+      "stats": {
+        "page_views": "Page views",
+        "link_clicks": "Link clicks",
+        "ctr": "CTR",
+        "smart_link_resolutions": "Smart link resolutions",
+        "ctr_hint": "Link clicks ÷ page views"
+      },
+      "top_links": {
+        "title": "Top links",
+        "description": "Most clicked links in this period.",
+        "rank": "#",
+        "label": "Link",
+        "clicks": "Clicks",
+        "smart_link_badge": "Smart link",
+        "no_data": "No link clicks recorded in this period."
+      },
+      "empty": {
+        "title": "No activity yet",
+        "description": "Share your page to start seeing analytics.",
+        "cta_page": "View my page",
+        "cta_links": "Add links"
+      },
+      "error": {
+        "title": "Could not load analytics",
+        "description": "There was a problem fetching your data. Please try again.",
+        "retry": "Retry"
+      },
+      "notes": {
+        "basic_quality": "Basic analytics · Bot filtering applied at ingestion · Unique visitor deduplication coming soon"
+      }
     },
     "profile": {
       "title": "Profile",

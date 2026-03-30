@@ -9,6 +9,9 @@ import { PostHogService } from './posthog.service';
  *
  * PostHogService is fire-and-forget and stateless from the caller's
  * perspective — making it global keeps the DI graph clean.
+ *
+ * AnalyticsService queries the local analytics_events table (Prisma).
+ * PrismaService is injected globally via PrismaModule.
  */
 @Global()
 @Module({

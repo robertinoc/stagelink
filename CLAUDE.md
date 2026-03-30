@@ -108,16 +108,17 @@ apps/
             ├── assets/     # Upload pipeline: POST /upload-intent + POST /:id/confirm
             ├── pages/      # CRUD páginas públicas (stub)
             ├── blocks/     # CRUD bloques (stub)
-            ├── analytics/  # Eventos + PostHog (stub)
+            ├── analytics/  # GET /api/analytics/:artistId/overview — dashboard básico
             └── billing/    # Stripe suscripciones (stub)
 packages/
 ├── types/                  # Interfaces compartidas (Artist, Page, Block, User, Asset, PublicPageResponse)
 ├── ui/                     # Wrappers shadcn + primitivos custom
 └── config/                 # ESLint, tsconfig y prettier configs compartidas
 docs/
-├── multi-tenant.md         # Decisiones arquitectónicas, política de username, caching, dominios
-├── auth-workos.md          # Flujo auth, rutas, variables, provisioning, seguridad
-└── assets-s3.md            # Pipeline S3, CORS, IAM, object key strategy, MinIO local, QA checklist
+├── multi-tenant.md              # Decisiones arquitectónicas, política de username, caching, dominios
+├── auth-workos.md               # Flujo auth, rutas, variables, provisioning, seguridad
+├── assets-s3.md                 # Pipeline S3, CORS, IAM, object key strategy, MinIO local, QA checklist
+└── basic-analytics-dashboard.md # Fuente de verdad, métricas, API shape, limitaciones T4-2
 ```
 
 ---
@@ -250,17 +251,17 @@ GET /api/public/pages/by-domain (Host header)
 
 ## Modelos de Datos Principales
 
-| Tabla              | Descripción                                                          |
-| ------------------ | -------------------------------------------------------------------- |
-| `users`            | Cuenta del usuario (vinculada a WorkOS)                              |
-| `artists`          | Perfil artístico (username único = clave multi-tenant)               |
-| `assets`           | Assets subidos (avatar, cover) — presigned URL pipeline              |
-| `pages`            | Página pública del artista (1-to-1 con Artist)                       |
-| `blocks`           | Bloques de contenido ordenados (link, music, video, fan_capture)     |
-| `custom_domains`   | Dominios personalizados por artista (pending/active/failed/disabled) |
-| `analytics_events` | Eventos crudos (page_view, link_click)                               |
-| `subscribers`      | Emails capturados via bloque fan capture                             |
-| `subscriptions`    | Estado de suscripción Stripe por artista                             |
+| Tabla              | Descripción                                                                                           |
+| ------------------ | ----------------------------------------------------------------------------------------------------- |
+| `users`            | Cuenta del usuario (vinculada a WorkOS)                                                               |
+| `artists`          | Perfil artístico (username único = clave multi-tenant)                                                |
+| `assets`           | Assets subidos (avatar, cover) — presigned URL pipeline                                               |
+| `pages`            | Página pública del artista (1-to-1 con Artist)                                                        |
+| `blocks`           | Bloques de contenido ordenados (link, music, video, fan_capture)                                      |
+| `custom_domains`   | Dominios personalizados por artista (pending/active/failed/disabled)                                  |
+| `analytics_events` | Eventos crudos (page_view, link_click, smart_link_resolution) — fuente de verdad del dashboard básico |
+| `subscribers`      | Emails capturados via bloque fan capture                                                              |
+| `subscriptions`    | Estado de suscripción Stripe por artista                                                              |
 
 ---
 
@@ -414,36 +415,58 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
 - @stagelink/types ArtistCategory updated to match DB enum
 - Docs: apps/api/docs/artist-onboarding.md
 
+### T4-1 — PostHog + analytics_events ingestion (completed)
+
+- `analytics_events` table con `event_type`, `artist_id`, `ip_hash`, `user_agent`, `created_at`
+- Ingesta de `page_view` en `PublicPagesService.loadPublicPage()` (fire-and-forget, filtra bots)
+- PostHog instrumentado en paralelo (externo)
+
+### T4-2 — Basic Analytics Dashboard (completed)
+
+- Migración DB: agrega `link_item_id`, `label`, `is_smart_link`, `smart_link_id` a `analytics_events`; agrega `smart_link_resolution` al enum `event_type`
+- `GET /api/analytics/:artistId/overview?range=7d|30d|90d` — resumen con pageViews, linkClicks, CTR, smartLinkResolutions, topLinks (top 10 por clicks)
+- `POST /api/public/events/link-click` — endpoint público con rate limiting (120 req/60s), reportado desde browser con `keepalive: true`
+- `SmartLinksService.resolve()` registra `smart_link_resolution` fire-and-forget
+- Frontend: `AnalyticsDashboard` client component con range selector (URL-based), summary cards, top links table, empty/error states, data quality note
+- i18n: `dashboard.analytics.*` namespace en `en.json` + `es.json`
+- Docs: `docs/basic-analytics-dashboard.md` — fuente de verdad, métricas, shape de API, limitaciones
+
 ### ⏳ Pendiente
 
 - T2-5: Implementar queries Prisma reales en módulos stub (artists, pages, blocks)
 - Public access en bucket R2 + CORS para uploads desde browser
 - Custom domains UI + DNS verification
 - Editor de bloques
-- Analytics
+- T4-4: Deduplicación por IP hash, filtrado bots avanzado, exclusión tráfico interno, geo/device
+- T6-4: Analytics Pro (rangos custom, comparación, CSV export)
 
 ---
 
 ## Patrones a Reutilizar
 
-| Patrón                           | Archivo                                                        | Reuse For                                        |
-| -------------------------------- | -------------------------------------------------------------- | ------------------------------------------------ |
-| Tenant resolution centralizada   | `modules/tenant/tenant-resolver.service.ts`                    | Cualquier endpoint que necesite resolver artista |
-| Reserved usernames               | `common/constants/reserved-usernames.ts`                       | Validación en UI + backend                       |
-| Username normalization           | `common/utils/username.util.ts`                                | Todos los inputs de username                     |
-| Public fetch helper              | `apps/web/src/lib/public-api.ts`                               | Fetch sin auth con cache: no-store               |
-| Auth session (server)            | `apps/web/src/lib/auth.ts`                                     | getSession(), apiFetch(), AuthSession type       |
-| Authenticated fetch (backend)    | `apps/web/src/lib/auth.ts` → `apiFetch()`                      | Server Components que necesitan datos del API    |
-| @Public() opt-out de auth        | `common/decorators/index.ts`                                   | Endpoints públicos que no requieren JWT          |
-| @CurrentUser() en controllers    | `common/decorators/index.ts`                                   | Acceder al User interno en cualquier controller  |
-| Lazy user provisioning           | `common/guards/index.ts` → `resolveUser()`                     | Primer request post-signup → crea User en DB     |
-| Feature gating centralizado      | Helper único importado desde `packages/`                       | Verificar plan activo                            |
-| Presigned PUT URL para uploads   | `lib/s3/s3.service.ts` → `generatePresignedPutUrl()`           | Avatars, covers, cualquier asset futuro          |
-| Upload pipeline (intent+confirm) | `modules/assets/` → `createUploadIntent()` + `confirmUpload()` | Cualquier nuevo tipo de asset                    |
-| Asset config centralizada        | `modules/assets/assets.constants.ts`                           | Agregar nuevos kinds con MIME + size limits      |
-| Webhook handlers idempotentes    | Stripe events                                                  | Billing                                          |
-| Ownership check en servicios     | `common/guards/index.ts`                                       | Todos los endpoints de escritura                 |
-| Discriminated union para bloques | Tipo `Block` con campo `type`                                  | Editor de bloques                                |
+| Patrón                            | Archivo                                                                    | Reuse For                                              |
+| --------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Tenant resolution centralizada    | `modules/tenant/tenant-resolver.service.ts`                                | Cualquier endpoint que necesite resolver artista       |
+| Reserved usernames                | `common/constants/reserved-usernames.ts`                                   | Validación en UI + backend                             |
+| Username normalization            | `common/utils/username.util.ts`                                            | Todos los inputs de username                           |
+| Public fetch helper               | `apps/web/src/lib/public-api.ts`                                           | Fetch sin auth con cache: no-store                     |
+| Auth session (server)             | `apps/web/src/lib/auth.ts`                                                 | getSession(), apiFetch(), AuthSession type             |
+| Authenticated fetch (backend)     | `apps/web/src/lib/auth.ts` → `apiFetch()`                                  | Server Components que necesitan datos del API          |
+| @Public() opt-out de auth         | `common/decorators/index.ts`                                               | Endpoints públicos que no requieren JWT                |
+| @CurrentUser() en controllers     | `common/decorators/index.ts`                                               | Acceder al User interno en cualquier controller        |
+| Lazy user provisioning            | `common/guards/index.ts` → `resolveUser()`                                 | Primer request post-signup → crea User en DB           |
+| Feature gating centralizado       | Helper único importado desde `packages/`                                   | Verificar plan activo                                  |
+| Presigned PUT URL para uploads    | `lib/s3/s3.service.ts` → `generatePresignedPutUrl()`                       | Avatars, covers, cualquier asset futuro                |
+| Upload pipeline (intent+confirm)  | `modules/assets/` → `createUploadIntent()` + `confirmUpload()`             | Cualquier nuevo tipo de asset                          |
+| Asset config centralizada         | `modules/assets/assets.constants.ts`                                       | Agregar nuevos kinds con MIME + size limits            |
+| Webhook handlers idempotentes     | Stripe events                                                              | Billing                                                |
+| Ownership check en servicios      | `common/guards/index.ts`                                                   | Todos los endpoints de escritura                       |
+| Discriminated union para bloques  | Tipo `Block` con campo `type`                                              | Editor de bloques                                      |
+| Analytics write (fire-and-forget) | `public-pages.service.ts` → `prisma.analyticsEvent.create().catch(()=>{})` | Nunca bloquear el response por eventos de analytics    |
+| IP hashing para privacidad        | `createHash('sha256').update(ip ?? 'unknown').digest('hex')`               | Todos los eventos que guardan IP                       |
+| Range selector SSR (URL params)   | `dashboard/analytics/page.tsx` + `RangeSelector` con `router.push`         | Date range pickers sin client fetch                    |
+| @CheckOwnership para analytics    | `analytics.controller.ts` + `@UseGuards(OwnershipGuard)`                   | Endpoints de lectura de datos propios                  |
+| Link click desde browser          | `track.ts` → `fetch(..., { keepalive: true })`                             | Reportar eventos del browser que sobreviven navegación |
 
 ---
 
