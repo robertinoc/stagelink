@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import type { PublicPageResponse } from '@stagelink/types';
-import { BlockRenderer } from '@/features/blocks/components/BlockRenderer';
+import { PublicPageClient } from './PublicPageClient';
 
 interface ArtistPageViewProps {
   page: PublicPageResponse;
@@ -73,13 +73,9 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
           {artist.bio && <p className="mt-3 text-sm leading-relaxed text-zinc-300">{artist.bio}</p>}
         </div>
 
-        {/* Published blocks */}
+        {/* Published blocks — delegated to a client component for click tracking */}
         {blocks.length > 0 ? (
-          <div className="space-y-4">
-            {blocks.map((block) => (
-              <BlockRenderer key={block.id} block={block} />
-            ))}
-          </div>
+          <PublicPageClient page={page} />
         ) : (
           <p className="text-center text-sm text-zinc-600">{t('no_blocks')}</p>
         )}

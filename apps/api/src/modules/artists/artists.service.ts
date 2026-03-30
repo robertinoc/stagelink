@@ -3,6 +3,8 @@ import { ArtistCategory } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
+import { PostHogService } from '../analytics/posthog.service';
+import { ANALYTICS_EVENTS } from '@stagelink/types';
 
 // ── Internal payload types (not exported — presentation DTOs live in dto/) ───
 
@@ -38,6 +40,7 @@ export class ArtistsService {
     private readonly prisma: PrismaService,
     private readonly membershipService: MembershipService,
     private readonly auditService: AuditService,
+    private readonly posthog: PostHogService,
   ) {}
 
   async findAllForUser(userId: string) {
@@ -121,6 +124,13 @@ export class ArtistsService {
       entityId: id,
       metadata: { fields: Object.keys(payload) },
       ipAddress,
+    });
+
+    this.posthog.capture(ANALYTICS_EVENTS.ARTIST_PROFILE_UPDATED, userId, {
+      actor_user_id: userId,
+      artist_id: id,
+      environment: process.env.NODE_ENV ?? 'development',
+      updated_fields: Object.keys(payload),
     });
 
     return artist;

@@ -9,6 +9,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
+import { PostHogService } from '../analytics/posthog.service';
 import {
   validateBlockConfig,
   validateBlockTitle,
@@ -17,6 +18,7 @@ import {
 } from './schemas/block-config.schema';
 import { CreateBlockDto, UpdateBlockDto, ReorderBlocksDto } from './dto';
 import { SmartLinksService } from '../smart-links/smart-links.service';
+import { ANALYTICS_EVENTS } from '@stagelink/types';
 
 // Maximum blocks allowed per page — prevents unbounded data growth.
 const MAX_BLOCKS_PER_PAGE = 50;
@@ -28,6 +30,7 @@ export class BlocksService {
     private readonly membershipService: MembershipService,
     private readonly auditService: AuditService,
     private readonly smartLinksService: SmartLinksService,
+    private readonly posthog: PostHogService,
   ) {}
 
   // ─── List ─────────────────────────────────────────────────────────────────
@@ -113,6 +116,15 @@ export class BlocksService {
       ipAddress,
     });
 
+    this.posthog.capture(ANALYTICS_EVENTS.BLOCK_CREATED, userId, {
+      actor_user_id: userId,
+      artist_id: artistId,
+      environment: process.env.NODE_ENV ?? 'development',
+      block_id: block.id,
+      block_type: block.type,
+      page_id: pageId,
+    });
+
     return block;
   }
 
@@ -166,6 +178,15 @@ export class BlocksService {
       ipAddress,
     });
 
+    this.posthog.capture(ANALYTICS_EVENTS.BLOCK_UPDATED, userId, {
+      actor_user_id: userId,
+      artist_id: artistId,
+      environment: process.env.NODE_ENV ?? 'development',
+      block_id: blockId,
+      block_type: block.type,
+      page_id: block.pageId,
+    });
+
     return updated;
   }
 
@@ -187,6 +208,15 @@ export class BlocksService {
       entityId: blockId,
       metadata: { type: block.type, pageId: block.pageId },
       ipAddress,
+    });
+
+    this.posthog.capture(ANALYTICS_EVENTS.BLOCK_DELETED, userId, {
+      actor_user_id: userId,
+      artist_id: artistId,
+      environment: process.env.NODE_ENV ?? 'development',
+      block_id: blockId,
+      block_type: block.type,
+      page_id: block.pageId,
     });
 
     await this.prisma.block.delete({ where: { id: blockId } });
@@ -273,6 +303,15 @@ export class BlocksService {
       ipAddress,
     });
 
+    this.posthog.capture(ANALYTICS_EVENTS.BLOCK_PUBLISHED, userId, {
+      actor_user_id: userId,
+      artist_id: artistId,
+      environment: process.env.NODE_ENV ?? 'development',
+      block_id: blockId,
+      block_type: block.type,
+      page_id: block.pageId,
+    });
+
     return block;
   }
 
@@ -294,6 +333,15 @@ export class BlocksService {
       entityType: 'block',
       entityId: blockId,
       ipAddress,
+    });
+
+    this.posthog.capture(ANALYTICS_EVENTS.BLOCK_UNPUBLISHED, userId, {
+      actor_user_id: userId,
+      artist_id: artistId,
+      environment: process.env.NODE_ENV ?? 'development',
+      block_id: blockId,
+      block_type: block.type,
+      page_id: block.pageId,
     });
 
     return block;

@@ -2,6 +2,8 @@ import { Injectable, NotFoundException, UnprocessableEntityException } from '@ne
 import { PrismaService } from '../../lib/prisma.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
 import { PublicPageResponseDto, PublicBlockDto } from './dto/public-page-response.dto';
+import { PostHogService } from '../analytics/posthog.service';
+import { ANALYTICS_EVENTS } from '@stagelink/types';
 
 /**
  * PublicPagesService — carga datos públicos de una página de artista.
@@ -21,15 +23,21 @@ export class PublicPagesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenantResolver: TenantResolverService,
+    private readonly posthog: PostHogService,
   ) {}
 
   /**
    * Retorna la página pública de un artista resuelto por username.
    *
+   * @param rawUsername  The URL username segment.
+   * @param ctx          Optional analytics context from request headers.
    * @throws NotFoundException si el username no existe, no está publicado
    *         o el artista no tiene página
    */
-  async getPageByUsername(rawUsername: string): Promise<PublicPageResponseDto> {
+  async getPageByUsername(
+    rawUsername: string,
+    ctx?: { locale?: string; referrer?: string; platform?: string },
+  ): Promise<PublicPageResponseDto> {
     const tenant = await this.tenantResolver.resolveByUsername(rawUsername);
 
     if (!tenant) {
@@ -37,7 +45,7 @@ export class PublicPagesService {
       throw new NotFoundException('Artist not found');
     }
 
-    return this.loadPublicPage(tenant.artistId);
+    return this.loadPublicPage(tenant.artistId, ctx);
   }
 
   /**
@@ -72,7 +80,18 @@ export class PublicPagesService {
   async createSubscriber(blockId: string, email: string): Promise<{ created: boolean }> {
     const block = await this.prisma.block.findUnique({
       where: { id: blockId },
-      select: { type: true, isPublished: true },
+      // Also fetch the page (for artistId + pageId) so we can emit a typed event.
+      select: {
+        type: true,
+        isPublished: true,
+        page: {
+          select: {
+            id: true,
+            artistId: true,
+            artist: { select: { username: true } },
+          },
+        },
+      },
     });
 
     if (!block || !block.isPublished) {
@@ -89,11 +108,29 @@ export class PublicPagesService {
     });
 
     if (existing) {
+      // Duplicate — still fire the event so we can track re-submit attempts.
+      this.posthog.capture(ANALYTICS_EVENTS.FAN_CAPTURE_SUBMIT, block.page.artistId, {
+        artist_id: block.page.artistId,
+        username: block.page.artist.username,
+        environment: process.env.NODE_ENV ?? 'development',
+        page_id: block.page.id,
+        block_id: blockId,
+        success: true, // duplicate upsert is still a successful intent
+      });
       return { created: false };
     }
 
     await this.prisma.subscriber.create({
       data: { blockId, email: email.toLowerCase().trim() },
+    });
+
+    this.posthog.capture(ANALYTICS_EVENTS.FAN_CAPTURE_SUBMIT, block.page.artistId, {
+      artist_id: block.page.artistId,
+      username: block.page.artist.username,
+      environment: process.env.NODE_ENV ?? 'development',
+      page_id: block.page.id,
+      block_id: blockId,
+      success: true,
     });
 
     return { created: true };
@@ -104,11 +141,17 @@ export class PublicPagesService {
    *
    * Todos los accesos a datos públicos deben pasar por aquí,
    * garantizando que el filtrado sea siempre por artistId.
+   *
+   * @param ctx  Optional analytics context — emits public_page_view event.
    */
-  private async loadPublicPage(artistId: string): Promise<PublicPageResponseDto> {
+  private async loadPublicPage(
+    artistId: string,
+    ctx?: { locale?: string; referrer?: string; platform?: string },
+  ): Promise<PublicPageResponseDto> {
     const page = await this.prisma.page.findUnique({
       where: { artistId },
       select: {
+        id: true, // needed for page_view analytics event
         artist: {
           select: {
             username: true,
@@ -139,6 +182,35 @@ export class PublicPagesService {
     // es una inconsistencia de datos que merece error.
     if (!page) {
       throw new NotFoundException('Page not found');
+    }
+
+    // Fire-and-forget analytics — do not await; page load latency must not be affected.
+    // Context is omitted when the page is loaded server-side without a real visitor
+    // (e.g. generateMetadata in Next.js — same fetch is de-duped via React.cache).
+    if (ctx) {
+      // Extract referrer domain only — full referrer URL is PII-adjacent.
+      let referrer_domain: string | undefined;
+      if (ctx.referrer) {
+        try {
+          referrer_domain = new URL(ctx.referrer).hostname;
+        } catch {
+          // Malformed Referer header — skip
+        }
+      }
+
+      this.posthog.capture(
+        ANALYTICS_EVENTS.PUBLIC_PAGE_VIEW,
+        artistId, // stable identifier — groups events by artist in PostHog
+        {
+          artist_id: artistId,
+          username: page.artist.username,
+          environment: process.env.NODE_ENV ?? 'development',
+          page_id: page.id,
+          locale: ctx.locale ?? 'en',
+          ...(referrer_domain && { referrer_domain }),
+          ...(ctx.platform && { platform_detected: ctx.platform }),
+        },
+      );
     }
 
     return {

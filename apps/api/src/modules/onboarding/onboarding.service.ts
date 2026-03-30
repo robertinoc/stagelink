@@ -1,10 +1,12 @@
 import { Injectable, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../lib/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import { PostHogService } from '../analytics/posthog.service';
 import type { User, ArtistCategory } from '@prisma/client';
 import { normalizeUsername, validateUsernameFormat } from '../../common/utils/username.util';
 import { isReservedUsername } from '../../common/constants/reserved-usernames';
 import type { CompleteOnboardingDto } from './dto';
+import { ANALYTICS_EVENTS } from '@stagelink/types';
 
 export interface OnboardingResult {
   artistId: string;
@@ -26,6 +28,7 @@ export class OnboardingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
+    private readonly posthog: PostHogService,
   ) {}
 
   /**
@@ -149,6 +152,13 @@ export class OnboardingService {
         category: dto.category,
       },
       ipAddress,
+    });
+
+    this.posthog.capture(ANALYTICS_EVENTS.ONBOARDING_COMPLETED, user.id, {
+      actor_user_id: user.id,
+      artist_id: result.artistId,
+      environment: process.env.NODE_ENV ?? 'development',
+      username: normalized,
     });
 
     this.logger.log(

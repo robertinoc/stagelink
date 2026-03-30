@@ -3,6 +3,7 @@ import type { AbstractIntlMessages } from 'next-intl';
 import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { detectLocale } from '@/lib/detect-locale';
+import { PostHogProvider } from '@/lib/analytics/PostHogProvider';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -30,7 +31,7 @@ export default async function PublicArtistLayout({ children }: PublicLayoutProps
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      {children}
+      <PostHogProvider>{children}</PostHogProvider>
     </NextIntlClientProvider>
   );
 }
