@@ -185,6 +185,7 @@ export class BlocksService {
       block_id: blockId,
       block_type: block.type,
       page_id: block.pageId,
+      updated_fields: Object.keys(dto),
     });
 
     return updated;

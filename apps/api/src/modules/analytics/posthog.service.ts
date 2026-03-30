@@ -43,21 +43,27 @@ type EventProps =
 export class PostHogService implements OnModuleDestroy {
   private readonly logger = new Logger(PostHogService.name);
   private readonly client: PostHog | null;
+  /** Resolved once at startup. APP_ENV takes precedence over NODE_ENV so staging
+   *  servers (where NODE_ENV='production') are not mixed with real production data. */
+  private readonly appEnv: string;
 
   constructor(private readonly config: ConfigService) {
     const key = this.config.get<string>('POSTHOG_KEY');
     const host = this.config.get<string>('POSTHOG_HOST') ?? 'https://app.posthog.com';
+    this.appEnv =
+      this.config.get<string>('APP_ENV') ?? this.config.get<string>('NODE_ENV') ?? 'development';
 
     if (key) {
       this.client = new PostHog(key, {
         host,
-        // Flush immediately in serverless/short-lived processes.
-        // For long-lived NestJS processes the default batching is fine,
-        // but explicit flushAt keeps latency predictable.
-        flushAt: 1,
-        flushInterval: 0,
+        // NestJS on Railway is a long-lived process — use SDK defaults for batching.
+        // posthog-node defaults: flushAt=20, flushInterval=10_000ms.
+        // These batch events efficiently without a network round-trip per capture.
+        // (flushAt:1 / flushInterval:0 are correct only for Lambda/Edge functions
+        //  that live seconds and need immediate flush before process teardown.
+        //  For long-lived servers they generate unnecessary per-event HTTP traffic.)
       });
-      this.logger.log(`PostHog initialized (host: ${host})`);
+      this.logger.log(`PostHog initialized (host: ${host}, env: ${this.appEnv})`);
     } else {
       this.client = null;
       this.logger.warn('POSTHOG_KEY not set — analytics disabled');
@@ -83,6 +89,9 @@ export class PostHogService implements OnModuleDestroy {
         event,
         properties: {
           ...props,
+          // Always override environment with the server-resolved value so
+          // per-event callers don't need to read env vars themselves.
+          environment: this.appEnv,
           // Opt out of profile creation for public/anonymous events.
           // Authenticated events may override this per-event if needed.
           $process_person_profiles: false,

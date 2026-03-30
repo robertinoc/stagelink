@@ -46,11 +46,13 @@ export class PublicPagesController {
     @Headers('accept-language') acceptLanguage?: string,
     @Headers('referer') referer?: string,
     @Headers('sec-ch-ua-platform') secChUaPlatform?: string,
+    @Headers('user-agent') userAgent?: string,
   ): Promise<PublicPageResponseDto> {
     return this.publicPagesService.getPageByUsername(username, {
       locale: acceptLanguage ? detectLocale(acceptLanguage) : undefined,
       referrer: referer,
       platform: secChUaPlatform?.replace(/"/g, '').toLowerCase() || undefined,
+      userAgent,
     });
   }
 
@@ -65,7 +67,18 @@ export class PublicPagesController {
    * En entornos con reverse proxy, asegurarse de que el header sea forwarded.
    */
   @Get('by-domain')
-  getByDomain(@Headers('host') host: string): Promise<PublicPageResponseDto> {
-    return this.publicPagesService.getPageByDomain(host);
+  getByDomain(
+    @Headers('host') host: string,
+    @Headers('accept-language') acceptLanguage?: string,
+    @Headers('referer') referer?: string,
+    @Headers('sec-ch-ua-platform') secChUaPlatform?: string,
+    @Headers('user-agent') userAgent?: string,
+  ): Promise<PublicPageResponseDto> {
+    return this.publicPagesService.getPageByDomain(host, {
+      locale: acceptLanguage ? detectLocale(acceptLanguage) : undefined,
+      referrer: referer,
+      platform: secChUaPlatform?.replace(/"/g, '').toLowerCase() || undefined,
+      userAgent,
+    });
   }
 }
