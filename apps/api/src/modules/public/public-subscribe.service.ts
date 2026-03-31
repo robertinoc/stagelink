@@ -10,6 +10,7 @@ import { PrismaService } from '../../lib/prisma.service';
 import { PostHogService } from '../analytics/posthog.service';
 import { ANALYTICS_EVENTS, type EmailCaptureBlockConfig } from '@stagelink/types';
 import type { CreateSubscriberDto } from './dto/create-subscriber.dto';
+import { resolveTrafficFlags } from '../../common/utils/analytics-flags';
 
 /**
  * Hashes an IP address with SHA-256 for privacy-preserving storage.
@@ -60,6 +61,7 @@ export class PublicSubscribeService {
     blockId: string,
     dto: CreateSubscriberDto,
     ip?: string,
+    qualityCtx?: { userAgent?: string; slQa?: string; slAc?: string; slInternal?: string },
   ): Promise<{ created: boolean }> {
     // 1. Honeypot — non-empty website field signals a bot. Silently succeed.
     if (dto.website && dto.website.trim().length > 0) {
@@ -136,10 +138,18 @@ export class PublicSubscribeService {
     }
 
     // 5. Analytics — fire-and-forget (never block the response)
+    // T4-4: Resolve quality flags for this request.
+    const flags = resolveTrafficFlags({
+      userAgent: qualityCtx?.userAgent,
+      slQaHeader: qualityCtx?.slQa,
+      slAcHeader: qualityCtx?.slAc,
+      slInternalHeader: qualityCtx?.slInternal,
+    });
+
     const eventProps = {
       artist_id: artistId,
       username: block.page.artist.username,
-      environment: process.env.NODE_ENV ?? 'development',
+      environment: flags.environment,
       page_id: pageId,
       block_id: blockId,
       success: true,
@@ -153,7 +163,6 @@ export class PublicSubscribeService {
     // = SHA256('unknown'). This differs from subscriber.ip_hash (nullable) —
     // an accepted schema-level inconsistency until analytics is migrated to
     // allow NULL ip_hash as well.
-    // EventType cast needed until Prisma client regenerates with new migration.
     this.prisma.analyticsEvent
       .create({
         data: {
@@ -161,6 +170,7 @@ export class PublicSubscribeService {
           blockId,
           eventType: EventType.fan_capture_submit,
           ipHash: ip ? hashIp(ip) : hashIp(undefined),
+          ...flags,
         },
       })
       .catch(() => {});

@@ -30,11 +30,15 @@ export interface TopLinkDto {
 // ─── Summary ──────────────────────────────────────────────────────────────────
 
 export interface AnalyticsSummaryDto {
-  /** Total public page loads in the range (includes bots filtered at ingestion). */
+  /**
+   * Total public page loads in the range.
+   * T4-4: bots, internal, and QA events are excluded at query time.
+   */
   pageViews: number;
   /**
    * Total link/CTA clicks in the range.
    * Includes both regular links and smart links — each click = one event.
+   * T4-4: filtered by quality flags.
    */
   linkClicks: number;
   /**
@@ -52,22 +56,32 @@ export interface AnalyticsSummaryDto {
 export interface AnalyticsNotesDto {
   /**
    * Quality tier of this data.
-   * - 'basic': raw counts, basic bot filtering at ingestion, no deduplication.
-   * Future: 'standard' (deduped), 'advanced' (enriched with geo/device, T4-4).
+   * - 'basic': raw counts, basic bot filtering at ingestion only.
+   * - 'standard': quality flags applied at query time (T4-4, current).
+   * Future: 'advanced' (IP-level unique visitor deduplication, geo/device enrichment).
    */
-  dataQuality: 'basic';
+  dataQuality: 'basic' | 'standard' | 'advanced';
   /**
-   * Whether IP-based bot filtering was applied at ingestion.
-   * Basic UA-pattern filtering is applied in public-pages.service (isBotUserAgent).
-   * Full bot filtering (IP reputation, headless browser detection) ships in T4-4.
+   * Whether bot-suspected events are excluded from counts.
+   * T4-4: isBotSuspected=false filter applied at query time.
    */
   botFilteringApplied: boolean;
   /**
    * Whether IP-hash-based unique visitor deduplication is applied on reads.
-   * Currently false — all events are counted, including repeat visits from the same IP.
-   * Proper deduplication ships in T4-4.
+   * Currently false — all events (per page load) are counted.
+   * Proper deduplication is a future milestone.
    */
   deduplicationApplied: boolean;
+  /**
+   * T4-4: Whether quality flag filtering was applied at query time.
+   * When true, events tagged isBot/isInternal/isQa or non-production are excluded.
+   */
+  qualityFlagsApplied: boolean;
+  /**
+   * T4-4: Human-readable list of active quality filters for debugging / transparency.
+   * Example: ['isBotSuspected=false', 'isInternal=false', 'isQa=false', 'environment=production']
+   */
+  filtersActive: string[];
 }
 
 // ─── Full response ────────────────────────────────────────────────────────────

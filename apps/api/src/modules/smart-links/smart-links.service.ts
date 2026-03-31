@@ -15,6 +15,7 @@ import { CreateSmartLinkDto, UpdateSmartLinkDto } from './dto';
 import type { SmartLinkDestination, SmartLinkPlatform } from '@stagelink/types';
 import { SMART_LINK_PLATFORMS, MAX_URL_LENGTH, ANALYTICS_EVENTS } from '@stagelink/types';
 import { randomUUID } from 'crypto';
+import { resolveTrafficFlags } from '../../common/utils/analytics-flags';
 
 function hashIp(ip: string | undefined): string {
   return createHash('sha256')
@@ -178,11 +179,22 @@ export class SmartLinksService {
    * @param context.from       Optional attribution string from the link renderer
    *                           (format: `${blockId}:${itemId}`). Logged for analytics.
    * @param context.ipAddress  Visitor IP for the click audit record.
+   * @param context.userAgent  Raw User-Agent header (T4-4 bot detection).
+   * @param context.slQa       X-SL-QA header value (T4-4 QA mode flag).
+   * @param context.slAc       X-SL-AC header value (T4-4 consent flag).
+   * @param context.slInternal X-SL-Internal header value (T4-4 internal traffic flag).
    */
   async resolve(
     smartLinkId: string,
     platform: SmartLinkPlatform,
-    context?: { from?: string; ipAddress?: string },
+    context?: {
+      from?: string;
+      ipAddress?: string;
+      userAgent?: string;
+      slQa?: string;
+      slAc?: string;
+      slInternal?: string;
+    },
   ): Promise<{ url: string }> {
     const smartLink = await this.prisma.smartLink.findUnique({
       where: { id: smartLinkId },
@@ -235,6 +247,14 @@ export class SmartLinksService {
       environment: process.env.NODE_ENV ?? 'development',
     });
 
+    // T4-4: Resolve quality flags and persist with all events.
+    const flags = resolveTrafficFlags({
+      userAgent: context?.userAgent,
+      slQaHeader: context?.slQa,
+      slAcHeader: context?.slAc,
+      slInternalHeader: context?.slInternal,
+    });
+
     // Persist to local DB — source of truth for the basic analytics dashboard.
     void this.prisma.analyticsEvent
       .create({
@@ -244,6 +264,7 @@ export class SmartLinksService {
           ipHash: hashIp(context?.ipAddress),
           isSmartLink: true,
           smartLinkId,
+          ...flags,
         },
       })
       .catch(() => {

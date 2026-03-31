@@ -24,6 +24,10 @@ import type { PublicPageResponse } from '@stagelink/types';
  *   public_page_view event has correct locale, referrer, and platform context.
  *   Next.js SSR receives these headers from the browser but does NOT forward
  *   them automatically in outgoing fetch() calls — we must do it explicitly.
+ * - T4-4 quality headers (X-SL-QA, X-SL-AC) are read from the visitor's
+ *   cookies (via the Cookie header, parsed selectively) and forwarded to the
+ *   API so quality flags can be set on the persisted page_view event.
+ *   Only the two known sl_* cookies are forwarded — no other cookie data.
  */
 
 // API_URL is a private server-only variable (not NEXT_PUBLIC_*) — never sent to the browser.
@@ -45,6 +49,27 @@ async function _fetchPublicPage(username: string): Promise<PublicPageResponse | 
 
   const secChUaPlatform = incomingHeaders.get('sec-ch-ua-platform');
   if (secChUaPlatform) forwardHeaders['sec-ch-ua-platform'] = secChUaPlatform;
+
+  // User-Agent — needed by API for T4-4 bot detection.
+  const userAgent = incomingHeaders.get('user-agent');
+  if (userAgent) forwardHeaders['user-agent'] = userAgent;
+
+  // T4-4: Forward quality cookies as typed headers (never forward the raw Cookie header).
+  // Parse only the two known sl_* values — no other cookie data leaves this layer.
+  const cookieHeader = incomingHeaders.get('cookie') ?? '';
+  const cookieMap = Object.fromEntries(
+    cookieHeader.split(';').map((c) => {
+      const [k, ...v] = c.trim().split('=');
+      return [k?.trim() ?? '', v.join('=')];
+    }),
+  );
+
+  // sl_ac: consent cookie — '1' = accepted, '0' = rejected, absent = unknown
+  const slAc = cookieMap['sl_ac'];
+  if (slAc === '1' || slAc === '0') forwardHeaders['x-sl-ac'] = slAc;
+
+  // sl_qa: QA mode cookie — '1' = QA session
+  if (cookieMap['sl_qa'] === '1') forwardHeaders['x-sl-qa'] = '1';
 
   const res = await fetch(
     `${API_URL}/api/public/pages/by-username/${encodeURIComponent(username)}`,

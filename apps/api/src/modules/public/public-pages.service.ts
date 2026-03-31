@@ -5,16 +5,7 @@ import { TenantResolverService } from '../tenant/tenant-resolver.service';
 import { PublicPageResponseDto, PublicBlockDto } from './dto/public-page-response.dto';
 import { PostHogService } from '../analytics/posthog.service';
 import { ANALYTICS_EVENTS } from '@stagelink/types';
-
-/** Known bot/crawler patterns. Intentionally conservative — false negatives
- *  (counting a bot as a visitor) are less harmful than false positives. */
-const BOT_UA_RE =
-  /bot|crawl|spider|slurp|mediapartners|facebookexternalhit|twitterbot|linkedinbot|whatsapp|slack|discord|telegram|preview|fetch|wget|curl|python|java|go-http/i;
-
-function isBotUserAgent(ua: string | undefined): boolean {
-  if (!ua) return false;
-  return BOT_UA_RE.test(ua);
-}
+import { resolveTrafficFlags } from '../../common/utils/analytics-flags';
 
 /**
  * Hashes an IP address with SHA-256 for privacy-preserving storage.
@@ -28,12 +19,24 @@ function hashIp(ip: string | undefined): string {
 }
 
 /** Analytics context extracted from visitor request headers. */
-interface VisitorCtx {
+export interface VisitorCtx {
   locale?: string;
   referrer?: string;
   platform?: string;
   userAgent?: string;
   ip?: string; // Raw IP — hashed before storage, never persisted as-is
+  // T4-4 quality headers forwarded from web tier
+  slQa?: string;
+  slAc?: string;
+  slInternal?: string;
+}
+
+/** T4-4 quality header context for link-click / smart-link events. */
+export interface ClickQualityCtx {
+  userAgent?: string;
+  slQa?: string;
+  slAc?: string;
+  slInternal?: string;
 }
 
 /**
@@ -44,11 +47,17 @@ interface VisitorCtx {
  * 2. Usar ese artistId para cargar la página y sus bloques
  * 3. Filtrar solo bloques publicados
  * 4. Retornar solo campos públicos (sin userId, sin datos internos)
- * 5. Persistir page_view event (fire-and-forget, non-bot only)
+ * 5. Persistir page_view event (fire-and-forget, CON quality flags T4-4)
  *
  * El filtrado siempre se hace por artistId (identificador interno
  * estable), no por username. Esto evita data leakage entre tenants
  * si un username cambia o hay inconsistencias.
+ *
+ * T4-4 changes:
+ *  - ALL events are now persisted (including bots) — with isBotSuspected flag.
+ *  - Quality flags (isBot, isInternal, isQa, hasTrackingConsent, environment)
+ *    are resolved from X-SL-* headers forwarded by the web tier.
+ *  - Dashboard queries filter on these flags at aggregation time.
  */
 @Injectable()
 export class PublicPagesService {
@@ -103,6 +112,7 @@ export class PublicPagesService {
    * @param artistId   Artist UUID.
    * @param data       Click event data from the client.
    * @param ip         Raw client IP (hashed before storage).
+   * @param qualityCtx T4-4 quality headers for flag resolution.
    */
   async recordLinkClick(
     artistId: string,
@@ -114,7 +124,15 @@ export class PublicPagesService {
       smartLinkId?: string;
     },
     ip?: string,
+    qualityCtx?: ClickQualityCtx,
   ): Promise<void> {
+    const flags = resolveTrafficFlags({
+      userAgent: qualityCtx?.userAgent,
+      slQaHeader: qualityCtx?.slQa,
+      slAcHeader: qualityCtx?.slAc,
+      slInternalHeader: qualityCtx?.slInternal,
+    });
+
     // Silently swallow errors: FK violations (invalid artistId/blockId) or
     // transient DB failures must never surface to the visitor.
     await this.prisma.analyticsEvent
@@ -128,6 +146,7 @@ export class PublicPagesService {
           label: data.label ?? null,
           isSmartLink: data.isSmartLink ?? false,
           smartLinkId: data.smartLinkId ?? null,
+          ...flags,
         },
       })
       .catch(() => {
@@ -177,10 +196,17 @@ export class PublicPagesService {
       throw new NotFoundException('Page not found');
     }
 
-    // Persist page_view + emit PostHog event — both fire-and-forget.
-    // Context is omitted for server-only calls (e.g. generateMetadata in Next.js,
-    // de-duped via React.cache so only one request reaches this service per render).
-    if (ctx && !isBotUserAgent(ctx.userAgent)) {
+    // T4-4: Persist page_view for ALL requests (including bots) — flag at write time,
+    // filter at query time. Only skip when no analytics context is available (e.g.
+    // generateMetadata calls that don't carry visitor context).
+    if (ctx) {
+      const flags = resolveTrafficFlags({
+        userAgent: ctx.userAgent,
+        slQaHeader: ctx.slQa,
+        slAcHeader: ctx.slAc,
+        slInternalHeader: ctx.slInternal,
+      });
+
       // Persist to local DB — source of truth for the basic analytics dashboard.
       // Errors are silently dropped to never impact page load latency.
       void this.prisma.analyticsEvent
@@ -189,31 +215,36 @@ export class PublicPagesService {
             artistId,
             eventType: 'page_view',
             ipHash: hashIp(ctx.ip),
+            ...flags,
           },
         })
         .catch(() => {
           // DB write failure must never propagate to the visitor response.
         });
 
-      // PostHog — external analytics (T4-4 advanced dashboard, T6-4 analytics pro).
-      let referrer_domain: string | undefined;
-      if (ctx.referrer) {
-        try {
-          referrer_domain = new URL(ctx.referrer).hostname;
-        } catch {
-          // Malformed Referer header — skip
+      // PostHog — only emit for non-bot, non-internal, non-QA traffic.
+      // PostHog has its own bot filtering but we filter here too to keep
+      // event counts consistent with the local DB dashboard.
+      if (!flags.isBotSuspected && !flags.isInternal && !flags.isQa) {
+        let referrer_domain: string | undefined;
+        if (ctx.referrer) {
+          try {
+            referrer_domain = new URL(ctx.referrer).hostname;
+          } catch {
+            // Malformed Referer header — skip
+          }
         }
-      }
 
-      this.posthog.capture(ANALYTICS_EVENTS.PUBLIC_PAGE_VIEWED, artistId, {
-        artist_id: artistId,
-        username: page.artist.username,
-        environment: process.env.NODE_ENV ?? 'development',
-        page_id: page.id,
-        locale: ctx.locale ?? 'en',
-        ...(referrer_domain && { referrer_domain }),
-        ...(ctx.platform && { platform_detected: ctx.platform }),
-      });
+        this.posthog.capture(ANALYTICS_EVENTS.PUBLIC_PAGE_VIEWED, artistId, {
+          artist_id: artistId,
+          username: page.artist.username,
+          environment: flags.environment,
+          page_id: page.id,
+          locale: ctx.locale ?? 'en',
+          ...(referrer_domain && { referrer_domain }),
+          ...(ctx.platform && { platform_detected: ctx.platform }),
+        });
+      }
     }
 
     return {

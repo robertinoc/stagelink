@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Headers, HttpCode, Param, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { PublicSubscribeService } from './public-subscribe.service';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
@@ -43,8 +43,18 @@ export class PublicBlocksController {
     @Param('blockId', ParseCuidPipe) blockId: string,
     @Body() dto: CreateSubscriberDto,
     @Req() req: Request,
+    // T4-4 quality headers — forwarded by the web tier from visitor cookies
+    @Headers('user-agent') userAgent?: string,
+    @Headers('x-sl-qa') slQa?: string,
+    @Headers('x-sl-ac') slAc?: string,
+    @Headers('x-sl-internal') slInternal?: string,
   ): Promise<{ ok: boolean }> {
-    await this.publicSubscribeService.createSubscriber(blockId, dto, extractClientIp(req));
+    await this.publicSubscribeService.createSubscriber(blockId, dto, extractClientIp(req), {
+      userAgent,
+      slQa,
+      slAc,
+      slInternal,
+    });
     return { ok: true };
   }
 }

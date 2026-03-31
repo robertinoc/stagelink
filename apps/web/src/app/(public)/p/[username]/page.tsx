@@ -4,6 +4,8 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { fetchPublicPage } from '@/lib/public-api';
 import { ArtistPageView } from '@/features/public-page/components/ArtistPageView';
+import { AnalyticsConsentBanner } from '@/features/public-page/components/AnalyticsConsentBanner';
+import { QaModeInitializer } from '@/features/public-page/components/QaModeInitializer';
 import { detectLocale } from '@/lib/detect-locale';
 
 interface ArtistPageProps {
@@ -120,6 +122,11 @@ function buildJsonLd(
  * - El backend filtra todo por artistId (identificador interno estable)
  * - cache: 'no-store' evita mezclar contenido entre tenants
  * - notFound() retorna 404 HTTP real, no solo UI vacía
+ *
+ * T4-4 additions:
+ * - AnalyticsConsentBanner: client-side opt-out notice (shown on first visit).
+ * - QaModeInitializer: reads ?sl_qa=1 URL param and persists as a cookie so
+ *   the web tier can forward X-SL-QA: 1 to the API on subsequent page loads.
  */
 export default async function ArtistPage({ params }: ArtistPageProps) {
   const { username } = await params;
@@ -140,6 +147,10 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <ArtistPageView page={page} />
+      {/* T4-4: Minimal analytics notice — shown on first visit, opt-out model */}
+      <AnalyticsConsentBanner />
+      {/* T4-4: QA mode — reads ?sl_qa=1 and sets sl_qa cookie for header forwarding */}
+      <QaModeInitializer />
     </>
   );
 }
