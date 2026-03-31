@@ -118,7 +118,8 @@ docs/
 ├── multi-tenant.md              # Decisiones arquitectónicas, política de username, caching, dominios
 ├── auth-workos.md               # Flujo auth, rutas, variables, provisioning, seguridad
 ├── assets-s3.md                 # Pipeline S3, CORS, IAM, object key strategy, MinIO local, QA checklist
-└── basic-analytics-dashboard.md # Fuente de verdad, métricas, API shape, limitaciones T4-2
+├── basic-analytics-dashboard.md # Fuente de verdad, métricas, API shape, limitaciones T4-2
+└── fan-email-capture-block.md   # Schema, modelo subscribers, anti-abuse, export, privacidad T4-3
 ```
 
 ---
@@ -431,6 +432,19 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
 - i18n: `dashboard.analytics.*` namespace en `en.json` + `es.json`
 - Docs: `docs/basic-analytics-dashboard.md` — fuente de verdad, métricas, shape de API, limitaciones
 
+### T4-3 — Fan Email Capture Block (completed)
+
+- Migración DB: enriquece `subscribers` (agrega `artist_id`, `page_id`, `status`, `ip_hash`, `consent_text`, `source_page_path`, `locale`, `updated_at`); cambia unique de `[block_id, email]` a `[artist_id, email]`; agrega `fan_capture_submit` a enum `event_type`
+- Block config `email_capture`: agrega `requireConsent`, `consentLabel`, `successMessage` (validados en `block-config.schema.ts`, tipados en `@stagelink/types`)
+- `POST /api/public/blocks/:blockId/subscribers` — enriquecido con rate limiting, honeypot, validación de consent, deduplicación por artista+email, persistencia completa
+- `GET /api/artists/:artistId/subscribers` — lista paginada (ownership required)
+- `GET /api/artists/:artistId/subscribers/export` — CSV download (ownership required)
+- Analytics: `fan_capture_submit` escrito fire-and-forget en `analytics_events` + PostHog (sin email ni PII)
+- Frontend `EmailCaptureRenderer`: consent checkbox (cuando `requireConsent=true` o `consentLabel` set), honeypot field CSS-hidden, custom `successMessage`
+- Frontend `BlockConfigForm`: campos de consent section, `successMessage`
+- i18n: `consent_default`, `consent_required` en `renderer.email_capture`; `success_message`, `consent_section`, `require_consent`, `consent_label` en `fields`
+- Docs: `docs/fan-email-capture-block.md` — schema, modelo, política de duplicados, anti-abuse, endpoints, export, privacidad, roadmap
+
 ### ⏳ Pendiente
 
 - T2-5: Implementar queries Prisma reales en módulos stub (artists, pages, blocks)
@@ -461,6 +475,11 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
 | Asset config centralizada         | `modules/assets/assets.constants.ts`                                       | Agregar nuevos kinds con MIME + size limits            |
 | Webhook handlers idempotentes     | Stripe events                                                              | Billing                                                |
 | Ownership check en servicios      | `common/guards/index.ts`                                                   | Todos los endpoints de escritura                       |
+| Honeypot field (anti-bot)         | `EmailCaptureRenderer` + `CreateSubscriberDto` → `website` field           | Formularios públicos sin CAPTCHA                       |
+| Consentimiento con snapshot       | `public-pages.service.ts` → `createSubscriber()` → `consentText`           | Guardar qué texto vio el usuario al dar consentimiento |
+| Idempotencia per-artista+email    | `@@unique([artistId, email])` en `subscribers`                             | Evitar duplicados sin error para el fan                |
+| CSV export privado                | `SubscribersService.exportCsv()` + `res.setHeader(Content-Disposition)`    | Descarga de datos propios del artista                  |
+| any cast con Prisma schema nuevo  | `subscribers.service.ts` → `prismaSubscriber as any`                       | Usar campos nuevos antes de que Prisma regen en CI/CD  |
 | Discriminated union para bloques  | Tipo `Block` con campo `type`                                              | Editor de bloques                                      |
 | Analytics write (fire-and-forget) | `public-pages.service.ts` → `prisma.analyticsEvent.create().catch(()=>{})` | Nunca bloquear el response por eventos de analytics    |
 | IP hashing para privacidad        | `createHash('sha256').update(ip ?? 'unknown').digest('hex')`               | Todos los eventos que guardan IP                       |

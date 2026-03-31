@@ -231,7 +231,13 @@
       "button_label_placeholder": "ej. Suscribirme",
       "description": "Descripción (opcional)",
       "placeholder_text": "Placeholder del email (opcional)",
-      "placeholder_text_placeholder": "ej. tu@email.com"
+      "placeholder_text_placeholder": "ej. tu@email.com",
+      "success_message": "Mensaje de éxito (opcional)",
+      "success_message_placeholder": "ej. ¡Gracias por unirte!",
+      "consent_section": "Consentimiento",
+      "require_consent": "Requerir checkbox de consentimiento explícito",
+      "consent_label": "Texto del consentimiento",
+      "consent_label_placeholder": "ej. Acepto recibir novedades de este artista."
     },
     "smart_link": {
       "destination": "Destino",
@@ -285,7 +291,9 @@
         "success_message": "Gracias por suscribirte.",
         "error": "Algo salió mal. Por favor, intentá de nuevo.",
         "invalid_email": "Por favor ingresá un email válido.",
-        "preview_hint": "El formulario está inactivo en modo vista previa."
+        "preview_hint": "El formulario está inactivo en modo vista previa.",
+        "consent_default": "Acepto recibir novedades de este artista.",
+        "consent_required": "Por favor acepta los términos para continuar."
       }
     }
   },

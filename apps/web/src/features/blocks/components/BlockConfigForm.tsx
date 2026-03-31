@@ -453,6 +453,46 @@ function EmailCaptureForm({
           maxLength={100}
         />
       </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium">{t('success_message')}</label>
+        <input
+          type="text"
+          placeholder={t('success_message_placeholder')}
+          value={config.successMessage ?? ''}
+          onChange={(e) => onChange({ ...config, successMessage: e.target.value || undefined })}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          maxLength={200}
+        />
+      </div>
+
+      {/* Consent section */}
+      <div className="rounded-md border border-input bg-muted/30 p-3 space-y-2">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          {t('consent_section')}
+        </p>
+        <label className="flex cursor-pointer items-center gap-2 select-none">
+          <input
+            type="checkbox"
+            checked={config.requireConsent ?? false}
+            onChange={(e) => onChange({ ...config, requireConsent: e.target.checked || undefined })}
+            className="h-4 w-4 rounded border-input"
+          />
+          <span className="text-sm">{t('require_consent')}</span>
+        </label>
+        {config.requireConsent && (
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">{t('consent_label')}</label>
+            <input
+              type="text"
+              placeholder={t('consent_label_placeholder')}
+              value={config.consentLabel ?? ''}
+              onChange={(e) => onChange({ ...config, consentLabel: e.target.value || undefined })}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              maxLength={200}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

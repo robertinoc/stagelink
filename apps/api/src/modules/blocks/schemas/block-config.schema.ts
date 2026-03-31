@@ -31,6 +31,8 @@ const MAX_HEADLINE_LENGTH = 100;
 const MAX_DESCRIPTION_LENGTH = 300;
 const MAX_BUTTON_LABEL_LENGTH = 50;
 const MAX_PLACEHOLDER_LENGTH = 100;
+const MAX_CONSENT_LABEL_LENGTH = 200;
+const MAX_SUCCESS_MESSAGE_LENGTH = 200;
 const MAX_LINK_ITEMS = 20;
 
 const BLOCKED_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'blob:'];
@@ -228,6 +230,19 @@ function validateEmailCaptureConfig(c: Record<string, unknown>): void {
     'email_capture config.placeholder',
     MAX_PLACEHOLDER_LENGTH,
   );
+  assertOptionalString(
+    c['successMessage'],
+    'email_capture config.successMessage',
+    MAX_SUCCESS_MESSAGE_LENGTH,
+  );
+  assertOptionalString(
+    c['consentLabel'],
+    'email_capture config.consentLabel',
+    MAX_CONSENT_LABEL_LENGTH,
+  );
+  if (c['requireConsent'] !== undefined && typeof c['requireConsent'] !== 'boolean') {
+    throw new BadRequestException('email_capture config.requireConsent must be a boolean');
+  }
 }
 
 // ─── URL parsing + embed derivation ──────────────────────────────────────────
