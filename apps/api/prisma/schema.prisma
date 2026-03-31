@@ -114,6 +114,7 @@ model Artist {
   coverAsset      Asset?   @relation("ArtistCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
   memberships     ArtistMembership[]
   smartLinks      SmartLink[]
+  subscribers     Subscriber[]
 
   @@map("artists")
 }
@@ -172,8 +173,9 @@ model Page {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  artist  Artist  @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  blocks  Block[]
+  artist      Artist       @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  blocks      Block[]
+  subscribers Subscriber[]
 
   @@map("pages")
 }
@@ -214,7 +216,7 @@ model Block {
 
 // =============================================================
 // ANALYTICS EVENTS
-// Raw events: page_view, link_click, smart_link_resolution.
+// Raw events: page_view, link_click, smart_link_resolution, fan_capture_submit.
 // IP hashed (SHA-256) to enable deduplication without storing PII.
 // Link-specific fields (linkItemId, label, etc.) are null for page_view.
 // =============================================================
@@ -222,6 +224,7 @@ enum EventType {
   page_view
   link_click
   smart_link_resolution
+  fan_capture_submit
 
   @@map("event_type")
 }
@@ -252,18 +255,42 @@ model AnalyticsEvent {
 
 // =============================================================
 // SUBSCRIBERS
-// Emails capturados vía bloque fan_capture.
+// Fans que dejaron su email en un bloque email_capture.
+//
+// Unique constraint: [artistId, email] — un fan no puede suscribirse
+// dos veces al mismo artista, pero sí a artistas distintos.
 // =============================================================
+enum SubscriberStatus {
+  active
+  unsubscribed
+
+  @@map("subscriber_status")
+}
+
 model Subscriber {
-  id        String   @id @default(cuid())
-  blockId   String   @map("block_id")
-  email     String
-  consent   Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
+  id             String           @id @default(cuid())
+  artistId       String           @map("artist_id")
+  blockId        String           @map("block_id")       // source block (for attribution)
+  pageId         String?          @map("page_id")        // page that hosted the block
+  email          String
+  status         SubscriberStatus @default(active)
+  consent        Boolean          @default(false)        // explicit consent given
+  consentText    String?          @map("consent_text")   // snapshot of label shown
+  ipHash         String?          @map("ip_hash")        // SHA-256(ip) — privacy-safe
+  sourcePagePath String?          @map("source_page_path") // URL path at submit time
+  locale         String?                                  // visitor locale
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
 
-  block Block @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  // Restrict: deleting a block must not silently destroy subscriber data.
+  // The artist's email list must be preserved even if the capture block is removed.
+  block  Block  @relation(fields: [blockId], references: [id], onDelete: Restrict)
+  page   Page?  @relation(fields: [pageId], references: [id], onDelete: SetNull)
 
-  @@unique([blockId, email])
+  @@unique([artistId, email], map: "subscribers_artist_id_email_key")
+  @@index([artistId, createdAt(sort: Desc)], map: "subscribers_artist_id_created_at_idx")
+  @@index([artistId, status], map: "subscribers_artist_id_status_idx")
   @@map("subscribers")
 }
 

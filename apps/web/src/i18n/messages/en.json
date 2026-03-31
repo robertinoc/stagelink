@@ -231,7 +231,13 @@
       "button_label_placeholder": "e.g. Subscribe",
       "description": "Description (optional)",
       "placeholder_text": "Email placeholder (optional)",
-      "placeholder_text_placeholder": "e.g. your@email.com"
+      "placeholder_text_placeholder": "e.g. your@email.com",
+      "success_message": "Success message (optional)",
+      "success_message_placeholder": "e.g. Thanks for joining!",
+      "consent_section": "Consent",
+      "require_consent": "Require explicit consent checkbox",
+      "consent_label": "Consent label text",
+      "consent_label_placeholder": "e.g. I agree to receive updates from this artist."
     },
     "smart_link": {
       "destination": "Destination",
@@ -285,7 +291,9 @@
         "success_message": "Thanks for subscribing.",
         "error": "Something went wrong. Please try again.",
         "invalid_email": "Please enter a valid email address.",
-        "preview_hint": "Form is inactive in preview mode."
+        "preview_hint": "Form is inactive in preview mode.",
+        "consent_default": "I agree to receive updates from this artist.",
+        "consent_required": "Please accept the terms to continue."
       }
     }
   },

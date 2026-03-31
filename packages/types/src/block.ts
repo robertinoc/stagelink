@@ -102,6 +102,9 @@ export interface EmailCaptureBlockConfig {
   buttonLabel: string;
   description?: string;
   placeholder?: string;
+  successMessage?: string;
+  consentLabel?: string;
+  requireConsent?: boolean;
 }
 
 /** Discriminated union of all config shapes */

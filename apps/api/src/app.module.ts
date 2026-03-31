@@ -20,6 +20,7 @@ import { MembershipModule } from './modules/membership/membership.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { SmartLinksModule } from './modules/smart-links/smart-links.module';
+import { SubscribersModule } from './modules/subscribers/subscribers.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { SmartLinksModule } from './modules/smart-links/smart-links.module';
     AssetsModule,
     OnboardingModule,
     SmartLinksModule,
+    SubscribersModule,
   ],
   providers: [
     {

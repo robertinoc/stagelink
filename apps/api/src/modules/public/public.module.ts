@@ -5,6 +5,7 @@ import { PublicPagesController } from './public-pages.controller';
 import { PublicBlocksController } from './public-blocks.controller';
 import { PublicSmartLinksController } from './public-smart-links.controller';
 import { PublicPagesService } from './public-pages.service';
+import { PublicSubscribeService } from './public-subscribe.service';
 import { PublicRateLimitGuard } from '../../common/guards/public-rate-limit.guard';
 
 /**
@@ -17,6 +18,6 @@ import { PublicRateLimitGuard } from '../../common/guards/public-rate-limit.guar
 @Module({
   imports: [TenantModule, SmartLinksModule],
   controllers: [PublicPagesController, PublicBlocksController, PublicSmartLinksController],
-  providers: [PublicPagesService, PublicRateLimitGuard],
+  providers: [PublicPagesService, PublicSubscribeService, PublicRateLimitGuard],
 })
 export class PublicModule {}
