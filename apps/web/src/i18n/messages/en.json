@@ -306,7 +306,12 @@
     "seo_description_fallback": "Check out {name}'s page on StageLink",
     "not_found_title": "Page not found",
     "not_found_description": "This artist page doesn't exist or hasn't been published yet.",
-    "not_found_cta": "Go home"
+    "not_found_cta": "Go home",
+    "consent_banner": {
+      "notice": "This page counts page views and link clicks to help the artist understand their audience. Clicking \"Got it\" enables additional analytics. No personal data is sold or shared.",
+      "accept": "Got it",
+      "reject": "No thanks"
+    }
   },
   "common": {
     "loading": "Loading...",

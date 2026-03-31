@@ -10,11 +10,13 @@
  *  - Bot detection uses a lightweight UA regex. False-negative bots that slip
  *    through will be caught by PostHog's server-side bot filtering (belt and
  *    suspenders). The goal here is to flag obvious crawlers, not to be perfect.
- *  - "Internal" traffic = Cloudflare/internal headers OR the special
- *    X-SL-Internal header forwarded by the web layer when the request
- *    originates from the artist's own dashboard preview.
+ *  - "Internal" traffic = X-SL-Internal: 1 header. NOT YET IMPLEMENTED —
+ *    nothing in the web tier sends this header. Planned for the artist dashboard
+ *    "Preview page" feature.
  *  - "QA" traffic = X-SL-QA: 1 (set by web layer from `?sl_qa=1` cookie).
  */
+
+import { AnalyticsEnvironment } from '@prisma/client';
 
 // ─── Bot detection ────────────────────────────────────────────────────────────
 
@@ -25,14 +27,22 @@ const BOT_UA_RE =
 /**
  * Returns true if the User-Agent string looks like an automated client.
  *
- * Conservative on purpose: better to let a bot through (false-negative) and
- * keep the event with isBotSuspected=false than to flag a real fan.
- * Dashboard can always add stricter server-side filtering later.
+ * Two detection rules, intentionally asymmetric:
+ *
+ * 1. Empty / missing UA → always bot.
+ *    Real browsers always send a User-Agent. An absent or blank UA is a
+ *    strong signal of an HTTP tool (curl, wget, health-check) or a
+ *    misconfigured client. We flag aggressively here because there is
+ *    almost no legitimate fan traffic with no UA.
+ *
+ * 2. Non-empty UA → pattern-matched against BOT_UA_RE.
+ *    Here we are deliberately conservative (false-negative bias): if the
+ *    UA doesn't match any known bot pattern, we assume it's a real visitor.
+ *    Better to count a sneaky bot than to lose real fan engagement data.
+ *    PostHog's server-side bot filtering provides a second independent layer.
  */
 export function detectBotFromUserAgent(ua: string | undefined | null): boolean {
   if (!ua || ua.trim() === '') {
-    // Empty / missing UA is suspicious but not conclusive.
-    // We flag it as a potential bot.
     return true;
   }
   return BOT_UA_RE.test(ua);
@@ -45,7 +55,16 @@ export interface TrafficFlagContext {
   userAgent?: string | null;
   /** X-SL-QA header value — '1' means QA mode was enabled client-side. */
   slQaHeader?: string | null;
-  /** X-SL-Internal header value — '1' marks dashboard-preview traffic. */
+  /**
+   * X-SL-Internal header value — '1' marks dashboard-preview traffic.
+   *
+   * @todo NOT YET IMPLEMENTED on the web tier. Nothing in public-api.ts or
+   * track.ts currently sets this header. The feature is planned for the artist
+   * dashboard "Preview page". Until that ships, isInternal is always false and
+   * is excluded from the analytics QUALITY_FILTER to avoid misleading no-ops.
+   * When the preview feature is implemented, restore `isInternal: false` to
+   * QUALITY_FILTER in analytics.service.ts.
+   */
   slInternalHeader?: string | null;
   /** X-SL-AC header value — '1' = consent accepted, '0' = rejected. */
   slAcHeader?: string | null;
@@ -59,8 +78,7 @@ export interface TrafficFlags {
   isQa: boolean;
   /** null = server-side event / cookie not present → consent unknown. */
   hasTrackingConsent: boolean | null;
-  /** 'production' | 'staging' | 'development' */
-  environment: string;
+  environment: AnalyticsEnvironment;
 }
 
 /**
@@ -95,13 +113,18 @@ export function resolveTrafficFlags(ctx: TrafficFlagContext): TrafficFlags {
     hasTrackingConsent = false;
   }
 
-  // Normalise environment to one of the three known values.
+  // Map NODE_ENV / appEnvironment to the AnalyticsEnvironment enum.
+  // Unrecognised values (e.g. 'test', 'ci') fall back to 'development' so they
+  // are never confused with real production traffic.
   const rawEnv = ctx.appEnvironment ?? process.env.NODE_ENV ?? 'production';
-  let environment = 'production';
-  if (rawEnv === 'development' || rawEnv === 'test') {
-    environment = 'development';
-  } else if (rawEnv === 'staging') {
-    environment = 'staging';
+  let environment: AnalyticsEnvironment;
+  if (rawEnv === 'staging') {
+    environment = AnalyticsEnvironment.staging;
+  } else if (rawEnv === 'production') {
+    environment = AnalyticsEnvironment.production;
+  } else {
+    // 'development', 'test', 'ci', or any unrecognised value → development
+    environment = AnalyticsEnvironment.development;
   }
 
   return { isBotSuspected, isInternal, isQa, hasTrackingConsent, environment };

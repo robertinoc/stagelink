@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { AnalyticsEnvironment } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
 import {
   ANALYTICS_RANGES,
@@ -13,19 +14,31 @@ import {
  *
  * Excludes:
  *   - Bot-suspected events (isBotSuspected = true)
- *   - Internal / preview traffic (isInternal = true)
  *   - QA-tagged events (isQa = true)
  *   - Non-production environments
  *
  * Raw events are always persisted with flags; this filter runs only at
  * query time so historical data can be re-queried with stricter or looser
  * criteria without re-processing the event log.
+ *
+ * NOTE — isInternal is intentionally absent from this filter.
+ * The X-SL-Internal header that sets isInternal is not yet forwarded by the
+ * web tier (the dashboard "Preview page" feature is unimplemented). Until that
+ * ships, isInternal is always false, and including it here would be a no-op
+ * that misleads future contributors into thinking internal filtering is active.
+ * Re-add `isInternal: false` when the preview feature is implemented.
+ *
+ * NOTE — hasTrackingConsent is intentionally absent from this filter.
+ * Basic aggregate analytics (page views, link clicks) run under legitimate
+ * interest for the artist — no cross-site tracking, no advertising profiles.
+ * The hasTrackingConsent column is persisted for audit/transparency only.
+ * Do NOT add `hasTrackingConsent: true` here — that would silently exclude
+ * opted-out fan traffic and undercount the artist's real engagement metrics.
  */
 const QUALITY_FILTER = {
   isBotSuspected: false,
-  isInternal: false,
   isQa: false,
-  environment: 'production',
+  environment: AnalyticsEnvironment.production,
 } as const;
 
 @Injectable()
@@ -112,7 +125,7 @@ export class AnalyticsService {
         qualityFlagsApplied: true,
         filtersActive: [
           'isBotSuspected=false',
-          'isInternal=false',
+          // isInternal not yet active — X-SL-Internal header unimplemented in web tier
           'isQa=false',
           'environment=production',
         ],

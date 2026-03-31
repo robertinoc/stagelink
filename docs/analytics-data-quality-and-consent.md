@@ -137,12 +137,50 @@ Raw events (including bots, QA, internal) are **never deleted** automatically. T
 
 ---
 
+## Known Limitations and Risks
+
+### Metric discontinuity after T4-4 deploy
+
+Pre-T4-4:
+
+- `page_view` events from bots were silently dropped at ingestion (the old `isBotUserAgent` check in `public-pages.service.ts`).
+- `link_click` events had no UA-based bot filter — all clicks were persisted and counted.
+
+Post-T4-4:
+
+- All events are persisted with flags; bot events are excluded at query time.
+
+**Consequence**: artists who had bot link-click traffic before T4-4 will see a step-down in link click counts after deploy. This is a data quality improvement, not a real drop in engagement. Include this explanation in the release note.
+
+### QA mode is unauthenticated (intentional)
+
+Any visitor who appends `?sl_qa=1` to an artist page URL can tag their own traffic as QA and exclude it from the artist's metrics. This is accepted for MVP because:
+
+- The only consequence is self-exclusion (the visitor can't affect other visitors' events).
+- There is no adversarial incentive to hide your own visits from an artist's dashboard.
+- Proper authentication (JWT-signed QA tokens, IP allowlisting) is out of scope.
+
+**Operational rule**: never share URLs containing `?sl_qa=1` publicly. Treat it as an internal testing tool.
+
+Exit QA mode with `?sl_qa=0`.
+
+### `isInternal` flag is a stub (not yet implemented)
+
+The `isInternal` column exists in the DB and is always `false`. The `X-SL-Internal: 1` header that would set it is not forwarded by any part of the web tier. It is intentionally excluded from `QUALITY_FILTER` until the dashboard "Preview page" feature is implemented to avoid a misleading no-op filter condition.
+
+### ISR will break page_view counting
+
+`public-api.ts` uses `cache: 'no-store'`. If ISR is enabled (`revalidate: N`), the API backend only receives the fetch during revalidation — not on every visitor request. `page_view` events would stop being counted accurately. Before enabling ISR, move page_view tracking to a client-side call (browser → API directly) or a Middleware-layer counter.
+
+---
+
 ## Future Improvements
 
-| Item                       | Description                                                            |
-| -------------------------- | ---------------------------------------------------------------------- |
-| **IP deduplication**       | Count unique visitors using `ip_hash` within a time window             |
-| **Consent granularity**    | Separate consent for analytics vs marketing                            |
-| **GPC / DNT signal**       | Respect Global Privacy Control header                                  |
-| **Stricter bot detection** | IP reputation lookup, headless browser fingerprinting                  |
-| **Custom domain QA mode**  | Forward `X-SL-Internal` from Cloudflare Worker for preview deployments |
+| Item                       | Description                                                                              |
+| -------------------------- | ---------------------------------------------------------------------------------------- |
+| **IP deduplication**       | Count unique visitors using `ip_hash` within a time window                               |
+| **Consent granularity**    | Separate consent for analytics vs marketing                                              |
+| **GPC / DNT signal**       | Respect Global Privacy Control header                                                    |
+| **Stricter bot detection** | IP reputation lookup, headless browser fingerprinting                                    |
+| **isInternal activation**  | Forward `X-SL-Internal: 1` from the artist dashboard preview; add back to QUALITY_FILTER |
+| **ISR-safe page_view**     | Client-side or Middleware-layer tracking to support ISR without losing analytics         |
