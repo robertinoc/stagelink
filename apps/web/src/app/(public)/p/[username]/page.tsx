@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { fetchPublicPage } from '@/lib/public-api';
@@ -149,8 +150,12 @@ export default async function ArtistPage({ params }: ArtistPageProps) {
       <ArtistPageView page={page} />
       {/* T4-4: Minimal analytics notice — shown on first visit, opt-out model */}
       <AnalyticsConsentBanner />
-      {/* T4-4: QA mode — reads ?sl_qa=1 and sets sl_qa cookie for header forwarding */}
-      <QaModeInitializer />
+      {/* T4-4: QA mode — reads ?sl_qa=1 and sets sl_qa cookie for header forwarding.
+           Suspense is required: useSearchParams() in a Client Component must be
+           wrapped to avoid opting the route out of prerendering. */}
+      <Suspense fallback={null}>
+        <QaModeInitializer />
+      </Suspense>
     </>
   );
 }

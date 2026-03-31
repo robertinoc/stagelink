@@ -306,7 +306,12 @@
     "seo_description_fallback": "Visitá la página de {name} en StageLink",
     "not_found_title": "Página no encontrada",
     "not_found_description": "Esta página de artista no existe o todavía no fue publicada.",
-    "not_found_cta": "Ir al inicio"
+    "not_found_cta": "Ir al inicio",
+    "consent_banner": {
+      "notice": "Esta página contabiliza visitas y clics para ayudar al artista a entender su audiencia. Al hacer clic en \"Entendido\" habilitás analíticas adicionales. No se venden ni comparten datos personales.",
+      "accept": "Entendido",
+      "reject": "No, gracias"
+    }
   },
   "common": {
     "loading": "Cargando...",

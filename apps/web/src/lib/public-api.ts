@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { headers } from 'next/headers';
+import { headers, cookies } from 'next/headers';
 import type { PublicPageResponse } from '@stagelink/types';
 
 /**
@@ -17,6 +17,11 @@ import type { PublicPageResponse } from '@stagelink/types';
  * - Migrar a ISR: reemplazar `cache: 'no-store'` por
  *   `next: { tags: ['artist:username'], revalidate: 60 }` cuando el volumen
  *   lo justifique. Ver: docs/multi-tenant.md — sección "Caching y SSR".
+ *   ⚠️  ADVERTENCIA ANALYTICS: al activar ISR, el backend solo recibe la
+ *   request HTTP en el revalidation hit — no en cada visita. Los eventos
+ *   page_view dejarán de contabilizarse por visitante. Solución: trasladar
+ *   el tracking de page_view a un Client Component que llame al API desde
+ *   el browser, o usar un Middleware para contar antes del cache layer.
  *
  * Header forwarding:
  * - Analytics-relevant visitor headers (Accept-Language, Referer,
@@ -55,21 +60,16 @@ async function _fetchPublicPage(username: string): Promise<PublicPageResponse | 
   if (userAgent) forwardHeaders['user-agent'] = userAgent;
 
   // T4-4: Forward quality cookies as typed headers (never forward the raw Cookie header).
-  // Parse only the two known sl_* values — no other cookie data leaves this layer.
-  const cookieHeader = incomingHeaders.get('cookie') ?? '';
-  const cookieMap = Object.fromEntries(
-    cookieHeader.split(';').map((c) => {
-      const [k, ...v] = c.trim().split('=');
-      return [k?.trim() ?? '', v.join('=')];
-    }),
-  );
+  // Use Next.js cookies() API — type-safe, handles edge cases (encoded values,
+  // cookies with '=' in the value, whitespace) that manual parsing can get wrong.
+  const cookieStore = await cookies();
 
   // sl_ac: consent cookie — '1' = accepted, '0' = rejected, absent = unknown
-  const slAc = cookieMap['sl_ac'];
+  const slAc = cookieStore.get('sl_ac')?.value;
   if (slAc === '1' || slAc === '0') forwardHeaders['x-sl-ac'] = slAc;
 
-  // sl_qa: QA mode cookie — '1' = QA session
-  if (cookieMap['sl_qa'] === '1') forwardHeaders['x-sl-qa'] = '1';
+  // sl_qa: QA mode cookie — '1' = QA session (set via ?sl_qa=1 URL param)
+  if (cookieStore.get('sl_qa')?.value === '1') forwardHeaders['x-sl-qa'] = '1';
 
   const res = await fetch(
     `${API_URL}/api/public/pages/by-username/${encodeURIComponent(username)}`,
