@@ -1,4 +1,13 @@
-import { Controller, Get, Param, ParseUUIDPipe, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Headers,
+  Param,
+  ParseUUIDPipe,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { Public } from '../../common/decorators';
 import { PublicRateLimitGuard } from '../../common/guards/public-rate-limit.guard';
@@ -44,6 +53,11 @@ export class PublicSmartLinksController {
     @Query('platform') platform: string,
     @Query('from') from: string | undefined,
     @Req() req: Request,
+    // T4-4 quality headers — forwarded by the web tier from visitor cookies
+    @Headers('user-agent') userAgent?: string,
+    @Headers('x-sl-qa') slQa?: string,
+    @Headers('x-sl-ac') slAc?: string,
+    @Headers('x-sl-internal') slInternal?: string,
   ): Promise<{ url: string }> {
     const normalised: SmartLinkPlatform = SMART_LINK_PLATFORMS.includes(
       platform as SmartLinkPlatform,
@@ -61,6 +75,10 @@ export class PublicSmartLinksController {
     return this.smartLinksService.resolve(id, normalised, {
       from: sanitisedFrom,
       ipAddress,
+      userAgent,
+      slQa,
+      slAc,
+      slInternal,
     });
   }
 }

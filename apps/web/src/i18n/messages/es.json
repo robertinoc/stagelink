@@ -120,7 +120,8 @@
         "retry": "Reintentar"
       },
       "notes": {
-        "basic_quality": "Analíticas básicas · Filtrado de bots aplicado en la ingesta · Deduplicación de visitantes únicos próximamente"
+        "basic_quality": "Analíticas básicas · Filtrado de bots aplicado en la ingesta · Deduplicación de visitantes únicos próximamente",
+        "standard_quality": "Tráfico de bots, interno y QA excluido · Solo eventos de producción · Deduplicación de visitantes únicos próximamente"
       }
     },
     "profile": {

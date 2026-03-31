@@ -85,6 +85,10 @@ export class PublicPagesController {
     @Headers('referer') referer?: string,
     @Headers('sec-ch-ua-platform') secChUaPlatform?: string,
     @Headers('user-agent') userAgent?: string,
+    // T4-4 quality headers — forwarded by the web tier from visitor cookies
+    @Headers('x-sl-qa') slQa?: string,
+    @Headers('x-sl-ac') slAc?: string,
+    @Headers('x-sl-internal') slInternal?: string,
   ): Promise<PublicPageResponseDto> {
     return this.publicPagesService.getPageByUsername(username, {
       locale: acceptLanguage ? detectLocale(acceptLanguage) : undefined,
@@ -92,6 +96,9 @@ export class PublicPagesController {
       platform: secChUaPlatform?.replace(/"/g, '').toLowerCase() || undefined,
       userAgent,
       ip: extractClientIp(req),
+      slQa,
+      slAc,
+      slInternal,
     });
   }
 
@@ -109,6 +116,10 @@ export class PublicPagesController {
     @Headers('referer') referer?: string,
     @Headers('sec-ch-ua-platform') secChUaPlatform?: string,
     @Headers('user-agent') userAgent?: string,
+    // T4-4 quality headers — forwarded by the web tier from visitor cookies
+    @Headers('x-sl-qa') slQa?: string,
+    @Headers('x-sl-ac') slAc?: string,
+    @Headers('x-sl-internal') slInternal?: string,
   ): Promise<PublicPageResponseDto> {
     return this.publicPagesService.getPageByDomain(host, {
       locale: acceptLanguage ? detectLocale(acceptLanguage) : undefined,
@@ -116,6 +127,9 @@ export class PublicPagesController {
       platform: secChUaPlatform?.replace(/"/g, '').toLowerCase() || undefined,
       userAgent,
       ip: extractClientIp(req),
+      slQa,
+      slAc,
+      slInternal,
     });
   }
 
@@ -135,7 +149,15 @@ export class PublicPagesController {
   @Post('events/link-click')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(PublicRateLimitGuard)
-  async reportLinkClick(@Body() dto: ReportLinkClickDto, @Req() req: Request): Promise<void> {
+  async reportLinkClick(
+    @Body() dto: ReportLinkClickDto,
+    @Req() req: Request,
+    // T4-4 quality headers — forwarded by the web tier from visitor cookies
+    @Headers('user-agent') userAgent?: string,
+    @Headers('x-sl-qa') slQa?: string,
+    @Headers('x-sl-ac') slAc?: string,
+    @Headers('x-sl-internal') slInternal?: string,
+  ): Promise<void> {
     const ip = extractClientIp(req);
     // recordLinkClick silently catches FK violations (invalid artistId/blockId).
     await this.publicPagesService.recordLinkClick(
@@ -148,6 +170,7 @@ export class PublicPagesController {
         smartLinkId: dto.smartLinkId,
       },
       ip,
+      { userAgent, slQa, slAc, slInternal },
     );
   }
 }

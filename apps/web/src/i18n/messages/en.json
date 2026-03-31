@@ -120,7 +120,8 @@
         "retry": "Retry"
       },
       "notes": {
-        "basic_quality": "Basic analytics · Bot filtering applied at ingestion · Unique visitor deduplication coming soon"
+        "basic_quality": "Basic analytics · Bot filtering applied at ingestion · Unique visitor deduplication coming soon",
+        "standard_quality": "Bot, internal & QA traffic excluded · Production events only · Unique visitor deduplication coming soon"
       }
     },
     "profile": {

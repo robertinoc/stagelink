@@ -22,9 +22,14 @@ export interface AnalyticsSummary {
 }
 
 export interface AnalyticsNotes {
-  dataQuality: 'basic';
+  /** T4-4: 'standard' = quality flag filtering applied at query time. */
+  dataQuality: 'basic' | 'standard' | 'advanced';
   botFilteringApplied: boolean;
   deduplicationApplied: boolean;
+  /** T4-4: true when quality flag filters (isBot/isInternal/isQa/environment) are applied. */
+  qualityFlagsApplied: boolean;
+  /** T4-4: human-readable list of active filters for debugging. */
+  filtersActive: string[];
 }
 
 export interface AnalyticsOverview {

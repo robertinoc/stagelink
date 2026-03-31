@@ -244,12 +244,22 @@ model AnalyticsEvent {
   smartLinkId String?   @map("smart_link_id") // when isSmartLink = true
   createdAt   DateTime  @default(now()) @map("created_at")
 
+  // ─── Quality flags (T4-4) ──────────────────────────────────────────────────
+  // Persist everything; filter at query time for clean dashboard metrics.
+  // All flags default to the "clean" value so historical rows remain valid.
+  isBotSuspected     Boolean  @default(false) @map("is_bot_suspected")
+  isInternal         Boolean  @default(false) @map("is_internal")
+  isQa               Boolean  @default(false) @map("is_qa")
+  hasTrackingConsent Boolean? @map("has_tracking_consent") // null = unknown (server-side events)
+  environment        String   @default("production")       // production | staging | development
+
   artist  Artist  @relation(fields: [artistId], references: [id], onDelete: Cascade)
   block   Block?  @relation(fields: [blockId], references: [id], onDelete: SetNull)
 
   @@index([artistId, createdAt])
   @@index([artistId, eventType, createdAt])
   @@index([artistId, linkItemId, createdAt], map: "analytics_events_artist_link_idx")
+  @@index([artistId, isBotSuspected, isInternal, isQa, environment], map: "analytics_events_quality_flags_idx")
   @@map("analytics_events")
 }
 

@@ -227,15 +227,27 @@ function ErrorState() {
 function DataQualityNote({ notes }: { notes: AnalyticsOverview['notes'] }) {
   const t = useTranslations('dashboard.analytics.notes');
 
-  // Only show the note for 'basic' quality data.
-  if (notes.dataQuality !== 'basic') return null;
+  // T4-4 'standard' quality: quality flags are applied — show a positive note.
+  if (notes.dataQuality === 'standard') {
+    return (
+      <div className="flex items-start gap-2 rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+        <Info className="mt-0.5 h-3 w-3 shrink-0" />
+        <span>{t('standard_quality')}</span>
+      </div>
+    );
+  }
 
-  return (
-    <div className="flex items-start gap-2 rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-      <Info className="mt-0.5 h-3 w-3 shrink-0" />
-      <span>{t('basic_quality')}</span>
-    </div>
-  );
+  // Legacy 'basic' quality: raw counts, basic filtering only.
+  if (notes.dataQuality === 'basic') {
+    return (
+      <div className="flex items-start gap-2 rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+        <Info className="mt-0.5 h-3 w-3 shrink-0" />
+        <span>{t('basic_quality')}</span>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 // ─── Main dashboard ───────────────────────────────────────────────────────────

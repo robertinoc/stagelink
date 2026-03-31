@@ -8,6 +8,26 @@ import {
   type TopLinkDto,
 } from './dto/analytics-response.dto';
 
+/**
+ * T4-4 clean event filter — applied to all aggregation queries.
+ *
+ * Excludes:
+ *   - Bot-suspected events (isBotSuspected = true)
+ *   - Internal / preview traffic (isInternal = true)
+ *   - QA-tagged events (isQa = true)
+ *   - Non-production environments
+ *
+ * Raw events are always persisted with flags; this filter runs only at
+ * query time so historical data can be re-queried with stricter or looser
+ * criteria without re-processing the event log.
+ */
+const QUALITY_FILTER = {
+  isBotSuspected: false,
+  isInternal: false,
+  isQa: false,
+  environment: 'production',
+} as const;
+
 @Injectable()
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -15,8 +35,8 @@ export class AnalyticsService {
   /**
    * Returns aggregated analytics for an artist over a preset date range.
    *
-   * Data quality: basic — raw counts from analytics_events with UA-level bot
-   * filtering at ingestion. No IP deduplication (unique visitor counting is T4-4).
+   * Data quality: T4-4 — events are filtered at query time by quality flags.
+   * Only production, non-bot, non-internal, non-QA events are counted.
    *
    * Authorization is enforced at the controller layer (OwnershipGuard).
    *
@@ -31,33 +51,31 @@ export class AnalyticsService {
     const rangeStart = new Date();
     rangeStart.setDate(rangeStart.getDate() - RANGE_DAYS[range]);
 
+    // Base where clause: artist + time range + quality flags
+    const baseWhere = { artistId, createdAt: { gte: rangeStart }, ...QUALITY_FILTER };
+
     const [pageViews, linkClicks, smartLinkResolutions, topLinksRaw] = await Promise.all([
       // 1. Page views
       this.prisma.analyticsEvent.count({
-        where: { artistId, eventType: 'page_view', createdAt: { gte: rangeStart } },
+        where: { ...baseWhere, eventType: 'page_view' },
       }),
 
       // 2. Link clicks
       this.prisma.analyticsEvent.count({
-        where: { artistId, eventType: 'link_click', createdAt: { gte: rangeStart } },
+        where: { ...baseWhere, eventType: 'link_click' },
       }),
 
       // 3. Smart link resolutions
       this.prisma.analyticsEvent.count({
-        where: {
-          artistId,
-          eventType: 'smart_link_resolution',
-          createdAt: { gte: rangeStart },
-        },
+        where: { ...baseWhere, eventType: 'smart_link_resolution' },
       }),
 
       // 4. Top links — group by linkItemId, ordered by click count desc
       this.prisma.analyticsEvent.groupBy({
         by: ['linkItemId', 'label', 'blockId', 'isSmartLink', 'smartLinkId'],
         where: {
-          artistId,
+          ...baseWhere,
           eventType: 'link_click',
-          createdAt: { gte: rangeStart },
           linkItemId: { not: null },
         },
         _count: { id: true },
@@ -88,9 +106,16 @@ export class AnalyticsService {
       },
       topLinks,
       notes: {
-        dataQuality: 'basic',
-        botFilteringApplied: true, // UA-pattern filtering applied at ingestion
-        deduplicationApplied: false, // unique visitor dedup is T4-4
+        dataQuality: 'standard',
+        botFilteringApplied: true,
+        deduplicationApplied: false, // IP-level unique visitor dedup is a future milestone
+        qualityFlagsApplied: true,
+        filtersActive: [
+          'isBotSuspected=false',
+          'isInternal=false',
+          'isQa=false',
+          'environment=production',
+        ],
       },
     };
   }
