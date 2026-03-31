@@ -1,2 +1,0 @@
-[deploy]
-startCommand = "pnpm db:migrate:prod && pnpm start"
