@@ -31,6 +31,10 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy source and compile
 COPY . .
+# Build shared packages first — @stagelink/types points to dist/ (not src/),
+# so it must be compiled before the API build can resolve the module.
+# --ignore-scripts on install skips the prepare script, so we build explicitly.
+RUN pnpm --filter @stagelink/types build
 RUN pnpm --filter @stagelink/api exec prisma generate
 RUN pnpm --filter @stagelink/api build
 
