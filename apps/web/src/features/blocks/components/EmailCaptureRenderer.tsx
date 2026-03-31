@@ -9,7 +9,7 @@ import type { EmailCaptureBlockConfig } from '@stagelink/types';
 interface SubmitPayload {
   email: string;
   consent?: boolean;
-  website?: string; // honeypot — always sent as empty string
+  website?: string; // honeypot — empty for real users, filled by bots
 }
 
 async function submitEmail(blockId: string, payload: SubmitPayload): Promise<void> {
@@ -54,6 +54,7 @@ export function EmailCaptureRenderer({ title, config, blockId }: EmailCaptureRen
 
   const [email, setEmail] = useState('');
   const [consent, setConsent] = useState(false);
+  const [honeypot, setHoneypot] = useState('');
   const [formState, setFormState] = useState<FormState>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -66,7 +67,12 @@ export function EmailCaptureRenderer({ title, config, blockId }: EmailCaptureRen
     if (!blockId || formState === 'submitting') return;
 
     const trimmed = email.trim();
-    if (!trimmed || !trimmed.includes('@')) {
+    // Use the browser's built-in email validator (same spec as input[type=email])
+    // rather than a hand-rolled regex. Creates a temporary input to run checkValidity.
+    const emailInput = document.createElement('input');
+    emailInput.type = 'email';
+    emailInput.value = trimmed;
+    if (!trimmed || !emailInput.checkValidity()) {
       setErrorMessage(t('invalid_email'));
       return;
     }
@@ -84,7 +90,7 @@ export function EmailCaptureRenderer({ title, config, blockId }: EmailCaptureRen
         email: trimmed,
         // Only send consent when the checkbox was shown to the user
         ...(showConsentCheckbox ? { consent } : {}),
-        website: '', // honeypot — always empty for real users
+        website: honeypot, // honeypot — real value from controlled input; empty for real users
       });
       setFormState('success');
     } catch {
@@ -120,16 +126,22 @@ export function EmailCaptureRenderer({ title, config, blockId }: EmailCaptureRen
          * Bots that auto-fill inputs will fill this field; backend silently
          * drops those requests without revealing the protection.
          */}
+        {/*
+         * Honeypot — controlled input so the actual DOM value is captured and
+         * sent in the JSON payload. Bots filling all visible+hidden fields will
+         * populate this; the backend silently returns 200 without writing to DB.
+         * readOnly removed: bots must be able to write here for the trap to work.
+         */}
         <div aria-hidden="true" className="absolute -left-[9999px] -top-[9999px] opacity-0">
           <label htmlFor="ec-website">Website</label>
           <input
             id="ec-website"
             name="website"
             type="text"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
             tabIndex={-1}
             autoComplete="off"
-            readOnly
-            defaultValue=""
           />
         </div>
 

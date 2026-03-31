@@ -29,9 +29,11 @@ export class CreateSubscriberDto {
    * Honeypot field — must be absent or empty string.
    * Real users never see or fill this field (hidden via CSS).
    * Bots that auto-fill all inputs will trigger this.
+   *
+   * Enforcement is intentionally in the service (silent 200), NOT here.
+   * A DTO rejection (400) would reveal the protection to bots.
    */
   @IsOptional()
   @IsString()
-  @MaxLength(0, { message: 'website must be empty' })
   website?: string;
 }

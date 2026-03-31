@@ -1,9 +1,10 @@
 import { Body, Controller, HttpCode, Param, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
-import { PublicPagesService } from './public-pages.service';
+import { PublicSubscribeService } from './public-subscribe.service';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
 import { Public } from '../../common/decorators';
 import { PublicRateLimitGuard } from '../../common/guards';
+import { ParseCuidPipe } from '../../common/pipes/parse-cuid.pipe';
 import { extractClientIp } from '../../common/utils/request.utils';
 
 /**
@@ -18,7 +19,7 @@ import { extractClientIp } from '../../common/utils/request.utils';
 @Controller('public/blocks')
 @UseGuards(PublicRateLimitGuard)
 export class PublicBlocksController {
-  constructor(private readonly publicPagesService: PublicPagesService) {}
+  constructor(private readonly publicSubscribeService: PublicSubscribeService) {}
 
   /**
    * POST /api/public/blocks/:blockId/subscribers
@@ -39,11 +40,11 @@ export class PublicBlocksController {
   @Post(':blockId/subscribers')
   @HttpCode(200)
   async createSubscriber(
-    @Param('blockId') blockId: string,
+    @Param('blockId', ParseCuidPipe) blockId: string,
     @Body() dto: CreateSubscriberDto,
     @Req() req: Request,
   ): Promise<{ ok: boolean }> {
-    await this.publicPagesService.createSubscriber(blockId, dto, extractClientIp(req));
+    await this.publicSubscribeService.createSubscriber(blockId, dto, extractClientIp(req));
     return { ok: true };
   }
 }

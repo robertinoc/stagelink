@@ -283,7 +283,9 @@ model Subscriber {
   updatedAt      DateTime         @updatedAt @map("updated_at")
 
   artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  block  Block  @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  // Restrict: deleting a block must not silently destroy subscriber data.
+  // The artist's email list must be preserved even if the capture block is removed.
+  block  Block  @relation(fields: [blockId], references: [id], onDelete: Restrict)
   page   Page?  @relation(fields: [pageId], references: [id], onDelete: SetNull)
 
   @@unique([artistId, email], map: "subscribers_artist_id_email_key")

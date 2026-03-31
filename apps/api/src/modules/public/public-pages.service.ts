@@ -1,16 +1,10 @@
 import { createHash } from 'crypto';
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../lib/prisma.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
 import { PublicPageResponseDto, PublicBlockDto } from './dto/public-page-response.dto';
 import { PostHogService } from '../analytics/posthog.service';
-import { ANALYTICS_EVENTS, type EmailCaptureBlockConfig } from '@stagelink/types';
-import type { CreateSubscriberDto } from './dto/create-subscriber.dto';
+import { ANALYTICS_EVENTS } from '@stagelink/types';
 
 /** Known bot/crawler patterns. Intentionally conservative — false negatives
  *  (counting a bot as a visitor) are less harmful than false positives. */
@@ -97,126 +91,6 @@ export class PublicPagesService {
     }
 
     return this.loadPublicPage(tenant.artistId, ctx);
-  }
-
-  /**
-   * Stores a fan's email subscription for a published email_capture block.
-   *
-   * Flow:
-   *   1. Honeypot check — silently succeed if `website` field is non-empty (bot detection)
-   *   2. Load block — verify exists, is published, and is email_capture type
-   *   3. Consent check — if block.config.requireConsent=true, consent must be explicitly true
-   *   4. Deduplication — unique per artistId+email (idempotent, return ok without re-inserting)
-   *   5. Persist subscriber with full context (artistId, pageId, ipHash, consentText)
-   *   6. Fire analytics events (PostHog + local DB) fire-and-forget
-   *
-   * @throws NotFoundException         if block doesn't exist or isn't published
-   * @throws UnprocessableEntityException if block type doesn't accept subscriptions
-   * @throws BadRequestException       if consent is required but not given
-   */
-  async createSubscriber(
-    blockId: string,
-    dto: CreateSubscriberDto,
-    ip?: string,
-  ): Promise<{ created: boolean }> {
-    // 1. Honeypot — non-empty website field signals a bot. Silently succeed.
-    if (dto.website && dto.website.trim().length > 0) {
-      return { created: false };
-    }
-
-    // 2. Load block with config and page context
-    const block = await this.prisma.block.findUnique({
-      where: { id: blockId },
-      select: {
-        type: true,
-        isPublished: true,
-        config: true,
-        page: {
-          select: {
-            id: true,
-            artistId: true,
-            artist: { select: { username: true } },
-          },
-        },
-      },
-    });
-
-    if (!block || !block.isPublished) {
-      throw new NotFoundException('Block not found');
-    }
-
-    if (block.type !== 'email_capture') {
-      throw new UnprocessableEntityException('Block does not accept email subscriptions');
-    }
-
-    // Double cast via unknown: block.config is Prisma JsonValue, not EmailCaptureBlockConfig
-    const config = block.config as unknown as EmailCaptureBlockConfig;
-    const artistId = block.page.artistId;
-    const pageId = block.page.id;
-    const normalizedEmail = dto.email.toLowerCase().trim();
-
-    // 3. Consent enforcement
-    if (config.requireConsent === true && !dto.consent) {
-      throw new BadRequestException('Consent is required to subscribe');
-    }
-
-    // Determine the consent text snapshot (what was shown to the user)
-    const consentText = dto.consent === true && config.consentLabel ? config.consentLabel : null;
-    const consentGiven = dto.consent === true;
-
-    // 4. Deduplication: unique per artistId+email
-    // Prisma compound unique key name is artistId_email (derived from field names)
-    const existing = await this.prisma.subscriber.findUnique({
-      where: { artistId_email: { artistId, email: normalizedEmail } },
-      select: { id: true },
-    });
-
-    if (existing) {
-      // Idempotent — same fan, same artist. Return success without re-inserting.
-      return { created: false };
-    }
-
-    // 5. Persist subscriber
-    await this.prisma.subscriber.create({
-      data: {
-        artistId,
-        blockId,
-        pageId,
-        email: normalizedEmail,
-        consent: consentGiven,
-        consentText,
-        ipHash: ip ? hashIp(ip) : null,
-      },
-    });
-
-    // 6. Analytics — fire-and-forget (never block the response)
-    const eventProps = {
-      artist_id: artistId,
-      username: block.page.artist.username,
-      environment: process.env.NODE_ENV ?? 'development',
-      page_id: pageId,
-      block_id: blockId,
-      success: true,
-    };
-
-    // PostHog (external analytics)
-    this.posthog.capture(ANALYTICS_EVENTS.FAN_CAPTURE_SUBMITTED, artistId, eventProps);
-
-    // Local DB event (source of truth for basic dashboard).
-    // EventType cast needed until Prisma client regenerates with new migration.
-    this.prisma.analyticsEvent
-      .create({
-        data: {
-          artistId,
-          blockId,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          eventType: 'fan_capture_submit' as any,
-          ipHash: ip ? hashIp(ip) : hashIp(undefined),
-        },
-      })
-      .catch(() => {});
-
-    return { created: true };
   }
 
   /**

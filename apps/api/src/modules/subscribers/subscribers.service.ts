@@ -10,11 +10,6 @@ export interface SubscriberRow {
   createdAt: Date;
 }
 
-// Prisma Subscriber type after T4-3 migration.
-// Cast needed until the Prisma client is regenerated in production deploy.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SubscriberRecord = any;
-
 /**
  * SubscribersService — private read/export layer for fan subscribers.
  *
@@ -42,11 +37,8 @@ export class SubscribersService {
     const safeLimit = Math.min(100, Math.max(1, limit));
     const skip = (safePage - 1) * safeLimit;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const prismaSubscriber = this.prisma.subscriber as any;
-
     const [items, total] = await Promise.all([
-      prismaSubscriber.findMany({
+      this.prisma.subscriber.findMany({
         where: { artistId },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -59,18 +51,18 @@ export class SubscribersService {
           blockId: true,
           createdAt: true,
         },
-      }) as Promise<SubscriberRecord[]>,
-      prismaSubscriber.count({ where: { artistId } }) as Promise<number>,
+      }),
+      this.prisma.subscriber.count({ where: { artistId } }),
     ]);
 
     return {
-      items: (items as SubscriberRecord[]).map((s: SubscriberRecord) => ({
-        id: s.id as string,
-        email: s.email as string,
-        status: (s.status as string) ?? 'active',
-        consent: s.consent as boolean,
-        sourceBlockId: s.blockId as string,
-        createdAt: s.createdAt as Date,
+      items: items.map((s) => ({
+        id: s.id,
+        email: s.email,
+        status: s.status,
+        consent: s.consent,
+        sourceBlockId: s.blockId,
+        createdAt: s.createdAt,
       })),
       total,
       page: safePage,
@@ -92,10 +84,7 @@ export class SubscribersService {
    * @param artistId  Artist UUID (validated by OwnershipGuard before this call)
    */
   async exportCsv(artistId: string): Promise<string> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const prismaSubscriber = this.prisma.subscriber as any;
-
-    const subscribers = (await prismaSubscriber.findMany({
+    const subscribers = await this.prisma.subscriber.findMany({
       where: { artistId },
       orderBy: { createdAt: 'asc' },
       select: {
@@ -105,16 +94,16 @@ export class SubscribersService {
         blockId: true,
         createdAt: true,
       },
-    })) as SubscriberRecord[];
+    });
 
     const header = 'email,status,consent_given,created_at,source_block_id';
-    const rows = subscribers.map((s: SubscriberRecord) =>
+    const rows = subscribers.map((s) =>
       [
-        csvEscape(s.email as string),
-        csvEscape((s.status as string) ?? 'active'),
+        csvEscape(s.email),
+        csvEscape(s.status),
         s.consent ? 'true' : 'false',
-        (s.createdAt as Date).toISOString(),
-        csvEscape(s.blockId as string),
+        s.createdAt.toISOString(),
+        csvEscape(s.blockId),
       ].join(','),
     );
 
