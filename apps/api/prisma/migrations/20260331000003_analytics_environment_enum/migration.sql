@@ -8,6 +8,9 @@
 CREATE TYPE "analytics_environment" AS ENUM ('production', 'staging', 'development');
 
 ALTER TABLE "analytics_events"
+  ALTER COLUMN "environment" DROP DEFAULT;
+
+ALTER TABLE "analytics_events"
   ALTER COLUMN "environment" TYPE "analytics_environment"
     USING "environment"::"analytics_environment";
 
