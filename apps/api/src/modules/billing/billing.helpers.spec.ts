@@ -44,7 +44,10 @@ describe('billing.helpers', () => {
     it('maps delinquent statuses to past_due', () => {
       expect(mapStripeSubscriptionStatus('past_due')).toBe(SubscriptionStatus.past_due);
       expect(mapStripeSubscriptionStatus('unpaid')).toBe(SubscriptionStatus.past_due);
-      expect(mapStripeSubscriptionStatus('paused')).toBe(SubscriptionStatus.past_due);
+    });
+
+    it('maps paused subscriptions to inactive', () => {
+      expect(mapStripeSubscriptionStatus('paused')).toBe(SubscriptionStatus.inactive);
     });
 
     it('maps canceled/incomplete statuses safely', () => {

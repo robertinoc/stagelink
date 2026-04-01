@@ -34,13 +34,14 @@ export function mapStripeSubscriptionStatus(
   status: Stripe.Subscription.Status,
 ): SubscriptionStatus {
   switch (status) {
+    case 'paused':
+      return SubscriptionStatus.inactive;
     case 'active':
       return SubscriptionStatus.active;
     case 'trialing':
       return SubscriptionStatus.trialing;
     case 'past_due':
     case 'unpaid':
-    case 'paused':
       return SubscriptionStatus.past_due;
     case 'canceled':
       return SubscriptionStatus.canceled;

@@ -2,17 +2,21 @@ import { apiFetch } from '@/lib/auth';
 
 export type BillingPlan = 'free' | 'pro' | 'pro_plus';
 export type BillingCatalogPlan = BillingPlan | 'enterprise';
-export type BillingStatus = 'active' | 'canceled' | 'past_due' | 'trialing' | 'incomplete';
+export type BillingStatus =
+  | 'inactive'
+  | 'active'
+  | 'canceled'
+  | 'past_due'
+  | 'trialing'
+  | 'incomplete';
 
 export interface BillingPlanCatalogItem {
   plan: BillingCatalogPlan;
   available: boolean;
   contactSales?: boolean;
-  priceId: string | null;
   amount: number | null;
   currency: string | null;
   interval: string | null;
-  productId: string | null;
   productName: string;
   productDescription: string | null;
 }

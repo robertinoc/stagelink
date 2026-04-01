@@ -52,6 +52,12 @@ Persisted fields:
 This is the operational state used by the app.
 Stripe remains the external source of truth; our DB stores the minimum required projection for product behavior.
 
+Important semantic:
+
+- `free` is not treated as an active Stripe subscription
+- free/internal baseline rows default to `status = inactive`
+- paid access decisions later should not treat `status = active` in isolation without plan context
+
 ### `stripe_webhook_events`
 
 Purpose: idempotency by `stripe_event_id`.
@@ -188,8 +194,6 @@ Currently processed events:
 - `customer.subscription.created`
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
-- `invoice.paid`
-- `invoice.payment_failed`
 
 Current ignore policy:
 
@@ -200,14 +204,16 @@ Current ignore policy:
 
 - `checkout.session.completed` links the completed hosted flow back to the artist/customer/subscription identifiers
 - `customer.subscription.*` is the main subscription state stream
-- `invoice.*` gives a light extension point for payment success/failure without introducing complex dunning logic yet
+- We intentionally do not process `invoice.*` yet because T5-1 does not need invoice-level state transitions and subscription events are a safer source for the current projection
 
 ## Idempotency and Retries
 
 Primary strategy:
 
+- Process each webhook inside a DB transaction
 - Insert one row in `stripe_webhook_events` per `event.id`
-- If the unique constraint already exists, skip processing
+- Apply the subscription mutation in the same transaction
+- If the unique constraint already exists, skip processing as duplicate
 
 Secondary strategy:
 
@@ -217,13 +223,15 @@ Secondary strategy:
 Tradeoffs:
 
 - This is intentionally minimal
-- It prevents duplicate processing but does not attempt complex event ordering logic beyond "last processed event rewrites the current projection"
+- It prevents duplicate processing and avoids the failure mode where an event is marked processed before the subscription mutation commits
+- It still does not attempt complex cross-event ordering logic beyond "the accepted subscription event rewrites the current projection"
 - If Stripe delivers unusual out-of-order historical events, `customer.subscription.updated/deleted` remains the meaningful steady-state stream we expect to win
 
 ## Internal Subscription States
 
 Internal states currently stored:
 
+- `inactive`
 - `active`
 - `trialing`
 - `past_due`
@@ -232,9 +240,11 @@ Internal states currently stored:
 
 Current mapping:
 
+- Free/no-Stripe-subscription baseline -> `inactive`
+- Stripe `paused` -> `inactive`
 - Stripe `active` -> `active`
 - Stripe `trialing` -> `trialing`
-- Stripe `past_due`, `unpaid`, `paused` -> `past_due`
+- Stripe `past_due`, `unpaid` -> `past_due`
 - Stripe `canceled` -> `canceled`
 - Stripe `incomplete`, `incomplete_expired` -> `incomplete`
 
@@ -253,6 +263,7 @@ Important:
 
 - These messages are informational only
 - The page always reads the real backend subscription state
+- Checkout creation does not optimistically upgrade the local plan anymore
 
 ## Return URLs
 

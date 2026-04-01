@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import {
   PlanTier,
   Prisma,
+  SubscriptionStatus,
   type Subscription as PrismaSubscription,
   type User,
 } from '@prisma/client';
@@ -32,11 +33,9 @@ export interface BillingPlanCatalogItem {
   plan: PlanTier | 'enterprise';
   available: boolean;
   contactSales?: boolean;
-  priceId: string | null;
   amount: number | null;
   currency: string | null;
   interval: string | null;
-  productId: string | null;
   productName: string;
   productDescription: string | null;
 }
@@ -64,11 +63,9 @@ export class BillingService {
         plan: 'enterprise' as const,
         available: false,
         contactSales: true,
-        priceId: null,
         amount: null,
         currency: null,
         interval: null,
-        productId: null,
         productName: 'Enterprise',
         productDescription: 'Manual onboarding for custom needs.',
       }),
@@ -164,15 +161,13 @@ export class BillingService {
     await this.prisma.subscription.upsert({
       where: { artistId },
       update: {
-        plan: dto.plan,
         stripeCustomerId: customerId,
-        stripePriceId: priceId,
       },
       create: {
         artistId,
-        plan: dto.plan,
+        plan: PlanTier.free,
+        status: SubscriptionStatus.inactive,
         stripeCustomerId: customerId,
-        stripePriceId: priceId,
       },
     });
 
@@ -234,12 +229,10 @@ export class BillingService {
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted':
-      case 'invoice.paid':
-      case 'invoice.payment_failed':
         await this.handleSubscriptionBackedEvent(
           event.id,
           event.type,
-          event.data.object as Stripe.Subscription | Stripe.Invoice,
+          event.data.object as Stripe.Subscription,
         );
         break;
       default:
@@ -253,11 +246,9 @@ export class BillingService {
     return {
       plan: PlanTier.free,
       available: true,
-      priceId: null,
       amount: 0,
       currency: 'usd',
       interval: 'month',
-      productId: null,
       productName: 'Free',
       productDescription: 'Basic public page for getting started.',
     };
@@ -269,11 +260,9 @@ export class BillingService {
       return {
         plan,
         available: false,
-        priceId: priceId ?? null,
         amount: null,
         currency: null,
         interval: null,
-        productId: null,
         productName: plan === PlanTier.pro ? 'Pro' : 'Pro+',
         productDescription: null,
       };
@@ -286,11 +275,9 @@ export class BillingService {
     return {
       plan,
       available: price.active,
-      priceId: price.id,
       amount: price.unit_amount,
       currency: price.currency,
       interval: price.recurring?.interval ?? null,
-      productId: product?.id ?? null,
       productName: product?.name ?? (plan === PlanTier.pro ? 'Pro' : 'Pro+'),
       productDescription: product?.description ?? null,
     };
@@ -353,6 +340,7 @@ export class BillingService {
       create: {
         artistId,
         plan: PlanTier.free,
+        status: SubscriptionStatus.inactive,
       },
     });
   }
@@ -397,62 +385,42 @@ export class BillingService {
       return;
     }
 
-    if (!(await this.tryRegisterWebhookEvent(stripeEventId, stripeEventType, artistId))) {
+    const plan = this.resolvePlan(session.metadata?.plan, null);
+    if (!plan) {
+      this.logger.error(`checkout.session.completed ${session.id} has unknown plan metadata`);
       return;
     }
 
-    const plan = this.resolvePlan(session.metadata?.plan, null);
-
-    await this.prisma.subscription.upsert({
-      where: { artistId },
-      update: {
-        ...(plan ? { plan } : {}),
-        ...(typeof session.customer === 'string' ? { stripeCustomerId: session.customer } : {}),
-        ...(typeof session.subscription === 'string'
-          ? { stripeSubscriptionId: session.subscription }
-          : {}),
-      },
-      create: {
-        artistId,
-        plan: plan ?? PlanTier.free,
-        ...(typeof session.customer === 'string' ? { stripeCustomerId: session.customer } : {}),
-        ...(typeof session.subscription === 'string'
-          ? { stripeSubscriptionId: session.subscription }
-          : {}),
-      },
+    await this.runWebhookMutation(stripeEventId, stripeEventType, artistId, async (tx) => {
+      await tx.subscription.upsert({
+        where: { artistId },
+        update: {
+          plan,
+          status: SubscriptionStatus.inactive,
+          ...(typeof session.customer === 'string' ? { stripeCustomerId: session.customer } : {}),
+          ...(typeof session.subscription === 'string'
+            ? { stripeSubscriptionId: session.subscription }
+            : {}),
+        },
+        create: {
+          artistId,
+          plan,
+          status: SubscriptionStatus.inactive,
+          ...(typeof session.customer === 'string' ? { stripeCustomerId: session.customer } : {}),
+          ...(typeof session.subscription === 'string'
+            ? { stripeSubscriptionId: session.subscription }
+            : {}),
+        },
+      });
     });
   }
 
   private async handleSubscriptionBackedEvent(
     stripeEventId: string,
     stripeEventType: string,
-    payload: Stripe.Subscription | Stripe.Invoice,
+    subscription: Stripe.Subscription,
   ) {
-    const subscription = await this.extractSubscriptionFromPayload(payload);
-    if (!subscription) {
-      this.logger.warn(`${stripeEventType} missing subscription payload`);
-      return;
-    }
-
     await this.syncStripeSubscription(stripeEventId, stripeEventType, subscription);
-  }
-
-  private async extractSubscriptionFromPayload(
-    payload: Stripe.Subscription | Stripe.Invoice,
-  ): Promise<Stripe.Subscription | null> {
-    if ('object' in payload && payload.object === 'subscription') {
-      return payload;
-    }
-
-    if ('subscription' in payload && payload.subscription) {
-      if (typeof payload.subscription === 'string') {
-        return this.getStripeClientOrThrow().subscriptions.retrieve(payload.subscription);
-      }
-
-      return payload.subscription as Stripe.Subscription;
-    }
-
-    return null;
   }
 
   private async syncStripeSubscription(
@@ -469,46 +437,52 @@ export class BillingService {
       return;
     }
 
-    if (!(await this.tryRegisterWebhookEvent(stripeEventId, stripeEventType, artistId))) {
+    if (!plan) {
+      this.logger.error(`Unknown Stripe plan mapping for subscription ${subscription.id}`);
       return;
     }
 
-    await this.prisma.subscription.upsert({
-      where: { artistId },
-      update: {
-        plan,
-        status: mapStripeSubscriptionStatus(subscription.status),
-        stripeCustomerId:
-          typeof subscription.customer === 'string'
-            ? subscription.customer
-            : subscription.customer.id,
-        stripeSubscriptionId: subscription.id,
-        stripePriceId: item?.price?.id ?? null,
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
-        currentPeriodEnd: normalizeStripeTimestamp(item?.current_period_end ?? null),
-      },
-      create: {
-        artistId,
-        plan,
-        status: mapStripeSubscriptionStatus(subscription.status),
-        stripeCustomerId:
-          typeof subscription.customer === 'string'
-            ? subscription.customer
-            : subscription.customer.id,
-        stripeSubscriptionId: subscription.id,
-        stripePriceId: item?.price?.id ?? null,
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
-        currentPeriodEnd: normalizeStripeTimestamp(item?.current_period_end ?? null),
-      },
+    await this.runWebhookMutation(stripeEventId, stripeEventType, artistId, async (tx) => {
+      await tx.subscription.upsert({
+        where: { artistId },
+        update: {
+          plan,
+          status: mapStripeSubscriptionStatus(subscription.status),
+          stripeCustomerId:
+            typeof subscription.customer === 'string'
+              ? subscription.customer
+              : subscription.customer.id,
+          stripeSubscriptionId: subscription.id,
+          stripePriceId: item?.price?.id ?? null,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          currentPeriodEnd: normalizeStripeTimestamp(item?.current_period_end ?? null),
+        },
+        create: {
+          artistId,
+          plan,
+          status: mapStripeSubscriptionStatus(subscription.status),
+          stripeCustomerId:
+            typeof subscription.customer === 'string'
+              ? subscription.customer
+              : subscription.customer.id,
+          stripeSubscriptionId: subscription.id,
+          stripePriceId: item?.price?.id ?? null,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          currentPeriodEnd: normalizeStripeTimestamp(item?.current_period_end ?? null),
+        },
+      });
     });
   }
 
-  private resolvePlan(metadataPlan: string | undefined, stripePriceId: string | null): PlanTier {
+  private resolvePlan(
+    metadataPlan: string | undefined,
+    stripePriceId: string | null,
+  ): PlanTier | null {
     if (metadataPlan === PlanTier.pro || metadataPlan === PlanTier.pro_plus) {
       return metadataPlan;
     }
 
-    return getPlanFromStripePriceId(stripePriceId, this.getPriceConfig()) ?? PlanTier.free;
+    return getPlanFromStripePriceId(stripePriceId, this.getPriceConfig());
   }
 
   private async resolveArtistIdForStripeSubscription(
@@ -531,14 +505,29 @@ export class BillingService {
     return existing?.artistId ?? null;
   }
 
-  private async tryRegisterWebhookEvent(
+  private async runWebhookMutation(
     stripeEventId: string,
     stripeEventType: string,
     artistId: string | null,
+    mutate: (
+      tx: Prisma.TransactionClient & {
+        subscription: PrismaService['subscription'];
+        stripeWebhookEvent: {
+          create: (args: {
+            data: {
+              stripeEventId: string;
+              stripeEventType: string;
+              artistId: string | null;
+            };
+          }) => Promise<unknown>;
+        };
+      },
+    ) => Promise<void>,
   ): Promise<boolean> {
     try {
-      const prismaStripeWebhookEvent = (
-        this.prisma as PrismaService & {
+      await this.prisma.$transaction(async (tx) => {
+        const typedTx = tx as Prisma.TransactionClient & {
+          subscription: PrismaService['subscription'];
           stripeWebhookEvent: {
             create: (args: {
               data: {
@@ -548,15 +537,17 @@ export class BillingService {
               };
             }) => Promise<unknown>;
           };
-        }
-      ).stripeWebhookEvent;
+        };
 
-      await prismaStripeWebhookEvent.create({
-        data: {
-          stripeEventId,
-          stripeEventType,
-          artistId,
-        },
+        await typedTx.stripeWebhookEvent.create({
+          data: {
+            stripeEventId,
+            stripeEventType,
+            artistId,
+          },
+        });
+
+        await mutate(typedTx);
       });
 
       return true;
