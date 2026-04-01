@@ -36,6 +36,15 @@ export const PLAN_FEATURE_MATRIX: Record<PlanCode, readonly FeatureKey[]> = {
   ],
 };
 
+export const FEATURE_MINIMUM_PLAN: Record<FeatureKey, PlanCode> = {
+  remove_stagelink_branding: 'pro',
+  custom_domain: 'pro',
+  epk_builder: 'pro',
+  analytics_pro: 'pro_plus',
+  multi_language_pages: 'pro_plus',
+  advanced_fan_insights: 'pro_plus',
+  shopify_integration: 'pro_plus',
+};
 export interface BillingSubscriptionSnapshot {
   plan: PlanCode;
   status: BillingSubscriptionStatus;
@@ -77,12 +86,7 @@ export function getFeatureAvailability(plan: PlanCode): Record<FeatureKey, boole
 }
 
 export function getMinimumPlanForFeature(feature: FeatureKey): PlanCode {
-  const requiredPlan = PLAN_ORDER.find((plan) => PLAN_FEATURE_MATRIX[plan].includes(feature));
-  if (!requiredPlan) {
-    throw new Error(`Feature "${feature}" is missing from PLAN_FEATURE_MATRIX`);
-  }
-
-  return requiredPlan;
+  return FEATURE_MINIMUM_PLAN[feature];
 }
 
 export function getPlanRank(plan: PlanCode): number {
