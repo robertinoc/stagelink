@@ -46,6 +46,8 @@ export const validationSchema = Joi.object({
   // Payments — required when Stripe is integrated (T5)
   STRIPE_SECRET_KEY: optionalString,
   STRIPE_WEBHOOK_SECRET: optionalString,
+  STRIPE_PRICE_PRO_ID: optionalString,
+  STRIPE_PRICE_PRO_PLUS_ID: optionalString,
 
   // Analytics — optional in all envs
   POSTHOG_KEY: optionalString,

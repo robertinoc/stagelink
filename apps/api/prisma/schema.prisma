@@ -377,6 +377,8 @@ model Subscription {
   status               SubscriptionStatus @default(active)
   stripeCustomerId     String?            @map("stripe_customer_id")
   stripeSubscriptionId String?            @map("stripe_subscription_id")
+  stripePriceId        String?            @map("stripe_price_id")
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
   currentPeriodEnd     DateTime?          @map("current_period_end")
   createdAt            DateTime           @default(now()) @map("created_at")
   updatedAt            DateTime           @updatedAt @map("updated_at")
@@ -384,6 +386,23 @@ model Subscription {
   artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
+}
+
+// =============================================================
+// STRIPE WEBHOOK EVENTS
+// Registro mínimo de eventos Stripe procesados para garantizar
+// idempotencia por event.id ante reintentos.
+// =============================================================
+model StripeWebhookEvent {
+  id              String   @id @default(cuid())
+  stripeEventId   String   @unique @map("stripe_event_id")
+  stripeEventType String   @map("stripe_event_type")
+  artistId        String?  @map("artist_id")
+  processedAt     DateTime @default(now()) @map("processed_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([artistId, processedAt])
+  @@map("stripe_webhook_events")
 }
 
 // =============================================================
