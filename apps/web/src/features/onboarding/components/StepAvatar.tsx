@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { requestUploadIntent, uploadToS3, confirmUpload } from '@/lib/api/assets';
 
 interface StepAvatarProps {
@@ -21,7 +21,6 @@ export function StepAvatar({ artistId, accessToken, onComplete, onSkip }: StepAv
   const fileInputRef = useRef<HTMLInputElement>(null);
   const prevPreviewRef = useRef<string | null>(null);
 
-  // Revoke blob URL on unmount to prevent memory leaks
   useEffect(() => {
     return () => {
       if (prevPreviewRef.current) {
@@ -40,7 +39,6 @@ export function StepAvatar({ artistId, accessToken, onComplete, onSkip }: StepAv
       return;
     }
 
-    // Revoke previous blob URL before creating a new one
     if (prevPreviewRef.current) {
       URL.revokeObjectURL(prevPreviewRef.current);
     }
@@ -59,7 +57,6 @@ export function StepAvatar({ artistId, accessToken, onComplete, onSkip }: StepAv
       await confirmUpload(intent.assetId, accessToken);
       setUploading(false);
       setUploaded(true);
-      // Do NOT auto-redirect — let user confirm with a button
     } catch (err) {
       setUploading(false);
       setError('Upload failed. You can skip this step and add a photo later.');
@@ -77,7 +74,6 @@ export function StepAvatar({ artistId, accessToken, onComplete, onSkip }: StepAv
       </div>
 
       <div className="flex flex-col items-center gap-4">
-        {/* Avatar preview circle */}
         <button
           type="button"
           disabled={uploading}
@@ -102,7 +98,6 @@ export function StepAvatar({ artistId, accessToken, onComplete, onSkip }: StepAv
           )}
         </button>
 
-        {/* Upload progress bar */}
         {uploading && (
           <div className="w-full max-w-xs">
             <div className="h-1.5 w-full rounded-full bg-muted">
@@ -115,13 +110,8 @@ export function StepAvatar({ artistId, accessToken, onComplete, onSkip }: StepAv
           </div>
         )}
 
-        {/* Success message */}
-        {uploaded && (
-          <p className="text-sm text-green-600 font-medium">✓ Photo uploaded successfully</p>
-        )}
-
-        {/* Error message */}
-        {error && <p className="text-sm text-destructive text-center">{error}</p>}
+        {uploaded && <p className="text-sm font-medium text-green-600">Photo uploaded successfully</p>}
+        {error && <p className="text-center text-sm text-destructive">{error}</p>}
 
         <input
           ref={fileInputRef}
@@ -134,7 +124,6 @@ export function StepAvatar({ artistId, accessToken, onComplete, onSkip }: StepAv
           }}
         />
 
-        {/* Change photo button (only when not uploading) */}
         {!uploading && (
           <Button
             variant="outline"
@@ -147,11 +136,10 @@ export function StepAvatar({ artistId, accessToken, onComplete, onSkip }: StepAv
         )}
       </div>
 
-      {/* Primary CTA: changes based on upload state */}
       <div className="flex gap-3">
         {uploaded ? (
           <Button className="w-full" onClick={onComplete}>
-            Go to my dashboard →
+            Go to my dashboard
           </Button>
         ) : (
           <Button variant="outline" className="w-full" onClick={onSkip} disabled={uploading}>

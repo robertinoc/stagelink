@@ -481,7 +481,6 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - `STRIPE_PRICE_PRO_ID`
   - `STRIPE_PRICE_PRO_PLUS_ID`
 - Docs: `docs/stripe-billing-foundation.md`
-
 ### ⏳ Pendiente
 
 - T2-5: Implementar queries Prisma reales en módulos stub (artists, pages, blocks)

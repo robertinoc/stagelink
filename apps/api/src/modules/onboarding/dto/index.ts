@@ -1,5 +1,5 @@
-import { IsString, IsNotEmpty, IsEnum, MinLength, MaxLength } from 'class-validator';
 import { ArtistCategory } from '@prisma/client';
+import { IsString, IsNotEmpty, IsEnum, MinLength, MaxLength } from 'class-validator';
 
 export class CheckUsernameQueryDto {
   @IsString()

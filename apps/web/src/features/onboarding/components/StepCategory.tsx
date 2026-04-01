@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import type { ArtistCategory } from '@stagelink/types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { ArtistCategory } from '@stagelink/types';
 
 const CATEGORIES: { value: ArtistCategory; label: string; emoji: string }[] = [
   { value: 'musician', label: 'Musician', emoji: '🎸' },
@@ -59,11 +59,7 @@ export function StepCategory({ initialValue, onNext, onBack }: StepCategoryProps
         <Button variant="outline" className="flex-1" onClick={onBack}>
           Back
         </Button>
-        <Button
-          className="flex-1"
-          disabled={!selected}
-          onClick={() => selected && onNext(selected)}
-        >
+        <Button className="flex-1" disabled={!selected} onClick={() => selected && onNext(selected)}>
           Continue
         </Button>
       </div>

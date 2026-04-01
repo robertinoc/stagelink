@@ -2,19 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import type { ArtistCategory } from '@stagelink/types';
+import { completeOnboarding } from '@/lib/api/onboarding';
+import { StepAvatar } from './StepAvatar';
+import { StepCategory } from './StepCategory';
 import { StepName } from './StepName';
 import { StepUsername } from './StepUsername';
-import { StepCategory } from './StepCategory';
-import { StepAvatar } from './StepAvatar';
-import { completeOnboarding } from '@/lib/api/onboarding';
-import type { ArtistCategory } from '@stagelink/types';
-import { Loader2 } from 'lucide-react';
 
-/**
- * Suggests a username from a display name.
- * Mirrors backend normalization: lowercase, replace invalid chars with hyphens,
- * strip leading/trailing hyphens, max 30 chars.
- */
 function suggestUsername(displayName: string): string {
   return displayName
     .toLowerCase()
@@ -83,13 +78,11 @@ export function OnboardingWizard({ accessToken, locale }: OnboardingWizardProps)
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md space-y-8">
-        {/* Logo / Brand */}
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight">StageLink</h1>
           <p className="mt-1 text-sm text-muted-foreground">Let&apos;s set up your artist page</p>
         </div>
 
-        {/* Progress bar */}
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>
@@ -105,7 +98,6 @@ export function OnboardingWizard({ accessToken, locale }: OnboardingWizardProps)
           </div>
         </div>
 
-        {/* Step content */}
         <div className="rounded-xl border bg-card p-6 shadow-sm">
           {step === 1 && (
             <StepName
@@ -114,7 +106,6 @@ export function OnboardingWizard({ accessToken, locale }: OnboardingWizardProps)
                 setData((prev) => ({
                   ...prev,
                   displayName,
-                  // Pre-suggest username only if the user hasn't typed one yet
                   username: prev.username || suggestUsername(displayName),
                 }));
                 setStep(2);
@@ -149,7 +140,7 @@ export function OnboardingWizard({ accessToken, locale }: OnboardingWizardProps)
                     onBack={() => setStep(2)}
                   />
                   {submitError && (
-                    <p className="mt-3 text-sm text-destructive text-center">{submitError}</p>
+                    <p className="mt-3 text-center text-sm text-destructive">{submitError}</p>
                   )}
                 </>
               )}
@@ -166,7 +157,6 @@ export function OnboardingWizard({ accessToken, locale }: OnboardingWizardProps)
           )}
         </div>
 
-        {/* Step dot indicators */}
         <div className="flex justify-center gap-2">
           {Array.from({ length: TOTAL_STEPS }, (_, i) => (
             <div
