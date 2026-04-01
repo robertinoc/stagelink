@@ -90,7 +90,8 @@
       "range": {
         "7d": "Últimos 7 días",
         "30d": "Últimos 30 días",
-        "90d": "Últimos 90 días"
+        "90d": "Últimos 90 días",
+        "365d": "Últimos 365 días"
       },
       "stats": {
         "page_views": "Visitas a la página",
@@ -118,6 +119,12 @@
         "title": "No se pudieron cargar las analíticas",
         "description": "Hubo un problema al obtener los datos. Por favor intentá de nuevo.",
         "retry": "Reintentar"
+      },
+      "locked": {
+        "title": "Las analíticas avanzadas están bloqueadas",
+        "description": "Tu plan actual es {currentPlan}. Actualizá a Pro+ para desbloquear la vista de 365 días y las capacidades avanzadas de analytics a medida que se publiquen.",
+        "cta": "Actualizar plan",
+        "secondary_cta": "Gestionar página"
       },
       "notes": {
         "basic_quality": "Analíticas básicas · Filtrado de bots aplicado en la ingesta · Deduplicación de visitantes únicos próximamente",
@@ -195,9 +202,63 @@
     },
     "settings": {
       "title": "Configuración",
-      "description": "Configurá las preferencias de tu cuenta.",
-      "coming_soon": "Configuración de cuenta próximamente",
-      "coming_soon_description": "Idioma, notificaciones, seguridad y más se podrán configurar acá."
+      "description": "Revisá las capacidades de tu workspace según el plan del artista.",
+      "summary": {
+        "title": "Capacidades por plan",
+        "description": "StageLink resuelve actualmente este tenant como {plan}. El gating backend usa este plan efectivo, no solo la UI de billing.",
+        "backend_source": "El backend es la fuente de verdad para la autorización de features.",
+        "webhook_note": "Los cambios de plan se aplican cuando los webhooks de Stripe sincronizan la suscripción del tenant.",
+        "cta": "Abrir billing",
+        "locked_count": "{count, plural, one {# feature bloqueada} other {# features bloqueadas}}"
+      },
+      "badges": {
+        "included": "Incluida"
+      },
+      "feature_state": {
+        "included": "Incluida en tu plan efectivo.",
+        "locked": "Bloqueada hasta que actualices a {plan}."
+      },
+      "actions": {
+        "upgrade": "Actualizar plan",
+        "manage_plan": "Gestionar plan"
+      },
+      "features": {
+        "remove_stagelink_branding": {
+          "title": "Quitar branding de StageLink",
+          "description": "Ocultá la marca StageLink en la experiencia pública.",
+          "note": "Los controles de branding todavía no están publicados, pero este gate queda reservado para el plan Pro."
+        },
+        "custom_domain": {
+          "title": "Dominio personalizado",
+          "description": "Conectá tu propio dominio a tu página pública.",
+          "note": "La activación real de dominios todavía está pendiente. El entitlement ya quedó modelado para enforcement backend."
+        },
+        "shopify_integration": {
+          "title": "Integración con Shopify",
+          "description": "Conectá flujos de ecommerce al producto del artista.",
+          "note": "Shopify sigue en roadmap. Cuando exista el módulo, el backend usará esta misma capability key."
+        },
+        "epk_builder": {
+          "title": "Constructor de EPK",
+          "description": "Creá y publicá press kits más completos.",
+          "note": "El EPK builder todavía no está implementado. El entitlement queda reservado para Pro o superior."
+        },
+        "analytics_pro": {
+          "title": "Analíticas avanzadas",
+          "description": "Desbloqueá el rango de 365 días y breakdowns premium futuros.",
+          "note": "Este gate ya se aplica hoy sobre la API privada de analytics."
+        },
+        "multi_language_pages": {
+          "title": "Páginas multi-idioma",
+          "description": "Publicá versiones localizadas de tu página pública.",
+          "note": "Las páginas multi-idioma siguen en roadmap, pero la capability ya está definida para no rehacer billing más adelante."
+        },
+        "advanced_fan_insights": {
+          "title": "Insights avanzados de fans",
+          "description": "Accedé a señales de audiencia más profundas y reportes premium futuros.",
+          "note": "Los insights avanzados todavía no están implementados. Esta capability queda reservada para Pro+."
+        }
+      }
     }
   },
   "blocks": {

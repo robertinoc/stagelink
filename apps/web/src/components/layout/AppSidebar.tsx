@@ -15,6 +15,8 @@ import {
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import type { Artist } from '@/lib/api/artists';
+import type { BillingEntitlementsResponse } from '@/lib/api/billing';
+import { Badge } from '@/components/ui/badge';
 
 interface NavItem {
   icon: React.ElementType;
@@ -35,11 +37,23 @@ const NAV_ITEMS: NavItem[] = [
 
 interface AppSidebarProps {
   artist: Artist | null;
+  entitlements: BillingEntitlementsResponse | null;
   /** Called after a nav link is clicked — used by mobile sheet to close itself. */
   onNavigate?: () => void;
 }
 
-export function AppSidebar({ artist, onNavigate }: AppSidebarProps) {
+function resolvePlanLabel(plan: BillingEntitlementsResponse['effectivePlan']) {
+  switch (plan) {
+    case 'pro':
+      return 'Pro';
+    case 'pro_plus':
+      return 'Pro+';
+    default:
+      return 'Free';
+  }
+}
+
+export function AppSidebar({ artist, entitlements, onNavigate }: AppSidebarProps) {
   const pathname = usePathname();
   const locale = useLocale();
   const t = useTranslations();
@@ -81,6 +95,11 @@ export function AppSidebar({ artist, onNavigate }: AppSidebarProps) {
           <p className="truncate text-sm font-medium leading-tight">{artist?.displayName ?? '—'}</p>
           {artist?.username && (
             <p className="truncate text-xs text-muted-foreground">@{artist.username}</p>
+          )}
+          {entitlements && (
+            <Badge variant="secondary" className="mt-2 text-[10px] uppercase tracking-wide">
+              {resolvePlanLabel(entitlements.effectivePlan)}
+            </Badge>
           )}
         </div>
       </div>

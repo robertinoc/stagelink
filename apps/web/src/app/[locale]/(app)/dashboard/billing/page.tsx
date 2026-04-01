@@ -11,13 +11,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getAuthMe } from '@/lib/api/me';
 import { getArtist } from '@/lib/api/artists';
 import {
   getBillingProducts,
   getBillingSubscription,
   type BillingPlanCatalogItem,
 } from '@/lib/api/billing';
+import { getAuthMe } from '@/lib/api/me';
 import { getSession } from '@/lib/auth';
 import { startCheckoutAction, startPortalAction } from './actions';
 
@@ -53,6 +53,25 @@ function resolvePlanLabel(plan: BillingPlanCatalogItem['plan']) {
       return 'Pro+';
     default:
       return 'Enterprise';
+  }
+}
+
+function resolveStatusLabel(status: string) {
+  switch (status) {
+    case 'inactive':
+      return 'Inactive';
+    case 'active':
+      return 'Active';
+    case 'trialing':
+      return 'Trialing';
+    case 'past_due':
+      return 'Past due';
+    case 'canceled':
+      return 'Canceled';
+    case 'incomplete':
+      return 'Incomplete';
+    default:
+      return status;
   }
 }
 
@@ -137,7 +156,7 @@ export default async function DashboardBillingPage({
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
               {t('fields.status')}
             </p>
-            <p className="mt-1 text-sm font-medium">{subscription.status}</p>
+            <p className="mt-1 text-sm font-medium">{resolveStatusLabel(subscription.status)}</p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">

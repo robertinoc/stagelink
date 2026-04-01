@@ -3,14 +3,27 @@ import { PlanTier, Prisma, SubscriptionStatus } from '@prisma/client';
 import { BillingService } from './billing.service';
 
 describe('BillingService', () => {
+  interface PrismaMock {
+    $transaction: jest.Mock<Promise<unknown>, [(tx: PrismaMock) => Promise<unknown>]>;
+    subscription: {
+      upsert: jest.Mock;
+    };
+    stripeWebhookEvent: {
+      create: jest.Mock;
+    };
+  }
+
   function createService() {
-    const prisma = {
-      subscription: {
-        upsert: jest.fn(),
-      },
-      stripeWebhookEvent: {
-        create: jest.fn(),
-      },
+    const prisma = {} as PrismaMock;
+
+    prisma.$transaction = jest.fn(async (callback: (tx: PrismaMock) => Promise<unknown>) =>
+      callback(prisma),
+    );
+    prisma.subscription = {
+      upsert: jest.fn(),
+    };
+    prisma.stripeWebhookEvent = {
+      create: jest.fn(),
     };
 
     const configService = {
@@ -86,6 +99,14 @@ describe('BillingService', () => {
       headers: { 'stripe-signature': 'sig_123' },
       rawBody: Buffer.from('{}'),
     } as never);
+
+    expect(prisma.stripeWebhookEvent.create).toHaveBeenCalledWith({
+      data: {
+        stripeEventId: 'evt_123',
+        stripeEventType: 'customer.subscription.updated',
+        artistId: 'artist_123',
+      },
+    });
 
     expect(prisma.subscription.upsert).toHaveBeenCalledWith({
       where: { artistId: 'artist_123' },

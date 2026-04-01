@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
+import { BillingEntitlementsService } from './billing-entitlements.service';
 import { BillingController } from './billing.controller';
 import { BillingService } from './billing.service';
 import { STRIPE_CLIENT } from './billing.service';
@@ -9,6 +10,7 @@ import { STRIPE_CLIENT } from './billing.service';
   controllers: [BillingController],
   providers: [
     BillingService,
+    BillingEntitlementsService,
     {
       provide: STRIPE_CLIENT,
       inject: [ConfigService],
@@ -19,6 +21,6 @@ import { STRIPE_CLIENT } from './billing.service';
       },
     },
   ],
-  exports: [BillingService],
+  exports: [BillingService, BillingEntitlementsService],
 })
 export class BillingModule {}
