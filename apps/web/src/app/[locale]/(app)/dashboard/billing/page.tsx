@@ -11,13 +11,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getAuthMe } from '@/lib/api/me';
 import { getArtist } from '@/lib/api/artists';
 import {
   getBillingProducts,
   getBillingSubscription,
   type BillingPlanCatalogItem,
 } from '@/lib/api/billing';
+import { getAuthMe } from '@/lib/api/me';
 import { getSession } from '@/lib/auth';
 import { startCheckoutAction, startPortalAction } from './actions';
 

@@ -34,7 +34,6 @@ export class BillingController {
     const entitlements = await this.billingEntitlementsService.getArtistEntitlements(artistId);
     return ok(entitlements);
   }
-
   @Post(':artistId/checkout')
   @CheckOwnership('artist', 'artistId', 'admin')
   @UseGuards(OwnershipGuard)
