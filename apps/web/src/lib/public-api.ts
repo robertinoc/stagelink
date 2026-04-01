@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { headers, cookies } from 'next/headers';
 import type { PublicPageResponse } from '@stagelink/types';
 
 /**
@@ -16,17 +17,71 @@ import type { PublicPageResponse } from '@stagelink/types';
  * - Migrar a ISR: reemplazar `cache: 'no-store'` por
  *   `next: { tags: ['artist:username'], revalidate: 60 }` cuando el volumen
  *   lo justifique. Ver: docs/multi-tenant.md — sección "Caching y SSR".
+ *   ⚠️  ADVERTENCIA ANALYTICS: al activar ISR, el backend solo recibe la
+ *   request HTTP en el revalidation hit — no en cada visita. Los eventos
+ *   page_view dejarán de contabilizarse por visitante. Solución: trasladar
+ *   el tracking de page_view a un Client Component que llame al API desde
+ *   el browser, o usar un Middleware para contar antes del cache layer.
+ *
+ * Header forwarding:
+ * - Analytics-relevant visitor headers (Accept-Language, Referer,
+ *   Sec-CH-UA-Platform) are forwarded to the API so the server-side
+ *   public_page_view event has correct locale, referrer, and platform context.
+ *   Next.js SSR receives these headers from the browser but does NOT forward
+ *   them automatically in outgoing fetch() calls — we must do it explicitly.
+ * - T4-4 quality headers (X-SL-QA, X-SL-AC) are read from the visitor's
+ *   cookies (via the Cookie header, parsed selectively) and forwarded to the
+ *   API so quality flags can be set on the persisted page_view event.
+ *   Only the two known sl_* cookies are forwarded — no other cookie data.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4001';
+// API_URL is a private server-only variable (not NEXT_PUBLIC_*) — never sent to the browser.
+// public-api.ts is imported only in Server Components so this is safe.
+const API_URL = process.env.API_URL ?? 'http://localhost:4001';
 
 async function _fetchPublicPage(username: string): Promise<PublicPageResponse | null> {
+  // Forward analytics-relevant browser headers to the API. Only the headers
+  // relevant for page_view context are forwarded — never Authorization, Cookie,
+  // or other sensitive headers.
+  const incomingHeaders = await headers();
+  const forwardHeaders: Record<string, string> = {};
+
+  const acceptLanguage = incomingHeaders.get('accept-language');
+  if (acceptLanguage) forwardHeaders['accept-language'] = acceptLanguage;
+
+  const referer = incomingHeaders.get('referer');
+  if (referer) forwardHeaders['referer'] = referer;
+
+  const secChUaPlatform = incomingHeaders.get('sec-ch-ua-platform');
+  if (secChUaPlatform) forwardHeaders['sec-ch-ua-platform'] = secChUaPlatform;
+
+  // User-Agent — needed by API for T4-4 bot detection.
+  const userAgent = incomingHeaders.get('user-agent');
+  if (userAgent) forwardHeaders['user-agent'] = userAgent;
+
+  // T4-4: Forward quality cookies as typed headers (never forward the raw Cookie header).
+  // Use Next.js cookies() API — type-safe, handles edge cases (encoded values,
+  // cookies with '=' in the value, whitespace) that manual parsing can get wrong.
+  const cookieStore = await cookies();
+
+  // sl_ac: consent cookie — '1' = accepted, '0' = rejected, absent = unknown
+  const slAc = cookieStore.get('sl_ac')?.value;
+  if (slAc === '1' || slAc === '0') forwardHeaders['x-sl-ac'] = slAc;
+
+  // sl_qa: QA mode cookie — '1' = QA session (set via ?sl_qa=1 URL param)
+  if (cookieStore.get('sl_qa')?.value === '1') forwardHeaders['x-sl-qa'] = '1';
+
   const res = await fetch(
     `${API_URL}/api/public/pages/by-username/${encodeURIComponent(username)}`,
-    { cache: 'no-store' },
+    { cache: 'no-store', headers: forwardHeaders },
   );
 
   if (res.status === 404) return null;
+
+  if (res.status === 429) {
+    // Rate-limited — propagate so Next.js renders error.tsx (not silently 404).
+    throw new Error(`[public-api] Rate limited (429) fetching page for "${username}"`);
+  }
 
   if (res.status >= 500) {
     // Error de infraestructura — propagar para que Next.js muestre error.tsx,

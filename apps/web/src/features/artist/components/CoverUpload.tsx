@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { confirmUpload, requestUploadIntent, uploadToS3 } from '@/lib/api/assets';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -22,10 +22,18 @@ export function CoverUpload({
   onSuccess,
 }: CoverUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const blobUrlRef = useRef<string | null>(null); // tracks current blob URL for cleanup
   const [preview, setPreview] = useState<string | null>(null);
   const [state, setState] = useState<UploadState>('idle');
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+
+  // Revoke blob URL on unmount to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+    };
+  }, []);
 
   const displayUrl = preview ?? currentCoverUrl ?? null;
 
@@ -46,7 +54,13 @@ export function CoverUpload({
       return;
     }
 
+    // Revoke previous blob URL before creating a new one
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+    }
+
     const objectUrl = URL.createObjectURL(file);
+    blobUrlRef.current = objectUrl;
     setPreview(objectUrl);
     setError(null);
     setState('uploading');
@@ -56,6 +70,11 @@ export function CoverUpload({
       const intent = await requestUploadIntent(artistId, 'cover', file, accessToken);
       await uploadToS3(intent.uploadUrl, file, setProgress);
       const asset = await confirmUpload(intent.assetId, accessToken);
+
+      // Revoke blob URL — CDN URL is now available
+      URL.revokeObjectURL(objectUrl);
+      blobUrlRef.current = null;
+      setPreview(null);
 
       setState('success');
       if (asset.deliveryUrl) onSuccess(asset.deliveryUrl);

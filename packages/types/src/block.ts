@@ -1,33 +1,170 @@
-export type BlockType = 'links' | 'music_embed' | 'video_embed' | 'fan_email_capture';
+// =============================================================
+// Block types — shared between API and web.
+// Must stay in sync with the Prisma BlockType enum and
+// block-config.schema.ts validators in the API.
+// =============================================================
+
+export const BLOCK_TYPES = ['links', 'music_embed', 'video_embed', 'email_capture'] as const;
+export type BlockType = (typeof BLOCK_TYPES)[number];
+
+// ─── Config shapes per block type ────────────────────────────────────────────
+
+/**
+ * Acotado set of icon keys for link items.
+ * Validated server-side; unknown values are rejected.
+ * To add a new icon: add the key here, add a mapping in
+ * LINK_ICON_LABELS (web) and the icon renderer in LinksBlockRenderer.
+ */
+export const LINK_ICONS = [
+  'spotify',
+  'apple_music',
+  'soundcloud',
+  'youtube',
+  'instagram',
+  'tiktok',
+  'facebook',
+  'x',
+  'website',
+  'mail',
+  'ticket',
+  'link',
+  'generic',
+] as const;
+
+export type LinkIcon = (typeof LINK_ICONS)[number];
+
+/**
+ * Determines how a link item resolves on click.
+ *   'url'        — direct external link (default, backward-compatible)
+ *   'smart_link' — routes through /go/{smartLinkId} for platform-aware redirect
+ */
+export const LINK_ITEM_KINDS = ['url', 'smart_link'] as const;
+export type LinkItemKind = (typeof LINK_ITEM_KINDS)[number];
+
+export interface LinkItem {
+  /** Stable id (UUID) — used as analytics identifier. Never changes after creation. */
+  id: string;
+  label: string; // max 100 chars
+  /**
+   * For kind 'url':        a https:// / http:// destination URL.
+   * For kind 'smart_link': empty string (href is built from smartLinkId at render time).
+   */
+  url: string;
+  icon?: LinkIcon; // optional; falls back to 'link' on render
+  sortOrder: number; // 0-indexed; normalized to 0..n-1 on every save
+  openInNewTab?: boolean; // default true
+  /** Link item behaviour. Defaults to 'url' when absent (backward-compatible). */
+  kind?: LinkItemKind;
+  /** Required when kind === 'smart_link'. The SmartLink entity id. */
+  smartLinkId?: string;
+}
+
+export interface LinksBlockConfig {
+  items: LinkItem[];
+}
+
+/**
+ * Resource types for music embed blocks.
+ * Derived by the backend from the sourceUrl path — never sent by the client.
+ * SoundCloud playlists (path: /sets/…) are normalized to 'playlist'.
+ */
+export type MusicResourceType = 'track' | 'album' | 'playlist' | 'artist' | 'episode';
+
+export interface MusicEmbedBlockConfig {
+  provider: 'spotify' | 'apple_music' | 'soundcloud' | 'youtube';
+  /** URL pasted by the user (share link). Persisted as-is. */
+  sourceUrl: string;
+  /** Embed-safe URL derived by the backend. Never modified by the client. */
+  embedUrl: string;
+  /** Resource type inferred from sourceUrl path by the backend. */
+  resourceType: MusicResourceType;
+}
+
+/**
+ * Resource types for video embed blocks.
+ *   video | short
+ * Derived by the backend from the sourceUrl path — never sent by the client.
+ */
+export type VideoResourceType = 'video' | 'short';
+
+export interface VideoEmbedBlockConfig {
+  provider: 'youtube' | 'vimeo' | 'tiktok';
+  /** URL pasted by the user (share link). Persisted as-is. */
+  sourceUrl: string;
+  /** Embed-safe URL derived by the backend. Never modified by the client. */
+  embedUrl: string;
+  /** Resource type inferred from sourceUrl path by the backend. */
+  resourceType: VideoResourceType;
+}
+
+export interface EmailCaptureBlockConfig {
+  headline: string;
+  buttonLabel: string;
+  description?: string;
+  placeholder?: string;
+  successMessage?: string;
+  consentLabel?: string;
+  requireConsent?: boolean;
+}
+
+/** Discriminated union of all config shapes */
+export type BlockConfig =
+  | LinksBlockConfig
+  | MusicEmbedBlockConfig
+  | VideoEmbedBlockConfig
+  | EmailCaptureBlockConfig;
+
+// ─── Block entity ─────────────────────────────────────────────────────────────
 
 export interface Block {
   id: string;
   pageId: string;
   type: BlockType;
-  order: number;
-  config: Record<string, unknown>; // typed per block in consuming code
-  createdAt: Date;
-  updatedAt: Date;
+  title: string | null;
+  config: BlockConfig;
+  position: number;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface LinkBlockConfig {
-  url: string;
-  label: string;
-  iconUrl?: string;
+// ─── API payloads ─────────────────────────────────────────────────────────────
+
+export interface CreateBlockPayload {
+  type: BlockType;
+  title?: string;
+  config: BlockConfig;
 }
 
-export interface MusicEmbedBlockConfig {
-  platform: 'spotify' | 'apple_music' | 'soundcloud' | 'youtube';
-  embedUrl: string;
+export interface UpdateBlockPayload {
+  title?: string;
+  config?: Partial<BlockConfig>;
 }
 
-export interface VideoEmbedBlockConfig {
-  platform: 'youtube' | 'vimeo' | 'tiktok';
-  embedUrl: string;
+export interface ReorderBlocksPayload {
+  blocks: Array<{ id: string; position: number }>;
 }
 
-export interface FanEmailCaptureBlockConfig {
-  headline: string;
-  placeholder: string;
-  ctaLabel: string;
+// ─── Type guards ──────────────────────────────────────────────────────────────
+
+export function isLinksBlock(block: Block): block is Block & { config: LinksBlockConfig } {
+  return block.type === 'links';
+}
+
+export function isMusicEmbedBlock(
+  block: Block,
+): block is Block & { config: MusicEmbedBlockConfig } {
+  return block.type === 'music_embed';
+}
+
+export function isVideoEmbedBlock(
+  block: Block,
+): block is Block & { config: VideoEmbedBlockConfig } {
+  return block.type === 'video_embed';
+}
+
+export function isEmailCaptureBlock(
+  block: Block,
+): block is Block & { config: EmailCaptureBlockConfig } {
+  return block.type === 'email_capture';
 }

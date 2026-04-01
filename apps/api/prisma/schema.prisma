@@ -7,8 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum AssetKind {
@@ -22,7 +23,6 @@ enum ArtistCategory {
   musician
   dj
   actor
-  actress
   painter
   visual_artist
   performer
@@ -90,6 +90,17 @@ model Artist {
   coverUrl      String?  @map("cover_url")
   avatarAssetId String?  @unique @map("avatar_asset_id")
   coverAssetId  String?  @unique @map("cover_asset_id")
+  // Social links
+  instagramUrl  String?  @map("instagram_url")
+  tiktokUrl     String?  @map("tiktok_url")
+  youtubeUrl    String?  @map("youtube_url")
+  spotifyUrl    String?  @map("spotify_url")
+  soundcloudUrl String?  @map("soundcloud_url")
+  websiteUrl    String?  @map("website_url")
+  contactEmail  String?  @map("contact_email")
+  // SEO
+  seoTitle      String?  @map("seo_title")
+  seoDescription String? @map("seo_description")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -102,6 +113,8 @@ model Artist {
   avatarAsset     Asset?   @relation("ArtistAvatar", fields: [avatarAssetId], references: [id], onDelete: SetNull)
   coverAsset      Asset?   @relation("ArtistCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
   memberships     ArtistMembership[]
+  smartLinks      SmartLink[]
+  subscribers     Subscriber[]
 
   @@map("artists")
 }
@@ -160,8 +173,9 @@ model Page {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  artist  Artist  @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  blocks  Block[]
+  artist      Artist       @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  blocks      Block[]
+  subscribers Subscriber[]
 
   @@map("pages")
 }
@@ -169,28 +183,28 @@ model Page {
 // =============================================================
 // BLOCKS
 // Bloques de contenido ordenados en la página pública.
-// Discriminated union vía el campo `type`.
+// Discriminated union vía el campo `type` + config JSON validada
+// server-side según el tipo (ver blocks/schemas/block-config.schema.ts).
 // =============================================================
 enum BlockType {
-  link
-  music
-  video
-  fan_capture
+  links
+  music_embed
+  video_embed
+  email_capture
 
   @@map("block_type")
 }
 
 model Block {
-  id        String    @id @default(cuid())
-  pageId    String    @map("page_id")
-  type      BlockType
-  title     String?
-  url       String?
-  position  Int       @default(0)
-  isVisible Boolean   @default(true) @map("is_visible")
-  metadata  Json?     // Datos extra por tipo (ej: embedId para música/video)
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  id          String    @id @default(cuid())
+  pageId      String    @map("page_id")
+  type        BlockType
+  title       String?   // Etiqueta visible opcional (display label)
+  config      Json      @default("{}") // Shape validado por tipo en el backend
+  position    Int       @default(0)
+  isPublished Boolean   @default(false) @map("is_published")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   page        Page             @relation(fields: [pageId], references: [id], onDelete: Cascade)
   clickEvents AnalyticsEvent[]
@@ -202,48 +216,102 @@ model Block {
 
 // =============================================================
 // ANALYTICS EVENTS
-// Eventos crudos de page_view y link_click.
-// IP hasheada para deduplicación sin almacenar PII.
+// Raw events: page_view, link_click, smart_link_resolution, fan_capture_submit.
+// IP hashed (SHA-256) to enable deduplication without storing PII.
+// Link-specific fields (linkItemId, label, etc.) are null for page_view.
 // =============================================================
 enum EventType {
   page_view
   link_click
+  smart_link_resolution
+  fan_capture_submit
 
   @@map("event_type")
 }
 
+// T4-4: Typed enum for analytics event environment.
+// Using an enum instead of a plain String prevents silent misspellings
+// (e.g. 'prod', 'test') that would cause events to escape quality filtering.
+enum AnalyticsEnvironment {
+  production
+  staging
+  development
+
+  @@map("analytics_environment")
+}
+
 model AnalyticsEvent {
-  id         String    @id @default(cuid())
-  artistId   String    @map("artist_id")
-  blockId    String?   @map("block_id")   // Solo para link_click
-  eventType  EventType @map("event_type")
-  ipHash     String    @map("ip_hash")    // SHA-256 de IP — deduplicación
-  country    String?
-  device     String?
-  createdAt  DateTime  @default(now()) @map("created_at")
+  id          String    @id @default(cuid())
+  artistId    String    @map("artist_id")
+  blockId     String?   @map("block_id")      // link_click only
+  eventType   EventType @map("event_type")
+  ipHash      String    @map("ip_hash")        // SHA-256(ip) — deduplication
+  country     String?
+  device      String?
+  // Link-specific fields — null for page_view events
+  linkItemId  String?   @map("link_item_id")  // link_click / smart_link_resolution
+  label       String?                           // human-readable link label
+  isSmartLink Boolean   @default(false) @map("is_smart_link")
+  smartLinkId String?   @map("smart_link_id") // when isSmartLink = true
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // ─── Quality flags (T4-4) ──────────────────────────────────────────────────
+  // Persist everything; filter at query time for clean dashboard metrics.
+  // All flags default to the "clean" value so historical rows remain valid.
+  isBotSuspected     Boolean              @default(false) @map("is_bot_suspected")
+  isInternal         Boolean              @default(false) @map("is_internal")
+  isQa               Boolean              @default(false) @map("is_qa")
+  hasTrackingConsent Boolean?             @map("has_tracking_consent") // null = unknown (server-side events)
+  environment        AnalyticsEnvironment @default(production)         // enum-typed: production | staging | development
 
   artist  Artist  @relation(fields: [artistId], references: [id], onDelete: Cascade)
   block   Block?  @relation(fields: [blockId], references: [id], onDelete: SetNull)
 
   @@index([artistId, createdAt])
   @@index([artistId, eventType, createdAt])
+  @@index([artistId, linkItemId, createdAt], map: "analytics_events_artist_link_idx")
+  @@index([artistId, isBotSuspected, isInternal, isQa, environment], map: "analytics_events_quality_flags_idx")
   @@map("analytics_events")
 }
 
 // =============================================================
 // SUBSCRIBERS
-// Emails capturados vía bloque fan_capture.
+// Fans que dejaron su email en un bloque email_capture.
+//
+// Unique constraint: [artistId, email] — un fan no puede suscribirse
+// dos veces al mismo artista, pero sí a artistas distintos.
 // =============================================================
+enum SubscriberStatus {
+  active
+  unsubscribed
+
+  @@map("subscriber_status")
+}
+
 model Subscriber {
-  id        String   @id @default(cuid())
-  blockId   String   @map("block_id")
-  email     String
-  consent   Boolean  @default(true)
-  createdAt DateTime @default(now()) @map("created_at")
+  id             String           @id @default(cuid())
+  artistId       String           @map("artist_id")
+  blockId        String           @map("block_id")       // source block (for attribution)
+  pageId         String?          @map("page_id")        // page that hosted the block
+  email          String
+  status         SubscriberStatus @default(active)
+  consent        Boolean          @default(false)        // explicit consent given
+  consentText    String?          @map("consent_text")   // snapshot of label shown
+  ipHash         String?          @map("ip_hash")        // SHA-256(ip) — privacy-safe
+  sourcePagePath String?          @map("source_page_path") // URL path at submit time
+  locale         String?                                  // visitor locale
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
 
-  block Block @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  // Restrict: deleting a block must not silently destroy subscriber data.
+  // The artist's email list must be preserved even if the capture block is removed.
+  block  Block  @relation(fields: [blockId], references: [id], onDelete: Restrict)
+  page   Page?  @relation(fields: [pageId], references: [id], onDelete: SetNull)
 
-  @@unique([blockId, email])
+  @@unique([artistId, email], map: "subscribers_artist_id_email_key")
+  @@index([artistId, createdAt(sort: Desc)], map: "subscribers_artist_id_created_at_idx")
+  @@index([artistId, status], map: "subscribers_artist_id_status_idx")
   @@map("subscribers")
 }
 
@@ -316,6 +384,27 @@ model Subscription {
   artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
+}
+
+// =============================================================
+// SMART LINKS
+// Un SmartLink es una URL corta única que redirige a distintos
+// destinos según la plataforma del visitante (iOS/Android/desktop).
+// Las destinations se almacenan como JSON array validado server-side.
+// =============================================================
+model SmartLink {
+  id           String   @id @default(cuid())
+  artistId     String   @map("artist_id")
+  label        String   // Nombre interno del artista, ej. "Nuevo álbum"
+  destinations Json     @default("[]") // SmartLinkDestination[]
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([artistId])
+  @@map("smart_links")
 }
 
 // =============================================================

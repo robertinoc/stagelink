@@ -5,8 +5,13 @@
     "login": "Iniciar sesión",
     "signup": "Comenzar",
     "dashboard": "Panel",
+    "my_page": "Mi Página",
+    "analytics": "Analíticas",
+    "profile": "Perfil",
+    "billing": "Facturación",
     "settings": "Configuración",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "view_page": "Ver mi página"
   },
   "marketing": {
     "hero": {
@@ -72,13 +77,241 @@
       "title": "Tu página está lista",
       "description": "Empezá a agregar bloques para construir tu página.",
       "cta": "Agregar primer bloque"
+    },
+    "page": {
+      "title": "Mi Página",
+      "description": "Construí y personalizá tu página de artista.",
+      "coming_soon": "Constructor de página próximamente",
+      "coming_soon_description": "Acá vas a poder construir tu página con bloques, links y multimedia."
+    },
+    "analytics": {
+      "title": "Analíticas",
+      "description": "Seguí el rendimiento de tu página.",
+      "range": {
+        "7d": "Últimos 7 días",
+        "30d": "Últimos 30 días",
+        "90d": "Últimos 90 días"
+      },
+      "stats": {
+        "page_views": "Visitas a la página",
+        "link_clicks": "Clicks en links",
+        "ctr": "CTR",
+        "smart_link_resolutions": "Resoluciones de smart link",
+        "ctr_hint": "Clicks en links ÷ visitas a la página"
+      },
+      "top_links": {
+        "title": "Top links",
+        "description": "Links más clickeados en este período.",
+        "rank": "#",
+        "label": "Link",
+        "clicks": "Clicks",
+        "smart_link_badge": "Smart link",
+        "no_data": "No se registraron clicks en links en este período."
+      },
+      "empty": {
+        "title": "Sin actividad todavía",
+        "description": "Compartí tu página para empezar a ver analíticas.",
+        "cta_page": "Ver mi página",
+        "cta_links": "Agregar links"
+      },
+      "error": {
+        "title": "No se pudieron cargar las analíticas",
+        "description": "Hubo un problema al obtener los datos. Por favor intentá de nuevo.",
+        "retry": "Reintentar"
+      },
+      "notes": {
+        "basic_quality": "Analíticas básicas · Filtrado de bots aplicado en la ingesta · Deduplicación de visitantes únicos próximamente",
+        "standard_quality": "Tráfico de bots, interno y QA excluido · Solo eventos de producción · Deduplicación de visitantes únicos próximamente"
+      }
+    },
+    "profile": {
+      "title": "Perfil",
+      "description": "Administrá tu perfil, imágenes, redes sociales y SEO.",
+      "sections": {
+        "images": "Imágenes",
+        "images_hint": "Los cambios se guardan inmediatamente al subir.",
+        "basic": "Información básica",
+        "social": "Redes y contacto",
+        "social_hint": "Agregá tus links para que los fans te encuentren. Dejá en blanco para ocultar.",
+        "seo": "SEO y visibilidad",
+        "seo_hint": "Controlá cómo aparece tu página en resultados de búsqueda."
+      },
+      "fields": {
+        "display_name": "Nombre artístico",
+        "bio": "Bio corta",
+        "category": "Categoría",
+        "instagram": "Instagram",
+        "tiktok": "TikTok",
+        "youtube": "YouTube",
+        "spotify": "Spotify",
+        "soundcloud": "SoundCloud",
+        "website": "Sitio web",
+        "contact_email": "Email de contacto",
+        "contact_email_hint": "Contacto público para booking o prensa. No se usa para iniciar sesión.",
+        "seo_title": "Título de página",
+        "seo_title_hint": "Recomendado: 50–60 caracteres",
+        "seo_description": "Meta descripción",
+        "seo_description_hint": "Recomendado: 120–160 caracteres",
+        "username_readonly_hint": "El cambio de username requiere verificación de identidad y no está disponible aún."
+      },
+      "save": "Guardar perfil",
+      "saving": "Guardando…",
+      "saved": "Perfil guardado correctamente.",
+      "unsaved": "Tenés cambios sin guardar.",
+      "cover": "Imagen de portada",
+      "avatar": "Foto de perfil"
+    },
+    "billing": {
+      "title": "Facturación",
+      "description": "Administrá tu suscripción y métodos de pago.",
+      "coming_soon": "Facturación próximamente",
+      "coming_soon_description": "La gestión de suscripciones y detalles de facturación estarán disponibles acá."
+    },
+    "settings": {
+      "title": "Configuración",
+      "description": "Configurá las preferencias de tu cuenta.",
+      "coming_soon": "Configuración de cuenta próximamente",
+      "coming_soon_description": "Idioma, notificaciones, seguridad y más se podrán configurar acá."
     }
   },
-  "settings": {
-    "title": "Configuración",
-    "profile": "Perfil",
-    "account": "Cuenta",
-    "billing": "Facturación"
+  "blocks": {
+    "title": "Mi Página",
+    "description": "Construí tu página de artista con bloques.",
+    "add_block": "Agregar bloque",
+    "empty_title": "Todavía no hay bloques",
+    "empty_description": "Agregá tu primer bloque para empezar a construir tu página.",
+    "loading": "Cargando bloques...",
+    "error": "No se pudieron cargar los bloques.",
+    "published": "Publicado",
+    "draft": "Borrador",
+    "publish": "Publicar",
+    "unpublish": "Despublicar",
+    "move_up": "Subir",
+    "move_down": "Bajar",
+    "delete_confirm": "¿Estás seguro de que querés eliminar este bloque? Esta acción no se puede deshacer.",
+    "saving": "Guardando...",
+    "save_error": "No se pudieron guardar los cambios.",
+    "types": {
+      "links": "Links",
+      "music_embed": "Música",
+      "video_embed": "Video",
+      "email_capture": "Captura de emails"
+    },
+    "type_descriptions": {
+      "links": "Agregá links a tus perfiles, sitio web o cualquier lugar.",
+      "music_embed": "Incrustá una canción o playlist de Spotify, SoundCloud y más.",
+      "video_embed": "Incrustá un video de YouTube, Vimeo o TikTok.",
+      "email_capture": "Recopilá emails de tus fans."
+    },
+    "fields": {
+      "title": "Título del bloque (opcional)",
+      "title_placeholder": "ej. Mis Links, Último lanzamiento...",
+      "label": "Etiqueta",
+      "url": "URL",
+      "link_n": "Link {n}",
+      "add_link": "Agregar link",
+      "remove_link": "Quitar",
+      "move_up": "Subir",
+      "move_down": "Bajar",
+      "icon_none": "Sin ícono",
+      "open_in_new_tab": "Abrir en nueva pestaña",
+      "kind_url": "URL directa",
+      "kind_smart_link": "Smart Link",
+      "provider": "Plataforma",
+      "source_url": "URL",
+      "source_url_hint_spotify": "ej. https://open.spotify.com/track/…",
+      "source_url_hint_apple_music": "ej. https://music.apple.com/ar/album/…",
+      "source_url_hint_soundcloud": "ej. https://soundcloud.com/artista/cancion",
+      "source_url_hint_youtube_music": "ej. https://www.youtube.com/watch?v=…",
+      "source_url_hint_youtube_video": "ej. https://www.youtube.com/watch?v=… o https://youtu.be/…",
+      "source_url_hint_vimeo": "ej. https://vimeo.com/123456789",
+      "source_url_hint_tiktok": "ej. https://www.tiktok.com/@usuario/video/…",
+      "headline": "Titular",
+      "headline_placeholder": "ej. Unite a mi comunidad",
+      "button_label": "Texto del botón",
+      "button_label_placeholder": "ej. Suscribirme",
+      "description": "Descripción (opcional)",
+      "placeholder_text": "Placeholder del email (opcional)",
+      "placeholder_text_placeholder": "ej. tu@email.com",
+      "success_message": "Mensaje de éxito (opcional)",
+      "success_message_placeholder": "ej. ¡Gracias por unirte!",
+      "consent_section": "Consentimiento",
+      "require_consent": "Requerir checkbox de consentimiento explícito",
+      "consent_label": "Texto del consentimiento",
+      "consent_label_placeholder": "ej. Acepto recibir novedades de este artista."
+    },
+    "smart_link": {
+      "destination": "Destino",
+      "destinations": "Destinos",
+      "add_destination": "Agregar destino",
+      "remove_destination": "Eliminar",
+      "destination_label_placeholder": "Etiqueta (opcional, ej. App Store)",
+      "label": "Nombre interno",
+      "label_placeholder": "ej. Nuevo álbum",
+      "label_required": "El nombre es obligatorio.",
+      "destinations_required": "Se requiere al menos un destino.",
+      "url_required": "Todos los destinos deben tener una URL.",
+      "save": "Guardar smart link",
+      "saving": "Guardando…",
+      "save_error": "Error al guardar el smart link.",
+      "cancel": "Cancelar",
+      "loading": "Cargando smart links…",
+      "load_error": "No se pudieron cargar los smart links.",
+      "retry": "Reintentar",
+      "no_smart_links": "Aún no hay smart links.",
+      "new_smart_link": "Crear nuevo smart link",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "deleting": "Eliminando…",
+      "delete_confirm": "¿Eliminar este smart link? Los bloques que lo usen mostrarán un link roto. Esta acción no se puede deshacer.",
+      "delete_error": "Error al eliminar el smart link.",
+      "platform": {
+        "ios": "🍎 iOS (iPhone / iPad)",
+        "android": "🤖 Android",
+        "desktop": "🖥️ Escritorio",
+        "all": "🌐 Todas las plataformas (fallback)"
+      }
+    },
+    "create_dialog": {
+      "title": "Agregar un bloque",
+      "subtitle": "Elegí el tipo de bloque para agregar a tu página."
+    },
+    "edit_sheet": {
+      "title": "Editar bloque",
+      "save": "Guardar cambios"
+    },
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "renderer": {
+      "embed_unavailable": "Vista previa no disponible",
+      "email_capture": {
+        "email_placeholder": "tu@email.com",
+        "submitting": "Suscribiendo…",
+        "success_heading": "¡Ya estás dentro!",
+        "success_message": "Gracias por suscribirte.",
+        "error": "Algo salió mal. Por favor, intentá de nuevo.",
+        "invalid_email": "Por favor ingresá un email válido.",
+        "preview_hint": "El formulario está inactivo en modo vista previa.",
+        "consent_default": "Acepto recibir novedades de este artista.",
+        "consent_required": "Por favor acepta los términos para continuar."
+      }
+    }
+  },
+  "public_page": {
+    "no_blocks": "Todavía no hay contenido aquí.",
+    "powered_by": "Creado con",
+    "powered_by_brand": "StageLink",
+    "cover_image_alt": "Imagen de portada de {name}",
+    "seo_description_fallback": "Visitá la página de {name} en StageLink",
+    "not_found_title": "Página no encontrada",
+    "not_found_description": "Esta página de artista no existe o todavía no fue publicada.",
+    "not_found_cta": "Ir al inicio",
+    "consent_banner": {
+      "notice": "Esta página contabiliza visitas y clics para ayudar al artista a entender su audiencia. Al hacer clic en \"Entendido\" habilitás analíticas adicionales. No se venden ni comparten datos personales.",
+      "accept": "Entendido",
+      "reject": "No, gracias"
+    }
   },
   "common": {
     "loading": "Cargando...",

@@ -7,15 +7,14 @@
 
 // ── Bloques ────────────────────────────────────────────────────
 
-export type PublicBlockType = 'link' | 'music' | 'video' | 'fan_capture';
+export type PublicBlockType = 'links' | 'music_embed' | 'video_embed' | 'email_capture';
 
 export interface PublicBlockDto {
   id: string;
   type: PublicBlockType;
   title: string | null;
-  url: string | null;
   position: number;
-  metadata: Record<string, unknown> | null;
+  config: Record<string, unknown>;
 }
 
 // ── Artista (campos públicos) ──────────────────────────────────
@@ -26,11 +25,21 @@ export interface PublicArtistDto {
   bio: string | null;
   avatarUrl: string | null;
   coverUrl: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
 }
 
 // ── Respuesta completa de página pública ──────────────────────
 
 export interface PublicPageResponseDto {
+  /**
+   * Stable internal UUID for the artist.
+   * Included for client-side analytics joins — NOT PII.
+   * Matches the artistId used in server-side analytics events.
+   */
+  artistId: string;
+  /** Stable internal UUID for the page — needed for per-page click analytics. */
+  pageId: string;
   /** Página de artista visible públicamente */
   artist: PublicArtistDto;
   blocks: PublicBlockDto[];

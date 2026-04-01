@@ -3,3 +3,5 @@ export * from './artist';
 export * from './page';
 export * from './block';
 export * from './asset';
+export * from './smart-link';
+export * from './analytics';

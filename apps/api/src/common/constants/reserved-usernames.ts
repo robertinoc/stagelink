@@ -31,6 +31,7 @@ export const RESERVED_USERNAMES: ReadonlySet<string> = new Set([
   // ── Rutas de plataforma / dashboard ──────────────────────────
   'admin',
   'dashboard',
+  'onboarding',
   'settings',
   'account',
   'profile',

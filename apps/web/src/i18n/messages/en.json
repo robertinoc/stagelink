@@ -5,8 +5,13 @@
     "login": "Log in",
     "signup": "Get started",
     "dashboard": "Dashboard",
+    "my_page": "My Page",
+    "analytics": "Analytics",
+    "profile": "Profile",
+    "billing": "Billing",
     "settings": "Settings",
-    "logout": "Log out"
+    "logout": "Log out",
+    "view_page": "View my page"
   },
   "marketing": {
     "hero": {
@@ -72,13 +77,241 @@
       "title": "Your page is ready",
       "description": "Start adding blocks to build your artist page.",
       "cta": "Add first block"
+    },
+    "page": {
+      "title": "My Page",
+      "description": "Build and customize your artist page.",
+      "coming_soon": "Page builder coming soon",
+      "coming_soon_description": "This is where you'll build your artist page with blocks, links, and media."
+    },
+    "analytics": {
+      "title": "Analytics",
+      "description": "Track how your page is performing.",
+      "range": {
+        "7d": "Last 7 days",
+        "30d": "Last 30 days",
+        "90d": "Last 90 days"
+      },
+      "stats": {
+        "page_views": "Page views",
+        "link_clicks": "Link clicks",
+        "ctr": "CTR",
+        "smart_link_resolutions": "Smart link resolutions",
+        "ctr_hint": "Link clicks ÷ page views"
+      },
+      "top_links": {
+        "title": "Top links",
+        "description": "Most clicked links in this period.",
+        "rank": "#",
+        "label": "Link",
+        "clicks": "Clicks",
+        "smart_link_badge": "Smart link",
+        "no_data": "No link clicks recorded in this period."
+      },
+      "empty": {
+        "title": "No activity yet",
+        "description": "Share your page to start seeing analytics.",
+        "cta_page": "View my page",
+        "cta_links": "Add links"
+      },
+      "error": {
+        "title": "Could not load analytics",
+        "description": "There was a problem fetching your data. Please try again.",
+        "retry": "Retry"
+      },
+      "notes": {
+        "basic_quality": "Basic analytics · Bot filtering applied at ingestion · Unique visitor deduplication coming soon",
+        "standard_quality": "Bot, internal & QA traffic excluded · Production events only · Unique visitor deduplication coming soon"
+      }
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Manage your artist profile, images, social links and SEO.",
+      "sections": {
+        "images": "Images",
+        "images_hint": "Changes are saved immediately after uploading.",
+        "basic": "Basic Info",
+        "social": "Social & Contact",
+        "social_hint": "Add your links so fans can find you everywhere. Leave blank to hide.",
+        "seo": "SEO & Discoverability",
+        "seo_hint": "Control how your page appears in search results."
+      },
+      "fields": {
+        "display_name": "Artist name",
+        "bio": "Short bio",
+        "category": "Category",
+        "instagram": "Instagram",
+        "tiktok": "TikTok",
+        "youtube": "YouTube",
+        "spotify": "Spotify",
+        "soundcloud": "SoundCloud",
+        "website": "Website",
+        "contact_email": "Contact email",
+        "contact_email_hint": "Public booking or press contact. Not used for login.",
+        "seo_title": "Page title",
+        "seo_title_hint": "Recommended: 50–60 characters",
+        "seo_description": "Meta description",
+        "seo_description_hint": "Recommended: 120–160 characters",
+        "username_readonly_hint": "Username changes require identity verification and are not available yet."
+      },
+      "save": "Save profile",
+      "saving": "Saving…",
+      "saved": "Profile saved successfully.",
+      "unsaved": "You have unsaved changes.",
+      "cover": "Cover image",
+      "avatar": "Profile picture"
+    },
+    "billing": {
+      "title": "Billing",
+      "description": "Manage your subscription and payment methods.",
+      "coming_soon": "Billing coming soon",
+      "coming_soon_description": "Subscription management and billing details will be available here."
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Configure your account preferences.",
+      "coming_soon": "Account settings coming soon",
+      "coming_soon_description": "Language, notifications, security and more will be configurable here."
     }
   },
-  "settings": {
-    "title": "Settings",
-    "profile": "Profile",
-    "account": "Account",
-    "billing": "Billing"
+  "blocks": {
+    "title": "My Page",
+    "description": "Build your artist page with blocks.",
+    "add_block": "Add block",
+    "empty_title": "No blocks yet",
+    "empty_description": "Add your first block to start building your page.",
+    "loading": "Loading blocks...",
+    "error": "Failed to load blocks.",
+    "published": "Published",
+    "draft": "Draft",
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "delete_confirm": "Are you sure you want to delete this block? This action cannot be undone.",
+    "saving": "Saving...",
+    "save_error": "Failed to save changes.",
+    "types": {
+      "links": "Links",
+      "music_embed": "Music",
+      "video_embed": "Video",
+      "email_capture": "Email Capture"
+    },
+    "type_descriptions": {
+      "links": "Add clickable links to your profiles, website or anywhere.",
+      "music_embed": "Embed a track or playlist from Spotify, SoundCloud and more.",
+      "video_embed": "Embed a video from YouTube, Vimeo or TikTok.",
+      "email_capture": "Collect email addresses from your fans."
+    },
+    "fields": {
+      "title": "Block title (optional)",
+      "title_placeholder": "e.g. My Links, Latest Release...",
+      "label": "Label",
+      "url": "URL",
+      "link_n": "Link {n}",
+      "add_link": "Add link",
+      "remove_link": "Remove",
+      "move_up": "Move up",
+      "move_down": "Move down",
+      "icon_none": "No icon",
+      "open_in_new_tab": "Open in new tab",
+      "kind_url": "Direct URL",
+      "kind_smart_link": "Smart Link",
+      "provider": "Platform",
+      "source_url": "URL",
+      "source_url_hint_spotify": "e.g. https://open.spotify.com/track/…",
+      "source_url_hint_apple_music": "e.g. https://music.apple.com/us/album/…",
+      "source_url_hint_soundcloud": "e.g. https://soundcloud.com/artist/track",
+      "source_url_hint_youtube_music": "e.g. https://www.youtube.com/watch?v=…",
+      "source_url_hint_youtube_video": "e.g. https://www.youtube.com/watch?v=… or https://youtu.be/…",
+      "source_url_hint_vimeo": "e.g. https://vimeo.com/123456789",
+      "source_url_hint_tiktok": "e.g. https://www.tiktok.com/@user/video/…",
+      "headline": "Headline",
+      "headline_placeholder": "e.g. Join my community",
+      "button_label": "Button label",
+      "button_label_placeholder": "e.g. Subscribe",
+      "description": "Description (optional)",
+      "placeholder_text": "Email placeholder (optional)",
+      "placeholder_text_placeholder": "e.g. your@email.com",
+      "success_message": "Success message (optional)",
+      "success_message_placeholder": "e.g. Thanks for joining!",
+      "consent_section": "Consent",
+      "require_consent": "Require explicit consent checkbox",
+      "consent_label": "Consent label text",
+      "consent_label_placeholder": "e.g. I agree to receive updates from this artist."
+    },
+    "smart_link": {
+      "destination": "Destination",
+      "destinations": "Destinations",
+      "add_destination": "Add destination",
+      "remove_destination": "Remove",
+      "destination_label_placeholder": "Label (optional, e.g. App Store)",
+      "label": "Internal name",
+      "label_placeholder": "e.g. New Album",
+      "label_required": "Name is required.",
+      "destinations_required": "At least one destination is required.",
+      "url_required": "All destinations must have a URL.",
+      "save": "Save smart link",
+      "saving": "Saving…",
+      "save_error": "Failed to save smart link.",
+      "cancel": "Cancel",
+      "loading": "Loading smart links…",
+      "load_error": "Failed to load smart links.",
+      "retry": "Retry",
+      "no_smart_links": "No smart links yet.",
+      "new_smart_link": "Create new smart link",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleting": "Deleting…",
+      "delete_confirm": "Delete this smart link? Any blocks using it will show a broken link. This cannot be undone.",
+      "delete_error": "Failed to delete smart link.",
+      "platform": {
+        "ios": "🍎 iOS (iPhone / iPad)",
+        "android": "🤖 Android",
+        "desktop": "🖥️ Desktop",
+        "all": "🌐 All platforms (fallback)"
+      }
+    },
+    "create_dialog": {
+      "title": "Add a block",
+      "subtitle": "Choose the type of block to add to your page."
+    },
+    "edit_sheet": {
+      "title": "Edit block",
+      "save": "Save changes"
+    },
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "renderer": {
+      "embed_unavailable": "Preview unavailable",
+      "email_capture": {
+        "email_placeholder": "your@email.com",
+        "submitting": "Subscribing…",
+        "success_heading": "You're in!",
+        "success_message": "Thanks for subscribing.",
+        "error": "Something went wrong. Please try again.",
+        "invalid_email": "Please enter a valid email address.",
+        "preview_hint": "Form is inactive in preview mode.",
+        "consent_default": "I agree to receive updates from this artist.",
+        "consent_required": "Please accept the terms to continue."
+      }
+    }
+  },
+  "public_page": {
+    "no_blocks": "Nothing here yet.",
+    "powered_by": "Powered by",
+    "powered_by_brand": "StageLink",
+    "cover_image_alt": "{name}'s cover image",
+    "seo_description_fallback": "Check out {name}'s page on StageLink",
+    "not_found_title": "Page not found",
+    "not_found_description": "This artist page doesn't exist or hasn't been published yet.",
+    "not_found_cta": "Go home",
+    "consent_banner": {
+      "notice": "This page counts page views and link clicks to help the artist understand their audience. Clicking \"Got it\" enables additional analytics. No personal data is sold or shared.",
+      "accept": "Got it",
+      "reject": "No thanks"
+    }
   },
   "common": {
     "loading": "Loading...",

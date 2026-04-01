@@ -1,5 +1,3 @@
-// ── Membership ────────────────────────────────────────────────
-
 export type ArtistRole = 'owner' | 'admin' | 'editor' | 'viewer';
 
 export interface ArtistMembership {
@@ -11,13 +9,10 @@ export interface ArtistMembership {
   updatedAt: string;
 }
 
-// ── Tipos internos (autenticados) ────────────────────────────
-
 export type ArtistCategory =
   | 'musician'
   | 'dj'
   | 'actor'
-  | 'actress'
   | 'painter'
   | 'visual_artist'
   | 'performer'
@@ -26,54 +21,57 @@ export type ArtistCategory =
   | 'producer'
   | 'other';
 
-/** Artista completo — solo para contexto autenticado (dashboard, API privada) */
 export interface Artist {
   id: string;
   userId: string;
-  username: string; // unique, resolves public URL
+  username: string;
   displayName: string;
-  bio?: string;
-  avatarUrl?: string;
-  coverUrl?: string;
+  bio: string | null;
+  avatarUrl: string | null;
+  coverUrl: string | null;
   category: ArtistCategory;
-  createdAt: Date;
-  updatedAt: Date;
+  instagramUrl: string | null;
+  tiktokUrl: string | null;
+  youtubeUrl: string | null;
+  spotifyUrl: string | null;
+  soundcloudUrl: string | null;
+  websiteUrl: string | null;
+  contactEmail: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// ── Tipos públicos (sin autenticación) ───────────────────────
+import type { BlockType, BlockConfig } from './block';
 
-export type PublicBlockType = 'link' | 'music' | 'video' | 'fan_capture';
-
-/** Bloque visible públicamente en una página de artista */
 export interface PublicBlock {
   id: string;
-  type: PublicBlockType;
+  type: BlockType;
   title: string | null;
-  url: string | null;
   position: number;
-  metadata: Record<string, unknown> | null;
+  config: BlockConfig;
 }
 
-/** Datos públicos del artista — sin userId ni datos privados */
 export interface PublicArtist {
   username: string;
   displayName: string;
   bio: string | null;
   avatarUrl: string | null;
   coverUrl: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
 }
 
-/** Respuesta de GET /api/public/pages/by-username/:username */
 export interface PublicPageResponse {
+  artistId: string;
+  pageId: string;
   artist: PublicArtist;
   blocks: PublicBlock[];
 }
 
-// ── Custom domains ────────────────────────────────────────────
-
 export type CustomDomainStatus = 'pending' | 'active' | 'failed' | 'disabled';
 
-/** Dominio personalizado vinculado a un artista */
 export interface CustomDomain {
   id: string;
   artistId: string;

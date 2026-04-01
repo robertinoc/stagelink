@@ -1,62 +1,81 @@
-import { IsString, IsOptional, IsUrl, IsInt, Min, Max, IsIn } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsIn,
+  IsArray,
+  ValidateNested,
+  IsInt,
+  Min,
+  Max,
+  IsObject,
+  MaxLength,
+  ArrayMinSize,
+  ArrayMaxSize,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
-/**
- * Block types supported in MVP.
- * Matches the discriminated union in @stagelink/types.
- */
-export const BLOCK_TYPES = ['link', 'music', 'video', 'fan_capture'] as const;
-export type BlockType = (typeof BLOCK_TYPES)[number];
+export const BLOCK_TYPES = ['links', 'music_embed', 'video_embed', 'email_capture'] as const;
+export type BlockTypeValue = (typeof BLOCK_TYPES)[number];
 
-/**
- * CreateBlockDto — POST /api/blocks
- * Uses a discriminated union approach via `type` field.
- * Specific field validation per type will be enforced at the service level (T3).
- */
+// =============================================================
+// CreateBlockDto — POST /api/pages/:pageId/blocks
+// =============================================================
 export class CreateBlockDto {
-  @IsString()
-  pageId!: string;
-
   @IsIn(BLOCK_TYPES)
-  type!: BlockType;
+  type!: BlockTypeValue;
 
   @IsOptional()
   @IsString()
+  @MaxLength(200)
   title?: string;
 
-  @IsOptional()
-  @IsUrl()
-  url?: string;
-
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  position!: number;
+  /**
+   * Config shape depends on `type`. Validated per-type in BlocksService
+   * using validateBlockConfig() — class-validator only checks it's a plain object.
+   */
+  @IsObject()
+  config!: Record<string, unknown>;
 }
 
-/**
- * UpdateBlockDto — PATCH /api/blocks/:id
- */
+// =============================================================
+// UpdateBlockDto — PATCH /api/blocks/:blockId
+// =============================================================
 export class UpdateBlockDto {
   @IsOptional()
   @IsString()
+  @MaxLength(200)
   title?: string;
 
+  /**
+   * Partial config update. The service merges this with the existing config
+   * and re-validates the full resulting config for the block type.
+   */
   @IsOptional()
-  @IsUrl()
-  url?: string;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(100)
-  position?: number;
+  @IsObject()
+  config?: Record<string, unknown>;
 }
 
-/**
- * ReorderBlocksDto — POST /api/blocks/reorder
- * Batch update positions after drag-and-drop.
- */
+// =============================================================
+// ReorderBlockDto — single item inside ReorderBlocksDto.blocks
+// =============================================================
+export class ReorderBlockDto {
+  @IsString()
+  id!: string;
+
+  @IsInt()
+  @Min(0)
+  @Max(9999)
+  position!: number;
+}
+
+// =============================================================
+// ReorderBlocksDto — PATCH /api/pages/:pageId/blocks/reorder
+// =============================================================
 export class ReorderBlocksDto {
-  @IsString({ each: true })
-  orderedIds!: string[];
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(50) // matches MAX_BLOCKS_PER_PAGE
+  @ValidateNested({ each: true })
+  @Type(() => ReorderBlockDto)
+  blocks!: ReorderBlockDto[];
 }

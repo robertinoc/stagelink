@@ -1,0 +1,2 @@
+-- No-op: subscribers table and its indexes/constraints already exist from the init migration.
+-- This migration was generated in error and is kept only to preserve the migration history.

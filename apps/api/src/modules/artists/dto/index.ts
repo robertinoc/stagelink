@@ -2,6 +2,8 @@ import {
   IsString,
   IsOptional,
   IsUrl,
+  IsEmail,
+  IsEnum,
   MaxLength,
   MinLength,
   Matches,
@@ -12,6 +14,7 @@ import {
   ValidationArguments,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { ArtistCategory } from '@prisma/client';
 import {
   normalizeUsername,
   validateUsernameFormat,
@@ -93,11 +96,18 @@ export class CreateArtistDto {
 }
 
 /**
- * UpdateArtistDto — PATCH /api/artists/:username
- * El username no se puede cambiar una vez creado (es la clave pública del tenant).
- * Todos los demás campos son opcionales.
+ * UpdateArtistDto — PATCH /api/artists/:id
+ *
+ * Username is NOT editable — it is the public multi-tenant key.
+ * Avatar and cover are managed exclusively through the assets pipeline.
+ * All fields are optional (partial update).
+ *
+ * URL fields: empty string is transformed to null (allows clearing a link).
+ * Email field: same empty → null transform.
  */
 export class UpdateArtistDto {
+  // ── Basic info ───────────────────────────────────────────────
+
   @IsOptional()
   @IsString()
   @MinLength(1)
@@ -107,9 +117,81 @@ export class UpdateArtistDto {
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  bio?: string;
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  bio?: string | null;
 
   @IsOptional()
-  @IsUrl()
-  avatarUrl?: string;
+  @IsEnum(ArtistCategory, { message: 'category must be a valid ArtistCategory' })
+  category?: ArtistCategory;
+
+  // ── Social links ─────────────────────────────────────────────
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'instagramUrl must be a valid URL' })
+  instagramUrl?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'tiktokUrl must be a valid URL' })
+  tiktokUrl?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'youtubeUrl must be a valid URL' })
+  youtubeUrl?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'spotifyUrl must be a valid URL' })
+  spotifyUrl?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'soundcloudUrl must be a valid URL' })
+  soundcloudUrl?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'websiteUrl must be a valid URL' })
+  websiteUrl?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsEmail({}, { message: 'contactEmail must be a valid email address' })
+  contactEmail?: string | null;
+
+  // ── SEO ──────────────────────────────────────────────────────
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(60, { message: 'SEO title must be 60 characters or less' })
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  seoTitle?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(160, { message: 'SEO description must be 160 characters or less' })
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  seoDescription?: string | null;
 }
