@@ -1,13 +1,14 @@
-import { getSignUpUrl } from '@workos-inc/authkit-nextjs';
+import { getSignInUrl } from '@workos-inc/authkit-nextjs';
 import { redirect } from 'next/navigation';
 
 /**
  * GET /api/auth/signup
  *
- * Generates the WorkOS sign-up URL and redirects the user to it.
- * Must live in a Route Handler because getSignUpUrl() writes auth state cookies.
+ * Temporary fallback: route signup through the same hosted auth flow as sign-in.
+ * This keeps the product demoable while the environment's self-signup flow is
+ * finalized in WorkOS.
  */
 export async function GET() {
-  const signUpUrl = await getSignUpUrl();
-  redirect(signUpUrl);
+  const signInUrl = await getSignInUrl();
+  redirect(signInUrl);
 }

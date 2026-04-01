@@ -106,7 +106,7 @@ export function LandingPage() {
               Log in
             </Link>
             <Link
-              href={`/${locale}/signup`}
+              href="/api/auth/signin"
               className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-950 transition hover:opacity-90"
             >
               Start free
@@ -132,7 +132,7 @@ export function LandingPage() {
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link
-                  href={`/${locale}/signup`}
+                  href="/api/auth/signin"
                   className="rounded-full bg-fuchsia-500 px-6 py-3 text-sm font-medium transition hover:opacity-90"
                 >
                   Create your page
@@ -357,7 +357,7 @@ export function LandingPage() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link
-                href={`/${locale}/signup`}
+                href="/api/auth/signin"
                 className="rounded-full bg-white px-6 py-3 text-sm font-medium text-zinc-950 transition hover:opacity-90"
               >
                 Start free
