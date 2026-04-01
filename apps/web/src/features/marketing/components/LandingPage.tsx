@@ -1,5 +1,8 @@
 'use client';
 
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+
 interface Feature {
   title: string;
   description: string;
@@ -15,6 +18,9 @@ interface Plan {
 }
 
 export function LandingPage() {
+  const params = useParams<{ locale?: string }>();
+  const locale = params?.locale ?? 'en';
+
   const features: Feature[] = [
     {
       title: 'Built for artists',
@@ -93,12 +99,18 @@ export function LandingPage() {
             </a>
           </nav>
           <div className="flex items-center gap-3">
-            <button className="rounded-full border border-white/15 px-4 py-2 text-sm text-zinc-200 transition hover:border-white/30 hover:text-white">
+            <Link
+              href={`/${locale}/login`}
+              className="rounded-full border border-white/15 px-4 py-2 text-sm text-zinc-200 transition hover:border-white/30 hover:text-white"
+            >
               Log in
-            </button>
-            <button className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-950 transition hover:opacity-90">
+            </Link>
+            <Link
+              href={`/${locale}/signup`}
+              className="rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-950 transition hover:opacity-90"
+            >
               Start free
-            </button>
+            </Link>
           </div>
         </div>
       </header>
@@ -119,9 +131,12 @@ export function LandingPage() {
                 music, videos, merch, events and fan signups in one beautiful place.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
-                <button className="rounded-full bg-fuchsia-500 px-6 py-3 text-sm font-medium transition hover:opacity-90">
+                <Link
+                  href={`/${locale}/signup`}
+                  className="rounded-full bg-fuchsia-500 px-6 py-3 text-sm font-medium transition hover:opacity-90"
+                >
                   Create your page
-                </button>
+                </Link>
                 <button className="rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-zinc-200 transition hover:border-white/30 hover:text-white">
                   See examples
                 </button>
@@ -341,9 +356,12 @@ export function LandingPage() {
               into the platform designed for creators.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <button className="rounded-full bg-white px-6 py-3 text-sm font-medium text-zinc-950 transition hover:opacity-90">
+              <Link
+                href={`/${locale}/signup`}
+                className="rounded-full bg-white px-6 py-3 text-sm font-medium text-zinc-950 transition hover:opacity-90"
+              >
                 Start free
-              </button>
+              </Link>
               <button className="rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-white transition hover:border-white/30">
                 Book a demo
               </button>
