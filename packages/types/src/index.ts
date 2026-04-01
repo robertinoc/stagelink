@@ -5,3 +5,4 @@ export * from './block';
 export * from './asset';
 export * from './smart-link';
 export * from './analytics';
+export * from './billing';

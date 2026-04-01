@@ -73,8 +73,12 @@ Estos orígenes están permitidos en el CORS del API gracias al patrón:
 
 1. Ir a [railway.app](https://railway.app) → New Project → Deploy from GitHub repo
 2. Seleccionar el repo `robertinoc/stagelink`
-3. **Root Directory**: `/` (raíz del monorepo — Railway lee `railway.json`)
-4. Railway detecta el `railway.json` y usa los comandos definidos ahí
+3. **Root Directory**: `/` (raíz del monorepo — Railway usa `railway.json`)
+4. Railway detecta el `railway.json` de la raíz y usa esa configuración
+5. Si el servicio ya existía, revisar en Deployment Details que no queden overrides operativos:
+   - `startCommand` debe quedar en `pnpm start`
+   - `preDeployCommand` debe quedar vacío
+   - `dockerfilePath` debe ser `apps/api/Dockerfile`
 
 ### Variables de entorno en Railway
 
@@ -82,13 +86,13 @@ Configurar en Railway Dashboard → Variables:
 
 ```bash
 NODE_ENV=production
-PORT=4001                          # Railway lo sobreescribe automáticamente
 APP_URL=https://api.stagelink.io
 FRONTEND_URL=https://app.stagelink.io
 CORS_ALLOWED_ORIGINS=https://app.stagelink.io,https://staging.stagelink.io
 
 # PostgreSQL (Railway puede proveer una DB directamente)
-DATABASE_URL=postgresql://...
+DATABASE_URL=postgresql://...      # Pooler / runtime
+DIRECT_URL=postgresql://...        # Conexión directa para migraciones Prisma
 
 # WorkOS (cuando se implemente auth — T2)
 WORKOS_CLIENT_ID=
@@ -116,15 +120,13 @@ AWS_SECRET_ACCESS_KEY=
 git push origin main
        │
        ▼
-Railway detecta el push
+Railway detecta el push y usa `railway.json`
        │
        ▼
-pnpm install --frozen-lockfile
-pnpm --filter @stagelink/api build
+build Dockerfile: apps/api/Dockerfile
        │
        ▼
-pnpm --filter @stagelink/api db:migrate:prod   ← prisma migrate deploy
-pnpm --filter @stagelink/api start             ← node dist/main
+startCommand: pnpm start                       ← node dist/main
        │
        ▼
 Healthcheck: GET /api/health → 200 OK
@@ -132,6 +134,37 @@ Healthcheck: GET /api/health → 200 OK
        ▼
 Tráfico enrutado al nuevo deploy
 ```
+
+### Migraciones en Railway
+
+Las migraciones Prisma no se ejecutan en cada arranque del contenedor.
+
+Motivo:
+
+- el servicio no debe quedar caído solo porque `DIRECT_URL` esté temporalmente inaccesible
+- `prisma migrate deploy` depende de conexión directa estable a la base
+- no conviene duplicar migraciones en `preDeployCommand` y `startCommand`
+
+Flujo recomendado:
+
+1. deploy del servicio con `pnpm start`
+2. correr migraciones aparte cuando haga falta
+
+En Railway:
+
+- `preDeployCommand`: vacío
+- `startCommand`: `pnpm start`
+
+Comando:
+
+```bash
+pnpm db:migrate:prod
+```
+
+Si usás Supabase:
+
+- `DATABASE_URL` debe apuntar al pooler
+- `DIRECT_URL` debe apuntar a la conexión directa
 
 ### Staging en Railway
 

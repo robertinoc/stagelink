@@ -9,6 +9,10 @@ export interface AuthMeResponse {
   artistIds: string[];
 }
 
+export function getCurrentArtistId(me: AuthMeResponse | null): string | null {
+  return me?.artistIds[0] ?? null;
+}
+
 /**
  * Fetches the current user's identity from the backend.
  * Returns null if the request fails for any reason.

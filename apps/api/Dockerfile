@@ -31,15 +31,21 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy source and compile
 COPY . .
+# Build shared packages first — @stagelink/types points to dist/ (not src/),
+# so it must be compiled before the API build can resolve the module.
+# --ignore-scripts on install skips the prepare script, so we build explicitly.
+RUN pnpm --filter @stagelink/types build
 RUN pnpm --filter @stagelink/api exec prisma generate
 RUN pnpm --filter @stagelink/api build
 
 WORKDIR /app/apps/api
 
 ENV NODE_ENV=production
-EXPOSE 3000
+# Default port matches configuration.ts (PORT ?? 4001).
+# Railway injects $PORT at runtime and the app reads process.env.PORT —
+# this EXPOSE is documentation only, not a port binding.
+EXPOSE 4001
 
 # Direct node invocation — no shell wrapper, node is PID 1.
-# Migrations run via Railway's Pre-Deploy Command in Settings:
-#   cd /app/apps/api && node /app/node_modules/.bin/prisma migrate deploy
+# Start command (migrations + start) is defined in railway.toml.
 CMD ["node", "dist/main"]

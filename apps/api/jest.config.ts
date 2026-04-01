@@ -11,7 +11,7 @@ const config: Config = {
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
   moduleNameMapper: {
-    '^@stagelink/types$': '<rootDir>/../../packages/types/src',
+    '^@stagelink/types$': '<rootDir>/../../../packages/types/src',
   },
 };
 

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AnalyticsEnvironment } from '@prisma/client';
+import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { PrismaService } from '../../lib/prisma.service';
 import {
   ANALYTICS_RANGES,
@@ -43,7 +44,10 @@ const QUALITY_FILTER = {
 
 @Injectable()
 export class AnalyticsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly billingEntitlementsService: BillingEntitlementsService,
+  ) {}
 
   /**
    * Returns aggregated analytics for an artist over a preset date range.
@@ -60,6 +64,10 @@ export class AnalyticsService {
     const range: AnalyticsRange = ANALYTICS_RANGES.includes(rawRange as AnalyticsRange)
       ? (rawRange as AnalyticsRange)
       : '30d';
+
+    if (range === '365d') {
+      await this.billingEntitlementsService.assertFeatureAccess(artistId, 'analytics_pro');
+    }
 
     const rangeStart = new Date();
     rangeStart.setDate(rangeStart.getDate() - RANGE_DAYS[range]);

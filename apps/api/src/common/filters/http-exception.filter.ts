@@ -14,7 +14,17 @@ interface ErrorBody {
   message: string | string[];
   timestamp: string;
   path: string;
+  [key: string]: unknown;
 }
+
+const ALLOWED_ERROR_EXTRAS = new Set([
+  'code',
+  'feature',
+  'effectivePlan',
+  'billingPlan',
+  'subscriptionStatus',
+  'requiredPlan',
+]);
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -48,6 +58,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? (exceptionResponse as { error: string }).error
         : (HttpStatus[status] ?? 'Error');
 
+    const extras =
+      exceptionResponse !== null &&
+      typeof exceptionResponse === 'object' &&
+      !Array.isArray(exceptionResponse)
+        ? Object.fromEntries(
+            Object.entries(exceptionResponse).filter(
+              ([key]) =>
+                !['statusCode', 'error', 'message'].includes(key) && ALLOWED_ERROR_EXTRAS.has(key),
+            ),
+          )
+        : {};
+
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(
         `${request.method} ${request.url} → ${status}`,
@@ -63,6 +85,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message,
       timestamp: new Date().toISOString(),
       path: request.url,
+      ...extras,
     };
 
     response.status(status).json(body);

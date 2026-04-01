@@ -1,6 +1,6 @@
 // ─── Range ────────────────────────────────────────────────────────────────────
 
-export const ANALYTICS_RANGES = ['7d', '30d', '90d'] as const;
+export const ANALYTICS_RANGES = ['7d', '30d', '90d', '365d'] as const;
 export type AnalyticsRange = (typeof ANALYTICS_RANGES)[number];
 
 /** Days covered by each preset range. */
@@ -8,6 +8,7 @@ export const RANGE_DAYS: Record<AnalyticsRange, number> = {
   '7d': 7,
   '30d': 30,
   '90d': 90,
+  '365d': 365,
 };
 
 // ─── Top links ────────────────────────────────────────────────────────────────

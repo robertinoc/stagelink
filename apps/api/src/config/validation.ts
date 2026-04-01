@@ -17,6 +17,14 @@ export const validationSchema = Joi.object({
     then: Joi.string().required(),
     otherwise: optionalString,
   }),
+  // Prisma directUrl — required for migrations when DATABASE_URL routes through
+  // a connection pooler (e.g. Supabase PgBouncer). Without this, prisma migrate
+  // deploy fails silently at startup in production.
+  DIRECT_URL: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().required(),
+    otherwise: optionalString,
+  }),
 
   // Auth — required in production, optional in development
   WORKOS_CLIENT_ID: Joi.when('NODE_ENV', {
@@ -38,6 +46,8 @@ export const validationSchema = Joi.object({
   // Payments — required when Stripe is integrated (T5)
   STRIPE_SECRET_KEY: optionalString,
   STRIPE_WEBHOOK_SECRET: optionalString,
+  STRIPE_PRICE_PRO_ID: optionalString,
+  STRIPE_PRICE_PRO_PLUS_ID: optionalString,
 
   // Analytics — optional in all envs
   POSTHOG_KEY: optionalString,

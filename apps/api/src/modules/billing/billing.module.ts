@@ -1,10 +1,26 @@
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import Stripe from 'stripe';
+import { BillingEntitlementsService } from './billing-entitlements.service';
 import { BillingController } from './billing.controller';
 import { BillingService } from './billing.service';
+import { STRIPE_CLIENT } from './billing.service';
 
 @Module({
   controllers: [BillingController],
-  providers: [BillingService],
-  exports: [BillingService],
+  providers: [
+    BillingService,
+    BillingEntitlementsService,
+    {
+      provide: STRIPE_CLIENT,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const secretKey = configService.get<string>('stripe.secretKey');
+        if (!secretKey) return null;
+        return new Stripe(secretKey);
+      },
+    },
+  ],
+  exports: [BillingService, BillingEntitlementsService],
 })
 export class BillingModule {}

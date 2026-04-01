@@ -1,4 +1,4 @@
-import { IsString, IsIn } from 'class-validator';
+import { IsIn, IsUrl } from 'class-validator';
 
 export const BILLING_PLANS = ['free', 'pro', 'pro_plus'] as const;
 export type BillingPlan = (typeof BILLING_PLANS)[number];
@@ -8,11 +8,22 @@ export type BillingPlan = (typeof BILLING_PLANS)[number];
  * Initiates a Stripe Checkout session for plan upgrade.
  */
 export class CreateCheckoutSessionDto {
-  @IsString()
-  artistId!: string;
-
   @IsIn(BILLING_PLANS)
   plan!: BillingPlan;
+
+  @IsUrl({
+    require_tld: false,
+    require_protocol: true,
+  })
+  returnUrl!: string;
+}
+
+export class CreatePortalSessionDto {
+  @IsUrl({
+    require_tld: false,
+    require_protocol: true,
+  })
+  returnUrl!: string;
 }
 
 /**

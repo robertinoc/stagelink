@@ -90,7 +90,8 @@
       "range": {
         "7d": "Last 7 days",
         "30d": "Last 30 days",
-        "90d": "Last 90 days"
+        "90d": "Last 90 days",
+        "365d": "Last 365 days"
       },
       "stats": {
         "page_views": "Page views",
@@ -118,6 +119,12 @@
         "title": "Could not load analytics",
         "description": "There was a problem fetching your data. Please try again.",
         "retry": "Retry"
+      },
+      "locked": {
+        "title": "Advanced analytics are locked",
+        "description": "Your current plan is {currentPlan}. Upgrade to Pro+ to unlock a full 365-day view and advanced analytics features as they ship.",
+        "cta": "Upgrade plan",
+        "secondary_cta": "Manage page"
       },
       "notes": {
         "basic_quality": "Basic analytics · Bot filtering applied at ingestion · Unique visitor deduplication coming soon",
@@ -164,14 +171,94 @@
     "billing": {
       "title": "Billing",
       "description": "Manage your subscription and payment methods.",
-      "coming_soon": "Billing coming soon",
-      "coming_soon_description": "Subscription management and billing details will be available here."
+      "current_plan_title": "Current plan",
+      "current_plan_description": "Subscription status for {artist}.",
+      "product_fallback_description": "Pricing details will appear here when Stripe products are configured.",
+      "unavailable": "This plan is not available in the current environment yet.",
+      "badges": {
+        "current": "Current"
+      },
+      "fields": {
+        "status": "Status",
+        "renewal": "Renewal date",
+        "cancellation": "Cancellation",
+        "active": "Active",
+        "canceling": "Cancels at period end",
+        "not_available": "Not available"
+      },
+      "actions": {
+        "manage_billing": "Open billing portal",
+        "upgrade": "Go to checkout",
+        "current_plan": "Current plan",
+        "included": "Included",
+        "contact_sales": "Contact sales"
+      },
+      "messages": {
+        "checkout_success": "Checkout completed. Stripe will sync your subscription in a few seconds.",
+        "checkout_canceled": "Checkout was canceled. Your current subscription has not changed.",
+        "checkout_error": "We could not start Stripe Checkout. Please try again.",
+        "portal_error": "We could not open the Stripe Billing Portal. Please try again."
+      }
     },
     "settings": {
       "title": "Settings",
-      "description": "Configure your account preferences.",
-      "coming_soon": "Account settings coming soon",
-      "coming_soon_description": "Language, notifications, security and more will be configurable here."
+      "description": "Review plan-based capabilities for your artist workspace.",
+      "summary": {
+        "title": "Plan capabilities",
+        "description": "StageLink currently resolves this tenant as {plan}. Backend gating uses this effective plan, not only the billing UI.",
+        "backend_source": "The backend is the source of truth for feature authorization.",
+        "webhook_note": "Plan changes take effect after Stripe webhooks synchronize the tenant subscription.",
+        "cta": "Open billing",
+        "locked_count": "{count, plural, one {# locked feature} other {# locked features}}"
+      },
+      "badges": {
+        "included": "Included"
+      },
+      "feature_state": {
+        "included": "Included in your effective plan.",
+        "locked": "Locked until you upgrade to {plan}."
+      },
+      "actions": {
+        "upgrade": "Upgrade plan",
+        "manage_plan": "Manage plan"
+      },
+      "features": {
+        "remove_stagelink_branding": {
+          "title": "Remove StageLink branding",
+          "description": "Hide StageLink branding from the public experience.",
+          "note": "Branding controls are not shipped yet, but this gate is reserved for the Pro plan."
+        },
+        "custom_domain": {
+          "title": "Custom domain",
+          "description": "Connect your own domain to your public page.",
+          "note": "Custom domain activation is still pending implementation. The entitlement is already modeled for backend enforcement."
+        },
+        "shopify_integration": {
+          "title": "Shopify integration",
+          "description": "Connect storefront commerce flows to the artist experience.",
+          "note": "Shopify is a roadmap feature. When its module lands, backend gating will use this same capability key."
+        },
+        "epk_builder": {
+          "title": "EPK builder",
+          "description": "Create and publish richer press-kit experiences.",
+          "note": "EPK builder is not implemented yet. The entitlement is reserved for Pro and above."
+        },
+        "analytics_pro": {
+          "title": "Advanced analytics",
+          "description": "Unlock the 365-day analytics range and future premium breakdowns.",
+          "note": "This gate is enforced today on the private analytics API."
+        },
+        "multi_language_pages": {
+          "title": "Multi-language pages",
+          "description": "Publish localized versions of your public page.",
+          "note": "Localization for public pages is still roadmap, but the capability is defined now to avoid reworking billing later."
+        },
+        "advanced_fan_insights": {
+          "title": "Advanced fan insights",
+          "description": "Access deeper audience signals and future premium reporting.",
+          "note": "Advanced fan insights are not implemented yet. This capability is reserved for Pro+."
+        }
+      }
     }
   },
   "blocks": {

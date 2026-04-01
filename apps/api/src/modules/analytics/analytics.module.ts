@@ -1,4 +1,5 @@
 import { Global, Module } from '@nestjs/common';
+import { BillingModule } from '../billing/billing.module';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
 import { PostHogService } from './posthog.service';
@@ -15,6 +16,7 @@ import { PostHogService } from './posthog.service';
  */
 @Global()
 @Module({
+  imports: [BillingModule],
   controllers: [AnalyticsController],
   providers: [AnalyticsService, PostHogService],
   exports: [AnalyticsService, PostHogService],

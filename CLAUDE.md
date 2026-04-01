@@ -108,8 +108,8 @@ apps/
             ├── assets/     # Upload pipeline: POST /upload-intent + POST /:id/confirm
             ├── pages/      # CRUD páginas públicas (stub)
             ├── blocks/     # CRUD bloques (stub)
-            ├── analytics/  # GET /api/analytics/:artistId/overview — dashboard básico
-            └── billing/    # Stripe suscripciones (stub)
+            ├── analytics/  # Dashboard analytics + gating de analytics_pro para rango premium
+            └── billing/    # Stripe billing + entitlements por plan para feature gating
 packages/
 ├── types/                  # Interfaces compartidas (Artist, Page, Block, User, Asset, PublicPageResponse)
 ├── ui/                     # Wrappers shadcn + primitivos custom
@@ -119,7 +119,9 @@ docs/
 ├── auth-workos.md               # Flujo auth, rutas, variables, provisioning, seguridad
 ├── assets-s3.md                 # Pipeline S3, CORS, IAM, object key strategy, MinIO local, QA checklist
 ├── basic-analytics-dashboard.md # Fuente de verdad, métricas, API shape, limitaciones T4-2
-└── fan-email-capture-block.md   # Schema, modelo subscribers, anti-abuse, export, privacidad T4-3
+├── fan-email-capture-block.md   # Schema, modelo subscribers, anti-abuse, export, privacidad T4-3
+├── stripe-billing-foundation.md # Checkout, portal, webhooks, billing por artist (T5-1)
+└── plan-feature-gating.md       # effectivePlan, entitlements y patrón de gating por plan (T5-2)
 ```
 
 ---
@@ -444,6 +446,41 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
 - Frontend `BlockConfigForm`: campos de consent section, `successMessage`
 - i18n: `consent_default`, `consent_required` en `renderer.email_capture`; `success_message`, `consent_section`, `require_consent`, `consent_label` en `fields`
 - Docs: `docs/fan-email-capture-block.md` — schema, modelo, política de duplicados, anti-abuse, endpoints, export, privacidad, roadmap
+
+### T5-1 — Stripe: productos, checkout, portal y webhooks (completed)
+
+- Decisión de modelado: el billing pertenece al `artist`/tenant, no al `user`
+- `subscriptions` actúa como proyección interna mínima del estado de Stripe por artista
+- Migraciones billing: agrega `stripe_price_id`, `cancel_at_period_end` y tabla `stripe_webhook_events` para idempotencia por `stripe_event_id`
+- Backend billing real:
+  - `GET /api/billing/products`
+  - `GET /api/billing/:artistId/subscription`
+  - `POST /api/billing/:artistId/checkout`
+  - `POST /api/billing/:artistId/portal`
+  - `POST /api/billing/webhook`
+- Checkout:
+  - requiere auth + ownership sobre el artista
+  - el cliente envía `plan` interno (`pro` | `pro_plus`)
+  - el backend resuelve `price_id` desde config segura por entorno
+  - metadata mínima: `artistId`, `plan`, `username`, `initiatingUserId`, `environment`
+- Portal:
+  - requiere auth + ownership
+  - usa `stripe_customer_id` persistido del artista correcto
+- Webhooks:
+  - firma verificada con `STRIPE_WEBHOOK_SECRET`
+  - eventos soportados: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`
+  - idempotencia por tabla `stripe_webhook_events` + `upsert` de suscripción
+- Frontend billing:
+  - sección funcional en dashboard billing
+  - muestra plan/estado actual
+  - permite iniciar checkout y abrir customer portal
+  - el redirect de Stripe solo dispara feedback visual; el estado real se lee del backend
+- Config/env:
+  - `STRIPE_SECRET_KEY`
+  - `STRIPE_WEBHOOK_SECRET`
+  - `STRIPE_PRICE_PRO_ID`
+  - `STRIPE_PRICE_PRO_PLUS_ID`
+- Docs: `docs/stripe-billing-foundation.md`
 ### ⏳ Pendiente
 
 - T2-5: Implementar queries Prisma reales en módulos stub (artists, pages, blocks)
@@ -451,6 +488,7 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
 - Custom domains UI + DNS verification
 - Editor de bloques
 - T4-4: Deduplicación por IP hash, filtrado bots avanzado, exclusión tráfico interno, geo/device
+- T5-2: Feature gating por plan usando `subscriptions.plan` + `subscriptions.status`
 - T6-4: Analytics Pro (rangos custom, comparación, CSV export)
 
 ---
