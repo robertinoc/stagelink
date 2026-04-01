@@ -17,6 +17,15 @@ interface ErrorBody {
   [key: string]: unknown;
 }
 
+const ALLOWED_ERROR_EXTRAS = new Set([
+  'code',
+  'feature',
+  'effectivePlan',
+  'billingPlan',
+  'subscriptionStatus',
+  'requiredPlan',
+]);
+
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
@@ -55,7 +64,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
       !Array.isArray(exceptionResponse)
         ? Object.fromEntries(
             Object.entries(exceptionResponse).filter(
-              ([key]) => !['statusCode', 'error', 'message'].includes(key),
+              ([key]) =>
+                !['statusCode', 'error', 'message'].includes(key) && ALLOWED_ERROR_EXTRAS.has(key),
             ),
           )
         : {};

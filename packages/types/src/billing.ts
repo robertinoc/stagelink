@@ -45,7 +45,6 @@ export const FEATURE_MINIMUM_PLAN: Record<FeatureKey, PlanCode> = {
   advanced_fan_insights: 'pro_plus',
   shopify_integration: 'pro_plus',
 };
-
 export interface BillingSubscriptionSnapshot {
   plan: PlanCode;
   status: BillingSubscriptionStatus;

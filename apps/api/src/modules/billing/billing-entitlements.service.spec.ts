@@ -71,6 +71,18 @@ describe('BillingEntitlementsService', () => {
     const { service, prisma } = createService();
     prisma.subscription.findUnique.mockResolvedValue(null);
 
+    await expect(service.assertFeatureAccess('artist_free', 'analytics_pro')).rejects.toMatchObject(
+      {
+        response: expect.objectContaining({
+          code: 'FEATURE_NOT_INCLUDED_IN_PLAN',
+          feature: 'analytics_pro',
+          effectivePlan: 'free',
+          billingPlan: 'free',
+          subscriptionStatus: 'inactive',
+          requiredPlan: 'pro_plus',
+        }),
+      },
+    );
     await expect(
       service.assertFeatureAccess('artist_free', 'analytics_pro'),
     ).rejects.toBeInstanceOf(FeatureAccessException);
