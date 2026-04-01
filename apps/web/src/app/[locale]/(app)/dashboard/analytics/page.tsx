@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { getSession } from '@/lib/auth';
+import { getBillingEntitlements } from '@/lib/api/billing';
 import { getAuthMe } from '@/lib/api/me';
 import { getAnalyticsOverview, type AnalyticsRange } from '@/lib/api/analytics';
 import { AnalyticsDashboard } from '@/features/analytics/components/AnalyticsDashboard';
@@ -14,7 +15,7 @@ interface PageProps {
   searchParams: Promise<{ range?: string }>;
 }
 
-const VALID_RANGES: AnalyticsRange[] = ['7d', '30d', '90d'];
+const VALID_RANGES: AnalyticsRange[] = ['7d', '30d', '90d', '365d'];
 
 function parseRange(raw: string | undefined): AnalyticsRange {
   if (raw && VALID_RANGES.includes(raw as AnalyticsRange)) {
@@ -51,8 +52,23 @@ export default async function DashboardAnalyticsPage({ searchParams }: PageProps
     return null;
   }
 
-  // Fetch analytics data server-side. Null on any error → error state in component.
-  const data = await getAnalyticsOverview(artistId, session.accessToken, range);
+  const entitlements = await getBillingEntitlements(artistId, session.accessToken).catch(
+    () => null,
+  );
+  const analyticsProEnabled = entitlements?.features.analytics_pro ?? false;
+  const rangeLocked = range === '365d' && !analyticsProEnabled;
 
-  return <AnalyticsDashboard data={data} artistId={artistId} range={range} />;
+  // Fetch analytics data server-side. Null on any error → error state in component.
+  const data = rangeLocked
+    ? null
+    : await getAnalyticsOverview(artistId, session.accessToken, range);
+
+  return (
+    <AnalyticsDashboard
+      data={data}
+      range={range}
+      entitlements={entitlements}
+      rangeLocked={rangeLocked}
+    />
+  );
 }

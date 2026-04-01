@@ -3,25 +3,27 @@
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { Eye, Link2, TrendingUp, Zap, Info, AlertCircle, RefreshCw } from 'lucide-react';
+import { Eye, Link2, TrendingUp, Zap, Info, AlertCircle, RefreshCw, Lock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { AnalyticsOverview, AnalyticsRange } from '@/lib/api/analytics';
+import type { BillingEntitlementsResponse } from '@/lib/api/billing';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AnalyticsDashboardProps {
   /** Null when data could not be loaded (error state). */
   data: AnalyticsOverview | null;
-  artistId: string;
   /** Currently active range preset. */
   range: AnalyticsRange;
+  entitlements: BillingEntitlementsResponse | null;
+  rangeLocked: boolean;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const RANGES: AnalyticsRange[] = ['7d', '30d', '90d'];
+const RANGES: AnalyticsRange[] = ['7d', '30d', '90d', '365d'];
 
 /** Format numbers with locale-appropriate thousands separators. */
 function formatNumber(n: number): string {
@@ -35,12 +37,22 @@ function formatCtr(ctr: number): string {
 
 // ─── Range selector ───────────────────────────────────────────────────────────
 
-function RangeSelector({ current }: { current: AnalyticsRange }) {
+function RangeSelector({
+  current,
+  analyticsProEnabled,
+}: {
+  current: AnalyticsRange;
+  analyticsProEnabled: boolean;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations('dashboard.analytics.range');
 
   function selectRange(range: AnalyticsRange) {
+    if (range === '365d' && !analyticsProEnabled) {
+      return;
+    }
+
     const params = new URLSearchParams();
     params.set('range', range);
     router.push(`${pathname}?${params.toString()}`);
@@ -49,18 +61,26 @@ function RangeSelector({ current }: { current: AnalyticsRange }) {
   return (
     <div className="flex gap-1 rounded-lg border p-1">
       {RANGES.map((r) => (
-        <button
-          key={r}
-          onClick={() => selectRange(r)}
-          className={[
-            'rounded px-3 py-1 text-xs font-medium transition-colors',
-            r === current
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground',
-          ].join(' ')}
-        >
-          {t(r)}
-        </button>
+        <div key={r} className="flex items-center gap-1">
+          <button
+            onClick={() => selectRange(r)}
+            disabled={r === '365d' && !analyticsProEnabled}
+            className={[
+              'rounded px-3 py-1 text-xs font-medium transition-colors',
+              r === current
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground',
+              r === '365d' && !analyticsProEnabled ? 'cursor-not-allowed opacity-50' : '',
+            ].join(' ')}
+          >
+            {t(r)}
+          </button>
+          {r === '365d' ? (
+            <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+              Pro+
+            </Badge>
+          ) : null}
+        </div>
       ))}
     </div>
   );
@@ -185,7 +205,7 @@ function TopLinksTable({ data }: { data: AnalyticsOverview }) {
 
 // ─── Empty state (no traffic yet) ────────────────────────────────────────────
 
-function EmptyState({ artistId }: { artistId: string }) {
+function EmptyState() {
   const t = useTranslations('dashboard.analytics.empty');
   const locale = useLocale();
 
@@ -219,6 +239,54 @@ function ErrorState() {
         {t('retry')}
       </Button>
     </div>
+  );
+}
+
+function resolvePlanLabel(plan: BillingEntitlementsResponse['effectivePlan'] | 'free') {
+  switch (plan) {
+    case 'pro':
+      return 'Pro';
+    case 'pro_plus':
+      return 'Pro+';
+    default:
+      return 'Free';
+  }
+}
+
+function LockedState({
+  currentPlan,
+}: {
+  currentPlan: BillingEntitlementsResponse['effectivePlan'] | 'free';
+}) {
+  const locale = useLocale();
+  const t = useTranslations('dashboard.analytics.locked');
+
+  return (
+    <Card className="border-amber-200 bg-amber-50/60">
+      <CardContent className="flex min-h-[220px] flex-col items-center justify-center gap-4 px-6 py-10 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-900">
+          <Lock className="h-6 w-6" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-lg font-semibold">{t('title')}</h2>
+          <p className="max-w-md text-sm text-muted-foreground">
+            {t('description', { currentPlan: resolvePlanLabel(currentPlan) })}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Badge variant="outline">Pro+</Badge>
+          <Badge variant="secondary">{resolvePlanLabel(currentPlan)}</Badge>
+        </div>
+        <div className="flex gap-2">
+          <Button asChild>
+            <Link href={`/${locale}/dashboard/billing`}>{t('cta')}</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href={`/${locale}/dashboard/page`}>{t('secondary_cta')}</Link>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -257,8 +325,15 @@ function hasActivity(data: AnalyticsOverview): boolean {
   return data.summary.pageViews > 0 || data.summary.linkClicks > 0;
 }
 
-export function AnalyticsDashboard({ data, artistId, range }: AnalyticsDashboardProps) {
+export function AnalyticsDashboard({
+  data,
+  range,
+  entitlements,
+  rangeLocked,
+}: AnalyticsDashboardProps) {
   const t = useTranslations('dashboard.analytics');
+  const analyticsProEnabled = entitlements?.features.analytics_pro ?? false;
+  const effectivePlan = entitlements?.effectivePlan ?? 'free';
 
   return (
     <div className="space-y-6">
@@ -268,14 +343,16 @@ export function AnalyticsDashboard({ data, artistId, range }: AnalyticsDashboard
           <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-sm text-muted-foreground">{t('description')}</p>
         </div>
-        <RangeSelector current={range} />
+        <RangeSelector current={range} analyticsProEnabled={analyticsProEnabled} />
       </div>
 
+      {rangeLocked && <LockedState currentPlan={effectivePlan} />}
+
       {/* Error state */}
-      {data === null && <ErrorState />}
+      {data === null && !rangeLocked && <ErrorState />}
 
       {/* Has data */}
-      {data !== null && (
+      {data !== null && !rangeLocked && (
         <>
           <SummaryCards data={data} />
 
@@ -285,7 +362,7 @@ export function AnalyticsDashboard({ data, artistId, range }: AnalyticsDashboard
               <DataQualityNote notes={data.notes} />
             </>
           ) : (
-            <EmptyState artistId={artistId} />
+            <EmptyState />
           )}
         </>
       )}

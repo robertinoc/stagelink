@@ -1,14 +1,14 @@
 import { apiFetch } from '@/lib/auth';
+import type {
+  BillingSubscriptionStatus,
+  FeatureKey,
+  PlanCode,
+  TenantEntitlements,
+} from '@stagelink/types';
 
-export type BillingPlan = 'free' | 'pro' | 'pro_plus';
-export type BillingCatalogPlan = BillingPlan | 'enterprise';
-export type BillingStatus =
-  | 'inactive'
-  | 'active'
-  | 'canceled'
-  | 'past_due'
-  | 'trialing'
-  | 'incomplete';
+export type BillingPlan = PlanCode;
+export type BillingCatalogPlan = PlanCode | 'enterprise';
+export type BillingStatus = BillingSubscriptionStatus;
 
 export interface BillingPlanCatalogItem {
   plan: BillingCatalogPlan;
@@ -31,6 +31,10 @@ export interface BillingSubscriptionResponse {
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
   portalAvailable: boolean;
+}
+
+export interface BillingEntitlementsResponse extends TenantEntitlements {
+  features: Record<FeatureKey, boolean>;
 }
 
 interface WrappedResponse<T> {
@@ -64,6 +68,18 @@ export async function getBillingSubscription(
   const json = await readJsonOrThrow<WrappedResponse<BillingSubscriptionResponse>>(
     res,
     'Failed to load subscription',
+  );
+  return json.data;
+}
+
+export async function getBillingEntitlements(
+  artistId: string,
+  accessToken: string,
+): Promise<BillingEntitlementsResponse> {
+  const res = await apiFetch(`/api/billing/${artistId}/entitlements`, { accessToken });
+  const json = await readJsonOrThrow<WrappedResponse<BillingEntitlementsResponse>>(
+    res,
+    'Failed to load billing entitlements',
   );
   return json.data;
 }

@@ -1,23 +1,122 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { ComingSoon } from '@/components/shared/ComingSoon';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { getBillingEntitlements } from '@/lib/api/billing';
+import { getAuthMe } from '@/lib/api/me';
+import { getSession } from '@/lib/auth';
+import { FEATURE_KEYS, getMinimumPlanForFeature, type FeatureKey } from '@stagelink/types';
+
+const FEATURE_ORDER: FeatureKey[] = [...FEATURE_KEYS];
+
+function resolvePlanLabel(plan: 'free' | 'pro' | 'pro_plus') {
+  switch (plan) {
+    case 'pro':
+      return 'Pro';
+    case 'pro_plus':
+      return 'Pro+';
+    default:
+      return 'Free';
+  }
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('dashboard.settings');
   return { title: t('title') };
 }
 
-export default async function DashboardSettingsPage() {
+export default async function DashboardSettingsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const t = await getTranslations('dashboard.settings');
+  const session = await getSession();
+
+  if (!session) {
+    redirect(`/${locale}/login`);
+  }
+
+  const me = await getAuthMe(session.accessToken);
+  const artistId = me?.artistIds[0];
+
+  if (!artistId) {
+    redirect(`/${locale}/onboarding`);
+  }
+
+  const entitlements = await getBillingEntitlements(artistId, session.accessToken);
+  const lockedCount = FEATURE_ORDER.filter((feature) => !entitlements.features[feature]).length;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('description')}</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('description')}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary">{resolvePlanLabel(entitlements.effectivePlan)}</Badge>
+          <Badge variant="outline">{t('summary.locked_count', { count: lockedCount })}</Badge>
+        </div>
       </div>
 
-      <ComingSoon title={t('coming_soon')} description={t('coming_soon_description')} />
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('summary.title')}</CardTitle>
+          <CardDescription>
+            {t('summary.description', {
+              plan: resolvePlanLabel(entitlements.effectivePlan),
+            })}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1 text-sm text-muted-foreground">
+            <p>{t('summary.backend_source')}</p>
+            <p>{t('summary.webhook_note')}</p>
+          </div>
+          <Button asChild>
+            <Link href={`/${locale}/dashboard/billing`}>{t('summary.cta')}</Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {FEATURE_ORDER.map((feature) => {
+          const enabled = entitlements.features[feature];
+          const requiredPlan = getMinimumPlanForFeature(feature);
+
+          return (
+            <Card key={feature} className={enabled ? 'border-emerald-200' : 'border-muted'}>
+              <CardHeader className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <CardTitle className="text-base">{t(`features.${feature}.title`)}</CardTitle>
+                  <Badge variant={enabled ? 'secondary' : 'outline'}>
+                    {enabled ? t('badges.included') : resolvePlanLabel(requiredPlan)}
+                  </Badge>
+                </div>
+                <CardDescription>{t(`features.${feature}.description`)}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  {enabled
+                    ? t('feature_state.included')
+                    : t('feature_state.locked', { plan: resolvePlanLabel(requiredPlan) })}
+                </p>
+                <p className="text-xs text-muted-foreground">{t(`features.${feature}.note`)}</p>
+                <Button asChild variant={enabled ? 'outline' : 'default'}>
+                  <Link href={`/${locale}/dashboard/billing`}>
+                    {enabled ? t('actions.manage_plan') : t('actions.upgrade')}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { apiFetch } from '@/lib/auth';
 
 // ─── Types (mirror of API DTOs) ───────────────────────────────────────────────
 
-export type AnalyticsRange = '7d' | '30d' | '90d';
+export type AnalyticsRange = '7d' | '30d' | '90d' | '365d';
 
 export interface TopLink {
   linkItemId: string;
