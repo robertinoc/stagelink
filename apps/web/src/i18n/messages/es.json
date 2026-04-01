@@ -164,8 +164,34 @@
     "billing": {
       "title": "Facturación",
       "description": "Administrá tu suscripción y métodos de pago.",
-      "coming_soon": "Facturación próximamente",
-      "coming_soon_description": "La gestión de suscripciones y detalles de facturación estarán disponibles acá."
+      "current_plan_title": "Plan actual",
+      "current_plan_description": "Estado de suscripción de {artist}.",
+      "product_fallback_description": "Los detalles de precios aparecerán acá cuando Stripe esté configurado.",
+      "unavailable": "Este plan todavía no está disponible en el entorno actual.",
+      "badges": {
+        "current": "Actual"
+      },
+      "fields": {
+        "status": "Estado",
+        "renewal": "Fecha de renovación",
+        "cancellation": "Cancelación",
+        "active": "Activa",
+        "canceling": "Cancela al final del período",
+        "not_available": "No disponible"
+      },
+      "actions": {
+        "manage_billing": "Abrir portal de facturación",
+        "upgrade": "Ir al checkout",
+        "current_plan": "Plan actual",
+        "included": "Incluido",
+        "contact_sales": "Contactar ventas"
+      },
+      "messages": {
+        "checkout_success": "El checkout se completó. Stripe va a sincronizar tu suscripción en unos segundos.",
+        "checkout_canceled": "El checkout fue cancelado. Tu suscripción actual no cambió.",
+        "checkout_error": "No pudimos iniciar Stripe Checkout. Intentá de nuevo.",
+        "portal_error": "No pudimos abrir el portal de Stripe. Intentá de nuevo."
+      }
     },
     "settings": {
       "title": "Configuración",

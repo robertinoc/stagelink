@@ -1,0 +1,69 @@
+'use server';
+
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { getSession } from '@/lib/auth';
+import {
+  createBillingCheckoutSession,
+  createBillingPortalSession,
+  type BillingPlan,
+} from '@/lib/api/billing';
+
+function buildReturnUrl(locale: string, headerStore: Headers): string {
+  const host = headerStore.get('x-forwarded-host') ?? headerStore.get('host');
+  const protocol =
+    headerStore.get('x-forwarded-proto') ?? (host?.includes('localhost') ? 'http' : 'https');
+
+  if (host) {
+    return `${protocol}://${host}/${locale}/dashboard/billing`;
+  }
+
+  return `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:4000'}/${locale}/dashboard/billing`;
+}
+
+function buildErrorUrl(returnUrl: string, error: 'checkout' | 'portal'): string {
+  const url = new URL(returnUrl);
+  url.searchParams.set('error', error);
+  return url.toString();
+}
+
+export async function startCheckoutAction(formData: FormData) {
+  const artistId = String(formData.get('artistId') ?? '');
+  const plan = String(formData.get('plan') ?? '') as BillingPlan;
+  const locale = String(formData.get('locale') ?? 'en');
+  const session = await getSession();
+  const returnUrl = buildReturnUrl(locale, await headers());
+
+  if (!session) {
+    redirect(`/${locale}/login`);
+  }
+
+  try {
+    const checkout = await createBillingCheckoutSession(
+      artistId,
+      { plan, returnUrl },
+      session.accessToken,
+    );
+    redirect(checkout.url);
+  } catch {
+    redirect(buildErrorUrl(returnUrl, 'checkout'));
+  }
+}
+
+export async function startPortalAction(formData: FormData) {
+  const artistId = String(formData.get('artistId') ?? '');
+  const locale = String(formData.get('locale') ?? 'en');
+  const session = await getSession();
+  const returnUrl = buildReturnUrl(locale, await headers());
+
+  if (!session) {
+    redirect(`/${locale}/login`);
+  }
+
+  try {
+    const portal = await createBillingPortalSession(artistId, { returnUrl }, session.accessToken);
+    redirect(portal.url);
+  } catch {
+    redirect(buildErrorUrl(returnUrl, 'portal'));
+  }
+}

@@ -18,6 +18,8 @@ export default (): Record<string, unknown> => ({
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+    proPriceId: process.env.STRIPE_PRICE_PRO_ID,
+    proPlusPriceId: process.env.STRIPE_PRICE_PRO_PLUS_ID,
   },
   posthog: {
     key: process.env.POSTHOG_KEY,
