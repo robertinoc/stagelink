@@ -29,7 +29,7 @@ export default async function SignupPage({ params }: SignupPageProps) {
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t('subtitle')}</p>
       </div>
-      <SignupForm signUpUrl="/api/auth/signin" />
+      <SignupForm signUpUrl="/api/auth/signin" locale={locale} />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import Link from 'next/link';
 interface SignupFormProps {
   /** URL de sign-up de WorkOS (generada server-side con getSignUpUrl()) */
   signUpUrl: string;
+  locale: string;
 }
 
 /**
@@ -21,7 +22,7 @@ interface SignupFormProps {
  *   4. El callback handler crea la sesión y redirige al dashboard
  *   5. JwtAuthGuard en el backend provisiona el User interno (primer request)
  */
-export function SignupForm({ signUpUrl }: SignupFormProps) {
+export function SignupForm({ signUpUrl, locale }: SignupFormProps) {
   const t = useTranslations('auth.signup');
 
   return (
@@ -33,7 +34,10 @@ export function SignupForm({ signUpUrl }: SignupFormProps) {
       </CardContent>
       <CardFooter className="justify-center text-sm text-muted-foreground">
         {t('have_account')}&nbsp;
-        <Link href="../login" className="text-foreground underline-offset-4 hover:underline">
+        <Link
+          href={`/${locale}/login`}
+          className="text-foreground underline-offset-4 hover:underline"
+        >
           {t('login_link')}
         </Link>
       </CardFooter>
