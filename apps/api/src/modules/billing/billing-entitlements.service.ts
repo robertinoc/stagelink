@@ -36,11 +36,13 @@ export class BillingEntitlementsService {
     const entitlements = await this.getArtistEntitlements(artistId);
 
     if (!hasFeature(entitlements.effectivePlan, feature)) {
-      throw new FeatureAccessException(
+      throw new FeatureAccessException({
         feature,
-        entitlements.effectivePlan,
-        getMinimumPlanForFeature(feature),
-      );
+        effectivePlan: entitlements.effectivePlan,
+        billingPlan: entitlements.billingPlan,
+        subscriptionStatus: entitlements.subscriptionStatus,
+        requiredPlan: getMinimumPlanForFeature(feature),
+      });
     }
 
     return entitlements;

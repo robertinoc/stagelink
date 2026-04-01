@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getBillingEntitlements } from '@/lib/api/billing';
-import { getAuthMe } from '@/lib/api/me';
+import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import { getSession } from '@/lib/auth';
 import { FEATURE_KEYS, getMinimumPlanForFeature, type FeatureKey } from '@stagelink/types';
 
@@ -42,7 +42,7 @@ export default async function DashboardSettingsPage({
   }
 
   const me = await getAuthMe(session.accessToken);
-  const artistId = me?.artistIds[0];
+  const artistId = getCurrentArtistId(me);
 
   if (!artistId) {
     redirect(`/${locale}/onboarding`);
