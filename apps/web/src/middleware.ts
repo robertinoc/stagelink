@@ -36,8 +36,13 @@ export default async function middleware(request: NextRequest) {
   // API routes that need AuthKit session context but not locale handling.
   if (pathname === '/api/onboarding/complete') {
     const { headers: authkitHeaders } = await authkit(request);
-    const { responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
-    return applyResponseHeaders(NextResponse.next(), responseHeaders);
+    const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
+    const response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+    return applyResponseHeaders(response, responseHeaders);
   }
 
   // Rule 0: smart link handler — bypass intl and authkit entirely.
