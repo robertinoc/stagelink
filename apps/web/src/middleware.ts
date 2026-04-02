@@ -33,6 +33,18 @@ export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const segments = pathname.split('/').filter(Boolean);
 
+  // API routes that need AuthKit session context but not locale handling.
+  if (pathname === '/api/onboarding/complete') {
+    const { headers: authkitHeaders } = await authkit(request);
+    const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
+    const response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+    return applyResponseHeaders(response, responseHeaders);
+  }
+
   // Rule 0: smart link handler — bypass intl and authkit entirely.
   if (segments[0] === 'go' && segments.length === 2) {
     return NextResponse.next();
@@ -75,5 +87,5 @@ export default async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
+  matcher: ['/api/onboarding/complete', '/((?!api|_next|_vercel|.*\\..*).*)'],
 };
