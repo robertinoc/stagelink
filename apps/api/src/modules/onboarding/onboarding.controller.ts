@@ -3,7 +3,7 @@ import type { Request } from 'express';
 import type { User } from '@prisma/client';
 import { OnboardingService } from './onboarding.service';
 import { CheckUsernameQueryDto, CompleteOnboardingDto } from './dto';
-import { CurrentUser } from '../../common/decorators';
+import { CurrentUser, Public } from '../../common/decorators';
 import { extractClientIp } from '../../common/utils/request.utils';
 
 @Controller('onboarding')
@@ -12,8 +12,9 @@ export class OnboardingController {
 
   /**
    * GET /api/onboarding/username-check?value=xxx
-   * Checks if a username is available. Auth required (prevents username enumeration scraping).
+   * Checks if a username is available.
    */
+  @Public()
   @Get('username-check')
   checkUsername(@Query() query: CheckUsernameQueryDto) {
     return this.onboardingService.checkUsername(query.value);

@@ -30,7 +30,10 @@ export async function checkUsernameAvailability(
   const res = await fetch(`/api/onboarding/username-check?${params.toString()}`, {
     cache: 'no-store',
   });
-  if (!res.ok) throw new Error('Failed to check username');
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(body.message ?? 'Failed to check username');
+  }
   return res.json() as Promise<UsernameCheckResponse>;
 }
 
