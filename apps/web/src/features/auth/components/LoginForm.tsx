@@ -8,6 +8,7 @@ import Link from 'next/link';
 interface LoginFormProps {
   /** URL de autorización de WorkOS (generada server-side con getSignInUrl()) */
   signInUrl: string;
+  locale: string;
 }
 
 /**
@@ -20,7 +21,7 @@ interface LoginFormProps {
  *   3. WorkOS redirige a /api/auth/callback con el authorization code
  *   4. El callback handler crea la sesión y redirige al dashboard
  */
-export function LoginForm({ signInUrl }: LoginFormProps) {
+export function LoginForm({ signInUrl, locale }: LoginFormProps) {
   const t = useTranslations('auth.login');
 
   return (
@@ -32,7 +33,10 @@ export function LoginForm({ signInUrl }: LoginFormProps) {
       </CardContent>
       <CardFooter className="justify-center text-sm text-muted-foreground">
         {t('no_account')}&nbsp;
-        <Link href="../signup" className="text-foreground underline-offset-4 hover:underline">
+        <Link
+          href={`/${locale}/signup`}
+          className="text-foreground underline-offset-4 hover:underline"
+        >
           {t('signup_link')}
         </Link>
       </CardFooter>

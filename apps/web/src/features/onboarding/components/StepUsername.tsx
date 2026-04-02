@@ -21,11 +21,16 @@ const REASON_MESSAGES: Record<string, string> = {
   taken: 'This username is already taken.',
 };
 
+function hasValidUsernameFormat(value: string): boolean {
+  return /^[a-z0-9_-]{3,30}$/.test(value);
+}
+
 export function StepUsername({ initialValue, accessToken, onNext, onBack }: StepUsernameProps) {
   const [value, setValue] = useState(initialValue);
   const { state, result, normalizedValue } = useUsernameCheck(value, accessToken);
+  const fallbackAllowed = state === 'error' && hasValidUsernameFormat(normalizedValue);
 
-  const canContinue = state === 'available';
+  const canContinue = state === 'available' || fallbackAllowed;
 
   return (
     <div className="space-y-6">
@@ -74,8 +79,9 @@ export function StepUsername({ initialValue, accessToken, onNext, onBack }: Step
           </p>
         )}
         {state === 'error' && (
-          <p className="text-sm text-destructive">
-            Could not check availability. Please try again.
+          <p className="text-sm text-amber-600">
+            Could not verify availability right now. You can continue and we&apos;ll validate it on
+            the next step.
           </p>
         )}
         {state === 'idle' && value.trim().length > 0 && value.trim().length < 3 && (

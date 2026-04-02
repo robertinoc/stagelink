@@ -24,15 +24,16 @@ export interface CompleteOnboardingResponse {
 
 export async function checkUsernameAvailability(
   value: string,
-  accessToken: string,
+  _accessToken: string,
 ): Promise<UsernameCheckResponse> {
-  const apiUrl = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4001';
   const params = new URLSearchParams({ value });
-  const res = await fetch(`${apiUrl}/api/onboarding/username-check?${params}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
+  const res = await fetch(`/api/onboarding/username-check?${params.toString()}`, {
     cache: 'no-store',
   });
-  if (!res.ok) throw new Error('Failed to check username');
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(body.message ?? 'Failed to check username');
+  }
   return res.json() as Promise<UsernameCheckResponse>;
 }
 

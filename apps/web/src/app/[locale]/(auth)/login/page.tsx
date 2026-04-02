@@ -30,7 +30,7 @@ export default async function LoginPage({ params }: LoginPageProps) {
         <p className="mt-1 text-sm text-muted-foreground">{t('subtitle')}</p>
       </div>
       {/* signInUrl points to the route handler which calls getSignInUrl() server-side */}
-      <LoginForm signInUrl="/api/auth/signin" />
+      <LoginForm signInUrl="/api/auth/signin" locale={locale} />
     </div>
   );
 }
