@@ -60,7 +60,7 @@ export async function completeOnboardingAction(
 
     const message = Array.isArray(parsedBody.message)
       ? parsedBody.message.join(', ')
-      : (parsedBody.message ?? rawBody || 'Failed to complete onboarding');
+      : (parsedBody.message ?? rawBody ?? 'Failed to complete onboarding');
     throw new Error(message);
   }
 
