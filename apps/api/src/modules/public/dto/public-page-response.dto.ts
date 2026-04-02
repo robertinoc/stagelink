@@ -25,6 +25,8 @@ export interface PublicArtistDto {
   bio: string | null;
   avatarUrl: string | null;
   coverUrl: string | null;
+  category: ArtistCategory;
+  secondaryCategories: ArtistCategory[];
   seoTitle: string | null;
   seoDescription: string | null;
 }
@@ -44,3 +46,4 @@ export interface PublicPageResponseDto {
   artist: PublicArtistDto;
   blocks: PublicBlockDto[];
 }
+import type { ArtistCategory } from '@stagelink/types';

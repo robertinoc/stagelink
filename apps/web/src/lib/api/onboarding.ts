@@ -12,6 +12,7 @@ export interface CompleteOnboardingPayload {
   displayName: string;
   username: string;
   category: ArtistCategory;
+  secondaryCategories?: ArtistCategory[];
   assetId?: string;
 }
 

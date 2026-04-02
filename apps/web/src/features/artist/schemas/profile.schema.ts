@@ -64,6 +64,10 @@ export const profileSchema = z.object({
     .max(100, 'Artist name must be 100 characters or less'),
   bio: z.string().max(500, 'Bio must be 500 characters or less').optional(),
   category: z.enum(ARTIST_CATEGORIES, { message: 'Please select a category' }),
+  secondaryCategories: z
+    .array(z.enum(ARTIST_CATEGORIES))
+    .max(4, 'Choose up to 4 secondary categories')
+    .default([]),
 
   // Social links (all optional, empty string = clear)
   instagramUrl: optionalUrl,
@@ -77,6 +81,14 @@ export const profileSchema = z.object({
   // SEO
   seoTitle: z.string().max(60, 'SEO title must be 60 characters or less').optional(),
   seoDescription: z.string().max(160, 'SEO description must be 160 characters or less').optional(),
+}).superRefine((value, ctx) => {
+  if (value.secondaryCategories.includes(value.category)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['secondaryCategories'],
+      message: 'Secondary categories cannot include the primary category',
+    });
+  }
 });
 
 export type ProfileFormValues = z.infer<typeof profileSchema>;

@@ -1,5 +1,14 @@
 import { ArtistCategory } from '@prisma/client';
-import { IsString, IsNotEmpty, IsEnum, MinLength, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  MinLength,
+  MaxLength,
+  IsOptional,
+  IsArray,
+  ArrayUnique,
+} from 'class-validator';
 
 export class CheckUsernameQueryDto {
   @IsString()
@@ -23,4 +32,10 @@ export class CompleteOnboardingDto {
 
   @IsEnum(ArtistCategory)
   category!: ArtistCategory;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsEnum(ArtistCategory, { each: true })
+  secondaryCategories?: ArtistCategory[];
 }

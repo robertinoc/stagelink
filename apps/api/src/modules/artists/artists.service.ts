@@ -23,6 +23,7 @@ interface UpdateArtistPayload {
   displayName?: string;
   bio?: string | null;
   category?: ArtistCategory;
+  secondaryCategories?: ArtistCategory[];
   instagramUrl?: string | null;
   tiktokUrl?: string | null;
   youtubeUrl?: string | null;
@@ -32,6 +33,16 @@ interface UpdateArtistPayload {
   contactEmail?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
+}
+
+function sanitizeSecondaryCategories(
+  primary: ArtistCategory | undefined,
+  secondaryCategories?: ArtistCategory[],
+): ArtistCategory[] | undefined {
+  if (secondaryCategories === undefined) return undefined;
+
+  const unique = Array.from(new Set(secondaryCategories));
+  return primary ? unique.filter((category) => category !== primary) : unique;
 }
 
 @Injectable()
@@ -97,6 +108,20 @@ export class ArtistsService {
   async update(id: string, payload: UpdateArtistPayload, userId: string, ipAddress?: string) {
     await this.membershipService.validateAccess(userId, id, 'write');
 
+    const existingArtist =
+      payload.category !== undefined || payload.secondaryCategories !== undefined
+        ? await this.prisma.artist.findUniqueOrThrow({
+            where: { id },
+            select: { category: true },
+          })
+        : null;
+
+    const resolvedPrimaryCategory = payload.category ?? existingArtist?.category;
+    const secondaryCategories = sanitizeSecondaryCategories(
+      resolvedPrimaryCategory,
+      payload.secondaryCategories,
+    );
+
     const artist = await this.prisma.artist.update({
       where: { id },
       data: {
@@ -105,6 +130,7 @@ export class ArtistsService {
         ...(payload.displayName !== undefined && { displayName: payload.displayName }),
         ...(payload.bio !== undefined && { bio: payload.bio }),
         ...(payload.category !== undefined && { category: payload.category }),
+        ...(secondaryCategories !== undefined && { secondaryCategories }),
         ...(payload.instagramUrl !== undefined && { instagramUrl: payload.instagramUrl }),
         ...(payload.tiktokUrl !== undefined && { tiktokUrl: payload.tiktokUrl }),
         ...(payload.youtubeUrl !== undefined && { youtubeUrl: payload.youtubeUrl }),
