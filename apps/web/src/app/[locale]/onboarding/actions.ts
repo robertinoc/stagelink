@@ -21,8 +21,16 @@ export async function completeOnboardingAction(
 ): Promise<CompleteOnboardingResponse> {
   const session = await getSession();
   if (!session) {
+    console.error('[onboarding][action] Missing session in server action');
     throw new Error('You must be signed in to complete onboarding.');
   }
+
+  console.error('[onboarding][action] Session resolved', {
+    userId: session.user.id,
+    hasAccessToken: Boolean(session.accessToken),
+    accessTokenLength: session.accessToken?.length ?? 0,
+    accessTokenLooksJwt: session.accessToken?.includes('.') ?? false,
+  });
 
   const apiBaseUrl = resolveApiBaseUrl();
   const response = await fetch(`${apiBaseUrl}/api/onboarding/complete`, {
@@ -37,10 +45,22 @@ export async function completeOnboardingAction(
   });
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => ({}))) as { message?: string | string[] };
-    const message = Array.isArray(body.message)
-      ? body.message.join(', ')
-      : (body.message ?? 'Failed to complete onboarding');
+    const rawBody = await response.text();
+    console.error('[onboarding][action] Backend onboarding failed', {
+      status: response.status,
+      body: rawBody,
+    });
+
+    let parsedBody: { message?: string | string[] } = {};
+    try {
+      parsedBody = JSON.parse(rawBody) as { message?: string | string[] };
+    } catch {
+      // Ignore JSON parse failures and fall back to the raw body below.
+    }
+
+    const message = Array.isArray(parsedBody.message)
+      ? parsedBody.message.join(', ')
+      : (parsedBody.message ?? rawBody || 'Failed to complete onboarding');
     throw new Error(message);
   }
 
