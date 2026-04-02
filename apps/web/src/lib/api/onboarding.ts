@@ -39,16 +39,15 @@ export async function checkUsernameAvailability(
 
 export async function completeOnboarding(
   payload: CompleteOnboardingPayload,
-  accessToken: string,
+  _accessToken: string,
 ): Promise<CompleteOnboardingResponse> {
-  const apiUrl = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4001';
-  const res = await fetch(`${apiUrl}/api/onboarding/complete`, {
+  const res = await fetch('/api/onboarding/complete', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify(payload),
+    cache: 'no-store',
   });
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { message?: string };

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { getAuthMe } from '@/lib/api/me';
 import { OnboardingWizard } from '@/features/onboarding/components/OnboardingWizard';
+import { completeOnboardingAction } from './actions';
 
 interface OnboardingPageProps {
   params: Promise<{ locale: string }>;
@@ -36,5 +37,11 @@ export default async function OnboardingPage({ params }: OnboardingPageProps) {
     redirect(`/${locale}/dashboard`);
   }
 
-  return <OnboardingWizard accessToken={accessToken} locale={locale} />;
+  return (
+    <OnboardingWizard
+      accessToken={accessToken}
+      locale={locale}
+      completeOnboardingAction={completeOnboardingAction}
+    />
+  );
 }
