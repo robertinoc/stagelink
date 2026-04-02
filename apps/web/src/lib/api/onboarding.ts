@@ -24,7 +24,6 @@ export interface CompleteOnboardingResponse {
 
 export async function checkUsernameAvailability(
   value: string,
-  _accessToken: string,
 ): Promise<UsernameCheckResponse> {
   const params = new URLSearchParams({ value });
   const res = await fetch(`/api/onboarding/username-check?${params.toString()}`, {
@@ -39,7 +38,6 @@ export async function checkUsernameAvailability(
 
 export async function completeOnboarding(
   payload: CompleteOnboardingPayload,
-  _accessToken: string,
 ): Promise<CompleteOnboardingResponse> {
   const res = await fetch('/api/onboarding/complete', {
     method: 'POST',

@@ -28,7 +28,6 @@ interface WizardState {
 }
 
 interface OnboardingWizardProps {
-  accessToken: string;
   locale: string;
   completeOnboardingAction: (
     payload: CompleteOnboardingPayload,
@@ -36,7 +35,6 @@ interface OnboardingWizardProps {
 }
 
 export function OnboardingWizard({
-  accessToken,
   locale,
   completeOnboardingAction,
 }: OnboardingWizardProps) {
@@ -122,7 +120,6 @@ export function OnboardingWizard({
           {step === 2 && (
             <StepUsername
               initialValue={data.username}
-              accessToken={accessToken}
               onNext={(username) => {
                 setData((prev) => ({ ...prev, username }));
                 setStep(3);
@@ -156,7 +153,6 @@ export function OnboardingWizard({
           {step === 4 && createdArtistId && (
             <StepAvatar
               artistId={createdArtistId}
-              accessToken={accessToken}
               onComplete={handleAvatarComplete}
               onSkip={handleSkipAvatar}
             />

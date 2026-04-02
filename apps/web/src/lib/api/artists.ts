@@ -67,13 +67,12 @@ export async function getArtist(artistId: string, accessToken: string): Promise<
 export async function updateArtist(
   artistId: string,
   payload: UpdateArtistPayload,
-  accessToken: string,
 ): Promise<Artist> {
-  const res = await apiFetch(`/api/artists/${artistId}`, {
+  const res = await fetch(`/api/artists/${artistId}`, {
     method: 'PATCH',
-    accessToken,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
+    cache: 'no-store',
   });
 
   if (!res.ok) {

@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { resolveApiBaseUrl } from '@/lib/server/api-base-url';
 
-export async function POST(request: NextRequest) {
+interface RouteContext {
+  params: Promise<{ artistId: string }>;
+}
+
+export async function PATCH(request: NextRequest, context: RouteContext) {
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -11,16 +15,17 @@ export async function POST(request: NextRequest) {
   const apiBaseUrl = resolveApiBaseUrl();
   if (!apiBaseUrl) {
     return NextResponse.json(
-      { message: 'Onboarding is not configured on this deployment.' },
+      { message: 'Artist API is not configured on this deployment.' },
       { status: 500 },
     );
   }
 
+  const { artistId } = await context.params;
   const body = await request.text();
 
   try {
-    const response = await fetch(`${apiBaseUrl}/api/onboarding/complete`, {
-      method: 'POST',
+    const response = await fetch(`${apiBaseUrl}/api/artists/${artistId}`, {
+      method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
@@ -40,10 +45,10 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[onboarding][complete] Proxy request failed', error);
+    console.error('[artists][proxy] Patch request failed', error);
 
     return NextResponse.json(
-      { message: 'Could not complete onboarding right now.' },
+      { message: 'Could not save your profile right now.' },
       { status: 502 },
     );
   }

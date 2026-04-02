@@ -14,7 +14,6 @@ import { ProfileSeoSection } from './ProfileSeoSection';
 
 interface ArtistProfileSettingsProps {
   artist: Artist;
-  accessToken: string;
 }
 
 /**
@@ -34,7 +33,6 @@ interface ArtistProfileSettingsProps {
  */
 export function ArtistProfileSettings({
   artist: initialArtist,
-  accessToken,
 }: ArtistProfileSettingsProps) {
   const [artist, setArtist] = useState<Artist>(initialArtist);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
@@ -86,7 +84,7 @@ export function ArtistProfileSettings({
     };
 
     try {
-      const updated = await updateArtist(artist.id, payload, accessToken);
+      const updated = await updateArtist(artist.id, payload);
       setArtist(updated);
       // Reset form with new values so isDirty becomes false
       reset({
@@ -121,7 +119,6 @@ export function ArtistProfileSettings({
           artistId={artist.id}
           avatarUrl={artist.avatarUrl}
           coverUrl={artist.coverUrl}
-          accessToken={accessToken}
           onAvatarChange={(url) => setArtist((a) => ({ ...a, avatarUrl: url }))}
           onCoverChange={(url) => setArtist((a) => ({ ...a, coverUrl: url }))}
         />

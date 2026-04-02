@@ -13,7 +13,7 @@ interface UseUsernameCheckResult {
 
 const DEBOUNCE_MS = 500;
 
-export function useUsernameCheck(rawValue: string, accessToken: string): UseUsernameCheckResult {
+export function useUsernameCheck(rawValue: string): UseUsernameCheckResult {
   const [state, setState] = useState<CheckState>('idle');
   const [result, setResult] = useState<UsernameCheckResponse | null>(null);
   const [normalizedValue, setNormalizedValue] = useState('');
@@ -36,7 +36,7 @@ export function useUsernameCheck(rawValue: string, accessToken: string): UseUser
 
     timerRef.current = setTimeout(async () => {
       try {
-        const res = await checkUsernameAvailability(trimmed, accessToken);
+        const res = await checkUsernameAvailability(trimmed);
         setResult(res);
         setNormalizedValue(res.normalizedUsername);
         setState(res.available ? 'available' : 'unavailable');
@@ -49,7 +49,7 @@ export function useUsernameCheck(rawValue: string, accessToken: string): UseUser
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [rawValue, accessToken]);
+  }, [rawValue]);
 
   return { state, result, normalizedValue };
 }

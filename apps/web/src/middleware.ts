@@ -34,7 +34,12 @@ export default async function middleware(request: NextRequest) {
   const segments = pathname.split('/').filter(Boolean);
 
   // API routes that need AuthKit session context but not locale handling.
-  if (pathname === '/api/onboarding/complete') {
+  if (
+    pathname === '/api/onboarding/complete' ||
+    pathname === '/api/assets/upload-intent' ||
+    (pathname.startsWith('/api/assets/') && pathname.endsWith('/confirm')) ||
+    pathname.startsWith('/api/artists/')
+  ) {
     const { headers: authkitHeaders } = await authkit(request);
     const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
     const response = NextResponse.next({
@@ -87,5 +92,11 @@ export default async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/onboarding/complete', '/((?!api|_next|_vercel|.*\\..*).*)'],
+  matcher: [
+    '/api/onboarding/complete',
+    '/api/assets/upload-intent',
+    '/api/assets/:path*',
+    '/api/artists/:path*',
+    '/((?!api|_next|_vercel|.*\\..*).*)',
+  ],
 };

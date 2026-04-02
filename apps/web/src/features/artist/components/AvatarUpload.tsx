@@ -9,7 +9,6 @@ const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 interface AvatarUploadProps {
   artistId: string;
   currentAvatarUrl?: string | null;
-  accessToken: string;
   onSuccess: (deliveryUrl: string) => void;
 }
 
@@ -18,7 +17,6 @@ type UploadState = 'idle' | 'uploading' | 'success' | 'error';
 export function AvatarUpload({
   artistId,
   currentAvatarUrl,
-  accessToken,
   onSuccess,
 }: AvatarUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -70,13 +68,13 @@ export function AvatarUpload({
 
     try {
       // 1. Request upload intent from backend
-      const intent = await requestUploadIntent(artistId, 'avatar', file, accessToken);
+      const intent = await requestUploadIntent(artistId, 'avatar', file);
 
       // 2. Upload directly to S3
       await uploadToS3(intent.uploadUrl, file, setProgress);
 
       // 3. Confirm with backend — backend updates artist.avatarUrl + avatarAssetId
-      const asset = await confirmUpload(intent.assetId, accessToken);
+      const asset = await confirmUpload(intent.assetId);
 
       // Revoke blob URL — CDN URL is now available
       URL.revokeObjectURL(objectUrl);
