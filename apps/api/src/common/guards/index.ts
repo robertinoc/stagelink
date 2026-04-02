@@ -48,8 +48,9 @@ export class JwtAuthGuard implements CanActivate {
     private readonly prisma: PrismaService,
   ) {
     const clientId = this.configService.getOrThrow<string>('workos.clientId');
-    // WorkOS JWKS endpoint para User Management (AuthKit)
-    const jwksUrl = `https://api.workos.com/user_management/jwks/${clientId}`;
+    // WorkOS AuthKit access tokens are signed by the SSO JWKS for the client.
+    // Docs: https://workos.com/docs/user-management/sessions/introduction
+    const jwksUrl = `https://api.workos.com/sso/jwks/${clientId}`;
     this.jwks = createRemoteJWKSet(new URL(jwksUrl));
   }
 
@@ -71,7 +72,10 @@ export class JwtAuthGuard implements CanActivate {
     // Validar JWT localmente (JWKS cacheado por jose)
     let workosUserId: string;
     try {
-      const { payload } = await jwtVerify(token, this.jwks);
+      const { payload } = await jwtVerify(token, this.jwks, {
+        issuer: 'https://api.workos.com',
+        audience: this.configService.getOrThrow<string>('workos.clientId'),
+      });
       if (!payload.sub) throw new Error('JWT missing sub claim');
       workosUserId = payload.sub;
     } catch (err) {
