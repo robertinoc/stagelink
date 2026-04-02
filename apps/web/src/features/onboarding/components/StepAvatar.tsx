@@ -7,12 +7,11 @@ import { requestUploadIntent, uploadToS3, confirmUpload } from '@/lib/api/assets
 
 interface StepAvatarProps {
   artistId: string;
-  accessToken: string;
   onComplete: () => void;
   onSkip: () => void;
 }
 
-export function StepAvatar({ artistId, accessToken, onComplete, onSkip }: StepAvatarProps) {
+export function StepAvatar({ artistId, onComplete, onSkip }: StepAvatarProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
@@ -52,9 +51,9 @@ export function StepAvatar({ artistId, accessToken, onComplete, onSkip }: StepAv
     setProgress(0);
 
     try {
-      const intent = await requestUploadIntent(artistId, 'avatar', file, accessToken);
+      const intent = await requestUploadIntent(artistId, 'avatar', file);
       await uploadToS3(intent.uploadUrl, file, (pct) => setProgress(pct));
-      await confirmUpload(intent.assetId, accessToken);
+      await confirmUpload(intent.assetId);
       setUploading(false);
       setUploaded(true);
     } catch (err) {

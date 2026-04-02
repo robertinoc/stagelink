@@ -9,7 +9,6 @@ const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB
 interface CoverUploadProps {
   artistId: string;
   currentCoverUrl?: string | null;
-  accessToken: string;
   onSuccess: (deliveryUrl: string) => void;
 }
 
@@ -18,7 +17,6 @@ type UploadState = 'idle' | 'uploading' | 'success' | 'error';
 export function CoverUpload({
   artistId,
   currentCoverUrl,
-  accessToken,
   onSuccess,
 }: CoverUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -67,9 +65,9 @@ export function CoverUpload({
     setProgress(0);
 
     try {
-      const intent = await requestUploadIntent(artistId, 'cover', file, accessToken);
+      const intent = await requestUploadIntent(artistId, 'cover', file);
       await uploadToS3(intent.uploadUrl, file, setProgress);
-      const asset = await confirmUpload(intent.assetId, accessToken);
+      const asset = await confirmUpload(intent.assetId);
 
       // Revoke blob URL — CDN URL is now available
       URL.revokeObjectURL(objectUrl);

@@ -8,7 +8,6 @@ interface ProfileImagesSectionProps {
   artistId: string;
   avatarUrl: string | null;
   coverUrl: string | null;
-  accessToken: string;
   onAvatarChange: (url: string) => void;
   onCoverChange: (url: string) => void;
 }
@@ -24,7 +23,6 @@ export function ProfileImagesSection({
   artistId,
   avatarUrl,
   coverUrl,
-  accessToken,
   onAvatarChange,
   onCoverChange,
 }: ProfileImagesSectionProps) {
@@ -43,7 +41,6 @@ export function ProfileImagesSection({
           <CoverUpload
             artistId={artistId}
             currentCoverUrl={coverUrl}
-            accessToken={accessToken}
             onSuccess={onCoverChange}
           />
         </div>
@@ -54,7 +51,6 @@ export function ProfileImagesSection({
           <AvatarUpload
             artistId={artistId}
             currentAvatarUrl={avatarUrl}
-            accessToken={accessToken}
             onSuccess={onAvatarChange}
           />
         </div>

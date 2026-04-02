@@ -53,7 +53,7 @@ export default async function DashboardProfilePage({ params }: DashboardProfileP
         <p className="text-sm text-muted-foreground">{t('description')}</p>
       </div>
 
-      <ArtistProfileSettings artist={artist} accessToken={session.accessToken} />
+      <ArtistProfileSettings artist={artist} />
     </div>
   );
 }

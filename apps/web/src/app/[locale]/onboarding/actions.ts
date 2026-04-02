@@ -5,16 +5,7 @@ import type {
   CompleteOnboardingPayload,
   CompleteOnboardingResponse,
 } from '@/lib/api/onboarding';
-
-function resolveApiBaseUrl(): string {
-  const configuredUrl = process.env['API_URL'] ?? process.env['NEXT_PUBLIC_API_URL'];
-  if (!configuredUrl) {
-    throw new Error('Onboarding is not configured on this deployment.');
-  }
-
-  const trimmedUrl = configuredUrl.replace(/\/+$/, '');
-  return trimmedUrl.endsWith('/api') ? trimmedUrl.slice(0, -4) : trimmedUrl;
-}
+import { resolveApiBaseUrl } from '@/lib/server/api-base-url';
 
 export async function completeOnboardingAction(
   payload: CompleteOnboardingPayload,
@@ -33,6 +24,9 @@ export async function completeOnboardingAction(
   });
 
   const apiBaseUrl = resolveApiBaseUrl();
+  if (!apiBaseUrl) {
+    throw new Error('Onboarding is not configured on this deployment.');
+  }
   const response = await fetch(`${apiBaseUrl}/api/onboarding/complete`, {
     method: 'POST',
     headers: {

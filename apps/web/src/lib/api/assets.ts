@@ -1,7 +1,5 @@
 import type { AssetDto, AssetKind, UploadIntentResponse } from '@stagelink/types';
 
-const API_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4001';
-
 /**
  * Request a presigned upload URL from the backend.
  * The backend validates ownership, mime type, and file size.
@@ -10,13 +8,11 @@ export async function requestUploadIntent(
   artistId: string,
   kind: AssetKind,
   file: File,
-  accessToken: string,
 ): Promise<UploadIntentResponse> {
-  const res = await fetch(`${API_URL}/api/assets/upload-intent`, {
+  const res = await fetch('/api/assets/upload-intent', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify({
       artistId,
@@ -68,13 +64,10 @@ export async function uploadToS3(
  * Notify the backend that the S3 upload completed.
  * The backend marks the asset as `uploaded` and updates the artist.
  */
-export async function confirmUpload(assetId: string, accessToken: string): Promise<AssetDto> {
-  const res = await fetch(`${API_URL}/api/assets/${assetId}/confirm`, {
+export async function confirmUpload(assetId: string): Promise<AssetDto> {
+  const res = await fetch(`/api/assets/${assetId}/confirm`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
   });
 
   if (!res.ok) {

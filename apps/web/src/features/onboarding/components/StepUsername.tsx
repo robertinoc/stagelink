@@ -8,7 +8,6 @@ import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 
 interface StepUsernameProps {
   initialValue: string;
-  accessToken: string;
   onNext: (username: string) => void;
   onBack: () => void;
 }
@@ -25,9 +24,9 @@ function hasValidUsernameFormat(value: string): boolean {
   return /^[a-z0-9_-]{3,30}$/.test(value);
 }
 
-export function StepUsername({ initialValue, accessToken, onNext, onBack }: StepUsernameProps) {
+export function StepUsername({ initialValue, onNext, onBack }: StepUsernameProps) {
   const [value, setValue] = useState(initialValue);
-  const { state, result, normalizedValue } = useUsernameCheck(value, accessToken);
+  const { state, result, normalizedValue } = useUsernameCheck(value);
   const fallbackAllowed = state === 'error' && hasValidUsernameFormat(normalizedValue);
 
   const canContinue = state === 'available' || fallbackAllowed;

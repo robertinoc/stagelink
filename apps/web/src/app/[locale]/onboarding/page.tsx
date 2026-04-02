@@ -39,7 +39,6 @@ export default async function OnboardingPage({ params }: OnboardingPageProps) {
 
   return (
     <OnboardingWizard
-      accessToken={accessToken}
       locale={locale}
       completeOnboardingAction={completeOnboardingAction}
     />

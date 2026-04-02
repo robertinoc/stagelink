@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   const apiBaseUrl = resolveApiBaseUrl();
   if (!apiBaseUrl) {
     return NextResponse.json(
-      { message: 'Onboarding is not configured on this deployment.' },
+      { message: 'Assets API is not configured on this deployment.' },
       { status: 500 },
     );
   }
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   const body = await request.text();
 
   try {
-    const response = await fetch(`${apiBaseUrl}/api/onboarding/complete`, {
+    const response = await fetch(`${apiBaseUrl}/api/assets/upload-intent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -40,10 +40,10 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[onboarding][complete] Proxy request failed', error);
+    console.error('[assets][proxy] Upload intent request failed', error);
 
     return NextResponse.json(
-      { message: 'Could not complete onboarding right now.' },
+      { message: 'Could not prepare your upload right now.' },
       { status: 502 },
     );
   }
