@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import type { ArtistCategory } from '@stagelink/types';
-import { completeOnboarding } from '@/lib/api/onboarding';
+import type { CompleteOnboardingPayload, CompleteOnboardingResponse } from '@/lib/api/onboarding';
 import { StepAvatar } from './StepAvatar';
 import { StepCategory } from './StepCategory';
 import { StepName } from './StepName';
@@ -30,9 +30,16 @@ interface WizardState {
 interface OnboardingWizardProps {
   accessToken: string;
   locale: string;
+  completeOnboardingAction: (
+    payload: CompleteOnboardingPayload,
+  ) => Promise<CompleteOnboardingResponse>;
 }
 
-export function OnboardingWizard({ accessToken, locale }: OnboardingWizardProps) {
+export function OnboardingWizard({
+  accessToken,
+  locale,
+  completeOnboardingAction,
+}: OnboardingWizardProps) {
   const router = useRouter();
   const [step, setStep] = useState<WizardStep>(1);
   const [data, setData] = useState<WizardState>({ displayName: '', username: '', category: '' });
@@ -48,13 +55,12 @@ export function OnboardingWizard({ accessToken, locale }: OnboardingWizardProps)
     setSubmitError(null);
 
     try {
-      const result = await completeOnboarding(
+      const result = await completeOnboardingAction(
         {
           displayName: data.displayName,
           username: data.username,
           category,
         },
-        accessToken,
       );
       setCreatedArtistId(result.artistId);
       setStep(4);
