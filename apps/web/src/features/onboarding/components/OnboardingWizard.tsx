@@ -25,6 +25,7 @@ interface WizardState {
   displayName: string;
   username: string;
   category: ArtistCategory | '';
+  secondaryCategories: ArtistCategory[];
 }
 
 interface OnboardingWizardProps {
@@ -40,15 +41,23 @@ export function OnboardingWizard({
 }: OnboardingWizardProps) {
   const router = useRouter();
   const [step, setStep] = useState<WizardStep>(1);
-  const [data, setData] = useState<WizardState>({ displayName: '', username: '', category: '' });
+  const [data, setData] = useState<WizardState>({
+    displayName: '',
+    username: '',
+    category: '',
+    secondaryCategories: [],
+  });
   const [createdArtistId, setCreatedArtistId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const TOTAL_STEPS = 4;
 
-  async function handleCategoryComplete(category: ArtistCategory) {
-    setData((prev) => ({ ...prev, category }));
+  async function handleCategoryComplete(
+    category: ArtistCategory,
+    secondaryCategories: ArtistCategory[],
+  ) {
+    setData((prev) => ({ ...prev, category, secondaryCategories }));
     setIsSubmitting(true);
     setSubmitError(null);
 
@@ -58,6 +67,7 @@ export function OnboardingWizard({
           displayName: data.displayName,
           username: data.username,
           category,
+          secondaryCategories,
         },
       );
       setCreatedArtistId(result.artistId);
@@ -139,6 +149,7 @@ export function OnboardingWizard({
                 <>
                   <StepCategory
                     initialValue={data.category}
+                    initialSecondaryValues={data.secondaryCategories}
                     onNext={handleCategoryComplete}
                     onBack={() => setStep(2)}
                   />

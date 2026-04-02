@@ -25,6 +25,7 @@ export interface Artist {
   // SEO
   seoTitle: string | null;
   seoDescription: string | null;
+  secondaryCategories: ArtistCategory[];
   createdAt: string;
   updatedAt: string;
 }
@@ -34,6 +35,7 @@ export interface UpdateArtistPayload {
   displayName?: string;
   bio?: string | null;
   category?: ArtistCategory;
+  secondaryCategories?: ArtistCategory[];
   instagramUrl?: string | null;
   tiktokUrl?: string | null;
   youtubeUrl?: string | null;

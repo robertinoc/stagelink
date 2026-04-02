@@ -30,6 +30,7 @@ export interface Artist {
   avatarUrl: string | null;
   coverUrl: string | null;
   category: ArtistCategory;
+  secondaryCategories: ArtistCategory[];
   instagramUrl: string | null;
   tiktokUrl: string | null;
   youtubeUrl: string | null;
@@ -59,6 +60,8 @@ export interface PublicArtist {
   bio: string | null;
   avatarUrl: string | null;
   coverUrl: string | null;
+  category: ArtistCategory;
+  secondaryCategories: ArtistCategory[];
   seoTitle: string | null;
   seoDescription: string | null;
 }

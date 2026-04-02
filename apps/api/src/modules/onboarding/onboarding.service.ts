@@ -15,6 +15,17 @@ export interface OnboardingResult {
   pageId: string;
 }
 
+function sanitizeSecondaryCategories(
+  primary: ArtistCategory,
+  secondaryCategories?: ArtistCategory[],
+): ArtistCategory[] {
+  if (!secondaryCategories?.length) return [];
+
+  return Array.from(
+    new Set(secondaryCategories.filter((category) => category !== primary)),
+  );
+}
+
 export interface UsernameCheckResult {
   available: boolean;
   normalizedUsername: string;
@@ -81,6 +92,7 @@ export class OnboardingService {
     }
 
     const displayName = dto.displayName.trim();
+    const secondaryCategories = sanitizeSecondaryCategories(dto.category, dto.secondaryCategories);
 
     let result: { artistId: string; pageId: string };
     try {
@@ -91,6 +103,7 @@ export class OnboardingService {
             username: normalized,
             displayName,
             category: dto.category as ArtistCategory,
+            secondaryCategories,
           },
         });
 
@@ -131,6 +144,7 @@ export class OnboardingService {
         username: normalized,
         displayName,
         category: dto.category,
+        secondaryCategories,
       },
       ipAddress,
     });
@@ -140,6 +154,7 @@ export class OnboardingService {
       artist_id: result.artistId,
       environment: process.env.NODE_ENV ?? 'development',
       username: normalized,
+      secondary_categories: secondaryCategories,
     });
 
     this.logger.log(

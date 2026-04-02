@@ -20,14 +20,27 @@ interface ProfileBasicInfoProps {
 const selectClass =
   'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
 
+const chipClass =
+  'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50';
+
 export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
   const {
     register,
+    setValue,
     formState: { errors },
     watch,
   } = form;
 
   const bioValue = watch('bio') ?? '';
+  const selectedPrimary = watch('category');
+  const selectedSecondary = watch('secondaryCategories') ?? [];
+
+  function toggleSecondaryCategory(category: (typeof ARTIST_CATEGORIES)[number]) {
+    const next = selectedSecondary.includes(category)
+      ? selectedSecondary.filter((value) => value !== category)
+      : [...selectedSecondary, category];
+    setValue('secondaryCategories', next, { shouldDirty: true, shouldValidate: true });
+  }
 
   return (
     <Card>
@@ -80,7 +93,7 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
         {/* Category */}
         <div className="space-y-1.5">
           <label htmlFor="category" className="text-sm font-medium">
-            Category <span className="text-destructive">*</span>
+            Primary category <span className="text-destructive">*</span>
           </label>
           <select
             id="category"
@@ -95,6 +108,38 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
             ))}
           </select>
           {errors.category && <p className="text-xs text-destructive">{errors.category.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Secondary categories</label>
+            <p className="text-xs text-muted-foreground">
+              Optional. Add the other hats you wear so your profile feels more accurate.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {ARTIST_CATEGORIES.filter((category) => category !== selectedPrimary).map((category) => {
+              const selected = selectedSecondary.includes(category);
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => toggleSecondaryCategory(category)}
+                  className={`${chipClass} ${
+                    selected
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border bg-background text-foreground hover:bg-accent'
+                  }`}
+                >
+                  <span>{ARTIST_CATEGORY_LABELS[category]}</span>
+                </button>
+              );
+            })}
+          </div>
+          {errors.secondaryCategories && (
+            <p className="text-xs text-destructive">{errors.secondaryCategories.message}</p>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -4,6 +4,8 @@ import {
   IsUrl,
   IsEmail,
   IsEnum,
+  IsArray,
+  ArrayUnique,
   MaxLength,
   MinLength,
   Matches,
@@ -125,6 +127,15 @@ export class UpdateArtistDto {
   @IsOptional()
   @IsEnum(ArtistCategory, { message: 'category must be a valid ArtistCategory' })
   category?: ArtistCategory;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsEnum(ArtistCategory, {
+    each: true,
+    message: 'secondaryCategories must contain only valid ArtistCategory values',
+  })
+  secondaryCategories?: ArtistCategory[];
 
   // ── Social links ─────────────────────────────────────────────
 
