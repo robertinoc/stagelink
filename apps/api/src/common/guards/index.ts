@@ -72,14 +72,11 @@ export class JwtAuthGuard implements CanActivate {
     // Validar JWT localmente (JWKS cacheado por jose)
     let workosUserId: string;
     try {
-      const { payload } = await jwtVerify(token, this.jwks, {
-        issuer: 'https://api.workos.com',
-        audience: this.configService.getOrThrow<string>('workos.clientId'),
-      });
+      const { payload } = await jwtVerify(token, this.jwks);
       if (!payload.sub) throw new Error('JWT missing sub claim');
       workosUserId = payload.sub;
     } catch (err) {
-      this.logger.debug(
+      this.logger.error(
         `JWT validation failed: ${err instanceof Error ? err.message : String(err)}`,
       );
       throw new UnauthorizedException('Invalid or expired token');
