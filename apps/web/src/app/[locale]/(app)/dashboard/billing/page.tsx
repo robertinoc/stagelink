@@ -244,7 +244,7 @@ export default async function DashboardBillingPage({
         </div>
         <SummaryErrorState
           locale={locale}
-          title={billingT('error.title')}
+          title={billingT('feedback.error_title')}
           description={summaryResult.error ?? billingT('messages.summary_load_error')}
           retryLabel={billingT('actions.retry')}
         />

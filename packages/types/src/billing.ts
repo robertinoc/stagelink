@@ -32,7 +32,6 @@ export const BILLING_UI_STATES = [
   'syncing',
 ] as const;
 export type BillingUiState = (typeof BILLING_UI_STATES)[number];
-
 const PLAN_ORDER: PlanCode[] = ['free', 'pro', 'pro_plus'];
 
 export const PLAN_FEATURE_MATRIX: Record<PlanCode, readonly FeatureKey[]> = {
@@ -119,7 +118,6 @@ export interface BillingUiSummary {
   };
   portalAvailable: boolean;
 }
-
 const PAID_STATUSES: BillingSubscriptionStatus[] = ['active', 'trialing'];
 
 export function isPaidPlan(plan: PlanCode): boolean {
