@@ -4,7 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import type { ArtistCategory } from '@stagelink/types';
-import type { CompleteOnboardingPayload, CompleteOnboardingResponse } from '@/lib/api/onboarding';
+import type {
+  CompleteOnboardingPayload,
+  CompleteOnboardingActionResult,
+} from '@/lib/api/onboarding';
 import { StepAvatar } from './StepAvatar';
 import { StepCategory } from './StepCategory';
 import { StepName } from './StepName';
@@ -24,15 +27,14 @@ type WizardStep = 1 | 2 | 3 | 4;
 interface WizardState {
   displayName: string;
   username: string;
-  category: ArtistCategory | '';
-  secondaryCategories: ArtistCategory[];
+  categories: ArtistCategory[];
 }
 
 interface OnboardingWizardProps {
   locale: string;
   completeOnboardingAction: (
     payload: CompleteOnboardingPayload,
-  ) => Promise<CompleteOnboardingResponse>;
+  ) => Promise<CompleteOnboardingActionResult>;
 }
 
 export function OnboardingWizard({
@@ -44,8 +46,7 @@ export function OnboardingWizard({
   const [data, setData] = useState<WizardState>({
     displayName: '',
     username: '',
-    category: '',
-    secondaryCategories: [],
+    categories: [],
   });
   const [createdArtistId, setCreatedArtistId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,29 +54,32 @@ export function OnboardingWizard({
 
   const TOTAL_STEPS = 4;
 
-  async function handleCategoryComplete(
-    category: ArtistCategory,
-    secondaryCategories: ArtistCategory[],
-  ) {
-    setData((prev) => ({ ...prev, category, secondaryCategories }));
+  async function handleCategoryComplete(categories: ArtistCategory[]) {
+    setData((prev) => ({ ...prev, categories }));
     setIsSubmitting(true);
     setSubmitError(null);
 
     try {
-      const result = await completeOnboardingAction(
-        {
-          displayName: data.displayName,
-          username: data.username,
-          category,
-          secondaryCategories,
-        },
-      );
-      setCreatedArtistId(result.artistId);
+      const [category, ...secondaryCategories] = categories;
+      if (!category) {
+        setSubmitError('Choose at least one category to continue.');
+        return;
+      }
+
+      const result = await completeOnboardingAction({
+        displayName: data.displayName,
+        username: data.username,
+        category,
+        secondaryCategories,
+      });
+
+      if (!result.ok) {
+        setSubmitError(result.error);
+        return;
+      }
+
+      setCreatedArtistId(result.data.artistId);
       setStep(4);
-    } catch (err) {
-      setSubmitError(
-        err instanceof Error ? err.message : 'Something went wrong. Please try again.',
-      );
     } finally {
       setIsSubmitting(false);
     }
@@ -148,8 +152,7 @@ export function OnboardingWizard({
               ) : (
                 <>
                   <StepCategory
-                    initialValue={data.category}
-                    initialSecondaryValues={data.secondaryCategories}
+                    initialValues={data.categories}
                     onNext={handleCategoryComplete}
                     onBack={() => setStep(2)}
                   />

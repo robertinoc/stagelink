@@ -23,6 +23,10 @@ export interface CompleteOnboardingResponse {
   pageId: string;
 }
 
+export type CompleteOnboardingActionResult =
+  | { ok: true; data: CompleteOnboardingResponse }
+  | { ok: false; error: string };
+
 export async function checkUsernameAvailability(
   value: string,
 ): Promise<UsernameCheckResponse> {

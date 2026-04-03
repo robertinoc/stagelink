@@ -4,16 +4,17 @@ import { getSession } from '@/lib/auth';
 import type {
   CompleteOnboardingPayload,
   CompleteOnboardingResponse,
+  CompleteOnboardingActionResult,
 } from '@/lib/api/onboarding';
 import { resolveApiBaseUrl } from '@/lib/server/api-base-url';
 
 export async function completeOnboardingAction(
   payload: CompleteOnboardingPayload,
-): Promise<CompleteOnboardingResponse> {
+): Promise<CompleteOnboardingActionResult> {
   const session = await getSession();
   if (!session) {
     console.error('[onboarding][action] Missing session in server action');
-    throw new Error('You must be signed in to complete onboarding.');
+    return { ok: false, error: 'You must be signed in to complete onboarding.' };
   }
 
   console.error('[onboarding][action] Session resolved', {
@@ -25,7 +26,7 @@ export async function completeOnboardingAction(
 
   const apiBaseUrl = resolveApiBaseUrl();
   if (!apiBaseUrl) {
-    throw new Error('Onboarding is not configured on this deployment.');
+    return { ok: false, error: 'Onboarding is not configured on this deployment.' };
   }
   const response = await fetch(`${apiBaseUrl}/api/onboarding/complete`, {
     method: 'POST',
@@ -55,8 +56,11 @@ export async function completeOnboardingAction(
     const message = Array.isArray(parsedBody.message)
       ? parsedBody.message.join(', ')
       : (parsedBody.message ?? rawBody ?? 'Failed to complete onboarding');
-    throw new Error(message);
+    return { ok: false, error: message };
   }
 
-  return response.json() as Promise<CompleteOnboardingResponse>;
+  return {
+    ok: true,
+    data: (await response.json()) as CompleteOnboardingResponse,
+  };
 }
