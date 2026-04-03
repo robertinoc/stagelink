@@ -113,6 +113,8 @@ export interface FanCaptureSubmitProps extends BasePublicProps {
 
 export interface OnboardingCompletedProps extends BaseDashboardProps {
   username: string;
+  /** Additional selected artist categories beyond the primary one. */
+  secondary_categories?: string[];
 }
 
 export interface ArtistProfileUpdatedProps extends BaseDashboardProps {
