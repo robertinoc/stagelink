@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { Eye, Link2, TrendingUp, Zap, Info, AlertCircle, RefreshCw, Lock } from 'lucide-react';
+import { Eye, Link2, TrendingUp, Zap, Info, AlertCircle, RefreshCw } from 'lucide-react';
+import { FeatureLockCta } from '@/components/billing/FeatureLockCta';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -271,34 +272,19 @@ function LockedState({
   const t = useTranslations('dashboard.analytics.locked');
 
   return (
-    <Card className="border-amber-200 bg-amber-50/60">
-      <CardContent className="flex min-h-[220px] flex-col items-center justify-center gap-4 px-6 py-10 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-900">
-          <Lock className="h-6 w-6" />
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold">{t('title')}</h2>
-          <p className="max-w-md text-sm text-muted-foreground">
-            {t('description', {
-              currentPlan: resolvePlanLabel(currentPlan),
-              requiredPlan: resolvePlanLabel(requiredPlan ?? 'pro_plus'),
-            })}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          <Badge variant="outline">{resolvePlanLabel(requiredPlan ?? 'pro_plus')}</Badge>
-          <Badge variant="secondary">{resolvePlanLabel(currentPlan)}</Badge>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild>
-            <Link href={`/${locale}/dashboard/billing`}>{t('cta')}</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href={`/${locale}/dashboard/page`}>{t('secondary_cta')}</Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <FeatureLockCta
+      title={t('title')}
+      description={t('description', {
+        currentPlan: resolvePlanLabel(currentPlan),
+        requiredPlan: resolvePlanLabel(requiredPlan ?? 'pro_plus'),
+      })}
+      currentPlanLabel={resolvePlanLabel(currentPlan)}
+      requiredPlanLabel={resolvePlanLabel(requiredPlan ?? 'pro_plus')}
+      href={`/${locale}/dashboard/billing`}
+      ctaLabel={t('cta')}
+      secondaryHref={`/${locale}/dashboard/page`}
+      secondaryLabel={t('secondary_cta')}
+    />
   );
 }
 

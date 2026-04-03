@@ -170,13 +170,13 @@
     },
     "billing": {
       "title": "Billing",
-      "description": "Manage your subscription and payment methods.",
+      "description": "See your current plan, compare upgrades, and manage billing from one place.",
       "current_plan_title": "Current plan",
       "current_plan_description": "Subscription status for {artist}.",
-      "product_fallback_description": "Pricing details will appear here when Stripe products are configured.",
-      "unavailable": "This plan is not available in the current environment yet.",
       "badges": {
-        "current": "Current"
+        "current": "Current",
+        "recommended": "Recommended",
+        "included": "Included"
       },
       "fields": {
         "billing_plan": "Billing plan",
@@ -190,17 +190,67 @@
       },
       "actions": {
         "manage_billing": "Open billing portal",
-        "upgrade": "Go to checkout",
         "current_plan": "Current plan",
         "included": "Included",
-        "contact_sales": "Contact sales"
+        "included_in_higher_tier": "Included in higher tiers",
+        "contact_sales": "Contact sales",
+        "retry": "Try again",
+        "refresh": "Refresh status",
+        "upgrade_to": "Upgrade to {plan}"
       },
       "messages": {
         "checkout_success": "Checkout completed. Stripe will sync your subscription in a few seconds.",
+        "checkout_confirmed": "Your subscription is active in StageLink and your access is up to date.",
+        "checkout_syncing": "Stripe completed your checkout, but StageLink is still confirming the subscription. This usually resolves in a few seconds.",
         "checkout_canceled": "Checkout was canceled. Your current subscription has not changed.",
         "checkout_error": "We could not start Stripe Checkout. Please try again.",
         "portal_error": "We could not open the Stripe Billing Portal. Please try again.",
+        "portal_returned": "Your billing information was refreshed. If you changed your subscription in Stripe, StageLink will reflect it here.",
+        "portal_syncing": "We detected a return from the billing portal and are refreshing your subscription details.",
+        "sync_pending": "We are still confirming your latest billing update. Product access stays conservative until Stripe webhooks finish syncing.",
+        "summary_load_error": "We could not load your billing summary. Please try again.",
         "access_differs": "Product access is currently resolved as {effectivePlan} while billing is still on {billingPlan} ({status}). StageLink uses effective access for feature gating."
+      },
+      "feedback": {
+        "success_title": "Billing updated",
+        "warning_title": "Billing action canceled",
+        "error_title": "Billing action failed",
+        "info_title": "Billing refreshed",
+        "sync_title": "Sync in progress"
+      },
+      "states": {
+        "free": "Free",
+        "active": "Active",
+        "trialing": "Trialing",
+        "past_due": "Payment issue",
+        "canceling": "Cancels at period end",
+        "canceled": "Canceled",
+        "syncing": "Updating"
+      },
+      "status_descriptions": {
+        "free": "Free plan",
+        "active": "Active subscription",
+        "trialing": "Trial in progress",
+        "past_due": "Payment issue",
+        "canceling": "Active until the current period ends",
+        "canceled": "Canceled subscription",
+        "syncing": "Updating subscription"
+      },
+      "sections": {
+        "available_plans_title": "Available plans",
+        "available_plans_description": "Compare what Free, Pro, and Pro+ unlock inside the product.",
+        "features_title": "Included and locked features",
+        "features_description": "These highlights come directly from your effective entitlements.",
+        "actions_title": "Billing actions",
+        "actions_description": "Upgrade when you need more features, or open Stripe to manage billing details."
+      },
+      "plan_card": {
+        "current_description": "This is the plan currently attached to your subscription.",
+        "available_description": "A simple upgrade path you can start directly from the dashboard."
+      },
+      "feature_state": {
+        "included": "Included in your current access.",
+        "locked": "Unlock this feature with {plan}."
       }
     },
     "settings": {

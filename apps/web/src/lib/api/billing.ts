@@ -1,5 +1,6 @@
 import { apiFetch } from '@/lib/auth';
 import type {
+  BillingUiSummary,
   BillingSubscriptionStatus,
   FeatureKey,
   PlanCode,
@@ -36,6 +37,8 @@ export interface BillingSubscriptionResponse {
 export interface BillingEntitlementsResponse extends TenantEntitlements {
   features: Record<FeatureKey, boolean>;
 }
+
+export type BillingSummaryResponse = BillingUiSummary;
 
 interface WrappedResponse<T> {
   data: T;
@@ -80,6 +83,18 @@ export async function getBillingEntitlements(
   const json = await readJsonOrThrow<WrappedResponse<BillingEntitlementsResponse>>(
     res,
     'Failed to load billing entitlements',
+  );
+  return json.data;
+}
+
+export async function getBillingSummary(
+  artistId: string,
+  accessToken: string,
+): Promise<BillingSummaryResponse> {
+  const res = await apiFetch(`/api/billing/${artistId}/summary`, { accessToken });
+  const json = await readJsonOrThrow<WrappedResponse<BillingSummaryResponse>>(
+    res,
+    'Failed to load billing summary',
   );
   return json.data;
 }
