@@ -62,6 +62,9 @@ describe('BillingService', () => {
       webhooks: {
         constructEvent: jest.fn(),
       },
+      subscriptions: {
+        retrieve: jest.fn(),
+      },
     };
 
     const service = new BillingService(prisma as never, configService as never, stripe as never);
@@ -140,6 +143,70 @@ describe('BillingService', () => {
         stripeSubscriptionId: 'sub_123',
         stripePriceId: 'price_pro_plus_456',
         cancelAtPeriodEnd: true,
+        currentPeriodEnd: new Date('2024-04-01T00:00:00.000Z'),
+      },
+    });
+  });
+
+  it('syncs subscription data from invoice payment events', async () => {
+    const { service, prisma, stripe } = createService();
+
+    (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
+      id: 'evt_invoice_paid',
+      type: 'invoice.payment_succeeded',
+      data: {
+        object: {
+          object: 'invoice',
+          id: 'in_123',
+          subscription: 'sub_123',
+        },
+      },
+    });
+
+    (stripe.subscriptions.retrieve as jest.Mock).mockResolvedValue({
+      object: 'subscription',
+      id: 'sub_123',
+      status: 'active',
+      cancel_at_period_end: false,
+      customer: 'cus_123',
+      metadata: { artistId: 'artist_123', plan: PlanTier.pro },
+      items: {
+        data: [
+          {
+            current_period_end: 1711929600,
+            price: {
+              id: 'price_pro_123',
+            },
+          },
+        ],
+      },
+    });
+
+    await service.handleWebhook({
+      headers: { 'stripe-signature': 'sig_123' },
+      rawBody: Buffer.from('{}'),
+    } as never);
+
+    expect(stripe.subscriptions.retrieve).toHaveBeenCalledWith('sub_123');
+    expect(prisma.subscription.upsert).toHaveBeenCalledWith({
+      where: { artistId: 'artist_123' },
+      update: {
+        plan: PlanTier.pro,
+        status: SubscriptionStatus.active,
+        stripeCustomerId: 'cus_123',
+        stripeSubscriptionId: 'sub_123',
+        stripePriceId: 'price_pro_123',
+        cancelAtPeriodEnd: false,
+        currentPeriodEnd: new Date('2024-04-01T00:00:00.000Z'),
+      },
+      create: {
+        artistId: 'artist_123',
+        plan: PlanTier.pro,
+        status: SubscriptionStatus.active,
+        stripeCustomerId: 'cus_123',
+        stripeSubscriptionId: 'sub_123',
+        stripePriceId: 'price_pro_123',
+        cancelAtPeriodEnd: false,
         currentPeriodEnd: new Date('2024-04-01T00:00:00.000Z'),
       },
     });
