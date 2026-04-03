@@ -5,11 +5,11 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { AppSidebar } from './AppSidebar';
 import { AppTopbar } from './AppTopbar';
 import type { Artist } from '@/lib/api/artists';
-import type { BillingEntitlementsResponse } from '@/lib/api/billing';
+import type { PlanCode } from '@stagelink/types';
 
 interface AppShellProps {
   artist: Artist | null;
-  entitlements: BillingEntitlementsResponse | null;
+  effectivePlan: PlanCode | null;
   children: React.ReactNode;
 }
 
@@ -25,14 +25,14 @@ interface AppShellProps {
  * locale is NOT drilled through here — AppSidebar and AppTopbar read it
  * directly via useLocale() from next-intl.
  */
-export function AppShell({ artist, entitlements, children }: AppShellProps) {
+export function AppShell({ artist, effectivePlan, children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div className="flex h-screen overflow-hidden">
       {/* ── Desktop sidebar (always visible on lg+) ─────────────────────── */}
       <div className="hidden lg:flex lg:flex-shrink-0">
-        <AppSidebar artist={artist} entitlements={entitlements} />
+        <AppSidebar artist={artist} effectivePlan={effectivePlan} />
       </div>
 
       {/* ── Mobile sidebar (Sheet drawer) ────────────────────────────────── */}
@@ -49,7 +49,7 @@ export function AppShell({ artist, entitlements, children }: AppShellProps) {
           <SheetTitle className="sr-only">Navigation menu</SheetTitle>
           <AppSidebar
             artist={artist}
-            entitlements={entitlements}
+            effectivePlan={effectivePlan}
             onNavigate={() => setMobileOpen(false)}
           />
         </SheetContent>

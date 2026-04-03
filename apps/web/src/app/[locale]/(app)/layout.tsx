@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { withAuth } from '@workos-inc/authkit-nextjs';
 import { getArtist } from '@/lib/api/artists';
-import { getBillingEntitlements } from '@/lib/api/billing';
+import { getBillingSummary } from '@/lib/api/billing';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import { AppShell } from '@/components/layout/AppShell';
 
@@ -37,18 +37,21 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
   // Intentar cargar el artista del usuario para el shell (sidebar/topbar).
   // Errores son silenciosos — la página sigue funcionando sin datos de artista.
   let artist = null;
-  let entitlements = null;
+  let effectivePlan = null;
   const me = await getAuthMe(accessToken);
   const artistId = getCurrentArtistId(me);
   if (artistId) {
-    [artist, entitlements] = await Promise.all([
+    const [artistResult, billingSummary] = await Promise.all([
       getArtist(artistId, accessToken),
-      getBillingEntitlements(artistId, accessToken).catch(() => null),
+      getBillingSummary(artistId, accessToken).catch(() => null),
     ]);
+
+    artist = artistResult;
+    effectivePlan = billingSummary?.effectivePlan ?? null;
   }
 
   return (
-    <AppShell artist={artist} entitlements={entitlements}>
+    <AppShell artist={artist} effectivePlan={effectivePlan}>
       {children}
     </AppShell>
   );
