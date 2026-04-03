@@ -226,6 +226,14 @@ export class BillingService {
           event.data.object as Stripe.Checkout.Session,
         );
         break;
+      case 'invoice.paid':
+      case 'invoice.payment_succeeded':
+        await this.handleInvoiceBackedEvent(
+          event.id,
+          event.type,
+          event.data.object as Stripe.Invoice,
+        );
+        break;
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted':
@@ -420,6 +428,29 @@ export class BillingService {
     stripeEventType: string,
     subscription: Stripe.Subscription,
   ) {
+    await this.syncStripeSubscription(stripeEventId, stripeEventType, subscription);
+  }
+
+  private async handleInvoiceBackedEvent(
+    stripeEventId: string,
+    stripeEventType: string,
+    invoice: Stripe.Invoice,
+  ) {
+    const invoiceWithSubscription = invoice as Stripe.Invoice & {
+      subscription?: string | Stripe.Subscription | null;
+    };
+    const subscriptionId =
+      typeof invoiceWithSubscription.subscription === 'string'
+        ? invoiceWithSubscription.subscription
+        : invoiceWithSubscription.subscription?.id;
+
+    if (!subscriptionId) {
+      this.logger.warn(`${stripeEventType} ${invoice.id} missing subscription reference`);
+      return;
+    }
+
+    const stripe = this.getStripeClientOrThrow();
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     await this.syncStripeSubscription(stripeEventId, stripeEventType, subscription);
   }
 
