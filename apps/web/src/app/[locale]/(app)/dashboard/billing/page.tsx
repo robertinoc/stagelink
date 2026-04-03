@@ -17,7 +17,7 @@ import { getArtist } from '@/lib/api/artists';
 import { getBillingSummary, type BillingSummaryResponse } from '@/lib/api/billing';
 import { getAuthMe } from '@/lib/api/me';
 import { getSession } from '@/lib/auth';
-import { startCheckoutAction, startPortalAction } from './actions';
+import { refreshBillingStatusAction, startCheckoutAction, startPortalAction } from './actions';
 
 interface DashboardBillingPageProps {
   params: Promise<{ locale: string }>;
@@ -28,6 +28,7 @@ interface BillingPageQueryParams {
   checkout?: string;
   error?: string;
   portal?: string;
+  refresh?: string;
 }
 
 const PLAN_BADGE_VARIANTS = {
@@ -123,6 +124,18 @@ function resolveReturnBanner(
         : t('dashboard.billing.feedback.info_title'),
       description: summary.notes.isWebhookSyncPending
         ? t('dashboard.billing.messages.portal_syncing')
+        : t('dashboard.billing.messages.portal_returned'),
+    };
+  }
+
+  if (query.refresh === 'done') {
+    return {
+      tone: summary.notes.isWebhookSyncPending ? ('warning' as const) : ('info' as const),
+      title: summary.notes.isWebhookSyncPending
+        ? t('dashboard.billing.feedback.sync_title')
+        : t('dashboard.billing.feedback.info_title'),
+      description: summary.notes.isWebhookSyncPending
+        ? t('dashboard.billing.messages.sync_pending')
         : t('dashboard.billing.messages.portal_returned'),
     };
   }
@@ -516,9 +529,13 @@ export default async function DashboardBillingPage({
             </Button>
           </form>
 
-          <Button asChild variant="ghost">
-            <Link href={`/${locale}/dashboard/billing`}>{billingT('actions.refresh')}</Link>
-          </Button>
+          <form action={refreshBillingStatusAction}>
+            <input type="hidden" name="artistId" value={artistId} />
+            <input type="hidden" name="locale" value={locale} />
+            <Button type="submit" variant="ghost">
+              {billingT('actions.refresh')}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>
