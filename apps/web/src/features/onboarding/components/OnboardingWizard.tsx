@@ -4,7 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import type { ArtistCategory } from '@stagelink/types';
-import type { CompleteOnboardingPayload, CompleteOnboardingResponse } from '@/lib/api/onboarding';
+import type {
+  CompleteOnboardingPayload,
+  CompleteOnboardingActionResult,
+} from '@/lib/api/onboarding';
 import { StepAvatar } from './StepAvatar';
 import { StepCategory } from './StepCategory';
 import { StepName } from './StepName';
@@ -31,7 +34,7 @@ interface OnboardingWizardProps {
   locale: string;
   completeOnboardingAction: (
     payload: CompleteOnboardingPayload,
-  ) => Promise<CompleteOnboardingResponse>;
+  ) => Promise<CompleteOnboardingActionResult>;
 }
 
 export function OnboardingWizard({
