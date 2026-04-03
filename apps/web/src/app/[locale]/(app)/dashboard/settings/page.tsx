@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { FeatureLockCta } from '@/components/billing/FeatureLockCta';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -107,11 +108,23 @@ export default async function DashboardSettingsPage({
                     : t('feature_state.locked', { plan: resolvePlanLabel(requiredPlan) })}
                 </p>
                 <p className="text-xs text-muted-foreground">{t(`features.${feature}.note`)}</p>
-                <Button asChild variant={enabled ? 'outline' : 'default'}>
-                  <Link href={`/${locale}/dashboard/billing`}>
-                    {enabled ? t('actions.manage_plan') : t('actions.upgrade')}
-                  </Link>
-                </Button>
+                {enabled ? (
+                  <Button asChild variant="outline">
+                    <Link href={`/${locale}/dashboard/billing`}>{t('actions.manage_plan')}</Link>
+                  </Button>
+                ) : (
+                  <FeatureLockCta
+                    compact
+                    title={t('actions.upgrade')}
+                    description={t('feature_state.locked', {
+                      plan: resolvePlanLabel(requiredPlan),
+                    })}
+                    currentPlanLabel={resolvePlanLabel(entitlements.effectivePlan)}
+                    requiredPlanLabel={resolvePlanLabel(requiredPlan)}
+                    href={`/${locale}/dashboard/billing`}
+                    ctaLabel={t('actions.upgrade')}
+                  />
+                )}
               </CardContent>
             </Card>
           );

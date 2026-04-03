@@ -10,6 +10,11 @@ import {
 } from '@/lib/api/billing';
 
 function buildReturnUrl(locale: string, headerStore: Headers): string {
+  const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (configuredAppUrl) {
+    return new URL(`/${locale}/dashboard/billing`, configuredAppUrl).toString();
+  }
+
   const host = headerStore.get('x-forwarded-host') ?? headerStore.get('host');
   const protocol =
     headerStore.get('x-forwarded-proto') ?? (host?.includes('localhost') ? 'http' : 'https');
@@ -18,7 +23,7 @@ function buildReturnUrl(locale: string, headerStore: Headers): string {
     return `${protocol}://${host}/${locale}/dashboard/billing`;
   }
 
-  return `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:4000'}/${locale}/dashboard/billing`;
+  return `http://localhost:4000/${locale}/dashboard/billing`;
 }
 
 function buildErrorUrl(returnUrl: string, error: 'checkout' | 'portal'): string {

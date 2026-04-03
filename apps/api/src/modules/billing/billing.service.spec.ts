@@ -46,6 +46,19 @@ describe('BillingService', () => {
     };
 
     const stripe = {
+      prices: {
+        retrieve: jest.fn(async (priceId: string) => ({
+          id: priceId,
+          active: true,
+          unit_amount: priceId === 'price_pro_plus_456' ? 1900 : 900,
+          currency: 'usd',
+          recurring: { interval: 'month' },
+          product: {
+            name: priceId === 'price_pro_plus_456' ? 'Pro+' : 'Pro',
+            description: null,
+          },
+        })),
+      },
       webhooks: {
         constructEvent: jest.fn(),
       },
@@ -197,6 +210,49 @@ describe('BillingService', () => {
         currentPeriodEnd: new Date('2024-04-01T00:00:00.000Z'),
       },
     });
+  });
+
+  it('builds a billing summary with syncing state while Stripe webhook sync is pending', async () => {
+    const { service, prisma } = createService();
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValue({
+      artistId: 'artist_123',
+      plan: PlanTier.pro,
+      status: SubscriptionStatus.inactive,
+      currentPeriodEnd: null,
+      cancelAtPeriodEnd: false,
+      stripeCustomerId: 'cus_123',
+    });
+
+    const result = await service.getBillingSummary('artist_123');
+
+    expect(result.data.billingPlan).toBe('pro');
+    expect(result.data.effectivePlan).toBe('free');
+    expect(result.data.billingState).toBe('syncing');
+    expect(result.data.notes.isWebhookSyncPending).toBe(true);
+    expect(result.data.upgradeOptions.canManageBilling).toBe(true);
+    expect(result.data.availablePlans.find((plan) => plan.planCode === 'pro')?.isCurrent).toBe(
+      true,
+    );
+  });
+
+  it('recommends Pro+ when the current effective access is Pro', async () => {
+    const { service, prisma } = createService();
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValue({
+      artistId: 'artist_123',
+      plan: PlanTier.pro,
+      status: SubscriptionStatus.active,
+      currentPeriodEnd: new Date('2026-05-01T00:00:00.000Z'),
+      cancelAtPeriodEnd: false,
+      stripeCustomerId: 'cus_123',
+    });
+
+    const result = await service.getBillingSummary('artist_123');
+
+    expect(result.data.effectivePlan).toBe('pro');
+    expect(result.data.billingState).toBe('active');
+    expect(result.data.upgradeOptions.recommendedPlan).toBe('pro_plus');
   });
 
   it('ignores duplicated webhook events by Stripe event id', async () => {

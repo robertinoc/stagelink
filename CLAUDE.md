@@ -109,7 +109,7 @@ apps/
             ├── pages/      # CRUD páginas públicas (stub)
             ├── blocks/     # CRUD bloques (stub)
             ├── analytics/  # Dashboard analytics + gating de analytics_pro para rango premium
-            └── billing/    # Stripe billing + entitlements por plan para feature gating
+            └── billing/    # Stripe billing + entitlements + billing summary para dashboard/upgrade flows
 packages/
 ├── types/                  # Interfaces compartidas (Artist, Page, Block, User, Asset, PublicPageResponse)
 ├── ui/                     # Wrappers shadcn + primitivos custom
@@ -120,8 +120,9 @@ docs/
 ├── assets-s3.md                 # Pipeline S3, CORS, IAM, object key strategy, MinIO local, QA checklist
 ├── basic-analytics-dashboard.md # Fuente de verdad, métricas, API shape, limitaciones T4-2
 ├── fan-email-capture-block.md   # Schema, modelo subscribers, anti-abuse, export, privacidad T4-3
-├── stripe-billing-foundation.md # Checkout, portal, webhooks, billing por artist (T5-1)
-└── plan-feature-gating.md       # effectivePlan, entitlements y patrón de gating por plan (T5-2)
+├── stripe-billing-foundation.md   # Checkout, portal, webhooks, billing por artist (T5-1)
+├── plan-feature-gating.md         # effectivePlan, entitlements y patrón de gating por plan (T5-2)
+└── billing-ui-and-upgrade-flows.md # Billing dashboard, upgrade flows y retornos desde Stripe (T5-3)
 ```
 
 ---
@@ -481,6 +482,7 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - `STRIPE_PRICE_PRO_ID`
   - `STRIPE_PRICE_PRO_PLUS_ID`
 - Docs: `docs/stripe-billing-foundation.md`
+
 ### ⏳ Pendiente
 
 - T2-5: Implementar queries Prisma reales en módulos stub (artists, pages, blocks)
