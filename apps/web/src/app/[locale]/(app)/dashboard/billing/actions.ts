@@ -38,16 +38,18 @@ export async function startCheckoutAction(formData: FormData) {
     redirect(`/${locale}/login`);
   }
 
+  let checkout: { url: string };
   try {
-    const checkout = await createBillingCheckoutSession(
+    checkout = await createBillingCheckoutSession(
       artistId,
       { plan, returnUrl },
       session.accessToken,
     );
-    redirect(checkout.url);
   } catch {
     redirect(buildErrorUrl(returnUrl, 'checkout'));
   }
+
+  redirect(checkout.url);
 }
 
 export async function startPortalAction(formData: FormData) {
@@ -60,10 +62,12 @@ export async function startPortalAction(formData: FormData) {
     redirect(`/${locale}/login`);
   }
 
+  let portal: { url: string };
   try {
-    const portal = await createBillingPortalSession(artistId, { returnUrl }, session.accessToken);
-    redirect(portal.url);
+    portal = await createBillingPortalSession(artistId, { returnUrl }, session.accessToken);
   } catch {
     redirect(buildErrorUrl(returnUrl, 'portal'));
   }
+
+  redirect(portal.url);
 }
