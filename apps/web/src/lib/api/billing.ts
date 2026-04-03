@@ -136,3 +136,19 @@ export async function createBillingPortalSession(
   );
   return json.data;
 }
+
+export async function refreshBillingStatus(
+  artistId: string,
+  accessToken: string,
+): Promise<BillingSummaryResponse> {
+  const res = await apiFetch(`/api/billing/${artistId}/refresh`, {
+    method: 'POST',
+    accessToken,
+  });
+
+  const json = await readJsonOrThrow<WrappedResponse<BillingSummaryResponse>>(
+    res,
+    'Failed to refresh billing status',
+  );
+  return json.data;
+}

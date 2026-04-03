@@ -7,6 +7,7 @@ import {
   createBillingCheckoutSession,
   createBillingPortalSession,
   type BillingPlan,
+  refreshBillingStatus,
 } from '@/lib/api/billing';
 
 function buildReturnUrl(locale: string, headerStore: Headers): string {
@@ -75,4 +76,23 @@ export async function startPortalAction(formData: FormData) {
   }
 
   redirect(portal.url);
+}
+
+export async function refreshBillingStatusAction(formData: FormData) {
+  const artistId = String(formData.get('artistId') ?? '');
+  const locale = String(formData.get('locale') ?? 'en');
+  const session = await getSession();
+  const returnUrl = buildReturnUrl(locale, await headers());
+
+  if (!session) {
+    redirect(`/${locale}/login`);
+  }
+
+  try {
+    await refreshBillingStatus(artistId, session.accessToken);
+  } catch {
+    redirect(buildErrorUrl(returnUrl, 'portal'));
+  }
+
+  redirect(new URL(`?refresh=done`, returnUrl).toString());
 }

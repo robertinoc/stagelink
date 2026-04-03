@@ -244,6 +244,37 @@ export class BillingService {
     return ok({ url: session.url });
   }
 
+  async refreshSubscriptionState(artistId: string) {
+    const stripe = this.getStripeClientOrThrow();
+    const subscription = await this.ensureSubscriptionRecord(artistId);
+
+    let stripeSubscription: Stripe.Subscription | null = null;
+
+    if (subscription.stripeSubscriptionId) {
+      stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+    } else if (subscription.stripeCustomerId) {
+      const subscriptions = await stripe.subscriptions.list({
+        customer: subscription.stripeCustomerId,
+        status: 'all',
+        limit: 1,
+      });
+
+      stripeSubscription = subscriptions.data[0] ?? null;
+    }
+
+    if (!stripeSubscription) {
+      throw new BadRequestException('No Stripe subscription exists for this artist yet');
+    }
+
+    await this.syncStripeSubscription(
+      `manual-refresh:${artistId}:${Date.now()}`,
+      'manual.refresh',
+      stripeSubscription,
+    );
+
+    return this.getBillingSummary(artistId);
+  }
+
   async handleWebhook(req: StripeRequest) {
     const stripe = this.getStripeClientOrThrow();
     const webhookSecret = this.configService.get<string>('stripe.webhookSecret');

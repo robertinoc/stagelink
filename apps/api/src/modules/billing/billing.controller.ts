@@ -59,6 +59,13 @@ export class BillingController {
     return this.billingService.createPortalSession(artistId, dto);
   }
 
+  @Post(':artistId/refresh')
+  @CheckOwnership('artist', 'artistId', 'admin')
+  @UseGuards(OwnershipGuard)
+  refreshSubscriptionState(@Param('artistId') artistId: string) {
+    return this.billingService.refreshSubscriptionState(artistId);
+  }
+
   @Public()
   @Post('webhook')
   handleWebhook(@Req() req: Request) {
