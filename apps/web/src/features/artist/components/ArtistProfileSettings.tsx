@@ -43,8 +43,7 @@ export function ArtistProfileSettings({
     defaultValues: {
       displayName: artist.displayName,
       bio: artist.bio ?? '',
-      category: artist.category,
-      secondaryCategories: artist.secondaryCategories ?? [],
+      categories: [artist.category, ...(artist.secondaryCategories ?? [])],
       instagramUrl: artist.instagramUrl ?? '',
       tiktokUrl: artist.tiktokUrl ?? '',
       youtubeUrl: artist.youtubeUrl ?? '',
@@ -68,12 +67,19 @@ export function ArtistProfileSettings({
     setSaveStatus('saving');
     setSaveError(null);
 
+    const [category, ...secondaryCategories] = values.categories;
+    if (!category) {
+      setSaveError('Choose at least one category.');
+      setSaveStatus('error');
+      return;
+    }
+
     // Transform empty strings → null so the backend can clear optional fields
     const payload = {
       displayName: values.displayName,
       bio: values.bio || null,
-      category: values.category,
-      secondaryCategories: values.secondaryCategories,
+      category,
+      secondaryCategories,
       instagramUrl: values.instagramUrl || null,
       tiktokUrl: values.tiktokUrl || null,
       youtubeUrl: values.youtubeUrl || null,
@@ -92,8 +98,7 @@ export function ArtistProfileSettings({
       reset({
         displayName: updated.displayName,
         bio: updated.bio ?? '',
-        category: updated.category,
-        secondaryCategories: updated.secondaryCategories ?? [],
+        categories: [updated.category, ...(updated.secondaryCategories ?? [])],
         instagramUrl: updated.instagramUrl ?? '',
         tiktokUrl: updated.tiktokUrl ?? '',
         youtubeUrl: updated.youtubeUrl ?? '',

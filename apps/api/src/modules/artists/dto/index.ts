@@ -6,6 +6,7 @@ import {
   IsEnum,
   IsArray,
   ArrayUnique,
+  ArrayMaxSize,
   MaxLength,
   MinLength,
   Matches,
@@ -131,6 +132,7 @@ export class UpdateArtistDto {
   @IsOptional()
   @IsArray()
   @ArrayUnique()
+  @ArrayMaxSize(2, { message: 'You can choose up to 2 secondary categories' })
   @IsEnum(ArtistCategory, {
     each: true,
     message: 'secondaryCategories must contain only valid ArtistCategory values',

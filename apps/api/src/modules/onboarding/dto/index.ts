@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsArray,
   ArrayUnique,
+  ArrayMaxSize,
 } from 'class-validator';
 
 export class CheckUsernameQueryDto {
@@ -36,6 +37,7 @@ export class CompleteOnboardingDto {
   @IsOptional()
   @IsArray()
   @ArrayUnique()
+  @ArrayMaxSize(2, { message: 'You can choose up to 2 secondary categories' })
   @IsEnum(ArtistCategory, { each: true })
   secondaryCategories?: ArtistCategory[];
 }
