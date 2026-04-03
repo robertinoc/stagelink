@@ -83,10 +83,19 @@ export class BillingService {
   }
 
   async getBillingSummary(artistId: string) {
-    const [subscription, products] = await Promise.all([
-      this.ensureSubscriptionRecord(artistId),
-      this.getProductsCatalog(),
-    ]);
+    let subscription = await this.ensureSubscriptionRecord(artistId);
+
+    if (this.shouldAttemptStripeReconciliation(subscription)) {
+      try {
+        subscription = await this.reconcileSubscriptionFromStripe(artistId, subscription);
+      } catch (error) {
+        this.logger.warn(
+          `Billing summary reconciliation failed for ${artistId}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
+    const products = await this.getProductsCatalog();
 
     const snapshot = {
       plan: subscription.plan,
@@ -245,32 +254,8 @@ export class BillingService {
   }
 
   async refreshSubscriptionState(artistId: string) {
-    const stripe = this.getStripeClientOrThrow();
     const subscription = await this.ensureSubscriptionRecord(artistId);
-
-    let stripeSubscription: Stripe.Subscription | null = null;
-
-    if (subscription.stripeSubscriptionId) {
-      stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
-    } else if (subscription.stripeCustomerId) {
-      const subscriptions = await stripe.subscriptions.list({
-        customer: subscription.stripeCustomerId,
-        status: 'all',
-        limit: 1,
-      });
-
-      stripeSubscription = subscriptions.data[0] ?? null;
-    }
-
-    if (!stripeSubscription) {
-      throw new BadRequestException('No Stripe subscription exists for this artist yet');
-    }
-
-    await this.syncStripeSubscription(
-      `manual-refresh:${artistId}:${Date.now()}`,
-      'manual.refresh',
-      stripeSubscription,
-    );
+    await this.reconcileSubscriptionFromStripe(artistId, subscription);
 
     return this.getBillingSummary(artistId);
   }
@@ -397,6 +382,21 @@ export class BillingService {
       process.env['NODE_ENV'] ??
       'development'
     );
+  }
+
+  private shouldAttemptStripeReconciliation(subscription: PrismaSubscription): boolean {
+    if (!this.stripe) return false;
+    if (subscription.plan === PlanTier.free) return false;
+    if (
+      subscription.status === SubscriptionStatus.active ||
+      subscription.status === SubscriptionStatus.trialing ||
+      subscription.status === SubscriptionStatus.past_due ||
+      subscription.status === SubscriptionStatus.canceled
+    ) {
+      return false;
+    }
+
+    return Boolean(subscription.stripeSubscriptionId || subscription.stripeCustomerId);
   }
 
   private validateReturnUrl(rawUrl: string): string {
@@ -639,35 +639,98 @@ export class BillingService {
     }
 
     await this.runWebhookMutation(stripeEventId, stripeEventType, artistId, async (tx) => {
+      const write = this.buildStripeSubscriptionWrite(artistId, plan, subscription);
       await tx.subscription.upsert({
         where: { artistId },
-        update: {
-          plan,
-          status: mapStripeSubscriptionStatus(subscription.status),
-          stripeCustomerId:
-            typeof subscription.customer === 'string'
-              ? subscription.customer
-              : subscription.customer.id,
-          stripeSubscriptionId: subscription.id,
-          stripePriceId: item?.price?.id ?? null,
-          cancelAtPeriodEnd: subscription.cancel_at_period_end,
-          currentPeriodEnd: normalizeStripeTimestamp(item?.current_period_end ?? null),
-        },
-        create: {
-          artistId,
-          plan,
-          status: mapStripeSubscriptionStatus(subscription.status),
-          stripeCustomerId:
-            typeof subscription.customer === 'string'
-              ? subscription.customer
-              : subscription.customer.id,
-          stripeSubscriptionId: subscription.id,
-          stripePriceId: item?.price?.id ?? null,
-          cancelAtPeriodEnd: subscription.cancel_at_period_end,
-          currentPeriodEnd: normalizeStripeTimestamp(item?.current_period_end ?? null),
-        },
+        update: write.update,
+        create: write.create,
       });
     });
+  }
+
+  private async reconcileSubscriptionFromStripe(
+    artistId: string,
+    subscription: PrismaSubscription,
+  ): Promise<PrismaSubscription> {
+    const stripe = this.getStripeClientOrThrow();
+
+    let stripeSubscription: Stripe.Subscription | null = null;
+
+    if (subscription.stripeSubscriptionId) {
+      stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+    } else if (subscription.stripeCustomerId) {
+      const subscriptions = await stripe.subscriptions.list({
+        customer: subscription.stripeCustomerId,
+        status: 'all',
+        limit: 1,
+      });
+
+      stripeSubscription = subscriptions.data[0] ?? null;
+    }
+
+    if (!stripeSubscription) {
+      throw new BadRequestException('No Stripe subscription exists for this artist yet');
+    }
+
+    const plan = this.resolvePlan(
+      stripeSubscription.metadata?.plan,
+      stripeSubscription.items.data[0]?.price?.id ?? null,
+    );
+    if (!plan) {
+      this.logger.error(`Unknown Stripe plan mapping for subscription ${stripeSubscription.id}`);
+      return subscription;
+    }
+
+    const resolvedArtistId = await this.resolveArtistIdForStripeSubscription(stripeSubscription);
+    if (resolvedArtistId && resolvedArtistId !== artistId) {
+      this.logger.warn(
+        `Stripe reconciliation for ${artistId} resolved to different artist ${resolvedArtistId}`,
+      );
+      return subscription;
+    }
+
+    const write = this.buildStripeSubscriptionWrite(artistId, plan, stripeSubscription);
+    return this.prisma.subscription.upsert({
+      where: { artistId },
+      update: write.update,
+      create: write.create,
+    });
+  }
+
+  private buildStripeSubscriptionWrite(
+    artistId: string,
+    plan: PlanTier,
+    subscription: Stripe.Subscription,
+  ) {
+    const item = subscription.items.data[0];
+
+    return {
+      update: {
+        plan,
+        status: mapStripeSubscriptionStatus(subscription.status),
+        stripeCustomerId:
+          typeof subscription.customer === 'string'
+            ? subscription.customer
+            : subscription.customer.id,
+        stripeSubscriptionId: subscription.id,
+        stripePriceId: item?.price?.id ?? null,
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        currentPeriodEnd: normalizeStripeTimestamp(item?.current_period_end ?? null),
+      },
+      create: {
+        artistId,
+        plan,
+        status: mapStripeSubscriptionStatus(subscription.status),
+        stripeCustomerId:
+          typeof subscription.customer === 'string'
+            ? subscription.customer
+            : subscription.customer.id,
+        stripeSubscriptionId: subscription.id,
+        stripePriceId: item?.price?.id ?? null,
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        currentPeriodEnd: normalizeStripeTimestamp(item?.current_period_end ?? null),
+      },
+    };
   }
 
   private resolvePlan(
