@@ -14,6 +14,7 @@ import {
 import { getArtist } from '@/lib/api/artists';
 import {
   getBillingProducts,
+  getBillingEntitlements,
   getBillingSubscription,
   type BillingPlanCatalogItem,
 } from '@/lib/api/billing';
@@ -105,6 +106,8 @@ export default async function DashboardBillingPage({
     getBillingSubscription(artistId, session.accessToken),
     getBillingProducts(session.accessToken),
   ]);
+  const entitlements = await getBillingEntitlements(artistId, session.accessToken);
+  const effectiveAccessDiffers = entitlements.effectivePlan !== subscription.plan;
 
   const planCards = products.plans;
 
@@ -151,7 +154,21 @@ export default async function DashboardBillingPage({
             {resolvePlanLabel(subscription.plan)}
           </Badge>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-3">
+        <CardContent className="grid gap-4 sm:grid-cols-4">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {t('fields.billing_plan')}
+            </p>
+            <p className="mt-1 text-sm font-medium">{resolvePlanLabel(subscription.plan)}</p>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {t('fields.effective_access')}
+            </p>
+            <p className="mt-1 text-sm font-medium">
+              {resolvePlanLabel(entitlements.effectivePlan)}
+            </p>
+          </div>
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
               {t('fields.status')}
@@ -176,6 +193,15 @@ export default async function DashboardBillingPage({
               {subscription.cancelAtPeriodEnd ? t('fields.canceling') : t('fields.active')}
             </p>
           </div>
+          {effectiveAccessDiffers ? (
+            <div className="sm:col-span-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-950">
+              {t('messages.access_differs', {
+                billingPlan: resolvePlanLabel(subscription.plan),
+                effectivePlan: resolvePlanLabel(entitlements.effectivePlan),
+                status: resolveStatusLabel(subscription.status),
+              })}
+            </div>
+          ) : null}
         </CardContent>
         <CardFooter>
           <form action={startPortalAction}>

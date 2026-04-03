@@ -122,7 +122,7 @@
       },
       "locked": {
         "title": "Advanced analytics are locked",
-        "description": "Your current plan is {currentPlan}. Upgrade to Pro+ to unlock a full 365-day view and advanced analytics features as they ship.",
+        "description": "Your current plan is {currentPlan}. Upgrade to {requiredPlan} to unlock a full 365-day view and advanced analytics features as they ship.",
         "cta": "Upgrade plan",
         "secondary_cta": "Manage page"
       },
@@ -179,6 +179,8 @@
         "current": "Current"
       },
       "fields": {
+        "billing_plan": "Billing plan",
+        "effective_access": "Effective access",
         "status": "Status",
         "renewal": "Renewal date",
         "cancellation": "Cancellation",
@@ -197,7 +199,8 @@
         "checkout_success": "Checkout completed. Stripe will sync your subscription in a few seconds.",
         "checkout_canceled": "Checkout was canceled. Your current subscription has not changed.",
         "checkout_error": "We could not start Stripe Checkout. Please try again.",
-        "portal_error": "We could not open the Stripe Billing Portal. Please try again."
+        "portal_error": "We could not open the Stripe Billing Portal. Please try again.",
+        "access_differs": "Product access is currently resolved as {effectivePlan} while billing is still on {billingPlan} ({status}). StageLink uses effective access for feature gating."
       }
     },
     "settings": {

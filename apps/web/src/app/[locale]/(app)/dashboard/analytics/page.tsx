@@ -3,7 +3,12 @@ import { getTranslations } from 'next-intl/server';
 import { getSession } from '@/lib/auth';
 import { getBillingEntitlements } from '@/lib/api/billing';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
-import { getAnalyticsOverview, type AnalyticsRange } from '@/lib/api/analytics';
+import {
+  getAnalyticsOverview,
+  type AnalyticsFeatureLockPayload,
+  type AnalyticsRange,
+} from '@/lib/api/analytics';
+import type { BillingEntitlementsResponse } from '@/lib/api/billing';
 import { AnalyticsDashboard } from '@/features/analytics/components/AnalyticsDashboard';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,6 +21,20 @@ interface PageProps {
 }
 
 const VALID_RANGES: AnalyticsRange[] = ['7d', '30d', '90d', '365d'];
+
+function createLocalRangeLockPayload(
+  entitlements: BillingEntitlementsResponse,
+): AnalyticsFeatureLockPayload {
+  return {
+    code: 'FEATURE_NOT_INCLUDED_IN_PLAN',
+    feature: 'analytics_pro',
+    effectivePlan: entitlements.effectivePlan,
+    billingPlan: entitlements.billingPlan,
+    subscriptionStatus: entitlements.subscriptionStatus,
+    requiredPlan: 'pro_plus',
+    message: 'Feature not included in current plan',
+  };
+}
 
 function parseRange(raw: string | undefined): AnalyticsRange {
   if (raw && VALID_RANGES.includes(raw as AnalyticsRange)) {
@@ -56,19 +75,31 @@ export default async function DashboardAnalyticsPage({ searchParams }: PageProps
     () => null,
   );
   const analyticsProEnabled = entitlements?.features.analytics_pro;
-  const rangeLocked = range === '365d' && analyticsProEnabled === false;
+  let rangeLockedPayload: AnalyticsFeatureLockPayload | null = null;
+  let data = null;
+  let errorMessage: string | null = null;
 
-  // Fetch analytics data server-side. Null on any error → error state in component.
-  const data = rangeLocked
-    ? null
-    : await getAnalyticsOverview(artistId, session.accessToken, range);
+  if (range === '365d' && analyticsProEnabled === false) {
+    rangeLockedPayload = entitlements ? createLocalRangeLockPayload(entitlements) : null;
+  } else {
+    const result = await getAnalyticsOverview(artistId, session.accessToken, range);
+    if (result.kind === 'ok') {
+      data = result.data;
+    } else if (result.kind === 'locked') {
+      rangeLockedPayload = result.payload;
+    } else {
+      errorMessage = result.message;
+    }
+  }
 
   return (
     <AnalyticsDashboard
       data={data}
       range={range}
       entitlements={entitlements}
-      rangeLocked={rangeLocked}
+      rangeLocked={Boolean(rangeLockedPayload)}
+      rangeLockedPayload={rangeLockedPayload}
+      errorMessage={errorMessage}
     />
   );
 }

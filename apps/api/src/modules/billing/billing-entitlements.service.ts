@@ -21,6 +21,7 @@ export class BillingEntitlementsService {
         plan: true,
         status: true,
         cancelAtPeriodEnd: true,
+        currentPeriodEnd: true,
       },
     });
 
@@ -49,7 +50,10 @@ export class BillingEntitlementsService {
   }
 
   private mapSubscriptionSnapshot(
-    subscription: Pick<Subscription, 'plan' | 'status' | 'cancelAtPeriodEnd'> | null,
+    subscription: Pick<
+      Subscription,
+      'plan' | 'status' | 'cancelAtPeriodEnd' | 'currentPeriodEnd'
+    > | null,
   ) {
     if (!subscription) return null;
 
@@ -57,6 +61,7 @@ export class BillingEntitlementsService {
       plan: subscription.plan,
       status: subscription.status,
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+      currentPeriodEnd: subscription.currentPeriodEnd,
     };
   }
 }

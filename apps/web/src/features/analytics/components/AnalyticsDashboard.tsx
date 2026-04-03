@@ -7,7 +7,11 @@ import { Eye, Link2, TrendingUp, Zap, Info, AlertCircle, RefreshCw, Lock } from 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { AnalyticsOverview, AnalyticsRange } from '@/lib/api/analytics';
+import type {
+  AnalyticsFeatureLockPayload,
+  AnalyticsOverview,
+  AnalyticsRange,
+} from '@/lib/api/analytics';
 import type { BillingEntitlementsResponse } from '@/lib/api/billing';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -19,6 +23,8 @@ interface AnalyticsDashboardProps {
   range: AnalyticsRange;
   entitlements: BillingEntitlementsResponse | null;
   rangeLocked: boolean;
+  rangeLockedPayload?: AnalyticsFeatureLockPayload | null;
+  errorMessage?: string | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -225,7 +231,7 @@ function EmptyState() {
 
 // ─── Error state ──────────────────────────────────────────────────────────────
 
-function ErrorState() {
+function ErrorState({ message }: { message?: string | null }) {
   const t = useTranslations('dashboard.analytics.error');
   const router = useRouter();
 
@@ -234,6 +240,7 @@ function ErrorState() {
       <AlertCircle className="h-8 w-8 text-destructive/60" />
       <h3 className="text-base font-semibold">{t('title')}</h3>
       <p className="max-w-sm text-sm text-muted-foreground">{t('description')}</p>
+      {message ? <p className="max-w-sm text-xs text-destructive/80">{message}</p> : null}
       <Button variant="outline" size="sm" className="mt-2" onClick={() => router.refresh()}>
         <RefreshCw className="mr-2 h-4 w-4" />
         {t('retry')}
@@ -255,8 +262,10 @@ function resolvePlanLabel(plan: BillingEntitlementsResponse['effectivePlan'] | '
 
 function LockedState({
   currentPlan,
+  requiredPlan,
 }: {
   currentPlan: BillingEntitlementsResponse['effectivePlan'] | 'free';
+  requiredPlan?: BillingEntitlementsResponse['effectivePlan'] | 'free';
 }) {
   const locale = useLocale();
   const t = useTranslations('dashboard.analytics.locked');
@@ -270,11 +279,14 @@ function LockedState({
         <div className="space-y-2">
           <h2 className="text-lg font-semibold">{t('title')}</h2>
           <p className="max-w-md text-sm text-muted-foreground">
-            {t('description', { currentPlan: resolvePlanLabel(currentPlan) })}
+            {t('description', {
+              currentPlan: resolvePlanLabel(currentPlan),
+              requiredPlan: resolvePlanLabel(requiredPlan ?? 'pro_plus'),
+            })}
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <Badge variant="outline">Pro+</Badge>
+          <Badge variant="outline">{resolvePlanLabel(requiredPlan ?? 'pro_plus')}</Badge>
           <Badge variant="secondary">{resolvePlanLabel(currentPlan)}</Badge>
         </div>
         <div className="flex gap-2">
@@ -330,6 +342,8 @@ export function AnalyticsDashboard({
   range,
   entitlements,
   rangeLocked,
+  rangeLockedPayload,
+  errorMessage,
 }: AnalyticsDashboardProps) {
   const t = useTranslations('dashboard.analytics');
   const analyticsProEnabled = entitlements?.features.analytics_pro ?? false;
@@ -346,10 +360,15 @@ export function AnalyticsDashboard({
         <RangeSelector current={range} analyticsProEnabled={analyticsProEnabled} />
       </div>
 
-      {rangeLocked && <LockedState currentPlan={effectivePlan} />}
+      {rangeLocked && (
+        <LockedState
+          currentPlan={rangeLockedPayload?.effectivePlan ?? effectivePlan}
+          requiredPlan={rangeLockedPayload?.requiredPlan}
+        />
+      )}
 
       {/* Error state */}
-      {data === null && !rangeLocked && <ErrorState />}
+      {data === null && !rangeLocked && <ErrorState message={errorMessage} />}
 
       {/* Has data */}
       {data !== null && !rangeLocked && (
