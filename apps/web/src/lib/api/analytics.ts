@@ -1,4 +1,5 @@
 import { apiFetch } from '@/lib/auth';
+import type { BillingSubscriptionStatus, FeatureKey, PlanCode } from '@stagelink/types';
 
 // ─── Types (mirror of API DTOs) ───────────────────────────────────────────────
 
@@ -40,6 +41,21 @@ export interface AnalyticsOverview {
   notes: AnalyticsNotes;
 }
 
+export interface AnalyticsFeatureLockPayload {
+  code: 'FEATURE_NOT_INCLUDED_IN_PLAN';
+  feature: FeatureKey;
+  effectivePlan: PlanCode;
+  billingPlan: PlanCode;
+  subscriptionStatus: BillingSubscriptionStatus;
+  requiredPlan: PlanCode;
+  message: string;
+}
+
+export type AnalyticsOverviewResult =
+  | { kind: 'ok'; data: AnalyticsOverview }
+  | { kind: 'locked'; payload: AnalyticsFeatureLockPayload }
+  | { kind: 'error'; message: string };
+
 // ─── API calls ────────────────────────────────────────────────────────────────
 
 /**
@@ -54,15 +70,41 @@ export async function getAnalyticsOverview(
   artistId: string,
   accessToken: string,
   range: AnalyticsRange = '30d',
-): Promise<AnalyticsOverview | null> {
+): Promise<AnalyticsOverviewResult> {
   try {
     const res = await apiFetch(`/api/analytics/${artistId}/overview?range=${range}`, {
       accessToken,
       cache: 'no-store',
     });
-    if (!res.ok) return null;
-    return res.json() as Promise<AnalyticsOverview>;
+
+    if (res.ok) {
+      return { kind: 'ok', data: (await res.json()) as AnalyticsOverview };
+    }
+
+    const payload = (await res.json().catch(() => ({}))) as Partial<AnalyticsFeatureLockPayload> & {
+      message?: string | string[];
+    };
+    const message = Array.isArray(payload.message)
+      ? payload.message.join(', ')
+      : (payload.message ?? 'Failed to load analytics');
+
+    if (res.status === 403 && payload.code === 'FEATURE_NOT_INCLUDED_IN_PLAN') {
+      return {
+        kind: 'locked',
+        payload: {
+          code: 'FEATURE_NOT_INCLUDED_IN_PLAN',
+          feature: payload.feature!,
+          effectivePlan: payload.effectivePlan!,
+          billingPlan: payload.billingPlan!,
+          subscriptionStatus: payload.subscriptionStatus!,
+          requiredPlan: payload.requiredPlan!,
+          message,
+        },
+      };
+    }
+
+    return { kind: 'error', message };
   } catch {
-    return null;
+    return { kind: 'error', message: 'Failed to load analytics' };
   }
 }

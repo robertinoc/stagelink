@@ -22,6 +22,8 @@ export const FEATURE_KEYS = [
 ] as const;
 export type FeatureKey = (typeof FEATURE_KEYS)[number];
 
+const PLAN_ORDER: PlanCode[] = ['free', 'pro', 'pro_plus'];
+
 export const PLAN_FEATURE_MATRIX: Record<PlanCode, readonly FeatureKey[]> = {
   free: [],
   pro: ['remove_stagelink_branding', 'custom_domain', 'epk_builder'],
@@ -36,19 +38,24 @@ export const PLAN_FEATURE_MATRIX: Record<PlanCode, readonly FeatureKey[]> = {
   ],
 };
 
-export const FEATURE_MINIMUM_PLAN: Record<FeatureKey, PlanCode> = {
-  remove_stagelink_branding: 'pro',
-  custom_domain: 'pro',
-  epk_builder: 'pro',
-  analytics_pro: 'pro_plus',
-  multi_language_pages: 'pro_plus',
-  advanced_fan_insights: 'pro_plus',
-  shopify_integration: 'pro_plus',
-};
+function buildFeatureMinimumPlan(): Record<FeatureKey, PlanCode> {
+  return FEATURE_KEYS.reduce<Record<FeatureKey, PlanCode>>(
+    (acc, feature) => {
+      acc[feature] =
+        PLAN_ORDER.find((plan) => PLAN_FEATURE_MATRIX[plan].includes(feature)) ?? 'free';
+      return acc;
+    },
+    {} as Record<FeatureKey, PlanCode>,
+  );
+}
+
+export const FEATURE_MINIMUM_PLAN: Record<FeatureKey, PlanCode> = buildFeatureMinimumPlan();
+
 export interface BillingSubscriptionSnapshot {
   plan: PlanCode;
   status: BillingSubscriptionStatus;
   cancelAtPeriodEnd?: boolean | null;
+  currentPeriodEnd?: Date | null;
 }
 
 export interface TenantEntitlements {
@@ -60,7 +67,6 @@ export interface TenantEntitlements {
   featureKeys: FeatureKey[];
 }
 
-const PLAN_ORDER: PlanCode[] = ['free', 'pro', 'pro_plus'];
 const PAID_STATUSES: BillingSubscriptionStatus[] = ['active', 'trialing'];
 
 export function isPaidPlan(plan: PlanCode): boolean {

@@ -122,7 +122,7 @@
       },
       "locked": {
         "title": "Las analíticas avanzadas están bloqueadas",
-        "description": "Tu plan actual es {currentPlan}. Actualizá a Pro+ para desbloquear la vista de 365 días y las capacidades avanzadas de analytics a medida que se publiquen.",
+        "description": "Tu plan actual es {currentPlan}. Actualizá a {requiredPlan} para desbloquear la vista de 365 días y las capacidades avanzadas de analytics a medida que se publiquen.",
         "cta": "Actualizar plan",
         "secondary_cta": "Gestionar página"
       },
@@ -179,6 +179,8 @@
         "current": "Actual"
       },
       "fields": {
+        "billing_plan": "Plan facturado",
+        "effective_access": "Acceso efectivo",
         "status": "Estado",
         "renewal": "Fecha de renovación",
         "cancellation": "Cancelación",
@@ -197,7 +199,8 @@
         "checkout_success": "El checkout se completó. Stripe va a sincronizar tu suscripción en unos segundos.",
         "checkout_canceled": "El checkout fue cancelado. Tu suscripción actual no cambió.",
         "checkout_error": "No pudimos iniciar Stripe Checkout. Intentá de nuevo.",
-        "portal_error": "No pudimos abrir el portal de Stripe. Intentá de nuevo."
+        "portal_error": "No pudimos abrir el portal de Stripe. Intentá de nuevo.",
+        "access_differs": "El acceso de producto se está resolviendo actualmente como {effectivePlan} mientras billing sigue en {billingPlan} ({status}). StageLink usa el acceso efectivo para el gating de features."
       }
     },
     "settings": {
