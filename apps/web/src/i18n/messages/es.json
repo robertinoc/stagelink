@@ -170,13 +170,13 @@
     },
     "billing": {
       "title": "Facturación",
-      "description": "Administrá tu suscripción y métodos de pago.",
+      "description": "Revisá tu plan actual, compará upgrades y gestioná billing desde un solo lugar.",
       "current_plan_title": "Plan actual",
       "current_plan_description": "Estado de suscripción de {artist}.",
-      "product_fallback_description": "Los detalles de precios aparecerán acá cuando Stripe esté configurado.",
-      "unavailable": "Este plan todavía no está disponible en el entorno actual.",
       "badges": {
-        "current": "Actual"
+        "current": "Actual",
+        "recommended": "Recomendado",
+        "included": "Incluido"
       },
       "fields": {
         "billing_plan": "Plan facturado",
@@ -190,17 +190,67 @@
       },
       "actions": {
         "manage_billing": "Abrir portal de facturación",
-        "upgrade": "Ir al checkout",
         "current_plan": "Plan actual",
         "included": "Incluido",
-        "contact_sales": "Contactar ventas"
+        "included_in_higher_tier": "Incluido en planes superiores",
+        "contact_sales": "Contactar ventas",
+        "retry": "Intentar de nuevo",
+        "refresh": "Actualizar estado",
+        "upgrade_to": "Actualizar a {plan}"
       },
       "messages": {
         "checkout_success": "El checkout se completó. Stripe va a sincronizar tu suscripción en unos segundos.",
+        "checkout_confirmed": "Tu suscripción ya está activa en StageLink y tu acceso quedó actualizado.",
+        "checkout_syncing": "Stripe completó tu checkout, pero StageLink todavía está confirmando la suscripción. Esto suele resolverse en unos segundos.",
         "checkout_canceled": "El checkout fue cancelado. Tu suscripción actual no cambió.",
         "checkout_error": "No pudimos iniciar Stripe Checkout. Intentá de nuevo.",
         "portal_error": "No pudimos abrir el portal de Stripe. Intentá de nuevo.",
+        "portal_returned": "Tu información de facturación se actualizó. Si cambiaste tu suscripción en Stripe, StageLink la va a reflejar acá.",
+        "portal_syncing": "Detectamos que volviste del portal de billing y estamos refrescando los cambios de suscripción.",
+        "sync_pending": "Todavía estamos confirmando tu último cambio de billing. El acceso de producto se mantiene conservador hasta que terminen de sincronizar los webhooks de Stripe.",
+        "summary_load_error": "No pudimos cargar el resumen de billing. Intentá de nuevo.",
         "access_differs": "El acceso de producto se está resolviendo actualmente como {effectivePlan} mientras billing sigue en {billingPlan} ({status}). StageLink usa el acceso efectivo para el gating de features."
+      },
+      "feedback": {
+        "success_title": "Billing actualizado",
+        "warning_title": "Acción de billing cancelada",
+        "error_title": "Falló la acción de billing",
+        "info_title": "Billing refrescado",
+        "sync_title": "Sincronización en progreso"
+      },
+      "states": {
+        "free": "Free",
+        "active": "Activa",
+        "trialing": "Prueba",
+        "past_due": "Problema de pago",
+        "canceling": "Cancela al final del período",
+        "canceled": "Cancelada",
+        "syncing": "Actualizando"
+      },
+      "status_descriptions": {
+        "free": "Plan Free",
+        "active": "Suscripción activa",
+        "trialing": "Prueba en curso",
+        "past_due": "Problema de pago",
+        "canceling": "Activa hasta el final del período actual",
+        "canceled": "Suscripción cancelada",
+        "syncing": "Actualizando suscripción"
+      },
+      "sections": {
+        "available_plans_title": "Planes disponibles",
+        "available_plans_description": "Compará lo que desbloquean Free, Pro y Pro+ dentro del producto.",
+        "features_title": "Features incluidas y bloqueadas",
+        "features_description": "Estos highlights salen directamente de tus entitlements efectivos.",
+        "actions_title": "Acciones de billing",
+        "actions_description": "Actualizá tu plan cuando necesites más features o abrí Stripe para gestionar los detalles de facturación."
+      },
+      "plan_card": {
+        "current_description": "Este es el plan actualmente asociado a tu suscripción.",
+        "available_description": "Un camino de upgrade simple que podés iniciar directo desde el dashboard."
+      },
+      "feature_state": {
+        "included": "Incluida en tu acceso actual.",
+        "locked": "Desbloqueá esta feature con {plan}."
       }
     },
     "settings": {

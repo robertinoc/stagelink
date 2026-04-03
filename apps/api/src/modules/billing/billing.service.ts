@@ -14,6 +14,16 @@ import {
   type Subscription as PrismaSubscription,
   type User,
 } from '@prisma/client';
+import {
+  buildTenantEntitlements,
+  FEATURE_KEYS,
+  getMinimumPlanForFeature,
+  PLAN_FEATURE_MATRIX,
+  resolveBillingUiState,
+  type BillingFeatureSummary,
+  type BillingPlanSummary,
+  type BillingUiSummary,
+} from '@stagelink/types';
 import type { Request } from 'express';
 import type Stripe from 'stripe';
 import { PrismaService } from '../../lib/prisma.service';
@@ -55,21 +65,7 @@ export class BillingService {
   ) {}
 
   async getProducts() {
-    const plans = await Promise.all([
-      this.buildFreePlanCatalogItem(),
-      this.buildPaidPlanCatalogItem(PlanTier.pro),
-      this.buildPaidPlanCatalogItem(PlanTier.pro_plus),
-      Promise.resolve({
-        plan: 'enterprise' as const,
-        available: false,
-        contactSales: true,
-        amount: null,
-        currency: null,
-        interval: null,
-        productName: 'Enterprise',
-        productDescription: 'Manual onboarding for custom needs.',
-      }),
-    ]);
+    const plans = await this.getProductsCatalog();
 
     return ok({ plans });
   }
@@ -82,6 +78,63 @@ export class BillingService {
       status: subscription.status,
       currentPeriodEnd: subscription.currentPeriodEnd,
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+      portalAvailable: Boolean(subscription.stripeCustomerId),
+    });
+  }
+
+  async getBillingSummary(artistId: string) {
+    const [subscription, products] = await Promise.all([
+      this.ensureSubscriptionRecord(artistId),
+      this.getProductsCatalog(),
+    ]);
+
+    const snapshot = {
+      plan: subscription.plan,
+      status: subscription.status,
+      cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+      currentPeriodEnd: subscription.currentPeriodEnd,
+    };
+    const entitlements = buildTenantEntitlements(snapshot);
+    const billingState = resolveBillingUiState(snapshot);
+    const availablePlans = this.buildPlanSummaries(
+      products,
+      subscription,
+      entitlements.effectivePlan,
+    );
+    const featureHighlights = this.buildFeatureHighlights(entitlements.effectivePlan);
+    const recommendedPlan = availablePlans.find(
+      (plan) =>
+        plan.recommended && !plan.isCurrent && plan.planCode !== 'enterprise' && plan.available,
+    );
+
+    return ok<BillingUiSummary>({
+      artistId,
+      effectivePlan: entitlements.effectivePlan,
+      billingPlan: entitlements.billingPlan,
+      subscriptionStatus: entitlements.subscriptionStatus,
+      currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
+      cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+      billingState,
+      availablePlans,
+      entitlements: entitlements.features,
+      featureHighlights,
+      upgradeOptions: {
+        canUpgrade: availablePlans.some(
+          (plan) =>
+            plan.planCode !== 'enterprise' &&
+            plan.available &&
+            !plan.isCurrent &&
+            this.planRank(plan.planCode) > this.planRank(entitlements.effectivePlan),
+        ),
+        canManageBilling: Boolean(subscription.stripeCustomerId),
+        recommendedPlan:
+          recommendedPlan?.planCode && recommendedPlan.planCode !== 'enterprise'
+            ? recommendedPlan.planCode
+            : null,
+      },
+      notes: {
+        isWebhookSyncPending: billingState === 'syncing',
+      },
       portalAvailable: Boolean(subscription.stripeCustomerId),
     });
   }
@@ -176,7 +229,7 @@ export class BillingService {
 
   async createPortalSession(artistId: string, dto: CreatePortalSessionDto) {
     const stripe = this.getStripeClientOrThrow();
-    const returnUrl = this.validateReturnUrl(dto.returnUrl);
+    const returnUrl = this.appendPortalState(this.validateReturnUrl(dto.returnUrl));
     const subscription = await this.ensureSubscriptionRecord(artistId);
 
     if (!subscription.stripeCustomerId) {
@@ -331,6 +384,87 @@ export class BillingService {
     const url = new URL(returnUrl);
     url.searchParams.set('checkout', checkoutState);
     return url.toString();
+  }
+
+  private appendPortalState(returnUrl: string): string {
+    const url = new URL(returnUrl);
+    url.searchParams.set('portal', 'returned');
+    return url.toString();
+  }
+
+  private async getProductsCatalog(): Promise<BillingPlanCatalogItem[]> {
+    return Promise.all([
+      this.buildFreePlanCatalogItem(),
+      this.buildPaidPlanCatalogItem(PlanTier.pro),
+      this.buildPaidPlanCatalogItem(PlanTier.pro_plus),
+      Promise.resolve({
+        plan: 'enterprise' as const,
+        available: false,
+        contactSales: true,
+        amount: null,
+        currency: null,
+        interval: null,
+        productName: 'Enterprise',
+        productDescription: 'Manual onboarding for custom needs.',
+      }),
+    ]);
+  }
+
+  private buildPlanSummaries(
+    products: BillingPlanCatalogItem[],
+    subscription: PrismaSubscription,
+    effectivePlan: PlanTier,
+  ): BillingPlanSummary[] {
+    return products.map((product) => ({
+      planCode: product.plan,
+      displayName: product.productName,
+      interval: product.interval,
+      priceDisplay: this.formatPriceDisplay(product.amount, product.currency, product.contactSales),
+      available: product.available,
+      recommended:
+        (product.plan === 'pro' && effectivePlan === 'free') ||
+        (product.plan === 'pro_plus' && effectivePlan === 'pro'),
+      contactSales: Boolean(product.contactSales),
+      isCurrent: product.plan === subscription.plan,
+      features:
+        product.plan === 'enterprise'
+          ? [...PLAN_FEATURE_MATRIX.pro_plus]
+          : [...PLAN_FEATURE_MATRIX[product.plan]],
+    }));
+  }
+
+  private buildFeatureHighlights(currentPlan: PlanTier): BillingFeatureSummary[] {
+    return FEATURE_KEYS.map((feature) => ({
+      feature,
+      included: PLAN_FEATURE_MATRIX[currentPlan].includes(feature),
+      requiredPlan: getMinimumPlanForFeature(feature),
+    }));
+  }
+
+  private formatPriceDisplay(
+    amount: number | null,
+    currency: string | null,
+    contactSales?: boolean,
+  ): string {
+    if (contactSales) return 'Custom';
+    if (amount === null || currency === null) return 'Unavailable';
+
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency.toUpperCase(),
+      minimumFractionDigits: 0,
+    }).format(amount / 100);
+  }
+
+  private planRank(plan: PlanTier): number {
+    switch (plan) {
+      case 'pro':
+        return 1;
+      case 'pro_plus':
+        return 2;
+      default:
+        return 0;
+    }
   }
 
   private async ensureSubscriptionRecord(artistId: string): Promise<PrismaSubscription> {

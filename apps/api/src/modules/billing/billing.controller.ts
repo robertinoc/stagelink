@@ -27,6 +27,13 @@ export class BillingController {
     return this.billingService.getSubscription(artistId);
   }
 
+  @Get(':artistId/summary')
+  @CheckOwnership('artist', 'artistId', 'read')
+  @UseGuards(OwnershipGuard)
+  getSummary(@Param('artistId') artistId: string) {
+    return this.billingService.getBillingSummary(artistId);
+  }
+
   @Get(':artistId/entitlements')
   @CheckOwnership('artist', 'artistId', 'read')
   @UseGuards(OwnershipGuard)
