@@ -6,7 +6,7 @@ import { FeatureLockCta } from '@/components/billing/FeatureLockCta';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { getBillingEntitlements } from '@/lib/api/billing';
+import { getBillingSummary } from '@/lib/api/billing';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import { getSession } from '@/lib/auth';
 import { FEATURE_KEYS, getMinimumPlanForFeature, type FeatureKey } from '@stagelink/types';
@@ -49,8 +49,9 @@ export default async function DashboardSettingsPage({
     redirect(`/${locale}/onboarding`);
   }
 
-  const entitlements = await getBillingEntitlements(artistId, session.accessToken);
-  const lockedCount = FEATURE_ORDER.filter((feature) => !entitlements.features[feature]).length;
+  const summary = await getBillingSummary(artistId, session.accessToken);
+  const lockedCount = summary.featureHighlights.filter((feature) => !feature.included).length;
+  const syncing = summary.billingState === 'syncing';
 
   return (
     <div className="space-y-6">
@@ -60,7 +61,7 @@ export default async function DashboardSettingsPage({
           <p className="text-sm text-muted-foreground">{t('description')}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="secondary">{resolvePlanLabel(entitlements.effectivePlan)}</Badge>
+          <Badge variant="secondary">{resolvePlanLabel(summary.effectivePlan)}</Badge>
           <Badge variant="outline">{t('summary.locked_count', { count: lockedCount })}</Badge>
         </div>
       </div>
@@ -70,14 +71,14 @@ export default async function DashboardSettingsPage({
           <CardTitle>{t('summary.title')}</CardTitle>
           <CardDescription>
             {t('summary.description', {
-              plan: resolvePlanLabel(entitlements.effectivePlan),
+              plan: resolvePlanLabel(summary.effectivePlan),
             })}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1 text-sm text-muted-foreground">
             <p>{t('summary.backend_source')}</p>
-            <p>{t('summary.webhook_note')}</p>
+            <p>{syncing ? t('summary.syncing_note') : t('summary.webhook_note')}</p>
           </div>
           <Button asChild>
             <Link href={`/${locale}/dashboard/billing`}>{t('summary.cta')}</Link>
@@ -87,7 +88,7 @@ export default async function DashboardSettingsPage({
 
       <div className="grid gap-4 lg:grid-cols-2">
         {FEATURE_ORDER.map((feature) => {
-          const enabled = entitlements.features[feature];
+          const enabled = summary.entitlements[feature];
           const requiredPlan = getMinimumPlanForFeature(feature);
 
           return (
@@ -119,7 +120,7 @@ export default async function DashboardSettingsPage({
                     description={t('feature_state.locked', {
                       plan: resolvePlanLabel(requiredPlan),
                     })}
-                    currentPlanLabel={resolvePlanLabel(entitlements.effectivePlan)}
+                    currentPlanLabel={resolvePlanLabel(summary.effectivePlan)}
                     requiredPlanLabel={resolvePlanLabel(requiredPlan)}
                     href={`/${locale}/dashboard/billing`}
                     ctaLabel={t('actions.upgrade')}

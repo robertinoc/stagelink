@@ -85,6 +85,10 @@ export class BillingService {
   async getBillingSummary(artistId: string) {
     let subscription = await this.ensureSubscriptionRecord(artistId);
 
+    // Transitional recovery path: while webhook delivery/recovery remains eventual,
+    // the billing summary may reconcile directly against Stripe for stuck syncing
+    // subscriptions. T5-4 should move this behavior behind an explicit recovery
+    // action or background reconciliation flow so read paths stay side-effect free.
     if (this.shouldAttemptStripeReconciliation(subscription)) {
       try {
         subscription = await this.reconcileSubscriptionFromStripe(artistId, subscription);

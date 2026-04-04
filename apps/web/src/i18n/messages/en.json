@@ -205,6 +205,8 @@
         "checkout_canceled": "Checkout was canceled. Your current subscription has not changed.",
         "checkout_error": "We could not start Stripe Checkout. Please try again.",
         "portal_error": "We could not open the Stripe Billing Portal. Please try again.",
+        "refresh_error": "We could not refresh your billing status from Stripe. Please try again.",
+        "refresh_completed": "We refreshed your billing details from Stripe.",
         "portal_returned": "Your billing information was refreshed. If you changed your subscription in Stripe, StageLink will reflect it here.",
         "portal_syncing": "We detected a return from the billing portal and are refreshing your subscription details.",
         "sync_pending": "We are still confirming your latest billing update. Product access stays conservative until Stripe webhooks finish syncing.",
@@ -261,6 +263,7 @@
         "description": "StageLink currently resolves this tenant as {plan}. Backend gating uses this effective plan, not only the billing UI.",
         "backend_source": "The backend is the source of truth for feature authorization.",
         "webhook_note": "Plan changes take effect after Stripe webhooks synchronize the tenant subscription.",
+        "syncing_note": "Stripe billing is still syncing. Product gating stays conservative until the latest billing state is confirmed.",
         "cta": "Open billing",
         "locked_count": "{count, plural, one {# locked feature} other {# locked features}}"
       },

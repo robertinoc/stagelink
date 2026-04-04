@@ -97,6 +97,7 @@ These query params never mutate the local billing state by themselves.
 They only help select the temporary feedback banner.
 
 The screen always re-reads the real billing summary from backend.
+After the banner renders, the billing page cleans these transient params from the URL so the feedback does not keep reappearing on every refresh or when the page URL is shared.
 
 ### Success handling
 
@@ -147,6 +148,16 @@ Instead:
 - but the subscription status is still conservative (`inactive` / transitional)
 
 This matches the current T5-1 webhook flow, where Checkout completion can arrive before the subscription update webhook finishes syncing the final active state.
+
+### Transitional recovery path
+
+To avoid leaving paid subscriptions stuck in `syncing`, the billing summary currently includes a temporary Stripe reconciliation fallback on read for subscriptions that look transitional.
+
+This is intentionally a short-term safety net, not the long-term architecture:
+
+- webhook delivery remains the primary source of synchronization
+- manual refresh is still available as an explicit recovery action
+- T5-4 should move reconciliation out of the summary read path into a dedicated recovery flow or background job
 
 ## UI state mapping
 

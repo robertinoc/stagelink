@@ -27,7 +27,7 @@ function buildReturnUrl(locale: string, headerStore: Headers): string {
   return `http://localhost:4000/${locale}/dashboard/billing`;
 }
 
-function buildErrorUrl(returnUrl: string, error: 'checkout' | 'portal'): string {
+function buildErrorUrl(returnUrl: string, error: 'checkout' | 'portal' | 'refresh'): string {
   const url = new URL(returnUrl);
   url.searchParams.set('error', error);
   return url.toString();
@@ -91,7 +91,7 @@ export async function refreshBillingStatusAction(formData: FormData) {
   try {
     await refreshBillingStatus(artistId, session.accessToken);
   } catch {
-    redirect(buildErrorUrl(returnUrl, 'portal'));
+    redirect(buildErrorUrl(returnUrl, 'refresh'));
   }
 
   redirect(new URL(`?refresh=done`, returnUrl).toString());

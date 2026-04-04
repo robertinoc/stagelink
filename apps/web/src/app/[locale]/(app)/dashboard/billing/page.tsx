@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { BillingUiState, FeatureKey, PlanCode } from '@stagelink/types';
+import { ClearBillingFeedbackParams } from '@/components/billing/ClearBillingFeedbackParams';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -80,10 +81,12 @@ function resolveReturnBanner(
   t: Awaited<ReturnType<typeof getTranslations>>,
 ) {
   if (query.error) {
-    const messageKey =
-      query.error === 'portal'
-        ? 'dashboard.billing.messages.portal_error'
-        : 'dashboard.billing.messages.checkout_error';
+    let messageKey = 'dashboard.billing.messages.checkout_error';
+    if (query.error === 'portal') {
+      messageKey = 'dashboard.billing.messages.portal_error';
+    } else if (query.error === 'refresh') {
+      messageKey = 'dashboard.billing.messages.refresh_error';
+    }
 
     return {
       tone: 'destructive' as const,
@@ -136,7 +139,7 @@ function resolveReturnBanner(
         : t('dashboard.billing.feedback.info_title'),
       description: summary.notes.isWebhookSyncPending
         ? t('dashboard.billing.messages.sync_pending')
-        : t('dashboard.billing.messages.portal_returned'),
+        : t('dashboard.billing.messages.refresh_completed'),
     };
   }
 
@@ -273,6 +276,7 @@ export default async function DashboardBillingPage({
 
   return (
     <div className="space-y-6">
+      <ClearBillingFeedbackParams />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">{billingT('title')}</h1>
