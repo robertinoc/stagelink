@@ -92,7 +92,15 @@ h6 {
 
 /* ── Custom utilities ───────────────────────────────────────────────── */
 @utility bg-brand-gradient {
-  background: var(--gradient-brand);
+  background-image: var(--gradient-brand);
+}
+
+/* Gradient text — use instead of bg-brand-gradient + bg-clip-text + text-transparent */
+@utility text-gradient-brand {
+  background-image: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 @utility bg-sidebar {
