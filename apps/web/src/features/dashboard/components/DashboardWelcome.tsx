@@ -21,30 +21,28 @@ export async function DashboardWelcome() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
+        <h1 className="text-2xl font-bold text-white">{t('title')}</h1>
+        <p className="text-sm text-white/50 mt-1">{t('subtitle')}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         {stats.map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.label}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-white/50">{stat.label}</CardTitle>
+              <stat.icon className="h-4 w-4 text-white/30" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-2xl font-bold text-white">{stat.value}</div>
             </CardContent>
           </Card>
         ))}
       </div>
 
       {/* Empty state — prompts user to start building their page */}
-      <div className="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed gap-3 px-6 py-12 text-center">
-        <h3 className="text-base font-semibold">{t('empty.title')}</h3>
-        <p className="max-w-sm text-sm text-muted-foreground">{t('empty.description')}</p>
+      <div className="flex min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed border-white/10 gap-3 px-6 py-12 text-center bg-white/[0.02]">
+        <h3 className="text-base font-semibold text-white">{t('empty.title')}</h3>
+        <p className="max-w-sm text-sm text-white/50">{t('empty.description')}</p>
         <Button asChild className="mt-2">
           <Link href={`/${locale}/dashboard/page`}>{t('empty.cta')}</Link>
         </Button>

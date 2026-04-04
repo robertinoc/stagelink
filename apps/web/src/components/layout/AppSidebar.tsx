@@ -69,11 +69,15 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
   const initials = artist?.displayName ? artist.displayName.charAt(0).toUpperCase() : '?';
 
   return (
-    <aside className="flex h-full w-60 flex-col border-r bg-background">
+    <aside className="flex h-full w-60 flex-col bg-sidebar">
       {/* Logo */}
-      <div className="flex h-14 items-center border-b px-6">
-        <Link href={`/${locale}`} className="font-bold text-lg tracking-tight">
-          StageLink
+      <div className="flex h-14 items-center border-b border-white/10 px-6">
+        <Link
+          href={`/${locale}`}
+          className="font-bold text-lg tracking-tight font-[family-name:var(--font-heading)]"
+        >
+          <span className="text-white">Stage</span>
+          <span className="bg-brand-gradient bg-clip-text text-transparent">Link</span>
         </Link>
       </div>
 
@@ -84,30 +88,30 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
           <img
             src={artist.avatarUrl}
             alt={artist.displayName}
-            className="h-9 w-9 rounded-full object-cover flex-shrink-0"
+            className="h-9 w-9 rounded-full object-cover flex-shrink-0 ring-2 ring-white/10"
           />
         ) : (
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-gradient text-white text-sm font-semibold">
             {initials}
           </div>
         )}
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium leading-tight">{artist?.displayName ?? '—'}</p>
-          {artist?.username && (
-            <p className="truncate text-xs text-muted-foreground">@{artist.username}</p>
-          )}
+          <p className="truncate text-sm font-medium leading-tight text-white">
+            {artist?.displayName ?? '—'}
+          </p>
+          {artist?.username && <p className="truncate text-xs text-white/50">@{artist.username}</p>}
           {effectivePlan && (
-            <Badge variant="secondary" className="mt-2 text-[10px] uppercase tracking-wide">
+            <Badge variant="secondary" className="mt-1.5 text-[10px] uppercase tracking-wide">
               {resolvePlanLabel(effectivePlan)}
             </Badge>
           )}
         </div>
       </div>
 
-      <Separator />
+      <Separator className="bg-white/10" />
 
       {/* Primary navigation */}
-      <nav className="flex-1 space-y-1 p-3 pt-2">
+      <nav className="flex-1 space-y-0.5 p-3 pt-2">
         {NAV_ITEMS.map((item) => {
           const href = `/${locale}/${item.href}`;
           const active = isActive(item);
@@ -117,10 +121,10 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
               href={href}
               onClick={onNavigate}
               className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                 active
-                  ? 'bg-secondary text-foreground font-medium'
-                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+                  ? 'bg-white/10 text-white font-medium'
+                  : 'text-white/70 hover:bg-white/10 hover:text-white',
               )}
             >
               <item.icon className="h-4 w-4 flex-shrink-0" />
@@ -133,13 +137,13 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
       {/* Footer: view public page link */}
       {artist?.username && (
         <>
-          <Separator />
+          <Separator className="bg-white/10" />
           <div className="p-3">
             <a
               href={`/${artist.username}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-white/50 transition-colors hover:bg-white/10 hover:text-white"
             >
               <ExternalLink className="h-4 w-4 flex-shrink-0" />
               <span>{t('nav.view_page')}</span>
