@@ -95,9 +95,9 @@ h6 {
   background-image: var(--gradient-brand);
 }
 
-/* Gradient text — use instead of bg-brand-gradient + bg-clip-text + text-transparent */
+/* Gradient text for logo — bright fuchsia → brand purple */
 @utility text-gradient-brand {
-  background-image: var(--gradient-brand);
+  background-image: linear-gradient(135deg, #e879f9 0%, #9b30d0 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
