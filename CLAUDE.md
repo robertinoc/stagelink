@@ -537,18 +537,50 @@ The app uses an **always-dark** design system. There is no light mode.
 
 ### Custom Tailwind Utilities (defined in `globals.css`)
 
-- `bg-brand-gradient` — applies `var(--gradient-brand)`
+- `bg-brand-gradient` — applies `background-image: var(--gradient-brand)` (use `background-image`, NOT `background` shorthand — shorthand resets `background-clip`)
+- `text-gradient-brand` — bright fuchsia→purple gradient text (`#E879F9 → #9B30D0`) with `-webkit-background-clip: text` + `color: transparent`. Use for logo "Link" text.
 - `bg-sidebar` — applies `var(--sidebar)` (#130329)
 - `text-brand` — `#9B30D0`
 - `border-brand` — `#9B30D0`
 
 ### Logo Treatment
 
-In the sidebar and topbar the logo renders as `"Stage"` (white) + `"Link"` (gradient text):
+In the sidebar and topbar the logo renders as `"Stage"` (white) + `"Link"` (gradient text using the brighter `text-gradient-brand` utility, NOT `bg-brand-gradient`):
 
 ```tsx
 <span className="text-white">Stage</span>
-<span className="bg-brand-gradient bg-clip-text text-transparent">Link</span>
+<span className="text-gradient-brand">Link</span>
+```
+
+> **Important**: Do NOT use `bg-brand-gradient bg-clip-text text-transparent` for logo text. The brand gradient fades to near-black (`#1A0A3D`) making "Link" invisible on dark backgrounds. The `text-gradient-brand` utility uses a dedicated brighter gradient (`#E879F9 → #9B30D0`).
+
+### App Icons & Favicon
+
+Icons are placed in `apps/web/src/app/` — Next.js App Router detects them automatically:
+
+| File                     | Size    | Purpose                                           |
+| ------------------------ | ------- | ------------------------------------------------- |
+| `src/app/icon.png`       | 512×512 | Favicon + web app icon (auto-detected by Next.js) |
+| `src/app/apple-icon.png` | 180×180 | Apple touch icon (home screen on iOS)             |
+| `public/icon-192.png`    | 192×192 | General use (PWA, OG, etc.)                       |
+| `public/icon-512.png`    | 512×512 | General use                                       |
+
+Source image: `docs/brand/Logos/ISO LOGO.png` — cropped to square (1024×1024 center crop) then resized.
+
+### Brand Assets
+
+Local brand reference files are in `docs/brand/` (gitignored — local only, not committed):
+
+```
+docs/brand/
+├── Logos/
+│   ├── ISO LOGO.png           # Ícono/marca (play button con gradiente pink→purple→blue)
+│   ├── LOGO PRINCIPAL.png
+│   ├── LOGO SECUNDARIO.png
+│   └── LOGO TERCIARIO.png
+├── StageLink — Brand Manual.pdf
+├── StageLink_Brand_Manual.html
+└── ...
 ```
 
 ---
