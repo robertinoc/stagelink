@@ -77,7 +77,7 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
           className="font-bold text-lg tracking-tight font-[family-name:var(--font-heading)]"
         >
           <span className="text-white">Stage</span>
-          <span className="bg-brand-gradient bg-clip-text text-transparent">Link</span>
+          <span className="text-gradient-brand">Link</span>
         </Link>
       </div>
 

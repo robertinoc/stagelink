@@ -34,17 +34,17 @@ export function FeatureLockCta({
 }: FeatureLockCtaProps) {
   if (compact) {
     return (
-      <div className={cn('rounded-lg border border-amber-200 bg-amber-50/70 p-3', className)}>
+      <div className={cn('rounded-xl border border-primary/25 bg-primary/10 p-3', className)}>
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
-            <p className="text-sm font-medium text-amber-950">{title}</p>
-            <p className="text-xs text-amber-900/80">{description}</p>
+            <p className="text-sm font-semibold text-white">{title}</p>
+            <p className="text-xs text-white/60">{description}</p>
           </div>
-          <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-800" />
+          <Lock className="mt-0.5 h-4 w-4 shrink-0 text-primary/80" />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <Badge variant="secondary">{currentPlanLabel}</Badge>
-          <Badge variant="outline">{requiredPlanLabel}</Badge>
+          <Badge variant="secondary">{requiredPlanLabel}</Badge>
           <Button asChild size="sm" className="ml-auto">
             <Link href={href}>{ctaLabel}</Link>
           </Button>
@@ -54,17 +54,17 @@ export function FeatureLockCta({
   }
 
   return (
-    <Card className={cn('border-amber-200 bg-amber-50/60', className)}>
+    <Card className={cn('border-primary/25 bg-primary/10', className)}>
       <CardContent className="flex min-h-[220px] flex-col items-center justify-center gap-4 px-6 py-10 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-900">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
           <Lock className="h-6 w-6" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <p className="max-w-md text-sm text-muted-foreground">{description}</p>
+          <h2 className="text-lg font-semibold text-white">{title}</h2>
+          <p className="max-w-md text-sm text-white/60">{description}</p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <Badge variant="outline">{requiredPlanLabel}</Badge>
+          <Badge variant="secondary">{requiredPlanLabel}</Badge>
           <Badge variant="secondary">{currentPlanLabel}</Badge>
         </div>
         <div className="flex flex-wrap justify-center gap-2">

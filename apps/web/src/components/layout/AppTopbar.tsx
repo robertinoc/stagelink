@@ -36,7 +36,7 @@ export function AppTopbar({ artist, onMenuOpen }: AppTopbarProps) {
         className="font-bold text-lg tracking-tight lg:hidden font-[family-name:var(--font-heading)]"
       >
         <span className="text-white">Stage</span>
-        <span className="bg-brand-gradient bg-clip-text text-transparent">Link</span>
+        <span className="text-gradient-brand">Link</span>
       </Link>
 
       {/* Spacer */}
