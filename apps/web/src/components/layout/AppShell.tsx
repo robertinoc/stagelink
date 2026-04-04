@@ -29,7 +29,7 @@ export function AppShell({ artist, effectivePlan, children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* ── Desktop sidebar (always visible on lg+) ─────────────────────── */}
       <div className="hidden lg:flex lg:flex-shrink-0">
         <AppSidebar artist={artist} effectivePlan={effectivePlan} />
@@ -40,11 +40,8 @@ export function AppShell({ artist, effectivePlan, children }: AppShellProps) {
         {/*
          * p-0 lets AppSidebar fill edge-to-edge.
          * SheetContent renders an absolute-positioned × button at right-4 top-4.
-         * It sits in the upper-right of the sidebar header area — this is intentional:
-         * the × acts as the "close drawer" button, and "StageLink" text is on the
-         * left side of the header (px-6), so there is no text/button overlap.
          */}
-        <SheetContent side="left" className="w-60 p-0">
+        <SheetContent side="left" className="w-60 p-0 bg-sidebar border-r border-white/10">
           {/* Visually hidden title required by Radix Dialog for screen-reader accessibility */}
           <SheetTitle className="sr-only">Navigation menu</SheetTitle>
           <AppSidebar

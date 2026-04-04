@@ -18,7 +18,7 @@ export function AppTopbar({ artist, onMenuOpen }: AppTopbarProps) {
   const initials = artist?.displayName ? artist.displayName.charAt(0).toUpperCase() : '?';
 
   return (
-    <header className="flex h-14 items-center border-b bg-background px-4 lg:px-6">
+    <header className="flex h-14 items-center border-b border-white/10 bg-sidebar px-4 lg:px-6">
       {/* Hamburger — only visible on mobile */}
       <Button
         variant="ghost"
@@ -31,8 +31,12 @@ export function AppTopbar({ artist, onMenuOpen }: AppTopbarProps) {
       </Button>
 
       {/* Logo — only visible on mobile (desktop shows it in the sidebar) */}
-      <Link href={`/${locale}`} className="font-bold text-lg tracking-tight lg:hidden">
-        StageLink
+      <Link
+        href={`/${locale}`}
+        className="font-bold text-lg tracking-tight lg:hidden font-[family-name:var(--font-heading)]"
+      >
+        <span className="text-white">Stage</span>
+        <span className="bg-brand-gradient bg-clip-text text-transparent">Link</span>
       </Link>
 
       {/* Spacer */}
@@ -46,11 +50,11 @@ export function AppTopbar({ artist, onMenuOpen }: AppTopbarProps) {
           <img
             src={artist.avatarUrl}
             alt={artist.displayName}
-            className="h-8 w-8 rounded-full object-cover"
+            className="h-8 w-8 rounded-full object-cover ring-2 ring-white/10"
           />
         ) : (
           <div
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-gradient text-white text-xs font-semibold"
             title={artist?.displayName ?? ''}
           >
             {initials}
@@ -59,14 +63,16 @@ export function AppTopbar({ artist, onMenuOpen }: AppTopbarProps) {
 
         {/* Artist name — hidden on very small screens */}
         {artist?.displayName && (
-          <span className="hidden text-sm font-medium sm:block">{artist.displayName}</span>
+          <span className="hidden text-sm font-medium text-white/70 sm:block">
+            {artist.displayName}
+          </span>
         )}
 
-        {/* Logout — uses a full-page navigation so WorkOS clears the cookie correctly */}
+        {/* Logout */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a
           href="/api/auth/signout"
-          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="text-sm text-white/50 transition-colors hover:text-white"
         >
           {t('logout')}
         </a>
