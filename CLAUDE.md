@@ -63,7 +63,7 @@ apps/
 │       │       └── es.json             # Spanish
 │       ├── lib/
 │       │   ├── utils.ts                # cn() helper (clsx + tailwind-merge)
-│       │   ├── fonts.ts                # Geist Sans + Geist Mono (next/font)
+│       │   ├── fonts.ts                # Space Grotesk (headings) + Inter (body) via next/font/google
 │       │   └── public-api.ts           # fetchPublicPage() — fetch tipado sin auth
 │       ├── hooks/
 │       ├── types/
@@ -492,6 +492,64 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
 - T4-4: Deduplicación por IP hash, filtrado bots avanzado, exclusión tráfico interno, geo/device
 - T5-2: Feature gating por plan usando `subscriptions.plan` + `subscriptions.status`
 - T6-4: Analytics Pro (rangos custom, comparación, CSV export)
+
+---
+
+## Brand Design System
+
+The app uses an **always-dark** design system. There is no light mode.
+
+### Design Tokens (`apps/web/src/app/globals.css`)
+
+| Token                | Value                                                            | Usage                                              |
+| -------------------- | ---------------------------------------------------------------- | -------------------------------------------------- |
+| `--background`       | `#0E021D`                                                        | Page background                                    |
+| `--sidebar`          | `#130329`                                                        | Sidebar + topbar background                        |
+| `--foreground`       | `#FFFFFF`                                                        | Primary text                                       |
+| `--primary`          | `#9B30D0`                                                        | Brand purple — buttons, active states, focus rings |
+| `--card`             | `rgba(255,255,255,0.04)`                                         | Card surface (frosted glass)                       |
+| `--border`           | `rgba(255,255,255,0.10)`                                         | Borders and dividers                               |
+| `--muted-foreground` | `rgba(255,255,255,0.50)`                                         | Secondary / muted text                             |
+| `--gradient-brand`   | `linear-gradient(135deg, #9B30D0 0%, #4A1A8C 55%, #1A0A3D 100%)` | Brand gradient                                     |
+
+### Typography
+
+- **Headings** (`h1`–`h6`): **Space Grotesk** — CSS var `--font-space-grotesk`, class `font-[family-name:var(--font-heading)]`
+- **Body**: **Inter** — CSS var `--font-inter`, default `font-sans`
+- Both loaded via `next/font/google` in `apps/web/src/lib/fonts.ts`
+
+### Component Conventions
+
+- **Buttons**: Pill-shaped (`rounded-full`), gradient primary (`bg-brand-gradient`), white opacity variants for secondary/ghost/outline
+- **Cards**: Frosted glass surface (`bg-card`), `border-white/10`, `hover:border-white/20`
+- **Badges**: Pill-shaped (`rounded-full`), `bg-primary/20` default, `bg-brand-gradient` for brand variant
+- **Inputs**: `bg-white/5 border-white/10`, brand focus ring (`focus-visible:ring-primary/60`)
+
+### White Opacity Text Hierarchy (on dark backgrounds)
+
+| Class           | Opacity | Usage                          |
+| --------------- | ------- | ------------------------------ |
+| `text-white`    | 100%    | Primary text, active nav items |
+| `text-white/70` | 70%     | Body text, inactive nav items  |
+| `text-white/50` | 50%     | Secondary / muted text         |
+| `text-white/30` | 30%     | Placeholders, very muted       |
+| `text-white/10` | 10%     | Borders, subtle backgrounds    |
+
+### Custom Tailwind Utilities (defined in `globals.css`)
+
+- `bg-brand-gradient` — applies `var(--gradient-brand)`
+- `bg-sidebar` — applies `var(--sidebar)` (#130329)
+- `text-brand` — `#9B30D0`
+- `border-brand` — `#9B30D0`
+
+### Logo Treatment
+
+In the sidebar and topbar the logo renders as `"Stage"` (white) + `"Link"` (gradient text):
+
+```tsx
+<span className="text-white">Stage</span>
+<span className="bg-brand-gradient bg-clip-text text-transparent">Link</span>
+```
 
 ---
 
