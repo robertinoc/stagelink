@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { PublicPageResponse } from '@stagelink/types';
 import { PublicPageClient } from './PublicPageClient';
@@ -34,13 +33,11 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       {/* Cover image */}
       {artist.coverUrl && (
         <div className="relative h-40 w-full sm:h-56">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={artist.coverUrl}
             alt={t('cover_image_alt', { name: artist.displayName })}
-            fill
-            sizes="100vw"
-            className="object-cover"
-            priority
+            className="h-full w-full object-cover"
           />
           {/* Gradient overlay — blends into the page background */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-zinc-900" />
@@ -53,13 +50,11 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
           {/* Avatar */}
           <div className="mx-auto mb-4 h-24 w-24 overflow-hidden rounded-full ring-4 ring-zinc-900">
             {artist.avatarUrl ? (
-              <Image
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
                 src={artist.avatarUrl}
                 alt={artist.displayName}
-                width={96}
-                height={96}
                 className="h-full w-full object-cover"
-                priority
               />
             ) : (
               /* Fallback — initials */
