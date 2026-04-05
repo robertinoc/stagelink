@@ -36,8 +36,14 @@ export class TenantResolverService {
    *
    * - Normaliza el username antes de buscar
    * - Retorna null si el username es inválido o no existe
-   * - Retorna null si el artista no tiene página publicada
-   *   (página unpublished = tenant no visible públicamente)
+   * - Retorna null si el artista todavía no tiene página creada
+   *
+   * Nota transitoria:
+   *   hoy el dashboard no expone una UX real de publish/unpublish de página,
+   *   solo publish de bloques individuales. Mientras ese flujo no exista,
+   *   tratamos la existencia de la página como suficiente para resolver la
+   *   URL pública del artista y dejamos que los bloques publicados controlen
+   *   el contenido visible.
    */
   async resolveByUsername(rawUsername: string): Promise<ResolvedTenant | null> {
     const username = normalizeAndValidateUsername(rawUsername);
@@ -53,7 +59,7 @@ export class TenantResolverService {
         username: true,
         displayName: true,
         page: {
-          select: { isPublished: true },
+          select: { id: true },
         },
       },
     });
@@ -63,8 +69,8 @@ export class TenantResolverService {
       return null;
     }
 
-    if (!artist.page?.isPublished) {
-      this.logger.debug(`Artist "${username}" has no published page`);
+    if (!artist.page?.id) {
+      this.logger.debug(`Artist "${username}" has no page yet`);
       return null;
     }
 
@@ -86,7 +92,7 @@ export class TenantResolverService {
    * 1. Verifica que el host no sea un dominio interno de la plataforma
    * 2. Normaliza (strip www, lowercase, sin puerto)
    * 3. Busca en custom_domains con status='active'
-   * 4. Verifica que la página esté publicada
+   * 4. Verifica que exista una página para el artista
    *
    * @param rawHost - Valor del header Host (puede incluir puerto)
    * @returns ResolvedTenant o null si no se resuelve
@@ -113,7 +119,7 @@ export class TenantResolverService {
             username: true,
             displayName: true,
             page: {
-              select: { isPublished: true },
+              select: { id: true },
             },
           },
         },
@@ -127,8 +133,8 @@ export class TenantResolverService {
 
     const { artist } = customDomain;
 
-    if (!artist.page?.isPublished) {
-      this.logger.debug(`Artist for domain "${host}" has no published page`);
+    if (!artist.page?.id) {
+      this.logger.debug(`Artist for domain "${host}" has no page yet`);
       return null;
     }
 
