@@ -46,3 +46,9 @@ next-env.d.ts
 
 # Coverage
 coverage/
+
+# Local planning / scratch artifacts
+STAGELINK.csv
+index.js
+index.mjs
+docs/brand/

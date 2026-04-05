@@ -149,15 +149,17 @@ Instead:
 
 This matches the current T5-1 webhook flow, where Checkout completion can arrive before the subscription update webhook finishes syncing the final active state.
 
-### Transitional recovery path
+### Recovery path
 
-To avoid leaving paid subscriptions stuck in `syncing`, the billing summary currently includes a temporary Stripe reconciliation fallback on read for subscriptions that look transitional.
+Billing summary is treated as a read path.
 
-This is intentionally a short-term safety net, not the long-term architecture:
+If Stripe sync is delayed or a webhook delivery needs help:
 
 - webhook delivery remains the primary source of synchronization
-- manual refresh is still available as an explicit recovery action
-- T5-4 should move reconciliation out of the summary read path into a dedicated recovery flow or background job
+- manual refresh is available as an explicit recovery action
+- future work may add a background reconciliation worker if webhook recovery becomes a recurring operational need
+
+See `docs/billing-state-policy.md` for the explicit state policy that now governs `syncing`, `past_due`, cancellation, and recovery.
 
 ## UI state mapping
 
@@ -216,12 +218,12 @@ Consumes both layers and exposes them coherently in the dashboard UX.
 - Free-to-paid upgrade is the primary happy path.
 - Billing history and invoices remain in Stripe Portal.
 - No complex polling strategy exists yet.
-- `past_due` still follows the conservative T5-2 policy until a dedicated grace-period policy is designed.
+- `past_due` follows the explicit conservative policy documented in `docs/billing-state-policy.md`.
 
 ## Recommended next steps
 
 1. Expand backend enforcement to each new premium feature as it ships.
-2. Define explicit grace-period behavior for `past_due`.
+2. Revisit grace-period behavior only when product wants to support it explicitly.
 3. Add more feature-specific upgrade entrypoints where they help conversion.
 4. Consider a more explicit post-checkout refresh strategy only if webhook lag becomes a recurring UX issue.
 

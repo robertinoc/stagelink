@@ -57,6 +57,10 @@ This avoids duplicated string literals across API and web.
 
 The effective plan is conservative by design.
 
+See also:
+
+- `docs/billing-state-policy.md`
+
 Rules:
 
 - no subscription row -> `free`
