@@ -140,7 +140,7 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
           <Separator className="bg-white/10" />
           <div className="p-3">
             <a
-              href={`/${artist.username}`}
+              href={`/p/${artist.username}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-white/50 transition-colors hover:bg-white/10 hover:text-white"
