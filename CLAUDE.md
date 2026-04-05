@@ -121,6 +121,7 @@ docs/
 ├── basic-analytics-dashboard.md # Fuente de verdad, métricas, API shape, limitaciones T4-2
 ├── fan-email-capture-block.md   # Schema, modelo subscribers, anti-abuse, export, privacidad T4-3
 ├── stripe-billing-foundation.md   # Checkout, portal, webhooks, billing por artist (T5-1)
+├── billing-state-policy.md        # Política explícita de past_due, cancel_at_period_end, syncing y recovery
 ├── plan-feature-gating.md         # effectivePlan, entitlements y patrón de gating por plan (T5-2)
 └── billing-ui-and-upgrade-flows.md # Billing dashboard, upgrade flows y retornos desde Stripe (T5-3)
 ```

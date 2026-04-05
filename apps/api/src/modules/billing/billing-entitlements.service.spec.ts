@@ -48,6 +48,26 @@ describe('BillingEntitlementsService', () => {
     });
   });
 
+  it('keeps paid access while a paid subscription is still active but set to cancel at period end', async () => {
+    const { service, prisma } = createService();
+    prisma.subscription.findUnique.mockResolvedValue({
+      plan: 'pro',
+      status: SubscriptionStatus.active,
+      cancelAtPeriodEnd: true,
+    });
+
+    await expect(service.getArtistEntitlements('artist_canceling')).resolves.toMatchObject({
+      effectivePlan: 'pro',
+      billingPlan: 'pro',
+      subscriptionStatus: 'active',
+      cancelAtPeriodEnd: true,
+      features: {
+        custom_domain: true,
+        analytics_pro: false,
+      },
+    });
+  });
+
   it('downgrades effective access to free for non-active paid statuses', async () => {
     const { service, prisma } = createService();
     prisma.subscription.findUnique.mockResolvedValue({

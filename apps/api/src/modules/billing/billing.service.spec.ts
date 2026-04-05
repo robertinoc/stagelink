@@ -239,7 +239,7 @@ describe('BillingService', () => {
     );
   });
 
-  it('auto-reconciles a syncing paid subscription when Stripe already reports it as active', async () => {
+  it('keeps syncing subscriptions conservative on read until an explicit refresh happens', async () => {
     const { service, prisma, stripe } = createService();
 
     (prisma.subscription.upsert as jest.Mock).mockResolvedValueOnce({
@@ -252,42 +252,13 @@ describe('BillingService', () => {
       stripeSubscriptionId: 'sub_123',
     });
 
-    (stripe.subscriptions.retrieve as jest.Mock).mockResolvedValue({
-      object: 'subscription',
-      id: 'sub_123',
-      status: 'active',
-      cancel_at_period_end: false,
-      customer: 'cus_123',
-      metadata: { artistId: 'artist_123', plan: PlanTier.pro },
-      items: {
-        data: [
-          {
-            current_period_end: 1711929600,
-            price: {
-              id: 'price_pro_123',
-            },
-          },
-        ],
-      },
-    });
-
-    (prisma.subscription.upsert as jest.Mock).mockResolvedValueOnce({
-      artistId: 'artist_123',
-      plan: PlanTier.pro,
-      status: SubscriptionStatus.active,
-      currentPeriodEnd: new Date('2024-04-01T00:00:00.000Z'),
-      cancelAtPeriodEnd: false,
-      stripeCustomerId: 'cus_123',
-      stripeSubscriptionId: 'sub_123',
-    });
-
     const result = await service.getBillingSummary('artist_123');
 
-    expect(stripe.subscriptions.retrieve).toHaveBeenCalledWith('sub_123');
     expect(result.data.billingPlan).toBe('pro');
-    expect(result.data.effectivePlan).toBe('pro');
-    expect(result.data.billingState).toBe('active');
-    expect(result.data.notes.isWebhookSyncPending).toBe(false);
+    expect(result.data.effectivePlan).toBe('free');
+    expect(result.data.billingState).toBe('syncing');
+    expect(result.data.notes.isWebhookSyncPending).toBe(true);
+    expect(stripe.subscriptions.retrieve).not.toHaveBeenCalled();
   });
 
   it('recommends Pro+ when the current effective access is Pro', async () => {

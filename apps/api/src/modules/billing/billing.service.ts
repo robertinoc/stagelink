@@ -83,21 +83,7 @@ export class BillingService {
   }
 
   async getBillingSummary(artistId: string) {
-    let subscription = await this.ensureSubscriptionRecord(artistId);
-
-    // Transitional recovery path: while webhook delivery/recovery remains eventual,
-    // the billing summary may reconcile directly against Stripe for stuck syncing
-    // subscriptions. T5-4 should move this behavior behind an explicit recovery
-    // action or background reconciliation flow so read paths stay side-effect free.
-    if (this.shouldAttemptStripeReconciliation(subscription)) {
-      try {
-        subscription = await this.reconcileSubscriptionFromStripe(artistId, subscription);
-      } catch (error) {
-        this.logger.warn(
-          `Billing summary reconciliation failed for ${artistId}: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
+    const subscription = await this.ensureSubscriptionRecord(artistId);
 
     const products = await this.getProductsCatalog();
 
@@ -386,21 +372,6 @@ export class BillingService {
       process.env['NODE_ENV'] ??
       'development'
     );
-  }
-
-  private shouldAttemptStripeReconciliation(subscription: PrismaSubscription): boolean {
-    if (!this.stripe) return false;
-    if (subscription.plan === PlanTier.free) return false;
-    if (
-      subscription.status === SubscriptionStatus.active ||
-      subscription.status === SubscriptionStatus.trialing ||
-      subscription.status === SubscriptionStatus.past_due ||
-      subscription.status === SubscriptionStatus.canceled
-    ) {
-      return false;
-    }
-
-    return Boolean(subscription.stripeSubscriptionId || subscription.stripeCustomerId);
   }
 
   private validateReturnUrl(rawUrl: string): string {
