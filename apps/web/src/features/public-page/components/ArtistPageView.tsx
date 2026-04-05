@@ -1,5 +1,6 @@
+import Link from 'next/link';
 import Image from 'next/image';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import type { PublicPageResponse } from '@stagelink/types';
 import { PublicPageClient } from './PublicPageClient';
 
@@ -19,12 +20,13 @@ interface ArtistPageViewProps {
  *   │  ┌─ max-w-md centered column ─────────────────────────┐ │
  *   │  │  Avatar + name + bio                               │ │
  *   │  │  Published blocks (in position order)              │ │
- *   │  │  "Powered by StageLink" footer                     │ │
+ *   │  │  Free-plan branding slot (when applicable)         │ │
  *   │  └────────────────────────────────────────────────────┘ │
  *   └────────────────────────────────────────────────────────┘
  */
 export async function ArtistPageView({ page }: ArtistPageViewProps) {
   const t = await getTranslations('public_page');
+  const locale = await getLocale();
   const { artist, blocks } = page;
 
   return (
@@ -80,10 +82,26 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
           <p className="text-center text-sm text-zinc-600">{t('no_blocks')}</p>
         )}
 
-        {/* Footer */}
-        <p className="mt-12 text-center text-xs text-zinc-700">
-          {t('powered_by')} <span className="text-zinc-500">{t('powered_by_brand')}</span>
-        </p>
+        {page.showStageLinkBranding && (
+          <div className="mt-12 rounded-3xl border border-white/10 bg-white/5 p-5 text-center shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-sm">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+              {t('branding_slot.badge')}
+            </p>
+            <p className="mt-3 text-sm font-medium text-zinc-100">{t('branding_slot.title')}</p>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+              {t('branding_slot.description')}
+            </p>
+            <Link
+              href={`/${locale}/pricing`}
+              className="mt-5 inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/15"
+            >
+              {t('branding_slot.cta')}
+            </Link>
+            <p className="mt-4 text-center text-[11px] text-zinc-500">
+              {t('powered_by')} <span className="text-zinc-300">{t('powered_by_brand')}</span>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -71,6 +71,7 @@ export interface PublicPageResponse {
   pageId: string;
   artist: PublicArtist;
   blocks: PublicBlock[];
+  showStageLinkBranding: boolean;
 }
 
 export type CustomDomainStatus = 'pending' | 'active' | 'failed' | 'disabled';

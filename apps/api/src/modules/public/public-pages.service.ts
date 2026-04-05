@@ -4,7 +4,7 @@ import { PrismaService } from '../../lib/prisma.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
 import { PublicPageResponseDto, PublicBlockDto } from './dto/public-page-response.dto';
 import { PostHogService } from '../analytics/posthog.service';
-import { ANALYTICS_EVENTS } from '@stagelink/types';
+import { ANALYTICS_EVENTS, buildTenantEntitlements, hasFeature } from '@stagelink/types';
 import { resolveTrafficFlags } from '../../common/utils/analytics-flags';
 
 /**
@@ -178,6 +178,14 @@ export class PublicPagesService {
             secondaryCategories: true,
             seoTitle: true,
             seoDescription: true,
+            subscription: {
+              select: {
+                plan: true,
+                status: true,
+                cancelAtPeriodEnd: true,
+                currentPeriodEnd: true,
+              },
+            },
           },
         },
         blocks: {
@@ -197,6 +205,12 @@ export class PublicPagesService {
     if (!page) {
       throw new NotFoundException('Page not found');
     }
+
+    const entitlements = buildTenantEntitlements(page.artist.subscription);
+    const showStageLinkBranding = !hasFeature(
+      entitlements.effectivePlan,
+      'remove_stagelink_branding',
+    );
 
     // T4-4: Persist page_view for ALL requests (including bots) — flag at write time,
     // filter at query time. Only skip when no analytics context is available (e.g.
@@ -272,6 +286,7 @@ export class PublicPagesService {
           config: (block.config as Record<string, unknown>) ?? {},
         }),
       ),
+      showStageLinkBranding,
     };
   }
 }

@@ -447,6 +447,12 @@
     "powered_by_brand": "StageLink",
     "cover_image_alt": "{name}'s cover image",
     "seo_description_fallback": "Check out {name}'s page on StageLink",
+    "branding_slot": {
+      "badge": "Free plan",
+      "title": "Build your own artist page with StageLink.",
+      "description": "Free pages keep a small StageLink footer. Upgrade when you want a more polished public experience.",
+      "cta": "See pricing"
+    },
     "not_found_title": "Page not found",
     "not_found_description": "This artist page doesn't exist or hasn't been published yet.",
     "not_found_cta": "Go home",
