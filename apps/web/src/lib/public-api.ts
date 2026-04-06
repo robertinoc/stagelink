@@ -104,7 +104,7 @@ async function _fetchPublicPage(username: string): Promise<PublicPageResponse | 
  * `generateMetadata` y el Server Component llaman a esta función con el
  * mismo username → una sola request HTTP al backend por pageview.
  *
- * @returns PublicPageResponse si el artista existe y su página está publicada.
+ * @returns PublicPageResponse si el artista existe y su página pública es resoluble.
  *          Retorna null si no existe (404).
  * @throws Error si el backend devuelve 5xx (deja que Next.js maneje el error).
  */

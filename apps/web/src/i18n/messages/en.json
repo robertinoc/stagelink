@@ -461,7 +461,7 @@
       "secondary": "Don’t have your page on <brand>StageLink</brand> yet? Create your account <signup>here</signup>."
     },
     "not_found_title": "Page not found",
-    "not_found_description": "This artist page doesn't exist or hasn't been published yet.",
+    "not_found_description": "This artist page doesn't exist or isn't available right now.",
     "not_found_cta": "Go home",
     "consent_banner": {
       "notice": "This page counts page views and link clicks to help the artist understand their audience. Clicking \"Got it\" enables additional analytics. No personal data is sold or shared.",

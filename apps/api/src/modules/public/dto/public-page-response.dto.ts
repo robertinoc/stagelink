@@ -1,4 +1,4 @@
-import type { ArtistCategory } from '@stagelink/types';
+import type { ArtistCategory, PublicPromoSlotKind } from '@stagelink/types';
 
 /**
  * DTOs de respuesta para endpoints públicos de páginas de artistas.
@@ -53,6 +53,8 @@ export interface PublicPageResponseDto {
   /** Página de artista visible públicamente */
   artist: PublicArtistDto;
   blocks: PublicBlockDto[];
-  /** Branding obligatorio en Free; oculto en planes que lo incluyen como removible. */
-  showStageLinkBranding: boolean;
+  /** Slot público reservado para branding/promo según el plan efectivo. */
+  promoSlot: {
+    kind: PublicPromoSlotKind;
+  };
 }
