@@ -52,11 +52,11 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
         </div>
       )}
 
-      <div className="mx-auto max-w-md px-4 pb-16">
+      <div className="relative z-10 mx-auto max-w-md px-4 pb-16">
         {/* Artist header */}
-        <div className={`mb-8 text-center ${artist.coverUrl ? '-mt-12' : 'pt-12'}`}>
+        <div className={`relative z-10 mb-8 text-center ${artist.coverUrl ? '-mt-14' : 'pt-12'}`}>
           {/* Avatar */}
-          <div className="mx-auto mb-4 h-28 w-28 overflow-hidden rounded-full bg-zinc-800 ring-4 ring-zinc-900">
+          <div className="relative z-20 mx-auto mb-4 h-28 w-28 overflow-hidden rounded-full bg-zinc-800 ring-4 ring-zinc-900 shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
             {artist.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -113,7 +113,10 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
             <p className="mt-5 text-sm leading-relaxed text-zinc-400">
               {t.rich('branding_slot.secondary', {
                 brand: (chunks) => (
-                  <Link href={`/${locale}`} className="font-medium text-zinc-200 hover:text-white">
+                  <Link
+                    href={`/${locale}`}
+                    className="font-semibold text-violet-300 transition hover:text-violet-200"
+                  >
                     {chunks}
                   </Link>
                 ),
