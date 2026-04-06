@@ -27,6 +27,14 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
   const t = await getTranslations('public_page');
   const locale = await getLocale();
   const { artist, blocks } = page;
+  const socialLinks = [
+    artist.instagramUrl && { href: artist.instagramUrl, label: t('social.instagram') },
+    artist.tiktokUrl && { href: artist.tiktokUrl, label: t('social.tiktok') },
+    artist.youtubeUrl && { href: artist.youtubeUrl, label: t('social.youtube') },
+    artist.spotifyUrl && { href: artist.spotifyUrl, label: t('social.spotify') },
+    artist.soundcloudUrl && { href: artist.soundcloudUrl, label: t('social.soundcloud') },
+    artist.websiteUrl && { href: artist.websiteUrl, label: t('social.website') },
+  ].filter((item): item is { href: string; label: string } => Boolean(item));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-zinc-950">
@@ -48,13 +56,13 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
         {/* Artist header */}
         <div className={`mb-8 text-center ${artist.coverUrl ? '-mt-12' : 'pt-12'}`}>
           {/* Avatar */}
-          <div className="mx-auto mb-4 h-24 w-24 overflow-hidden rounded-full ring-4 ring-zinc-900">
+          <div className="mx-auto mb-4 h-28 w-28 overflow-hidden rounded-full bg-zinc-800 ring-4 ring-zinc-900">
             {artist.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={artist.avatarUrl}
                 alt={artist.displayName}
-                className="h-full w-full object-cover"
+                className="block h-full w-full object-cover object-center"
               />
             ) : (
               /* Fallback — initials */
@@ -68,6 +76,22 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
           <p className="mt-0.5 text-sm text-zinc-400">@{artist.username}</p>
 
           {artist.bio && <p className="mt-3 text-sm leading-relaxed text-zinc-300">{artist.bio}</p>}
+
+          {socialLinks.length > 0 && (
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+                >
+                  {social.label}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Published blocks — delegated to a client component for click tracking */}
@@ -79,22 +103,20 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
 
         {page.showStageLinkBranding && (
           <div className="mt-12 rounded-3xl border border-white/10 bg-white/5 p-5 text-center shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-sm">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
-              {t('branding_slot.badge')}
-            </p>
-            <p className="mt-3 text-sm font-medium text-zinc-100">{t('branding_slot.title')}</p>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-              {t('branding_slot.description')}
-            </p>
+            <p className="text-sm font-medium text-zinc-100">{t('branding_slot.title')}</p>
             <Link
               href={`/${locale}/pricing`}
-              className="mt-5 inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/15"
+              className="mt-4 inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/15"
             >
               {t('branding_slot.cta')}
             </Link>
-            <p className="mt-4 text-center text-[11px] text-zinc-500">
-              {t('powered_by')} <span className="text-zinc-300">{t('powered_by_brand')}</span>
-            </p>
+            <p className="mt-5 text-sm text-zinc-400">{t('branding_slot.secondary_text')}</p>
+            <Link
+              href={`/${locale}/signup`}
+              className="mt-3 inline-flex items-center justify-center rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/5 hover:text-white"
+            >
+              {t('branding_slot.secondary_cta')}
+            </Link>
           </div>
         )}
       </div>

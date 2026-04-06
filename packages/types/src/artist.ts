@@ -62,6 +62,12 @@ export interface PublicArtist {
   coverUrl: string | null;
   category: ArtistCategory;
   secondaryCategories: ArtistCategory[];
+  instagramUrl: string | null;
+  tiktokUrl: string | null;
+  youtubeUrl: string | null;
+  spotifyUrl: string | null;
+  soundcloudUrl: string | null;
+  websiteUrl: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
 }

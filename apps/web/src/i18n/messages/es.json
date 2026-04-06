@@ -447,11 +447,19 @@
     "powered_by_brand": "StageLink",
     "cover_image_alt": "Imagen de portada de {name}",
     "seo_description_fallback": "Visitá la página de {name} en StageLink",
+    "social": {
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "youtube": "YouTube",
+      "spotify": "Spotify",
+      "soundcloud": "SoundCloud",
+      "website": "Website"
+    },
     "branding_slot": {
-      "badge": "Plan Free",
-      "title": "Creá tu propia página de artista con StageLink.",
-      "description": "Las páginas Free mantienen un footer discreto de StageLink. Actualizá tu plan cuando quieras una experiencia pública más pulida.",
-      "cta": "Ver precios"
+      "title": "¿Te gustaría habilitar las funciones PRO?",
+      "cta": "Ver precios y planes",
+      "secondary_text": "Creá tu propia página con StageLink.",
+      "secondary_cta": "Crear cuenta"
     },
     "not_found_title": "Página no encontrada",
     "not_found_description": "Esta página de artista no existe o todavía no fue publicada.",
