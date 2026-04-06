@@ -458,8 +458,7 @@
     "branding_slot": {
       "title": "¿Te gustaría habilitar las funciones PRO?",
       "cta": "Ver precios y planes",
-      "secondary_text": "Creá tu propia página con StageLink.",
-      "secondary_cta": "Crear cuenta"
+      "secondary": "¿Aún no tenés tu página con <brand>StageLink</brand>? Creá tu cuenta <signup>aquí</signup>."
     },
     "not_found_title": "Página no encontrada",
     "not_found_description": "Esta página de artista no existe o todavía no fue publicada.",

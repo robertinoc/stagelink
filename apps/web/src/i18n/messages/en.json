@@ -458,8 +458,7 @@
     "branding_slot": {
       "title": "Want to unlock PRO features?",
       "cta": "See pricing and plans",
-      "secondary_text": "Create your own page with StageLink.",
-      "secondary_cta": "Create account"
+      "secondary": "Don’t have your page on <brand>StageLink</brand> yet? Create your account <signup>here</signup>."
     },
     "not_found_title": "Page not found",
     "not_found_description": "This artist page doesn't exist or hasn't been published yet.",

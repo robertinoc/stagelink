@@ -62,7 +62,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
               <img
                 src={artist.avatarUrl}
                 alt={artist.displayName}
-                className="block h-full w-full object-cover object-center"
+                className="block h-full w-full object-cover object-top"
               />
             ) : (
               /* Fallback — initials */
@@ -106,17 +106,27 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
             <p className="text-sm font-medium text-zinc-100">{t('branding_slot.title')}</p>
             <Link
               href={`/${locale}/pricing`}
-              className="mt-4 inline-flex items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/15"
+              className="mt-4 inline-flex items-center justify-center rounded-full bg-violet-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-400"
             >
               {t('branding_slot.cta')}
             </Link>
-            <p className="mt-5 text-sm text-zinc-400">{t('branding_slot.secondary_text')}</p>
-            <Link
-              href={`/${locale}/signup`}
-              className="mt-3 inline-flex items-center justify-center rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/5 hover:text-white"
-            >
-              {t('branding_slot.secondary_cta')}
-            </Link>
+            <p className="mt-5 text-sm leading-relaxed text-zinc-400">
+              {t.rich('branding_slot.secondary', {
+                brand: (chunks) => (
+                  <Link href={`/${locale}`} className="font-medium text-zinc-200 hover:text-white">
+                    {chunks}
+                  </Link>
+                ),
+                signup: (chunks) => (
+                  <Link
+                    href={`/${locale}/signup`}
+                    className="font-medium text-zinc-200 underline decoration-zinc-500 underline-offset-4 transition hover:text-white hover:decoration-zinc-300"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              })}
+            </p>
           </div>
         )}
       </div>
