@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { PublicPageResponse } from '@stagelink/types';
 import { PublicPageClient } from './PublicPageClient';
+import { PublicAvatarImage } from './PublicAvatarImage';
+import { PublicCoverImage } from './PublicCoverImage';
 
 interface ArtistPageViewProps {
   page: PublicPageResponse;
@@ -41,11 +43,9 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       {/* Cover image */}
       {artist.coverUrl && (
         <div className="relative h-40 w-full sm:h-56">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <PublicCoverImage
             src={artist.coverUrl}
             alt={t('cover_image_alt', { name: artist.displayName })}
-            className="h-full w-full object-cover"
           />
           {/* Gradient overlay — blends into the page background */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-zinc-900" />
@@ -57,19 +57,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
         <div className={`relative z-10 mb-8 text-center ${artist.coverUrl ? '-mt-14' : 'pt-12'}`}>
           {/* Avatar */}
           <div className="relative z-20 mx-auto mb-4 h-28 w-28 overflow-hidden rounded-full bg-zinc-800 ring-4 ring-zinc-900 shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
-            {artist.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={artist.avatarUrl}
-                alt={artist.displayName}
-                className="block h-full w-full object-cover object-top"
-              />
-            ) : (
-              /* Fallback — initials */
-              <div className="flex h-full w-full items-center justify-center bg-zinc-700 text-2xl font-bold text-white">
-                {artist.displayName.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <PublicAvatarImage src={artist.avatarUrl} alt={artist.displayName} />
           </div>
 
           <h1 className="text-2xl font-bold text-white">{artist.displayName}</h1>
@@ -101,7 +89,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
           <p className="text-center text-sm text-zinc-600">{t('no_blocks')}</p>
         )}
 
-        {page.showStageLinkBranding && (
+        {page.promoSlot.kind === 'free_branding' && (
           <div className="mt-12 rounded-3xl border border-white/10 bg-white/5 p-5 text-center shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-sm">
             <p className="text-sm font-medium text-zinc-100">{t('branding_slot.title')}</p>
             <Link

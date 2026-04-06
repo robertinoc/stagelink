@@ -72,12 +72,18 @@ export interface PublicArtist {
   seoDescription: string | null;
 }
 
+export type PublicPromoSlotKind = 'none' | 'free_branding';
+
+export interface PublicPromoSlot {
+  kind: PublicPromoSlotKind;
+}
+
 export interface PublicPageResponse {
   artistId: string;
   pageId: string;
   artist: PublicArtist;
   blocks: PublicBlock[];
-  showStageLinkBranding: boolean;
+  promoSlot: PublicPromoSlot;
 }
 
 export type CustomDomainStatus = 'pending' | 'active' | 'failed' | 'disabled';

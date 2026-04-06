@@ -1,20 +1,24 @@
 # Public Artist Page — SSR & SEO
 
-Technical reference for the public artist page at `/{username}`.
+Technical reference for the public artist page. Public sharing URLs are canonicalized to
+`/{username}`, while Next.js renders them through the internal route
+`/p/[username]`.
 
 ## Architecture
 
 ```
-GET /{locale}/{username}
+GET /{username}                     (public canonical)
   ↓
-apps/web/src/app/[locale]/[username]/page.tsx  (Next.js Server Component)
+rewrite → /p/{username}
+  ↓
+apps/web/src/app/(public)/p/[username]/page.tsx  (Next.js Server Component)
   ↓ fetchPublicPage(username)              (React.cache() — one HTTP call per render)
   ↓
 GET /api/public/pages/by-username/:username   (NestJS, @Public() — no auth required)
   ↓ TenantResolverService.resolveByUsername()
   ↓ PublicPagesService.loadPublicPage(artistId)
   ↓
-Response: PublicPageResponse { artist: PublicArtist, blocks: PublicBlock[] }
+Response: PublicPageResponse { artist: PublicArtist, blocks: PublicBlock[], promoSlot }
 ```
 
 ## Tenant Resolution
@@ -22,7 +26,7 @@ Response: PublicPageResponse { artist: PublicArtist, blocks: PublicBlock[] }
 Username resolution goes through `TenantResolverService`, which:
 
 1. Looks up the artist by `username` (case-insensitive)
-2. Verifies the artist has a published page
+2. Verifies the artist has a page record that can be resolved publicly
 3. Returns the stable `artistId` (internal UUID, not the username)
 
 All subsequent queries use `artistId` to prevent cross-tenant data leakage if a username changes.
@@ -49,6 +53,19 @@ Only allow-listed fields are exposed — `userId` and other internal fields are 
 
 Only `isPublished: true` blocks are returned, ordered by `position`.
 
+### `PublicPromoSlot`
+
+```ts
+interface PublicPromoSlot {
+  kind: 'none' | 'free_branding';
+}
+```
+
+The backend resolves the promo slot from entitlements:
+
+- `free_branding`: show the StageLink footer/promo slot on Free
+- `none`: hide the slot on plans that include branding removal
+
 ## SEO Metadata (`generateMetadata`)
 
 Priority fallback chain:
@@ -65,16 +82,21 @@ Priority fallback chain:
 
 `robots: { index: true, follow: true }` on valid pages; `{ index: false, follow: false }` on 404.
 
-## Image Domains
+## Public Media Rendering
 
-Artist images (avatar, cover) are served from S3 / CDN. Next.js `<Image>` requires the
-hostname to be declared in `next.config.ts`:
+Artist images (avatar, cover) are rendered with guarded plain `<img>` elements instead of
+`next/image`.
 
-```
-NEXT_PUBLIC_IMAGES_HOSTNAME=your-bucket.s3.us-east-1.amazonaws.com
-```
+Why:
 
-Set this to the hostname portion of the API's `AWS_S3_PUBLIC_BASE_URL`.
+- public assets can come from storage/CDN hosts that vary by environment
+- conservative rendering is better than a broken optimized image boundary
+- the UI now falls back safely if `cover` or `avatar` fail to load
+
+Current behavior:
+
+- broken `cover` → collapse to a neutral background
+- broken `avatar` → show initial fallback
 
 ## Caching Strategy
 
@@ -104,22 +126,23 @@ the `[username]` segment for a valid artist.
 
 Static strings in `ArtistPageView` use the `public_page` i18n namespace:
 
-| Key                            | Usage                                         |
-| ------------------------------ | --------------------------------------------- |
-| `public_page.no_blocks`        | Shown when the artist has no published blocks |
-| `public_page.powered_by`       | Footer prefix text                            |
-| `public_page.powered_by_brand` | "StageLink" in the footer                     |
+| Key                                   | Usage                                             |
+| ------------------------------------- | ------------------------------------------------- |
+| `public_page.no_blocks`               | Shown when the artist has no published blocks     |
+| `public_page.branding_slot.title`     | Free-plan promo slot headline                     |
+| `public_page.branding_slot.cta`       | CTA to pricing                                    |
+| `public_page.branding_slot.secondary` | Rich text with links to StageLink home and signup |
 
 The component uses `getTranslations('public_page')` (server-side) — no client boundary needed.
 
 ## Component Tree
 
 ```
-[username]/page.tsx              Server Component
+p/[username]/page.tsx            Server Component
   └── ArtistPageView             async Server Component
-        ├── next/image (cover)
-        ├── next/image (avatar)
-        └── BlockRenderer        per block
+        ├── PublicCoverImage     Client Component (fallback on error)
+        ├── PublicAvatarImage    Client Component (fallback on error)
+        └── PublicPageClient     per block / click tracking
               ├── LinksBlockRenderer
               ├── MusicEmbedRenderer
               ├── VideoEmbedRenderer
@@ -128,14 +151,15 @@ The component uses `getTranslations('public_page')` (server-side) — no client 
 
 ## Key Files
 
-| File                                                              | Purpose                                                   |
-| ----------------------------------------------------------------- | --------------------------------------------------------- |
-| `apps/web/src/app/[locale]/[username]/page.tsx`                   | Server Component + `generateMetadata`                     |
-| `apps/web/src/app/[locale]/[username]/not-found.tsx`              | 404 boundary                                              |
-| `apps/web/src/app/[locale]/[username]/error.tsx`                  | Error boundary (Client Component)                         |
-| `apps/web/src/features/public-page/components/ArtistPageView.tsx` | Page layout + header                                      |
-| `apps/web/src/lib/public-api.ts`                                  | `fetchPublicPage` with React.cache()                      |
-| `apps/web/next.config.ts`                                         | `images.remotePatterns` via `NEXT_PUBLIC_IMAGES_HOSTNAME` |
-| `apps/api/src/modules/public/public-pages.service.ts`             | Data loading + tenant isolation                           |
-| `apps/api/src/modules/public/dto/public-page-response.dto.ts`     | Public-safe DTOs                                          |
-| `packages/types/src/artist.ts`                                    | Shared `PublicArtist` / `PublicPageResponse` types        |
+| File                                                                 | Purpose                                              |
+| -------------------------------------------------------------------- | ---------------------------------------------------- |
+| `apps/web/src/app/(public)/p/[username]/page.tsx`                    | Server Component + `generateMetadata`                |
+| `apps/web/src/app/(public)/p/[username]/not-found.tsx`               | 404 boundary                                         |
+| `apps/web/src/app/(public)/p/[username]/error.tsx`                   | Error boundary (Client Component)                    |
+| `apps/web/src/features/public-page/components/ArtistPageView.tsx`    | Page layout + header + promo slot                    |
+| `apps/web/src/features/public-page/components/PublicCoverImage.tsx`  | Cover image fallback on load failure                 |
+| `apps/web/src/features/public-page/components/PublicAvatarImage.tsx` | Avatar image fallback on load failure                |
+| `apps/web/src/lib/public-api.ts`                                     | `fetchPublicPage` with React.cache()                 |
+| `apps/api/src/modules/public/public-pages.service.ts`                | Data loading + tenant isolation + promo slot resolve |
+| `apps/api/src/modules/public/dto/public-page-response.dto.ts`        | Public-safe DTOs                                     |
+| `packages/types/src/artist.ts`                                       | Shared `PublicArtist` / `PublicPageResponse` types   |

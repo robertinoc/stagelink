@@ -213,10 +213,11 @@ export class PublicPagesService {
     }
 
     const entitlements = buildTenantEntitlements(page.artist.subscription);
-    const showStageLinkBranding = !hasFeature(
-      entitlements.effectivePlan,
-      'remove_stagelink_branding',
-    );
+    const promoSlot = {
+      kind: hasFeature(entitlements.effectivePlan, 'remove_stagelink_branding')
+        ? ('none' as const)
+        : ('free_branding' as const),
+    };
 
     // T4-4: Persist page_view for ALL requests (including bots) — flag at write time,
     // filter at query time. Only skip when no analytics context is available (e.g.
@@ -298,7 +299,7 @@ export class PublicPagesService {
           config: (block.config as Record<string, unknown>) ?? {},
         }),
       ),
-      showStageLinkBranding,
+      promoSlot,
     };
   }
 }
