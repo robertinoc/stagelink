@@ -108,7 +108,7 @@ apps/
             ├── assets/     # Upload pipeline: POST /upload-intent + POST /:id/confirm
             ├── pages/      # CRUD páginas públicas (stub)
             ├── blocks/     # CRUD bloques (stub)
-            ├── analytics/  # Dashboard analytics + gating de analytics_pro para rango premium
+            ├── analytics/  # Dashboard analytics básico + Analytics Pro / fan insights con gates por plan
             └── billing/    # Stripe billing + entitlements + billing summary para dashboard/upgrade flows
 packages/
 ├── types/                  # Interfaces compartidas (Artist, Page, Block, User, Asset, PublicPageResponse)
@@ -120,6 +120,7 @@ docs/
 ├── assets-s3.md                 # Pipeline S3, CORS, IAM, object key strategy, MinIO local, QA checklist
 ├── basic-analytics-dashboard.md # Fuente de verdad, métricas, API shape, limitaciones T4-2
 ├── fan-email-capture-block.md   # Schema, modelo subscribers, anti-abuse, export, privacidad T4-3
+├── analytics-pro-and-fan-insights.md # Analytics Pro, fan insights agregados, gates y limitaciones T6-4
 ├── stripe-billing-foundation.md   # Checkout, portal, webhooks, billing por artist (T5-1)
 ├── billing-state-policy.md        # Política explícita de past_due, cancel_at_period_end, syncing y recovery
 ├── plan-feature-gating.md         # effectivePlan, entitlements y patrón de gating por plan (T5-2)

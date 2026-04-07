@@ -126,6 +126,52 @@
         "cta": "Upgrade plan",
         "secondary_cta": "Manage page"
       },
+      "pro": {
+        "title": "Analytics Pro",
+        "description": "Richer trends and smart link performance built on the same clean analytics source of truth.",
+        "locked_title": "Unlock advanced analytics",
+        "locked_description": "Your current plan is {currentPlan}. Upgrade to {requiredPlan} to unlock richer trends and smart link performance.",
+        "trends": {
+          "title": "Advanced trends",
+          "description": "Daily trend lines for your core engagement signals across the selected range.",
+          "page_views_title": "Page views over time",
+          "page_views_description": "Daily public page traffic.",
+          "link_clicks_title": "Link clicks over time",
+          "link_clicks_description": "Daily CTA and link activity.",
+          "smart_link_title": "Smart link resolutions over time",
+          "smart_link_description": "Daily Smart Link resolution activity."
+        },
+        "smart_links": {
+          "title": "Smart link performance",
+          "description": "The Smart Links driving the most clicks and downstream resolutions in this range.",
+          "label": "Smart link",
+          "clicks": "Clicks",
+          "resolutions": "Resolutions",
+          "empty": "No Smart Link activity yet in this range."
+        }
+      },
+      "fan_insights": {
+        "title": "Fan insights",
+        "description": "Aggregated capture insights built from your fan signup activity. No emails or individual fan records are shown here.",
+        "locked_title": "Unlock fan insights",
+        "locked_description": "Your current plan is {currentPlan}. Upgrade to {requiredPlan} to unlock fan capture trends and top capture blocks.",
+        "summary": {
+          "captures": "Fan captures",
+          "captures_hint": "Successful signup submissions recorded in this range.",
+          "capture_rate": "Visit-to-capture rate",
+          "capture_rate_hint": "Approximate rate based on captures divided by page views.",
+          "page_views": "Page views used",
+          "page_views_hint": "The page views used to compute the capture rate."
+        },
+        "captures_over_time_title": "Captures over time",
+        "captures_over_time_description": "Daily fan capture activity for the selected range.",
+        "captures_empty": "No fan captures yet. Advanced fan insights will appear as your page starts collecting signups.",
+        "top_blocks_title": "Top capture blocks",
+        "top_blocks_description": "Which capture blocks are driving the most successful signups.",
+        "top_blocks_empty": "No capture blocks have generated signups in this range yet.",
+        "captures_label": "captures",
+        "formula_note": "Capture rate is shown as an approximation using the formula fan_capture_submit / page_view."
+      },
       "notes": {
         "basic_quality": "Basic analytics · Bot filtering applied at ingestion · Unique visitor deduplication coming soon",
         "standard_quality": "Bot, internal & QA traffic excluded · Production events only · Unique visitor deduplication coming soon"

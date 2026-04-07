@@ -4,12 +4,16 @@ import { getSession } from '@/lib/auth';
 import { getBillingEntitlements } from '@/lib/api/billing';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import {
+  getAnalyticsFanInsights,
   getAnalyticsOverview,
+  getAnalyticsProTrends,
+  getAnalyticsSmartLinkPerformance,
   type AnalyticsFeatureLockPayload,
   type AnalyticsRange,
 } from '@/lib/api/analytics';
 import type { BillingEntitlementsResponse } from '@/lib/api/billing';
 import { AnalyticsDashboard } from '@/features/analytics/components/AnalyticsDashboard';
+import { getMinimumPlanForFeature, type FeatureKey } from '@stagelink/types';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('dashboard.analytics');
@@ -22,16 +26,17 @@ interface PageProps {
 
 const VALID_RANGES: AnalyticsRange[] = ['7d', '30d', '90d', '365d'];
 
-function createLocalRangeLockPayload(
+function createLocalFeatureLockPayload(
   entitlements: BillingEntitlementsResponse,
+  feature: FeatureKey,
 ): AnalyticsFeatureLockPayload {
   return {
     code: 'FEATURE_NOT_INCLUDED_IN_PLAN',
-    feature: 'analytics_pro',
+    feature,
     effectivePlan: entitlements.effectivePlan,
     billingPlan: entitlements.billingPlan,
     subscriptionStatus: entitlements.subscriptionStatus,
-    requiredPlan: 'pro_plus',
+    requiredPlan: getMinimumPlanForFeature(feature),
     message: 'Feature not included in current plan',
   };
 }
@@ -75,12 +80,22 @@ export default async function DashboardAnalyticsPage({ searchParams }: PageProps
     () => null,
   );
   const analyticsProEnabled = entitlements?.features.analytics_pro;
+  const advancedFanInsightsEnabled = entitlements?.features.advanced_fan_insights;
   let rangeLockedPayload: AnalyticsFeatureLockPayload | null = null;
   let data = null;
   let errorMessage: string | null = null;
+  let proTrends = null;
+  let smartLinkPerformance = null;
+  let fanInsights = null;
+  let analyticsProLockPayload: AnalyticsFeatureLockPayload | null = null;
+  let fanInsightsLockPayload: AnalyticsFeatureLockPayload | null = null;
+  let analyticsProErrorMessage: string | null = null;
+  let fanInsightsErrorMessage: string | null = null;
 
   if (range === '365d' && analyticsProEnabled === false) {
-    rangeLockedPayload = entitlements ? createLocalRangeLockPayload(entitlements) : null;
+    rangeLockedPayload = entitlements
+      ? createLocalFeatureLockPayload(entitlements, 'analytics_pro')
+      : null;
   } else {
     const result = await getAnalyticsOverview(artistId, session.accessToken, range);
     if (result.kind === 'ok') {
@@ -92,14 +107,61 @@ export default async function DashboardAnalyticsPage({ searchParams }: PageProps
     }
   }
 
+  if (!rangeLockedPayload) {
+    if (analyticsProEnabled) {
+      const [trendsResult, smartLinksResult] = await Promise.all([
+        getAnalyticsProTrends(artistId, session.accessToken, range),
+        getAnalyticsSmartLinkPerformance(artistId, session.accessToken, range),
+      ]);
+
+      if (trendsResult.kind === 'ok') {
+        proTrends = trendsResult.data;
+      } else if (trendsResult.kind === 'locked') {
+        analyticsProLockPayload = trendsResult.payload;
+      } else {
+        analyticsProErrorMessage = trendsResult.message;
+      }
+
+      if (smartLinksResult.kind === 'ok') {
+        smartLinkPerformance = smartLinksResult.data;
+      } else if (smartLinksResult.kind === 'locked') {
+        analyticsProLockPayload = smartLinksResult.payload;
+      } else {
+        analyticsProErrorMessage ??= smartLinksResult.message;
+      }
+    } else if (entitlements) {
+      analyticsProLockPayload = createLocalFeatureLockPayload(entitlements, 'analytics_pro');
+    }
+
+    if (advancedFanInsightsEnabled) {
+      const fanInsightsResult = await getAnalyticsFanInsights(artistId, session.accessToken, range);
+      if (fanInsightsResult.kind === 'ok') {
+        fanInsights = fanInsightsResult.data;
+      } else if (fanInsightsResult.kind === 'locked') {
+        fanInsightsLockPayload = fanInsightsResult.payload;
+      } else {
+        fanInsightsErrorMessage = fanInsightsResult.message;
+      }
+    } else if (entitlements) {
+      fanInsightsLockPayload = createLocalFeatureLockPayload(entitlements, 'advanced_fan_insights');
+    }
+  }
+
   return (
     <AnalyticsDashboard
       data={data}
+      proTrends={proTrends}
+      smartLinkPerformance={smartLinkPerformance}
+      fanInsights={fanInsights}
       range={range}
       entitlements={entitlements}
       rangeLocked={Boolean(rangeLockedPayload)}
       rangeLockedPayload={rangeLockedPayload}
+      analyticsProLockPayload={analyticsProLockPayload}
+      fanInsightsLockPayload={fanInsightsLockPayload}
       errorMessage={errorMessage}
+      analyticsProErrorMessage={analyticsProErrorMessage}
+      fanInsightsErrorMessage={fanInsightsErrorMessage}
     />
   );
 }
