@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type {
@@ -24,10 +23,14 @@ import { epkFormSchema, type EpkFormValues } from '../schemas/epk.schema';
 interface EpkEditorProps {
   artistId: string;
   username: string;
-  locale: string;
   initialData: EpkEditorResponse;
   smartLinks: SmartLink[];
   assets: AssetDto[];
+}
+
+interface PublishReadiness {
+  ready: boolean;
+  missing: string[];
 }
 
 function normalizeNullable(value: string | null | undefined): string {
@@ -41,10 +44,32 @@ function providerFromUrl(url: string): EpkFeaturedMediaItem['provider'] {
   return 'other';
 }
 
+function evaluatePublishReadiness(values: EpkFormValues): PublishReadiness {
+  const missing: string[] = [];
+
+  if (!values.headline?.trim()) missing.push('Headline');
+  if (!values.shortBio?.trim()) missing.push('Short bio');
+  if (!values.fullBio?.trim()) missing.push('Full bio');
+
+  const hasFeaturedVisualContent =
+    values.featuredMedia.some((item) => item.title.trim() && item.url.trim()) ||
+    values.galleryImageUrls.length > 0;
+  if (!hasFeaturedVisualContent) missing.push('Featured media or gallery image');
+
+  const hasPublicContact = Boolean(
+    values.bookingEmail?.trim() || values.managementContact?.trim() || values.pressContact?.trim(),
+  );
+  if (!hasPublicContact) missing.push('At least one public contact');
+
+  return {
+    ready: missing.length === 0,
+    missing,
+  };
+}
+
 export function EpkEditor({
   artistId,
   username,
-  locale,
   initialData,
   smartLinks,
   assets: initialAssets,
@@ -84,6 +109,7 @@ export function EpkEditor({
     setValue,
     reset,
     handleSubmit,
+    getValues,
     formState: { isDirty, isSubmitting },
   } = form;
 
@@ -93,7 +119,9 @@ export function EpkEditor({
   const watchedGallery = watch('galleryImageUrls');
   const watchedHeroImageUrl = watch('heroImageUrl');
   const watchedHighlights = watch('highlights');
+  const watchedFormValues = watch();
   const inherited = editorData.inherited;
+  const publishReadiness = evaluatePublishReadiness(watchedFormValues);
 
   const availableImageAssets = useMemo(
     () =>
@@ -155,6 +183,16 @@ export function EpkEditor({
   }
 
   async function togglePublish(nextPublished: boolean) {
+    if (nextPublished) {
+      const readiness = evaluatePublishReadiness(getValues());
+      if (!readiness.ready) {
+        setSaveError(
+          `Add the required EPK content before publishing: ${readiness.missing.join(', ')}.`,
+        );
+        return;
+      }
+    }
+
     setPublishBusy(nextPublished ? 'publish' : 'unpublish');
     setSaveError(null);
     try {
@@ -208,6 +246,7 @@ export function EpkEditor({
 
   const sharePath = `/p/${username}/epk`;
   const printPath = `/p/${username}/epk/print`;
+  const publicRoutesEnabled = editorData.epk.isPublished;
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -242,20 +281,33 @@ export function EpkEditor({
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button asChild variant="outline">
-              <Link href={sharePath} target="_blank" rel="noopener noreferrer">
-                Open public EPK
-              </Link>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!publicRoutesEnabled}
+              onClick={() => window.open(sharePath, '_blank', 'noopener,noreferrer')}
+            >
+              Open public EPK
             </Button>
-            <Button asChild variant="outline">
-              <Link href={printPath} target="_blank" rel="noopener noreferrer">
-                Open print view
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href={`/${locale}/dashboard/billing`}>View plan</Link>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!publicRoutesEnabled}
+              onClick={() => window.open(printPath, '_blank', 'noopener,noreferrer')}
+            >
+              Open print view
             </Button>
           </div>
+          {!publicRoutesEnabled ? (
+            <p className="text-xs text-muted-foreground">
+              Publish the EPK first to enable the public page and print view.
+            </p>
+          ) : null}
+          {!publishReadiness.ready ? (
+            <p className="text-xs text-muted-foreground">
+              Required before publish: {publishReadiness.missing.join(', ')}.
+            </p>
+          ) : null}
         </CardHeader>
       </Card>
 
@@ -270,11 +322,11 @@ export function EpkEditor({
         <CardContent className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-white">Artist name</label>
+              <label className="text-sm font-medium text-white">Artist name *</label>
               <Input value={inherited.displayName} disabled />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-white">Headline</label>
+              <label className="text-sm font-medium text-white">Headline *</label>
               <Input placeholder="Genre, positioning, key context…" {...register('headline')} />
             </div>
           </div>
@@ -357,7 +409,7 @@ export function EpkEditor({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Short bio</label>
+            <label className="text-sm font-medium text-white">Short bio *</label>
             <Textarea
               rows={4}
               placeholder={inherited.bio ?? 'Short artist summary'}
@@ -365,7 +417,7 @@ export function EpkEditor({
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Full bio</label>
+            <label className="text-sm font-medium text-white">Full bio *</label>
             <Textarea
               rows={8}
               placeholder="Longer artist story, recent releases, background, positioning…"
@@ -385,9 +437,10 @@ export function EpkEditor({
 
       <Card>
         <CardHeader>
-          <CardTitle>Featured media and gallery</CardTitle>
+          <CardTitle>Featured media and gallery *</CardTitle>
           <CardDescription>
-            Highlight the most relevant embeds and images. Keep it curated for bookers and press.
+            Highlight the most relevant embeds and images. Add at least one media item or one
+            gallery image before publishing.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -594,7 +647,7 @@ export function EpkEditor({
 
           <div className="space-y-3">
             {watchedHighlights.map((highlight, index) => (
-              <div key={`${index}-${highlight}`} className="flex gap-2">
+              <div key={`highlight-${index}`} className="flex gap-2">
                 <Input
                   placeholder="Notable release, venue, quote or press mention"
                   {...register(`highlights.${index}`)}
@@ -631,9 +684,10 @@ export function EpkEditor({
 
       <Card>
         <CardHeader>
-          <CardTitle>Contacts and practical info</CardTitle>
+          <CardTitle>Contacts and practical info *</CardTitle>
           <CardDescription>
-            These fields are public in the EPK. Only put contacts you explicitly want to expose.
+            These fields are public in the EPK. Add at least one contact before publishing, and only
+            put contacts you explicitly want to expose.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
