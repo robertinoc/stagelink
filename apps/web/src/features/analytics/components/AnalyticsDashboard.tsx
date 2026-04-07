@@ -286,19 +286,23 @@ function LockedState({
 }) {
   const locale = useLocale();
   const t = useTranslations('dashboard.analytics.locked');
+  const isOneTierAway = currentPlan === 'pro' && (requiredPlan ?? 'pro_plus') === 'pro_plus';
 
   return (
-    <FeatureLockCta
-      title={title}
-      description={description}
-      currentPlanLabel={resolvePlanLabel(currentPlan)}
-      requiredPlanLabel={resolvePlanLabel(requiredPlan ?? 'pro_plus')}
-      href={`/${locale}/dashboard/billing`}
-      ctaLabel={t('cta')}
-      secondaryHref={`/${locale}/dashboard/page`}
-      secondaryLabel={t('secondary_cta')}
-      compact
-    />
+    <div className="space-y-2">
+      <FeatureLockCta
+        title={title}
+        description={description}
+        currentPlanLabel={resolvePlanLabel(currentPlan)}
+        requiredPlanLabel={resolvePlanLabel(requiredPlan ?? 'pro_plus')}
+        href={`/${locale}/dashboard/billing`}
+        ctaLabel={t('cta')}
+        secondaryHref={`/${locale}/dashboard/page`}
+        secondaryLabel={t('secondary_cta')}
+        compact
+      />
+      {isOneTierAway ? <p className="text-xs text-muted-foreground">{t('one_tier_away')}</p> : null}
+    </div>
   );
 }
 
