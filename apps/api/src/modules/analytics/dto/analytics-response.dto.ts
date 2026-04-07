@@ -96,3 +96,67 @@ export interface AnalyticsOverviewDto {
   topLinks: TopLinkDto[];
   notes: AnalyticsNotesDto;
 }
+
+// ─── Pro trends ───────────────────────────────────────────────────────────────
+
+export interface AnalyticsTrendPointDto {
+  /** ISO calendar date in YYYY-MM-DD format. */
+  date: string;
+  value: number;
+}
+
+export interface AnalyticsProTrendsDto {
+  artistId: string;
+  range: AnalyticsRange;
+  series: {
+    pageViews: AnalyticsTrendPointDto[];
+    linkClicks: AnalyticsTrendPointDto[];
+    smartLinkResolutions: AnalyticsTrendPointDto[];
+  };
+  notes: AnalyticsNotesDto;
+}
+
+// ─── Smart link performance ──────────────────────────────────────────────────
+
+export interface SmartLinkPerformanceItemDto {
+  smartLinkId: string;
+  label: string;
+  clicks: number;
+  resolutions: number;
+}
+
+export interface AnalyticsSmartLinkPerformanceDto {
+  artistId: string;
+  range: AnalyticsRange;
+  items: SmartLinkPerformanceItemDto[];
+  notes: AnalyticsNotesDto;
+}
+
+// ─── Fan insights ────────────────────────────────────────────────────────────
+
+export interface TopCaptureBlockDto {
+  blockId: string;
+  label: string;
+  captures: number;
+}
+
+export interface AnalyticsFanInsightsDto {
+  artistId: string;
+  range: AnalyticsRange;
+  summary: {
+    pageViews: number;
+    fanCaptures: number;
+    /**
+     * Approximate visit-to-capture rate.
+     * Formula: fan_capture_submit / page_view.
+     * Expressed as a decimal (e.g. 0.032 = 3.2 %).
+     */
+    fanCaptureRate: number;
+  };
+  capturesOverTime: AnalyticsTrendPointDto[];
+  topCaptureBlocks: TopCaptureBlockDto[];
+  notes: AnalyticsNotesDto & {
+    captureRateFormula: 'fan_capture_submit / page_view';
+    piiIncluded: false;
+  };
+}

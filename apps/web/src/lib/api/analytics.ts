@@ -1,8 +1,6 @@
 import { apiFetch } from '@/lib/auth';
 import type { BillingSubscriptionStatus, FeatureKey, PlanCode } from '@stagelink/types';
 
-// ─── Types (mirror of API DTOs) ───────────────────────────────────────────────
-
 export type AnalyticsRange = '7d' | '30d' | '90d' | '365d';
 
 export interface TopLink {
@@ -17,19 +15,15 @@ export interface TopLink {
 export interface AnalyticsSummary {
   pageViews: number;
   linkClicks: number;
-  /** Decimal CTR: 0.17 = 17 %. Returns 0 when there are no page views. */
   ctr: number;
   smartLinkResolutions: number;
 }
 
 export interface AnalyticsNotes {
-  /** T4-4: 'standard' = quality flag filtering applied at query time. */
   dataQuality: 'basic' | 'standard' | 'advanced';
   botFilteringApplied: boolean;
   deduplicationApplied: boolean;
-  /** T4-4: true when quality flag filters (isBot/isInternal/isQa/environment) are applied. */
   qualityFlagsApplied: boolean;
-  /** T4-4: human-readable list of active filters for debugging. */
   filtersActive: string[];
 }
 
@@ -39,6 +33,58 @@ export interface AnalyticsOverview {
   summary: AnalyticsSummary;
   topLinks: TopLink[];
   notes: AnalyticsNotes;
+}
+
+export interface AnalyticsTrendPoint {
+  date: string;
+  value: number;
+}
+
+export interface AnalyticsProTrends {
+  artistId: string;
+  range: AnalyticsRange;
+  series: {
+    pageViews: AnalyticsTrendPoint[];
+    linkClicks: AnalyticsTrendPoint[];
+    smartLinkResolutions: AnalyticsTrendPoint[];
+  };
+  notes: AnalyticsNotes;
+}
+
+export interface SmartLinkPerformanceItem {
+  smartLinkId: string;
+  label: string;
+  clicks: number;
+  resolutions: number;
+}
+
+export interface AnalyticsSmartLinkPerformance {
+  artistId: string;
+  range: AnalyticsRange;
+  items: SmartLinkPerformanceItem[];
+  notes: AnalyticsNotes;
+}
+
+export interface TopCaptureBlock {
+  blockId: string;
+  label: string;
+  captures: number;
+}
+
+export interface AnalyticsFanInsights {
+  artistId: string;
+  range: AnalyticsRange;
+  summary: {
+    pageViews: number;
+    fanCaptures: number;
+    fanCaptureRate: number;
+  };
+  capturesOverTime: AnalyticsTrendPoint[];
+  topCaptureBlocks: TopCaptureBlock[];
+  notes: AnalyticsNotes & {
+    captureRateFormula: 'fan_capture_submit / page_view';
+    piiIncluded: false;
+  };
 }
 
 export interface AnalyticsFeatureLockPayload {
@@ -51,34 +97,23 @@ export interface AnalyticsFeatureLockPayload {
   message: string;
 }
 
-export type AnalyticsOverviewResult =
-  | { kind: 'ok'; data: AnalyticsOverview }
+export type AnalyticsProtectedResult<T> =
+  | { kind: 'ok'; data: T }
   | { kind: 'locked'; payload: AnalyticsFeatureLockPayload }
   | { kind: 'error'; message: string };
 
-// ─── API calls ────────────────────────────────────────────────────────────────
-
-/**
- * Fetches analytics overview for an artist.
- * Returns null on any error (network, auth, 404) — caller shows error/empty state.
- *
- * @param artistId    Validated artist UUID (caller must have read access).
- * @param accessToken WorkOS access token from the server session.
- * @param range       Date range preset. Defaults to '30d'.
- */
-export async function getAnalyticsOverview(
-  artistId: string,
+async function fetchAnalyticsResource<T>(
+  path: string,
   accessToken: string,
-  range: AnalyticsRange = '30d',
-): Promise<AnalyticsOverviewResult> {
+): Promise<AnalyticsProtectedResult<T>> {
   try {
-    const res = await apiFetch(`/api/analytics/${artistId}/overview?range=${range}`, {
+    const res = await apiFetch(path, {
       accessToken,
       cache: 'no-store',
     });
 
     if (res.ok) {
-      return { kind: 'ok', data: (await res.json()) as AnalyticsOverview };
+      return { kind: 'ok', data: (await res.json()) as T };
     }
 
     const payload = (await res.json().catch(() => ({}))) as Partial<AnalyticsFeatureLockPayload> & {
@@ -107,4 +142,48 @@ export async function getAnalyticsOverview(
   } catch {
     return { kind: 'error', message: 'Failed to load analytics' };
   }
+}
+
+export function getAnalyticsOverview(
+  artistId: string,
+  accessToken: string,
+  range: AnalyticsRange = '30d',
+): Promise<AnalyticsProtectedResult<AnalyticsOverview>> {
+  return fetchAnalyticsResource<AnalyticsOverview>(
+    `/api/analytics/${artistId}/overview?range=${range}`,
+    accessToken,
+  );
+}
+
+export function getAnalyticsProTrends(
+  artistId: string,
+  accessToken: string,
+  range: AnalyticsRange = '30d',
+): Promise<AnalyticsProtectedResult<AnalyticsProTrends>> {
+  return fetchAnalyticsResource<AnalyticsProTrends>(
+    `/api/analytics/${artistId}/pro/trends?range=${range}`,
+    accessToken,
+  );
+}
+
+export function getAnalyticsSmartLinkPerformance(
+  artistId: string,
+  accessToken: string,
+  range: AnalyticsRange = '30d',
+): Promise<AnalyticsProtectedResult<AnalyticsSmartLinkPerformance>> {
+  return fetchAnalyticsResource<AnalyticsSmartLinkPerformance>(
+    `/api/analytics/${artistId}/pro/smart-links?range=${range}`,
+    accessToken,
+  );
+}
+
+export function getAnalyticsFanInsights(
+  artistId: string,
+  accessToken: string,
+  range: AnalyticsRange = '30d',
+): Promise<AnalyticsProtectedResult<AnalyticsFanInsights>> {
+  return fetchAnalyticsResource<AnalyticsFanInsights>(
+    `/api/analytics/${artistId}/pro/fan-insights?range=${range}`,
+    accessToken,
+  );
 }

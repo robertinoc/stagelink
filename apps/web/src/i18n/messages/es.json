@@ -126,6 +126,52 @@
         "cta": "Actualizar plan",
         "secondary_cta": "Gestionar página"
       },
+      "pro": {
+        "title": "Analytics Pro",
+        "description": "Tendencias más ricas y rendimiento de smart links construidos sobre la misma fuente de datos limpia.",
+        "locked_title": "Desbloqueá analytics avanzadas",
+        "locked_description": "Tu plan actual es {currentPlan}. Actualizá a {requiredPlan} para desbloquear tendencias más ricas y rendimiento de smart links.",
+        "trends": {
+          "title": "Tendencias avanzadas",
+          "description": "Serie diaria de tus señales principales de engagement para el rango seleccionado.",
+          "page_views_title": "Visitas por día",
+          "page_views_description": "Tráfico diario de la página pública.",
+          "link_clicks_title": "Clicks por día",
+          "link_clicks_description": "Actividad diaria de CTAs y links.",
+          "smart_link_title": "Resoluciones de smart links por día",
+          "smart_link_description": "Actividad diaria de resoluciones de Smart Links."
+        },
+        "smart_links": {
+          "title": "Rendimiento de smart links",
+          "description": "Los Smart Links que más clicks y resoluciones generan en este rango.",
+          "label": "Smart link",
+          "clicks": "Clicks",
+          "resolutions": "Resoluciones",
+          "empty": "Todavía no hay actividad de Smart Links en este rango."
+        }
+      },
+      "fan_insights": {
+        "title": "Insights de fans",
+        "description": "Insights agregados construidos sobre la captación de fans. Acá no se muestran emails ni registros individuales.",
+        "locked_title": "Desbloqueá insights de fans",
+        "locked_description": "Tu plan actual es {currentPlan}. Actualizá a {requiredPlan} para desbloquear tendencias de captación y top capture blocks.",
+        "summary": {
+          "captures": "Capturas de fans",
+          "captures_hint": "Suscripciones exitosas registradas en este rango.",
+          "capture_rate": "Tasa visita a captura",
+          "capture_rate_hint": "Aproximación basada en capturas divididas por visitas a la página.",
+          "page_views": "Visitas usadas",
+          "page_views_hint": "Las visitas usadas para calcular la tasa de captura."
+        },
+        "captures_over_time_title": "Capturas a lo largo del tiempo",
+        "captures_over_time_description": "Actividad diaria de captación de fans para el rango seleccionado.",
+        "captures_empty": "Todavía no hay capturas de fans. Los insights avanzados aparecerán cuando tu página empiece a recibir registros.",
+        "top_blocks_title": "Top capture blocks",
+        "top_blocks_description": "Qué bloques de captura están generando más registros exitosos.",
+        "top_blocks_empty": "Ningún bloque de captura generó registros en este rango todavía.",
+        "captures_label": "capturas",
+        "formula_note": "La tasa de captura se muestra como una aproximación usando la fórmula fan_capture_submit / page_view."
+      },
       "notes": {
         "basic_quality": "Analíticas básicas · Filtrado de bots aplicado en la ingesta · Deduplicación de visitantes únicos próximamente",
         "standard_quality": "Tráfico de bots, interno y QA excluido · Solo eventos de producción · Deduplicación de visitantes únicos próximamente"

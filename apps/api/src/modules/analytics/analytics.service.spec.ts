@@ -8,6 +8,13 @@ describe('AnalyticsService', () => {
         count: jest.fn().mockResolvedValue(0),
         groupBy: jest.fn().mockResolvedValue([]),
       },
+      smartLink: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+      block: {
+        findMany: jest.fn().mockResolvedValue([]),
+      },
+      $queryRaw: jest.fn().mockResolvedValue([]),
     };
 
     const billingEntitlementsService = {
@@ -19,7 +26,7 @@ describe('AnalyticsService', () => {
     return { service, prisma, billingEntitlementsService };
   }
 
-  it('requires analytics_pro for the 365d range', async () => {
+  it('requires analytics_pro for the 365d overview range', async () => {
     const { service, billingEntitlementsService } = createService();
 
     await service.getOverview('artist_123', '365d');
@@ -30,7 +37,7 @@ describe('AnalyticsService', () => {
     );
   });
 
-  it('does not require analytics_pro for standard ranges', async () => {
+  it('does not require analytics_pro for standard overview ranges', async () => {
     const { service, billingEntitlementsService, prisma } = createService();
 
     await service.getOverview('artist_123', '30d');
@@ -45,5 +52,60 @@ describe('AnalyticsService', () => {
         environment: AnalyticsEnvironment.production,
       }),
     });
+  });
+
+  it('requires analytics_pro for advanced trends and smart link performance', async () => {
+    const { service, billingEntitlementsService } = createService();
+
+    await service.getProTrends('artist_123', '30d');
+    await service.getSmartLinkPerformance('artist_123', '30d');
+
+    expect(billingEntitlementsService.assertFeatureAccess).toHaveBeenNthCalledWith(
+      1,
+      'artist_123',
+      'analytics_pro',
+    );
+    expect(billingEntitlementsService.assertFeatureAccess).toHaveBeenNthCalledWith(
+      2,
+      'artist_123',
+      'analytics_pro',
+    );
+  });
+
+  it('requires advanced_fan_insights and keeps fan capture rate zero-safe', async () => {
+    const { service, billingEntitlementsService, prisma } = createService();
+
+    prisma.analyticsEvent.count
+      .mockResolvedValueOnce(0) // page views
+      .mockResolvedValueOnce(0); // fan captures
+
+    const result = await service.getFanInsights('artist_123', '30d');
+
+    expect(billingEntitlementsService.assertFeatureAccess).toHaveBeenCalledWith(
+      'artist_123',
+      'advanced_fan_insights',
+    );
+    expect(result.summary.fanCaptureRate).toBe(0);
+    expect(result.notes.captureRateFormula).toBe('fan_capture_submit / page_view');
+    expect(result.notes.piiIncluded).toBe(false);
+  });
+
+  it('fills missing days in the trends response', async () => {
+    const { service, prisma } = createService();
+
+    prisma.$queryRaw.mockResolvedValueOnce([
+      {
+        day: new Date('2026-04-01T00:00:00.000Z'),
+        pageViews: 12,
+        linkClicks: 4,
+        smartLinkResolutions: 2,
+      },
+    ]);
+
+    const result = await service.getProTrends('artist_123', '7d');
+
+    expect(result.series.pageViews.length).toBeGreaterThan(1);
+    expect(result.series.pageViews.some((point) => point.value === 12)).toBe(true);
+    expect(result.series.pageViews.some((point) => point.value === 0)).toBe(true);
   });
 });

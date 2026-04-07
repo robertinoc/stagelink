@@ -2,7 +2,12 @@ import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { CheckOwnership } from '../../common/decorators';
 import { OwnershipGuard } from '../../common/guards';
-import type { AnalyticsOverviewDto } from './dto/analytics-response.dto';
+import type {
+  AnalyticsFanInsightsDto,
+  AnalyticsOverviewDto,
+  AnalyticsProTrendsDto,
+  AnalyticsSmartLinkPerformanceDto,
+} from './dto/analytics-response.dto';
 
 /**
  * AnalyticsController — private analytics endpoints for dashboard use.
@@ -37,5 +42,35 @@ export class AnalyticsController {
     @Query('range') range?: string,
   ): Promise<AnalyticsOverviewDto> {
     return this.analyticsService.getOverview(artistId, range);
+  }
+
+  @Get(':artistId/pro/trends')
+  @CheckOwnership('artist', 'artistId', 'read')
+  @UseGuards(OwnershipGuard)
+  getProTrends(
+    @Param('artistId') artistId: string,
+    @Query('range') range?: string,
+  ): Promise<AnalyticsProTrendsDto> {
+    return this.analyticsService.getProTrends(artistId, range);
+  }
+
+  @Get(':artistId/pro/smart-links')
+  @CheckOwnership('artist', 'artistId', 'read')
+  @UseGuards(OwnershipGuard)
+  getSmartLinkPerformance(
+    @Param('artistId') artistId: string,
+    @Query('range') range?: string,
+  ): Promise<AnalyticsSmartLinkPerformanceDto> {
+    return this.analyticsService.getSmartLinkPerformance(artistId, range);
+  }
+
+  @Get(':artistId/pro/fan-insights')
+  @CheckOwnership('artist', 'artistId', 'read')
+  @UseGuards(OwnershipGuard)
+  getFanInsights(
+    @Param('artistId') artistId: string,
+    @Query('range') range?: string,
+  ): Promise<AnalyticsFanInsightsDto> {
+    return this.analyticsService.getFanInsights(artistId, range);
   }
 }
