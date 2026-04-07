@@ -124,7 +124,8 @@
         "title": "Las analíticas avanzadas están bloqueadas",
         "description": "Tu plan actual es {currentPlan}. Actualizá a {requiredPlan} para desbloquear la vista de 365 días y las capacidades avanzadas de analytics a medida que se publiquen.",
         "cta": "Actualizar plan",
-        "secondary_cta": "Gestionar página"
+        "secondary_cta": "Gestionar página",
+        "one_tier_away": "Estás a un solo nivel de desbloquear esta sección en Pro+."
       },
       "pro": {
         "title": "Analytics Pro",
@@ -174,7 +175,7 @@
       },
       "notes": {
         "basic_quality": "Analíticas básicas · Filtrado de bots aplicado en la ingesta · Deduplicación de visitantes únicos próximamente",
-        "standard_quality": "Tráfico de bots, interno y QA excluido · Solo eventos de producción · Deduplicación de visitantes únicos próximamente"
+        "standard_quality": "Tráfico de bots y QA excluido · Solo eventos de producción · Deduplicación de visitantes únicos próximamente"
       }
     },
     "profile": {

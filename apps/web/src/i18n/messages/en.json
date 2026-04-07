@@ -124,7 +124,8 @@
         "title": "Advanced analytics are locked",
         "description": "Your current plan is {currentPlan}. Upgrade to {requiredPlan} to unlock a full 365-day view and advanced analytics features as they ship.",
         "cta": "Upgrade plan",
-        "secondary_cta": "Manage page"
+        "secondary_cta": "Manage page",
+        "one_tier_away": "You're one tier away from unlocking this section in Pro+."
       },
       "pro": {
         "title": "Analytics Pro",
@@ -174,7 +175,7 @@
       },
       "notes": {
         "basic_quality": "Basic analytics · Bot filtering applied at ingestion · Unique visitor deduplication coming soon",
-        "standard_quality": "Bot, internal & QA traffic excluded · Production events only · Unique visitor deduplication coming soon"
+        "standard_quality": "Bot & QA traffic excluded · Production events only · Unique visitor deduplication coming soon"
       }
     },
     "profile": {
