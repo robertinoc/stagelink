@@ -130,7 +130,7 @@
         "title": "Analytics Pro",
         "description": "Richer trends and smart link performance built on the same clean analytics source of truth.",
         "locked_title": "Unlock advanced analytics",
-        "locked_description": "Your current plan is {currentPlan}. Upgrade to {requiredPlan} to unlock richer trends and smart link performance.",
+        "locked_description": "Your current plan is {currentPlan}. Advanced analytics are included in {requiredPlan}, while Free and Pro keep the basic overview. Upgrade to unlock richer trends and smart link performance.",
         "trends": {
           "title": "Advanced trends",
           "description": "Daily trend lines for your core engagement signals across the selected range.",
@@ -154,7 +154,7 @@
         "title": "Fan insights",
         "description": "Aggregated capture insights built from your fan signup activity. No emails or individual fan records are shown here.",
         "locked_title": "Unlock fan insights",
-        "locked_description": "Your current plan is {currentPlan}. Upgrade to {requiredPlan} to unlock fan capture trends and top capture blocks.",
+        "locked_description": "Your current plan is {currentPlan}. Fan insights are included in {requiredPlan}, while Free and Pro keep the basic analytics view. Upgrade to unlock fan capture trends and top capture blocks.",
         "summary": {
           "captures": "Fan captures",
           "captures_hint": "Successful signup submissions recorded in this range.",
