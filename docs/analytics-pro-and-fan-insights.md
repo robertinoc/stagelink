@@ -183,3 +183,41 @@ Los próximos pasos naturales serían:
 4. agregar exports o vistas más profundas si el uso real lo justifica
 
 No conviene adelantar esas capas antes de tener la señal base completa.
+
+## Demo seed y cleanup
+
+Para probar T6-4 antes del lanzamiento, StageLink incluye dos scripts reversibles
+que siembran y limpian data ficticia para un artista `free` y otro `pro+`.
+
+### Seed
+
+```bash
+pnpm --filter @stagelink/api seed:demo-analytics -- --free=<free_username> --pro=<pro_username> --tag=t6-4-demo
+```
+
+Qué hace:
+
+- carga `page_view` y `link_click` para el artista `free`
+- carga `page_view`, `link_click`, `smart_link_resolution`, `fan_capture_submit` y `subscribers`
+  para el artista `pro+`
+- crea bloques y Smart Links demo mínimos si hacen falta para generar atribución útil
+- marca todo con un `tag` para poder borrarlo después sin tocar datos reales
+
+### Cleanup
+
+```bash
+pnpm --filter @stagelink/api seed:demo-analytics:cleanup -- --free=<free_username> --pro=<pro_username> --tag=t6-4-demo
+```
+
+Qué borra:
+
+- `analytics_events` sembrados por el seed
+- `subscribers` demo
+- bloques demo creados por el seed
+- Smart Links demo creados por el seed
+- páginas demo creadas por el seed, si aplicara
+
+Recomendación:
+
+- usalo en local, staging o una base controlada
+- si querés correrlo contra una base remota, verificá primero qué `DATABASE_URL` tenés activa
