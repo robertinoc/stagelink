@@ -147,6 +147,21 @@ export class AssetsService {
     return this.toDto(updated);
   }
 
+  async listByArtist(artistId: string, user: User): Promise<AssetDto[]> {
+    await this.membershipService.validateAccess(user.id, artistId, 'read');
+
+    const assets = await this.prisma.asset.findMany({
+      where: {
+        artistId,
+        status: 'uploaded',
+        kind: { in: ['avatar', 'cover', 'epk_image'] },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return assets.map((asset) => this.toDto(asset));
+  }
+
   private toDto(asset: {
     id: string;
     artistId: string;

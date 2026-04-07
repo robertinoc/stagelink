@@ -1,4 +1,4 @@
-export type AssetKind = 'avatar' | 'cover';
+export type AssetKind = 'avatar' | 'cover' | 'epk_image';
 export type AssetStatus = 'pending' | 'uploaded' | 'failed' | 'deleted';
 
 export interface Asset {

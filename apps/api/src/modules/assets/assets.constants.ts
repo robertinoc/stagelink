@@ -20,6 +20,10 @@ export const ASSET_CONFIG: Record<string, AssetTypeConfig> = {
     allowedMimeTypes: ALLOWED_MIME_TYPES,
     maxSizeBytes: 8 * 1024 * 1024, // 8 MB
   },
+  epk_image: {
+    allowedMimeTypes: ALLOWED_MIME_TYPES,
+    maxSizeBytes: 8 * 1024 * 1024, // 8 MB
+  },
 } as const;
 
 export const PRESIGNED_URL_TTL_SECONDS = 300; // 5 minutes

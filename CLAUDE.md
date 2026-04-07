@@ -17,6 +17,7 @@ Plataforma tipo Linktree enfocada en artistas (músicos, DJs, creadores visuales
 - **Storage**: Cloudflare R2 / AWS S3-compatible (avatars, covers, assets de EPK)
 - **Pagos**: Stripe (suscripciones Free / Pro / Pro+)
 - **Analytics**: PostHog + eventos propios en DB
+- **EPK**: Builder propio con share page SSR + print/export-friendly view
 - **i18n**: next-intl
 - **Deploy**: Vercel (frontend) + Railway (backend, us-west2) + Cloudflare (DNS/CDN/proxy)
 - **AI**: LLM para bio generada (Fase 3, no acoplado a un proveedor específico)
@@ -55,6 +56,7 @@ apps/
 │       │   ├── marketing/              # LandingPage, hero, pricing
 │       │   ├── auth/                   # LoginForm, SignupForm
 │       │   ├── dashboard/              # DashboardWelcome, stats
+│       │   ├── epk/                    # EPK builder + shareable/public rendering
 │       │   └── public-page/            # ArtistPagePlaceholder
 │       ├── i18n/
 │       │   ├── request.ts              # getRequestConfig (next-intl)
@@ -103,9 +105,10 @@ apps/
             ├── health/     # GET /api/health — status, uptime, environment
             ├── auth/       # WorkOS AuthKit (stub: GET /api/auth/session)
             ├── tenant/     # TenantResolverService — resolución central username→artistId
-            ├── public/     # GET /api/public/pages/by-username/:username (sin auth)
+            ├── public/     # GET /api/public/pages/by-username/:username + /api/public/epk/by-username/:username
             ├── artists/    # CRUD artistas + username lookup (stub)
-            ├── assets/     # Upload pipeline: POST /upload-intent + POST /:id/confirm
+            ├── assets/     # Upload pipeline: POST /upload-intent + POST /:id/confirm + listado básico por artista
+            ├── epk/        # EPK builder (draft/publish/share)
             ├── pages/      # CRUD páginas públicas (stub)
             ├── blocks/     # CRUD bloques (stub)
             ├── analytics/  # Dashboard analytics básico + Analytics Pro / fan insights con gates por plan
@@ -121,6 +124,7 @@ docs/
 ├── basic-analytics-dashboard.md # Fuente de verdad, métricas, API shape, limitaciones T4-2
 ├── fan-email-capture-block.md   # Schema, modelo subscribers, anti-abuse, export, privacidad T4-3
 ├── analytics-pro-and-fan-insights.md # Analytics Pro, fan insights agregados, gates y limitaciones T6-4
+├── epk-builder-and-shareable-page.md # Modelo EPK, herencia, publicación, share route y export print-friendly T6-3
 ├── stripe-billing-foundation.md   # Checkout, portal, webhooks, billing por artist (T5-1)
 ├── billing-state-policy.md        # Política explícita de past_due, cancel_at_period_end, syncing y recovery
 ├── plan-feature-gating.md         # effectivePlan, entitlements y patrón de gating por plan (T5-2)

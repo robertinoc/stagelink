@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/auth';
 import type { AssetDto, AssetKind, UploadIntentResponse } from '@stagelink/types';
 
 /**
@@ -78,4 +79,10 @@ export async function confirmUpload(assetId: string): Promise<AssetDto> {
   }
 
   return res.json() as Promise<AssetDto>;
+}
+
+export async function getArtistAssets(artistId: string, accessToken: string): Promise<AssetDto[]> {
+  const res = await apiFetch(`/api/assets/artist/${artistId}`, { accessToken });
+  if (!res.ok) throw new Error(`Failed to load assets (${res.status})`);
+  return res.json() as Promise<AssetDto[]>;
 }
