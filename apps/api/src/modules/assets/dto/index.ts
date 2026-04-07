@@ -1,7 +1,7 @@
 import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 import { ALLOWED_MIME_TYPES } from '../assets.constants';
 
-const VALID_KINDS = ['avatar', 'cover'] as const;
+const VALID_KINDS = ['avatar', 'cover', 'epk_image'] as const;
 const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB hard ceiling
 
 export class CreateUploadIntentDto {
@@ -10,7 +10,7 @@ export class CreateUploadIntentDto {
   artistId!: string;
 
   @IsIn(VALID_KINDS)
-  kind!: 'avatar' | 'cover';
+  kind!: 'avatar' | 'cover' | 'epk_image';
 
   @IsIn([...ALLOWED_MIME_TYPES])
   mimeType!: string;

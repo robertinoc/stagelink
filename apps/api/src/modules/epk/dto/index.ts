@@ -1,0 +1,147 @@
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsEmail,
+  IsIn,
+  IsOptional,
+  IsString,
+  IsUrl,
+  MaxLength,
+  ValidateNested,
+} from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+
+function emptyStringToNull(value: unknown) {
+  return typeof value === 'string' && value.trim() === '' ? null : value;
+}
+
+export class EpkFeaturedMediaItemDto {
+  @IsString()
+  @MaxLength(64)
+  id!: string;
+
+  @IsString()
+  @MaxLength(120)
+  title!: string;
+
+  @IsUrl({ require_protocol: true })
+  @MaxLength(2048)
+  url!: string;
+
+  @IsIn(['spotify', 'soundcloud', 'youtube', 'other'])
+  provider!: 'spotify' | 'soundcloud' | 'youtube' | 'other';
+}
+
+export class EpkFeaturedLinkItemDto {
+  @IsString()
+  @MaxLength(64)
+  id!: string;
+
+  @IsString()
+  @MaxLength(100)
+  label!: string;
+
+  @IsUrl({ require_protocol: true })
+  @MaxLength(2048)
+  url!: string;
+}
+
+export class UpdateEpkDto {
+  @IsOptional()
+  @Transform(({ value }) => emptyStringToNull(value))
+  @IsString()
+  @MaxLength(140)
+  headline?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }) => emptyStringToNull(value))
+  @IsString()
+  @MaxLength(500)
+  shortBio?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }) => emptyStringToNull(value))
+  @IsString()
+  @MaxLength(5000)
+  fullBio?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }) => emptyStringToNull(value))
+  @IsString()
+  @MaxLength(280)
+  pressQuote?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }) => emptyStringToNull(value))
+  @IsEmail()
+  bookingEmail?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }) => emptyStringToNull(value))
+  @IsString()
+  @MaxLength(200)
+  managementContact?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }) => emptyStringToNull(value))
+  @IsString()
+  @MaxLength(200)
+  pressContact?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }) => emptyStringToNull(value))
+  @IsUrl({ require_protocol: true })
+  @MaxLength(2048)
+  heroImageUrl?: string | null;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(6)
+  @IsUrl({ require_protocol: true }, { each: true })
+  galleryImageUrls?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(6)
+  @ValidateNested({ each: true })
+  @Type(() => EpkFeaturedMediaItemDto)
+  featuredMedia?: EpkFeaturedMediaItemDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(8)
+  @ValidateNested({ each: true })
+  @Type(() => EpkFeaturedLinkItemDto)
+  featuredLinks?: EpkFeaturedLinkItemDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(8)
+  @IsString({ each: true })
+  @MaxLength(160, { each: true })
+  highlights?: string[];
+
+  @IsOptional()
+  @Transform(({ value }) => emptyStringToNull(value))
+  @IsString()
+  @MaxLength(2000)
+  riderInfo?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }) => emptyStringToNull(value))
+  @IsString()
+  @MaxLength(2000)
+  techRequirements?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }) => emptyStringToNull(value))
+  @IsString()
+  @MaxLength(120)
+  location?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }) => emptyStringToNull(value))
+  @IsString()
+  @MaxLength(500)
+  availabilityNotes?: string | null;
+}

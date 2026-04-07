@@ -15,6 +15,7 @@ datasource db {
 enum AssetKind {
   avatar
   cover
+  epk_image
 
   @@map("asset_kind")
 }
@@ -116,8 +117,43 @@ model Artist {
   memberships     ArtistMembership[]
   smartLinks      SmartLink[]
   subscribers     Subscriber[]
+  epk             Epk?
 
   @@map("artists")
+}
+
+// =============================================================
+// EPK
+// Electronic Press Kit específico del artista.
+// Draft/publicación independientes de la página pública principal.
+// Campos repetibles simples se guardan como JSON validado en backend.
+// =============================================================
+model Epk {
+  id                 String   @id @default(cuid())
+  artistId           String   @unique @map("artist_id")
+  isPublished        Boolean  @default(false) @map("is_published")
+  headline           String?
+  shortBio           String?  @map("short_bio")
+  fullBio            String?  @map("full_bio")
+  pressQuote         String?  @map("press_quote")
+  bookingEmail       String?  @map("booking_email")
+  managementContact  String?  @map("management_contact")
+  pressContact       String?  @map("press_contact")
+  heroImageUrl       String?  @map("hero_image_url")
+  galleryImageUrls   Json     @default("[]") @map("gallery_image_urls")
+  featuredMedia      Json     @default("[]") @map("featured_media")
+  featuredLinks      Json     @default("[]") @map("featured_links")
+  highlights         Json     @default("[]")
+  riderInfo          String?  @map("rider_info")
+  techRequirements   String?  @map("tech_requirements")
+  location           String?
+  availabilityNotes  String?  @map("availability_notes")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@map("epks")
 }
 
 // =============================================================

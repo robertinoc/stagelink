@@ -18,6 +18,7 @@ import { MembershipModule } from './modules/membership/membership.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { PagesModule } from './modules/pages/pages.module';
 import { PublicModule } from './modules/public/public.module';
+import { EpkModule } from './modules/epk/epk.module';
 import { SmartLinksModule } from './modules/smart-links/smart-links.module';
 import { SubscribersModule } from './modules/subscribers/subscribers.module';
 import { TenantModule } from './modules/tenant/tenant.module';
@@ -50,6 +51,7 @@ import { TenantModule } from './modules/tenant/tenant.module';
     OnboardingModule,
     SmartLinksModule,
     SubscribersModule,
+    EpkModule,
   ],
   providers: [
     {

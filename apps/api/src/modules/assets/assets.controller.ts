@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import type { User } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators';
 import { AssetsService } from './assets.service';
@@ -16,6 +16,11 @@ import { CreateUploadIntentDto } from './dto';
 @Controller('assets')
 export class AssetsController {
   constructor(private readonly assetsService: AssetsService) {}
+
+  @Get('artist/:artistId')
+  listByArtist(@Param('artistId') artistId: string, @CurrentUser() user: User) {
+    return this.assetsService.listByArtist(artistId, user);
+  }
 
   /**
    * POST /api/assets/upload-intent
