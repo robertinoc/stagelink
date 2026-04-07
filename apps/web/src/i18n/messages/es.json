@@ -130,7 +130,7 @@
         "title": "Analytics Pro",
         "description": "Tendencias más ricas y rendimiento de smart links construidos sobre la misma fuente de datos limpia.",
         "locked_title": "Desbloqueá analytics avanzadas",
-        "locked_description": "Tu plan actual es {currentPlan}. Actualizá a {requiredPlan} para desbloquear tendencias más ricas y rendimiento de smart links.",
+        "locked_description": "Tu plan actual es {currentPlan}. Las analytics avanzadas están incluidas en {requiredPlan}; Free y Pro mantienen la vista básica. Actualizá para desbloquear tendencias más ricas y rendimiento de smart links.",
         "trends": {
           "title": "Tendencias avanzadas",
           "description": "Serie diaria de tus señales principales de engagement para el rango seleccionado.",
@@ -154,7 +154,7 @@
         "title": "Insights de fans",
         "description": "Insights agregados construidos sobre la captación de fans. Acá no se muestran emails ni registros individuales.",
         "locked_title": "Desbloqueá insights de fans",
-        "locked_description": "Tu plan actual es {currentPlan}. Actualizá a {requiredPlan} para desbloquear tendencias de captación y top capture blocks.",
+        "locked_description": "Tu plan actual es {currentPlan}. Los insights de fans están incluidos en {requiredPlan}; Free y Pro mantienen la vista básica. Actualizá para desbloquear tendencias de captación y top capture blocks.",
         "summary": {
           "captures": "Capturas de fans",
           "captures_hint": "Suscripciones exitosas registradas en este rango.",
