@@ -192,7 +192,6 @@ export function EpkEditor({
         return;
       }
     }
-
     setPublishBusy(nextPublished ? 'publish' : 'unpublish');
     setSaveError(null);
     try {
