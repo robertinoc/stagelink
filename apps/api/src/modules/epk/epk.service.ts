@@ -103,6 +103,33 @@ export class EpkService {
 
     const epk = await this.ensureEpkRecord(artistId);
     const payload = this.buildUpdatePayload(dto);
+    const mergedFeaturedMedia =
+      dto.featuredMedia ?? (epk.featuredMedia as unknown as EpkFeaturedMediaItem[]) ?? [];
+    const mergedFeaturedLinks =
+      dto.featuredLinks ?? (epk.featuredLinks as unknown as EpkFeaturedLinkItem[]) ?? [];
+    const mergedGalleryImageUrls =
+      dto.galleryImageUrls ?? (epk.galleryImageUrls as unknown as string[]) ?? [];
+    const readiness = getEpkPublishValidation(
+      {
+        headline: dto.headline !== undefined ? dto.headline : epk.headline,
+        shortBio: dto.shortBio !== undefined ? dto.shortBio : epk.shortBio,
+        fullBio: dto.fullBio !== undefined ? dto.fullBio : epk.fullBio,
+        bookingEmail: dto.bookingEmail !== undefined ? dto.bookingEmail : epk.bookingEmail,
+        managementContact:
+          dto.managementContact !== undefined ? dto.managementContact : epk.managementContact,
+        pressContact: dto.pressContact !== undefined ? dto.pressContact : epk.pressContact,
+        heroImageUrl: dto.heroImageUrl !== undefined ? dto.heroImageUrl : epk.heroImageUrl,
+        galleryImageUrls: mergedGalleryImageUrls,
+        featuredMedia: mergedFeaturedMedia,
+        featuredLinks: mergedFeaturedLinks,
+      },
+      artist,
+    );
+    if (!readiness.ready) {
+      throw new BadRequestException(
+        `Add the required EPK content before saving: ${readiness.missing.join(', ')}.`,
+      );
+    }
 
     const updated = await this.prisma.epk.update({
       where: { id: epk.id },

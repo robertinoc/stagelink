@@ -85,6 +85,9 @@ export function EpkEditor({
     getValues,
     formState: { isDirty, isSubmitting },
   } = form;
+  const {
+    formState: { errors },
+  } = form;
 
   const featuredMedia = useFieldArray({ control, name: 'featuredMedia' });
   const featuredLinks = useFieldArray({ control, name: 'featuredLinks' });
@@ -94,10 +97,7 @@ export function EpkEditor({
   const watchedHighlights = watch('highlights');
   const watchedFormValues = watch();
   const inherited = editorData.inherited;
-  const publishReadiness = getEpkPublishReadiness({
-    ...watchedFormValues,
-    inheritedShortBio: inherited.bio,
-  });
+  const publishReadiness = getEpkPublishReadiness(watchedFormValues);
 
   const availableImageAssets = useMemo(
     () =>
@@ -108,6 +108,13 @@ export function EpkEditor({
   );
 
   async function onSubmit(values: EpkFormValues) {
+    const readiness = getEpkPublishReadiness(values);
+    if (!readiness.ready) {
+      setSaveError(`Add the required EPK content before saving: ${readiness.missing.join(', ')}.`);
+      setSaveStatus('error');
+      return;
+    }
+
     setSaveStatus('saving');
     setSaveError(null);
 
@@ -160,10 +167,7 @@ export function EpkEditor({
 
   async function togglePublish(nextPublished: boolean) {
     if (nextPublished) {
-      const readiness = getEpkPublishReadiness({
-        ...getValues(),
-        inheritedShortBio: inherited.bio,
-      });
+      const readiness = getEpkPublishReadiness(getValues());
       if (!readiness.ready) {
         setSaveError(
           `Add the required EPK content before publishing: ${readiness.missing.join(', ')}.`,
@@ -283,7 +287,7 @@ export function EpkEditor({
           ) : null}
           {!publishReadiness.ready ? (
             <p className="text-xs text-muted-foreground">
-              Required before publish: {publishReadiness.missing.join(', ')}.
+              Required before save and publish: {publishReadiness.missing.join(', ')}.
             </p>
           ) : null}
         </CardHeader>
@@ -306,6 +310,9 @@ export function EpkEditor({
             <div className="space-y-2">
               <label className="text-sm font-medium text-white">Headline *</label>
               <Input placeholder="Genre, positioning, key context…" {...register('headline')} />
+              {errors.headline ? (
+                <p className="text-xs text-destructive">{errors.headline.message}</p>
+              ) : null}
             </div>
           </div>
 
@@ -393,6 +400,9 @@ export function EpkEditor({
               placeholder={inherited.bio ?? 'Short artist summary'}
               {...register('shortBio')}
             />
+            {errors.shortBio ? (
+              <p className="text-xs text-destructive">{errors.shortBio.message}</p>
+            ) : null}
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Full bio *</label>
@@ -401,6 +411,9 @@ export function EpkEditor({
               placeholder="Longer artist story, recent releases, background, positioning…"
               {...register('fullBio')}
             />
+            {errors.fullBio ? (
+              <p className="text-xs text-destructive">{errors.fullBio.message}</p>
+            ) : null}
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Press quote</label>
@@ -502,6 +515,9 @@ export function EpkEditor({
               >
                 Add media item
               </Button>
+            ) : null}
+            {errors.featuredMedia ? (
+              <p className="text-xs text-destructive">{errors.featuredMedia.message as string}</p>
             ) : null}
           </div>
 
@@ -675,6 +691,9 @@ export function EpkEditor({
               placeholder={inherited.contactEmail ?? 'booking@artist.com'}
               {...register('bookingEmail')}
             />
+            {errors.bookingEmail ? (
+              <p className="text-xs text-destructive">{errors.bookingEmail.message}</p>
+            ) : null}
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Management contact</label>
@@ -721,13 +740,17 @@ export function EpkEditor({
             <span className="text-green-400">EPK saved successfully.</span>
           ) : saveStatus === 'error' ? (
             <span className="text-destructive">{saveError}</span>
+          ) : !publishReadiness.ready ? (
+            <span className="text-muted-foreground">
+              Complete the required EPK fields before saving: {publishReadiness.missing.join(', ')}.
+            </span>
           ) : isDirty ? (
             <span className="text-muted-foreground">You have unsaved EPK changes.</span>
           ) : (
             <span className="text-muted-foreground">Public EPK: {sharePath}</span>
           )}
         </div>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting || !publishReadiness.ready}>
           {isSubmitting ? 'Saving…' : 'Save EPK'}
         </Button>
       </div>

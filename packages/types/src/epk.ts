@@ -14,7 +14,6 @@ export interface EpkFeaturedLinkItem {
 export interface EpkPublishReadinessInput {
   headline?: string | null;
   shortBio?: string | null;
-  inheritedShortBio?: string | null;
   fullBio?: string | null;
   featuredMedia?: Pick<EpkFeaturedMediaItem, 'title' | 'url'>[];
   galleryImageUrls?: string[];
@@ -36,7 +35,7 @@ export function getEpkPublishReadiness(input: EpkPublishReadinessInput): EpkPubl
   const missing: string[] = [];
 
   if (!hasText(input.headline)) missing.push('Headline');
-  if (!hasText(input.shortBio) && !hasText(input.inheritedShortBio)) missing.push('Short bio');
+  if (!hasText(input.shortBio)) missing.push('Short bio');
   if (!hasText(input.fullBio)) missing.push('Full bio');
 
   const hasFeaturedVisualContent =
