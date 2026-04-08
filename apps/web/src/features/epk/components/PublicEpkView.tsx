@@ -1,9 +1,21 @@
 import Link from 'next/link';
+import { Globe2, PlayCircle, Radio } from 'lucide-react';
 import type { PublicEpkResponse } from '@stagelink/types';
 
 interface PublicEpkViewProps {
   epk: PublicEpkResponse;
   printMode?: boolean;
+}
+
+function getMediaIcon(provider: string) {
+  switch (provider) {
+    case 'soundcloud':
+      return Radio;
+    case 'youtube':
+      return PlayCircle;
+    default:
+      return Globe2;
+  }
 }
 
 export function PublicEpkView({ epk, printMode = false }: PublicEpkViewProps) {
@@ -44,12 +56,12 @@ export function PublicEpkView({ epk, printMode = false }: PublicEpkViewProps) {
                   </div>
                 </div>
                 {epk.headline ? (
-                  <p className="max-w-3xl text-xl leading-relaxed text-zinc-200 print:text-zinc-700">
+                  <p className="max-w-3xl text-xl leading-relaxed text-zinc-200 print:text-zinc-800">
                     {epk.headline}
                   </p>
                 ) : null}
                 {epk.shortBio ? (
-                  <p className="max-w-3xl text-base leading-relaxed text-zinc-300 print:text-zinc-700">
+                  <p className="max-w-3xl text-base leading-relaxed text-zinc-300 print:text-zinc-800">
                     {epk.shortBio}
                   </p>
                 ) : null}
@@ -102,7 +114,7 @@ export function PublicEpkView({ epk, printMode = false }: PublicEpkViewProps) {
                 <h2 className="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-400 print:text-zinc-500">
                   Bio
                 </h2>
-                <div className="max-w-4xl whitespace-pre-line text-base leading-8 text-zinc-200 print:text-zinc-800">
+                <div className="max-w-4xl whitespace-pre-line text-base leading-8 text-zinc-200 print:text-zinc-900">
                   {epk.fullBio}
                 </div>
               </section>
@@ -132,22 +144,32 @@ export function PublicEpkView({ epk, printMode = false }: PublicEpkViewProps) {
                   Featured media
                 </h2>
                 <div className="grid gap-3 md:grid-cols-2">
-                  {epk.featuredMedia.map((item) => (
-                    <a
-                      key={item.id}
-                      href={item.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 transition hover:border-white/30 print:border-zinc-200 print:bg-transparent"
-                    >
-                      <p className="text-sm font-semibold text-white print:text-zinc-900">
-                        {item.title}
-                      </p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-zinc-400 print:text-zinc-500">
-                        {item.provider}
-                      </p>
-                    </a>
-                  ))}
+                  {epk.featuredMedia.map((item) => {
+                    const MediaIcon = getMediaIcon(item.provider);
+                    return (
+                      <a
+                        key={item.id}
+                        href={item.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 transition hover:border-white/30 print:border-zinc-300 print:bg-zinc-50"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="rounded-full border border-white/10 bg-white/10 p-2 text-zinc-200 print:border-zinc-300 print:bg-white print:text-zinc-700">
+                            <MediaIcon className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-white print:text-zinc-900">
+                              {item.title}
+                            </p>
+                            <p className="mt-1 text-xs uppercase tracking-[0.18em] text-zinc-400 print:text-zinc-600">
+                              {item.provider}
+                            </p>
+                          </div>
+                        </div>
+                      </a>
+                    );
+                  })}
                 </div>
               </section>
             ) : null}
@@ -164,7 +186,7 @@ export function PublicEpkView({ epk, printMode = false }: PublicEpkViewProps) {
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm transition hover:border-white/30 print:border-zinc-300 print:bg-transparent"
+                      className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm transition hover:border-white/30 print:border-zinc-300 print:bg-transparent print:text-zinc-900"
                     >
                       {item.label}
                     </a>
@@ -199,7 +221,7 @@ export function PublicEpkView({ epk, printMode = false }: PublicEpkViewProps) {
                     <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400 print:text-zinc-500">
                       Availability
                     </h3>
-                    <p className="whitespace-pre-line text-sm leading-7 text-zinc-200 print:text-zinc-800">
+                    <p className="whitespace-pre-line text-sm leading-7 text-zinc-200 print:text-zinc-900">
                       {epk.availabilityNotes}
                     </p>
                   </div>
@@ -209,7 +231,7 @@ export function PublicEpkView({ epk, printMode = false }: PublicEpkViewProps) {
                     <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400 print:text-zinc-500">
                       Rider
                     </h3>
-                    <p className="whitespace-pre-line text-sm leading-7 text-zinc-200 print:text-zinc-800">
+                    <p className="whitespace-pre-line text-sm leading-7 text-zinc-200 print:text-zinc-900">
                       {epk.riderInfo}
                     </p>
                   </div>
@@ -219,7 +241,7 @@ export function PublicEpkView({ epk, printMode = false }: PublicEpkViewProps) {
                     <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400 print:text-zinc-500">
                       Tech
                     </h3>
-                    <p className="whitespace-pre-line text-sm leading-7 text-zinc-200 print:text-zinc-800">
+                    <p className="whitespace-pre-line text-sm leading-7 text-zinc-200 print:text-zinc-900">
                       {epk.techRequirements}
                     </p>
                   </div>
