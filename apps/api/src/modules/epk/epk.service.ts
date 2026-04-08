@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, type Artist } from '@prisma/client';
 import type {
   EpkEditorResponse,
@@ -11,6 +11,7 @@ import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { UpdateEpkDto } from './dto';
+import { buildPublishedEpkSnapshot, getEpkPublishValidation } from './epk.helpers';
 
 type EpkRecord = Prisma.EpkGetPayload<Record<string, never>>;
 
@@ -131,9 +132,53 @@ export class EpkService {
     if (!artist) throw new NotFoundException('Artist not found');
 
     const epk = await this.ensureEpkRecord(artistId);
+    const currentFeaturedMedia = epk.featuredMedia as unknown as EpkFeaturedMediaItem[];
+    const currentFeaturedLinks = epk.featuredLinks as unknown as EpkFeaturedLinkItem[];
+    const currentGalleryImageUrls = epk.galleryImageUrls as unknown as string[];
+    const readiness = getEpkPublishValidation(
+      {
+        headline: epk.headline,
+        shortBio: epk.shortBio,
+        fullBio: epk.fullBio,
+        bookingEmail: epk.bookingEmail,
+        managementContact: epk.managementContact,
+        pressContact: epk.pressContact,
+        heroImageUrl: epk.heroImageUrl,
+        galleryImageUrls: currentGalleryImageUrls,
+        featuredMedia: currentFeaturedMedia,
+        featuredLinks: currentFeaturedLinks,
+      },
+      artist,
+    );
+    if (!readiness.ready) {
+      throw new BadRequestException(
+        `Add the required EPK content before publishing: ${readiness.missing.join(', ')}.`,
+      );
+    }
+
+    const publishSnapshot = buildPublishedEpkSnapshot(
+      {
+        headline: epk.headline,
+        shortBio: epk.shortBio,
+        fullBio: epk.fullBio,
+        bookingEmail: epk.bookingEmail,
+        managementContact: epk.managementContact,
+        pressContact: epk.pressContact,
+        heroImageUrl: epk.heroImageUrl,
+        galleryImageUrls: currentGalleryImageUrls,
+        featuredMedia: currentFeaturedMedia,
+        featuredLinks: currentFeaturedLinks,
+      },
+      artist,
+    );
     const updated = await this.prisma.epk.update({
       where: { id: epk.id },
-      data: { isPublished: true },
+      data: {
+        isPublished: true,
+        shortBio: publishSnapshot.shortBio,
+        heroImageUrl: publishSnapshot.heroImageUrl,
+        featuredLinks: publishSnapshot.featuredLinks as unknown as Prisma.InputJsonValue,
+      },
     });
 
     this.auditService.log({

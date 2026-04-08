@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { getEpkPublishReadiness } from '@stagelink/types';
 import type {
   AssetDto,
   EpkEditorResponse,
@@ -28,11 +29,6 @@ interface EpkEditorProps {
   assets: AssetDto[];
 }
 
-interface PublishReadiness {
-  ready: boolean;
-  missing: string[];
-}
-
 function normalizeNullable(value: string | null | undefined): string {
   return value ?? '';
 }
@@ -42,29 +38,6 @@ function providerFromUrl(url: string): EpkFeaturedMediaItem['provider'] {
   if (url.includes('soundcloud')) return 'soundcloud';
   if (url.includes('youtube') || url.includes('youtu.be')) return 'youtube';
   return 'other';
-}
-
-function evaluatePublishReadiness(values: EpkFormValues): PublishReadiness {
-  const missing: string[] = [];
-
-  if (!values.headline?.trim()) missing.push('Headline');
-  if (!values.shortBio?.trim()) missing.push('Short bio');
-  if (!values.fullBio?.trim()) missing.push('Full bio');
-
-  const hasFeaturedVisualContent =
-    values.featuredMedia.some((item) => item.title.trim() && item.url.trim()) ||
-    values.galleryImageUrls.length > 0;
-  if (!hasFeaturedVisualContent) missing.push('Featured media or gallery image');
-
-  const hasPublicContact = Boolean(
-    values.bookingEmail?.trim() || values.managementContact?.trim() || values.pressContact?.trim(),
-  );
-  if (!hasPublicContact) missing.push('At least one public contact');
-
-  return {
-    ready: missing.length === 0,
-    missing,
-  };
 }
 
 export function EpkEditor({
@@ -121,7 +94,10 @@ export function EpkEditor({
   const watchedHighlights = watch('highlights');
   const watchedFormValues = watch();
   const inherited = editorData.inherited;
-  const publishReadiness = evaluatePublishReadiness(watchedFormValues);
+  const publishReadiness = getEpkPublishReadiness({
+    ...watchedFormValues,
+    inheritedShortBio: inherited.bio,
+  });
 
   const availableImageAssets = useMemo(
     () =>
@@ -184,7 +160,10 @@ export function EpkEditor({
 
   async function togglePublish(nextPublished: boolean) {
     if (nextPublished) {
-      const readiness = evaluatePublishReadiness(getValues());
+      const readiness = getEpkPublishReadiness({
+        ...getValues(),
+        inheritedShortBio: inherited.bio,
+      });
       if (!readiness.ready) {
         setSaveError(
           `Add the required EPK content before publishing: ${readiness.missing.join(', ')}.`,

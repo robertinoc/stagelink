@@ -11,6 +11,49 @@ export interface EpkFeaturedLinkItem {
   url: string;
 }
 
+export interface EpkPublishReadinessInput {
+  headline?: string | null;
+  shortBio?: string | null;
+  inheritedShortBio?: string | null;
+  fullBio?: string | null;
+  featuredMedia?: Pick<EpkFeaturedMediaItem, 'title' | 'url'>[];
+  galleryImageUrls?: string[];
+  bookingEmail?: string | null;
+  managementContact?: string | null;
+  pressContact?: string | null;
+}
+
+export interface EpkPublishReadiness {
+  ready: boolean;
+  missing: string[];
+}
+
+function hasText(value: string | null | undefined): boolean {
+  return Boolean(value?.trim());
+}
+
+export function getEpkPublishReadiness(input: EpkPublishReadinessInput): EpkPublishReadiness {
+  const missing: string[] = [];
+
+  if (!hasText(input.headline)) missing.push('Headline');
+  if (!hasText(input.shortBio) && !hasText(input.inheritedShortBio)) missing.push('Short bio');
+  if (!hasText(input.fullBio)) missing.push('Full bio');
+
+  const hasFeaturedVisualContent =
+    (input.featuredMedia ?? []).some((item) => hasText(item.title) && hasText(item.url)) ||
+    (input.galleryImageUrls ?? []).length > 0;
+  if (!hasFeaturedVisualContent) missing.push('Featured media or gallery image');
+
+  const hasPublicContact =
+    hasText(input.bookingEmail) || hasText(input.managementContact) || hasText(input.pressContact);
+  if (!hasPublicContact) missing.push('At least one public contact');
+
+  return {
+    ready: missing.length === 0,
+    missing,
+  };
+}
+
 export interface Epk {
   id: string;
   artistId: string;

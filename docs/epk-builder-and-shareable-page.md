@@ -103,6 +103,17 @@ La página pública del EPK usa:
 - `featuredLinks` del EPK si existen
 - si están vacíos, cae a website/socials del artista
 
+### Consolidación al publicar
+
+Al publicar, el backend valida que el EPK tenga el mínimo necesario para un documento
+shareable y además consolida algunos fallbacks dentro del propio registro del EPK:
+
+- `shortBio` se completa desde `artist.bio` si seguía vacío
+- `heroImageUrl` se completa desde `coverUrl` o `avatarUrl` si seguía vacío
+- `featuredLinks` se completa desde website/socials si seguía vacío
+
+Esto reduce la deriva entre “draft apoyado en defaults del profile” y “EPK ya publicado”.
+
 ### Contactos públicos
 
 Los contactos **no** se heredan implícitamente en la capa pública.
@@ -208,9 +219,10 @@ El flujo es simple:
 1. el EPK puede existir en draft
 2. el usuario guarda cambios
 3. el usuario publica
-4. la ruta pública empieza a resolver
-5. el usuario puede despublicar
-6. la ruta pública vuelve a 404
+4. el backend valida mínimos de publicación y consolida fallbacks esenciales
+5. la ruta pública empieza a resolver
+6. el usuario puede despublicar
+7. la ruta pública vuelve a 404
 
 La publicación del EPK es independiente de la página pública principal.
 
@@ -253,6 +265,7 @@ Esta fase **no** implementa todavía:
 - [ ] `Pro` puede entrar a `/dashboard/epk`
 - [ ] el editor prellena correctamente el snapshot heredado
 - [ ] guardar cambios persiste headline/bios/contacts/media/highlights
+- [ ] publicar desde un EPK incompleto devuelve error claro
 - [ ] publicar cambia el badge a `Published`
 - [ ] despublicar vuelve a `Draft`
 - [ ] links “Open public EPK” y “Open print view” funcionan
