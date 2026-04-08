@@ -4,26 +4,7 @@ import { PrismaService } from '../../lib/prisma.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
 import type { PublicEpkResponseDto } from './dto/public-epk-response.dto';
-
-function buildFallbackFeaturedLinks(artist: {
-  instagramUrl: string | null;
-  tiktokUrl: string | null;
-  youtubeUrl: string | null;
-  spotifyUrl: string | null;
-  soundcloudUrl: string | null;
-  websiteUrl: string | null;
-}): EpkFeaturedLinkItem[] {
-  const entries = [
-    artist.websiteUrl && { id: 'website', label: 'Website', url: artist.websiteUrl },
-    artist.instagramUrl && { id: 'instagram', label: 'Instagram', url: artist.instagramUrl },
-    artist.tiktokUrl && { id: 'tiktok', label: 'TikTok', url: artist.tiktokUrl },
-    artist.youtubeUrl && { id: 'youtube', label: 'YouTube', url: artist.youtubeUrl },
-    artist.spotifyUrl && { id: 'spotify', label: 'Spotify', url: artist.spotifyUrl },
-    artist.soundcloudUrl && { id: 'soundcloud', label: 'SoundCloud', url: artist.soundcloudUrl },
-  ];
-
-  return entries.filter((item): item is EpkFeaturedLinkItem => Boolean(item));
-}
+import { buildFallbackFeaturedLinks } from '../epk/epk.helpers';
 
 @Injectable()
 export class PublicEpkService {
