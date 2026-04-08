@@ -55,11 +55,22 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Rule 1: block direct access to internal rewrite target.
-  if (segments[0] === 'p' && segments.length === 2) {
+  // Rule 1: block direct access to the internal rewrite target for artist pages,
+  // but allow explicit public subroutes like /p/{username}/epk and /print.
+  if (
+    segments[0] === 'p' &&
+    segments.length === 2 &&
+    segments[1] !== 'epk' &&
+    segments[1] !== 'print'
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = `/${segments[1]!}`;
     return NextResponse.redirect(url, 301);
+  }
+
+  // Public EPK routes live outside locale prefixes, just like the artist public page.
+  if (segments[0] === 'p' && segments.length >= 3 && segments[2] === 'epk') {
+    return NextResponse.next();
   }
 
   // Rule 2: artist username — rewrite /{username} → /p/{username}.

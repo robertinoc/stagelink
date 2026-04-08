@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { FeatureLockCta } from '@/components/billing/FeatureLockCta';
 import { Badge } from '@/components/ui/badge';
@@ -98,14 +97,7 @@ export default async function DashboardEpkPage({
           <Badge variant="secondary">
             {billingSummary.effectivePlan === 'pro_plus' ? 'Pro+' : 'Pro'}
           </Badge>
-          <Link
-            href={`/p/${artist.username}/epk`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-          >
-            Open public EPK
-          </Link>
+          <Badge variant="outline">Public routes available after publish</Badge>
         </div>
       </div>
 
@@ -127,7 +119,6 @@ export default async function DashboardEpkPage({
       <EpkEditor
         artistId={artistId}
         username={artist.username}
-        locale={locale}
         initialData={epkData}
         smartLinks={smartLinks}
         assets={assets}

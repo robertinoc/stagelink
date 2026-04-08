@@ -28,7 +28,7 @@ export const epkFormSchema = z.object({
   galleryImageUrls: z.array(z.string().trim().url().max(2048)).max(6),
   featuredMedia: z.array(epkFeaturedMediaSchema).max(6),
   featuredLinks: z.array(epkFeaturedLinkSchema).max(8),
-  highlights: z.array(z.string().trim().min(1).max(160)).max(8),
+  highlights: z.array(z.string().trim().max(160)).max(8),
   riderInfo: z.string().trim().max(2000).optional().nullable(),
   techRequirements: z.string().trim().max(2000).optional().nullable(),
   location: z.string().trim().max(120).optional().nullable(),
