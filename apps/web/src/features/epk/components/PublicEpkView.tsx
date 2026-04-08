@@ -188,7 +188,9 @@ export function PublicEpkView({ epk, printMode = false }: PublicEpkViewProps) {
                           <div className="min-w-0">
                             <p className={`text-sm font-semibold ${bodyTextClass}`}>{item.title}</p>
                             <p
-                              className={`mt-1 text-xs uppercase tracking-[0.18em] ${printMode ? 'text-zinc-600' : 'text-zinc-400'}`}
+                              className={`mt-1 text-xs uppercase tracking-[0.18em] ${
+                                printMode ? 'text-zinc-600' : 'text-zinc-400'
+                              }`}
                             >
                               {item.provider}
                             </p>
@@ -215,7 +217,11 @@ export function PublicEpkView({ epk, printMode = false }: PublicEpkViewProps) {
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-                      className={`rounded-full border px-4 py-2 text-sm transition ${printMode ? 'border-zinc-300 bg-white text-zinc-900' : 'border-white/10 bg-white/5'} hover:border-white/30`}
+                      className={`rounded-full border px-4 py-2 text-sm transition ${
+                        printMode
+                          ? 'border-zinc-300 bg-white text-zinc-900'
+                          : 'border-white/10 bg-white/5'
+                      } hover:border-white/30`}
                     >
                       {item.label}
                     </a>
