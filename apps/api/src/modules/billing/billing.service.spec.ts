@@ -6,6 +6,9 @@ describe('BillingService', () => {
   interface PrismaMock {
     $transaction: jest.Mock<Promise<unknown>, [(tx: PrismaMock) => Promise<unknown>]>;
     subscription: {
+      findUnique: jest.Mock;
+      update: jest.Mock;
+      create: jest.Mock;
       upsert: jest.Mock;
     };
     stripeWebhookEvent: {
@@ -20,6 +23,9 @@ describe('BillingService', () => {
       callback(prisma),
     );
     prisma.subscription = {
+      findUnique: jest.fn().mockResolvedValue(null),
+      update: jest.fn(),
+      create: jest.fn(),
       upsert: jest.fn(),
     };
     prisma.stripeWebhookEvent = {
@@ -89,6 +95,7 @@ describe('BillingService', () => {
 
     (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
       id: 'evt_123',
+      created: 1775683200,
       type: 'customer.subscription.updated',
       data: {
         object: {
@@ -122,6 +129,7 @@ describe('BillingService', () => {
         stripeEventId: 'evt_123',
         stripeEventType: 'customer.subscription.updated',
         artistId: 'artist_123',
+        stripeEventAt: new Date('2026-04-08T21:20:00.000Z'),
       },
     });
 
@@ -135,6 +143,7 @@ describe('BillingService', () => {
         stripePriceId: 'price_pro_plus_456',
         cancelAtPeriodEnd: true,
         currentPeriodEnd: new Date('2024-04-01T00:00:00.000Z'),
+        lastStripeEventAt: new Date('2026-04-08T21:20:00.000Z'),
       },
       create: {
         artistId: 'artist_123',
@@ -145,6 +154,7 @@ describe('BillingService', () => {
         stripePriceId: 'price_pro_plus_456',
         cancelAtPeriodEnd: true,
         currentPeriodEnd: new Date('2024-04-01T00:00:00.000Z'),
+        lastStripeEventAt: new Date('2026-04-08T21:20:00.000Z'),
       },
     });
   });
@@ -154,6 +164,7 @@ describe('BillingService', () => {
 
     (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
       id: 'evt_invoice_paid',
+      created: 1775683200,
       type: 'invoice.payment_succeeded',
       data: {
         object: {
@@ -199,6 +210,7 @@ describe('BillingService', () => {
         stripePriceId: 'price_pro_123',
         cancelAtPeriodEnd: false,
         currentPeriodEnd: new Date('2024-04-01T00:00:00.000Z'),
+        lastStripeEventAt: new Date('2026-04-08T21:20:00.000Z'),
       },
       create: {
         artistId: 'artist_123',
@@ -209,6 +221,7 @@ describe('BillingService', () => {
         stripePriceId: 'price_pro_123',
         cancelAtPeriodEnd: false,
         currentPeriodEnd: new Date('2024-04-01T00:00:00.000Z'),
+        lastStripeEventAt: new Date('2026-04-08T21:20:00.000Z'),
       },
     });
   });
@@ -352,6 +365,47 @@ describe('BillingService', () => {
 
     (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
       id: 'evt_dup',
+      type: 'customer.subscription.updated',
+      data: {
+        object: {
+          object: 'subscription',
+          id: 'sub_123',
+          status: 'active',
+          cancel_at_period_end: false,
+          customer: 'cus_123',
+          metadata: { artistId: 'artist_123', plan: PlanTier.pro },
+          items: {
+            data: [
+              {
+                current_period_end: 1711929600,
+                price: {
+                  id: 'price_pro_123',
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    await service.handleWebhook({
+      headers: { 'stripe-signature': 'sig_123' },
+      rawBody: Buffer.from('{}'),
+    } as never);
+
+    expect(prisma.subscription.upsert).not.toHaveBeenCalled();
+  });
+
+  it('skips stale webhook events that arrive out of order', async () => {
+    const { service, prisma, stripe } = createService();
+
+    prisma.subscription.findUnique.mockResolvedValue({
+      lastStripeEventAt: new Date('2026-04-09T12:00:00.000Z'),
+    });
+
+    (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
+      id: 'evt_old',
+      created: 1775600000,
       type: 'customer.subscription.updated',
       data: {
         object: {

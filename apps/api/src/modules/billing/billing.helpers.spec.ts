@@ -41,9 +41,9 @@ describe('billing.helpers', () => {
       expect(mapStripeSubscriptionStatus('trialing')).toBe(SubscriptionStatus.trialing);
     });
 
-    it('maps delinquent statuses to past_due', () => {
+    it('maps delinquent statuses distinctly', () => {
       expect(mapStripeSubscriptionStatus('past_due')).toBe(SubscriptionStatus.past_due);
-      expect(mapStripeSubscriptionStatus('unpaid')).toBe(SubscriptionStatus.past_due);
+      expect(mapStripeSubscriptionStatus('unpaid')).toBe(SubscriptionStatus.unpaid);
     });
 
     it('maps paused subscriptions to inactive', () => {
@@ -53,7 +53,9 @@ describe('billing.helpers', () => {
     it('maps canceled/incomplete statuses safely', () => {
       expect(mapStripeSubscriptionStatus('canceled')).toBe(SubscriptionStatus.canceled);
       expect(mapStripeSubscriptionStatus('incomplete')).toBe(SubscriptionStatus.incomplete);
-      expect(mapStripeSubscriptionStatus('incomplete_expired')).toBe(SubscriptionStatus.incomplete);
+      expect(mapStripeSubscriptionStatus('incomplete_expired')).toBe(
+        SubscriptionStatus.incomplete_expired,
+      );
     });
   });
 

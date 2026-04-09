@@ -46,9 +46,10 @@ const STATE_BADGE_VARIANTS: Record<
   free: 'secondary',
   active: 'default',
   trialing: 'default',
+  payment_issue: 'destructive',
   canceling: 'outline',
   canceled: 'outline',
-  past_due: 'destructive',
+  pending_checkout: 'outline',
   syncing: 'outline',
 };
 
@@ -75,6 +76,31 @@ function resolveStateLabel(state: BillingUiState, t: Awaited<ReturnType<typeof g
   return t(`dashboard.billing.states.${state}`);
 }
 
+function resolveBillingMessage(
+  code: BillingSummaryResponse['billingMessages'][number]['code'],
+  t: Awaited<ReturnType<typeof getTranslations>>,
+  renewalDisplay: string,
+) {
+  switch (code) {
+    case 'CHECKOUT_PENDING_CONFIRMATION':
+      return t('dashboard.billing.messages.checkout_syncing');
+    case 'CANCELS_AT_PERIOD_END':
+      return t('dashboard.billing.messages.cancels_at_period_end', { date: renewalDisplay });
+    case 'ACCESS_UNTIL_PERIOD_END':
+      return t('dashboard.billing.messages.access_until_period_end', { date: renewalDisplay });
+    case 'PAYMENT_ISSUE_ACCESS_RETAINED':
+      return t('dashboard.billing.messages.payment_issue_access_retained', {
+        date: renewalDisplay,
+      });
+    case 'PAYMENT_ISSUE_ACCESS_REVOKED':
+      return t('dashboard.billing.messages.payment_issue_access_revoked');
+    case 'SUBSCRIPTION_CANCELED':
+      return t('dashboard.billing.messages.subscription_canceled');
+    default:
+      return t('dashboard.billing.messages.no_active_subscription');
+  }
+}
+
 function resolveReturnBanner(
   summary: BillingSummaryResponse,
   query: BillingPageQueryParams,
@@ -96,18 +122,10 @@ function resolveReturnBanner(
   }
 
   if (query.checkout === 'success') {
-    if (summary.notes.isWebhookSyncPending) {
-      return {
-        tone: 'warning' as const,
-        title: t('dashboard.billing.feedback.sync_title'),
-        description: t('dashboard.billing.messages.checkout_syncing'),
-      };
-    }
-
     return {
-      tone: 'success' as const,
-      title: t('dashboard.billing.feedback.success_title'),
-      description: t('dashboard.billing.messages.checkout_confirmed'),
+      tone: 'warning' as const,
+      title: t('dashboard.billing.feedback.sync_title'),
+      description: t('dashboard.billing.messages.checkout_syncing'),
     };
   }
 
@@ -294,6 +312,25 @@ export default async function DashboardBillingPage({
 
       {banner ? (
         <FeedbackBanner tone={banner.tone} title={banner.title} description={banner.description} />
+      ) : null}
+
+      {summary.billingMessages.length > 0 ? (
+        <div className="space-y-3">
+          {summary.billingMessages.map((message, index) => (
+            <FeedbackBanner
+              key={`${message.code}-${index}`}
+              tone={
+                message.type === 'error'
+                  ? 'destructive'
+                  : message.type === 'warning'
+                    ? 'warning'
+                    : 'info'
+              }
+              title={billingT('feedback.info_title')}
+              description={resolveBillingMessage(message.code, t, renewalDisplay)}
+            />
+          ))}
+        </div>
       ) : null}
 
       <Card>

@@ -126,7 +126,8 @@ docs/
 ├── analytics-pro-and-fan-insights.md # Analytics Pro, fan insights agregados, gates y limitaciones T6-4
 ├── epk-builder-and-shareable-page.md # Modelo EPK, herencia, publicación, share route y export print-friendly T6-3
 ├── stripe-billing-foundation.md   # Checkout, portal, webhooks, billing por artist (T5-1)
-├── billing-state-policy.md        # Política explícita de past_due, cancel_at_period_end, syncing y recovery
+├── billing-state-policy.md        # Política base de billing states y recovery
+├── billing-state-edge-cases.md    # Effective billing state, effective plan, webhook ordering y fallbacks T6-6
 ├── plan-feature-gating.md         # effectivePlan, entitlements y patrón de gating por plan (T5-2)
 └── billing-ui-and-upgrade-flows.md # Billing dashboard, upgrade flows y retornos desde Stripe (T5-3)
 ```

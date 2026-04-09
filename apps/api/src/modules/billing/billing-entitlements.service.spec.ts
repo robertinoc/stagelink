@@ -87,6 +87,46 @@ describe('BillingEntitlementsService', () => {
     });
   });
 
+  it('keeps paid access during past_due while the paid period is still clearly active', async () => {
+    const { service, prisma } = createService();
+    prisma.subscription.findUnique.mockResolvedValue({
+      plan: 'pro_plus',
+      status: SubscriptionStatus.past_due,
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: new Date('2099-05-01T00:00:00.000Z'),
+    });
+
+    await expect(service.getArtistEntitlements('artist_past_due_grace')).resolves.toMatchObject({
+      effectivePlan: 'pro_plus',
+      billingPlan: 'pro_plus',
+      subscriptionStatus: 'past_due',
+      features: {
+        analytics_pro: true,
+        shopify_integration: true,
+      },
+    });
+  });
+
+  it('keeps unpaid subscriptions conservative without premium access', async () => {
+    const { service, prisma } = createService();
+    prisma.subscription.findUnique.mockResolvedValue({
+      plan: 'pro',
+      status: SubscriptionStatus.unpaid,
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: new Date('2099-05-01T00:00:00.000Z'),
+    });
+
+    await expect(service.getArtistEntitlements('artist_unpaid')).resolves.toMatchObject({
+      effectivePlan: 'free',
+      billingPlan: 'pro',
+      subscriptionStatus: 'unpaid',
+      features: {
+        custom_domain: false,
+        epk_builder: false,
+      },
+    });
+  });
+
   it('throws a semantic feature lock error when access is not included', async () => {
     const { service, prisma } = createService();
     prisma.subscription.findUnique.mockResolvedValue(null);

@@ -15,9 +15,11 @@ import {
   type User,
 } from '@prisma/client';
 import {
+  buildBillingMessages,
   buildTenantEntitlements,
   FEATURE_KEYS,
   getMinimumPlanForFeature,
+  isBillingSyncPending,
   PLAN_FEATURE_MATRIX,
   resolveBillingUiState,
   type BillingFeatureSummary,
@@ -84,6 +86,7 @@ export class BillingService {
 
   async getBillingSummary(artistId: string) {
     const subscription = await this.ensureSubscriptionRecord(artistId);
+    const now = new Date();
 
     const products = await this.getProductsCatalog();
 
@@ -94,7 +97,9 @@ export class BillingService {
       currentPeriodEnd: subscription.currentPeriodEnd,
     };
     const entitlements = buildTenantEntitlements(snapshot);
-    const billingState = resolveBillingUiState(snapshot);
+    const billingState = resolveBillingUiState(snapshot, now);
+    const billingSyncPending = isBillingSyncPending(snapshot);
+    const billingMessages = buildBillingMessages(snapshot, now);
     const availablePlans = this.buildPlanSummaries(
       products,
       subscription,
@@ -113,7 +118,10 @@ export class BillingService {
       subscriptionStatus: entitlements.subscriptionStatus,
       currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+      effectiveBillingState: billingState,
       billingState,
+      billingSyncPending,
+      billingMessages,
       availablePlans,
       entitlements: entitlements.features,
       featureHighlights,
@@ -132,7 +140,7 @@ export class BillingService {
             : null,
       },
       notes: {
-        isWebhookSyncPending: billingState === 'syncing',
+        isWebhookSyncPending: billingSyncPending,
       },
       portalAvailable: Boolean(subscription.stripeCustomerId),
     });
@@ -282,6 +290,7 @@ export class BillingService {
         await this.handleCheckoutCompleted(
           event.id,
           event.type,
+          new Date(event.created * 1000),
           event.data.object as Stripe.Checkout.Session,
         );
         break;
@@ -290,6 +299,7 @@ export class BillingService {
         await this.handleInvoiceBackedEvent(
           event.id,
           event.type,
+          new Date(event.created * 1000),
           event.data.object as Stripe.Invoice,
         );
         break;
@@ -299,6 +309,7 @@ export class BillingService {
         await this.handleSubscriptionBackedEvent(
           event.id,
           event.type,
+          new Date(event.created * 1000),
           event.data.object as Stripe.Subscription,
         );
         break;
@@ -525,6 +536,7 @@ export class BillingService {
   private async handleCheckoutCompleted(
     stripeEventId: string,
     stripeEventType: string,
+    stripeEventAt: Date,
     session: Stripe.Checkout.Session,
   ) {
     const artistId = session.metadata?.artistId ?? session.client_reference_id;
@@ -539,41 +551,65 @@ export class BillingService {
       return;
     }
 
-    await this.runWebhookMutation(stripeEventId, stripeEventType, artistId, async (tx) => {
-      await tx.subscription.upsert({
-        where: { artistId },
-        update: {
-          plan,
-          status: SubscriptionStatus.inactive,
-          ...(typeof session.customer === 'string' ? { stripeCustomerId: session.customer } : {}),
-          ...(typeof session.subscription === 'string'
-            ? { stripeSubscriptionId: session.subscription }
-            : {}),
-        },
-        create: {
-          artistId,
-          plan,
-          status: SubscriptionStatus.inactive,
-          ...(typeof session.customer === 'string' ? { stripeCustomerId: session.customer } : {}),
-          ...(typeof session.subscription === 'string'
-            ? { stripeSubscriptionId: session.subscription }
-            : {}),
-        },
-      });
-    });
+    await this.runWebhookMutation(
+      stripeEventId,
+      stripeEventType,
+      stripeEventAt,
+      artistId,
+      async (tx) => {
+        const existing = await tx.subscription.findUnique({ where: { artistId } });
+        const preserveExistingAccess =
+          existing &&
+          (existing.status === SubscriptionStatus.active ||
+            existing.status === SubscriptionStatus.trialing);
+
+        if (existing) {
+          await tx.subscription.update({
+            where: { artistId },
+            data: {
+              plan: preserveExistingAccess ? existing.plan : plan,
+              status: preserveExistingAccess ? existing.status : SubscriptionStatus.incomplete,
+              ...(typeof session.customer === 'string'
+                ? { stripeCustomerId: session.customer }
+                : {}),
+              ...(typeof session.subscription === 'string'
+                ? { stripeSubscriptionId: session.subscription }
+                : {}),
+              lastStripeEventAt: stripeEventAt,
+            },
+          });
+          return;
+        }
+
+        await tx.subscription.create({
+          data: {
+            artistId,
+            plan,
+            status: SubscriptionStatus.incomplete,
+            ...(typeof session.customer === 'string' ? { stripeCustomerId: session.customer } : {}),
+            ...(typeof session.subscription === 'string'
+              ? { stripeSubscriptionId: session.subscription }
+              : {}),
+            lastStripeEventAt: stripeEventAt,
+          },
+        });
+      },
+    );
   }
 
   private async handleSubscriptionBackedEvent(
     stripeEventId: string,
     stripeEventType: string,
+    stripeEventAt: Date,
     subscription: Stripe.Subscription,
   ) {
-    await this.syncStripeSubscription(stripeEventId, stripeEventType, subscription);
+    await this.syncStripeSubscription(stripeEventId, stripeEventType, stripeEventAt, subscription);
   }
 
   private async handleInvoiceBackedEvent(
     stripeEventId: string,
     stripeEventType: string,
+    stripeEventAt: Date,
     invoice: Stripe.Invoice,
   ) {
     const invoiceWithSubscription = invoice as Stripe.Invoice & {
@@ -591,12 +627,13 @@ export class BillingService {
 
     const stripe = this.getStripeClientOrThrow();
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    await this.syncStripeSubscription(stripeEventId, stripeEventType, subscription);
+    await this.syncStripeSubscription(stripeEventId, stripeEventType, stripeEventAt, subscription);
   }
 
   private async syncStripeSubscription(
     stripeEventId: string,
     stripeEventType: string,
+    stripeEventAt: Date,
     subscription: Stripe.Subscription,
   ) {
     const item = subscription.items.data[0];
@@ -613,14 +650,25 @@ export class BillingService {
       return;
     }
 
-    await this.runWebhookMutation(stripeEventId, stripeEventType, artistId, async (tx) => {
-      const write = this.buildStripeSubscriptionWrite(artistId, plan, subscription);
-      await tx.subscription.upsert({
-        where: { artistId },
-        update: write.update,
-        create: write.create,
-      });
-    });
+    await this.runWebhookMutation(
+      stripeEventId,
+      stripeEventType,
+      stripeEventAt,
+      artistId,
+      async (tx) => {
+        const write = this.buildStripeSubscriptionWrite(
+          artistId,
+          plan,
+          subscription,
+          stripeEventAt,
+        );
+        await tx.subscription.upsert({
+          where: { artistId },
+          update: write.update,
+          create: write.create,
+        });
+      },
+    );
   }
 
   private async reconcileSubscriptionFromStripe(
@@ -644,7 +692,18 @@ export class BillingService {
     }
 
     if (!stripeSubscription) {
-      throw new BadRequestException('No Stripe subscription exists for this artist yet');
+      return this.prisma.subscription.update({
+        where: { artistId },
+        data: {
+          plan: PlanTier.free,
+          status: SubscriptionStatus.inactive,
+          stripeSubscriptionId: null,
+          stripePriceId: null,
+          cancelAtPeriodEnd: false,
+          currentPeriodEnd: null,
+          lastStripeEventAt: new Date(),
+        },
+      });
     }
 
     const plan = this.resolvePlan(
@@ -676,6 +735,7 @@ export class BillingService {
     artistId: string,
     plan: PlanTier,
     subscription: Stripe.Subscription,
+    stripeEventAt: Date = new Date(),
   ) {
     const item = subscription.items.data[0];
 
@@ -691,6 +751,7 @@ export class BillingService {
         stripePriceId: item?.price?.id ?? null,
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         currentPeriodEnd: normalizeStripeTimestamp(item?.current_period_end ?? null),
+        lastStripeEventAt: stripeEventAt,
       },
       create: {
         artistId,
@@ -704,6 +765,7 @@ export class BillingService {
         stripePriceId: item?.price?.id ?? null,
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         currentPeriodEnd: normalizeStripeTimestamp(item?.current_period_end ?? null),
+        lastStripeEventAt: stripeEventAt,
       },
     };
   }
@@ -742,6 +804,7 @@ export class BillingService {
   private async runWebhookMutation(
     stripeEventId: string,
     stripeEventType: string,
+    stripeEventAt: Date,
     artistId: string | null,
     mutate: (
       tx: Prisma.TransactionClient & {
@@ -752,6 +815,7 @@ export class BillingService {
               stripeEventId: string;
               stripeEventType: string;
               artistId: string | null;
+              stripeEventAt: Date;
             };
           }) => Promise<unknown>;
         };
@@ -768,6 +832,7 @@ export class BillingService {
                 stripeEventId: string;
                 stripeEventType: string;
                 artistId: string | null;
+                stripeEventAt: Date;
               };
             }) => Promise<unknown>;
           };
@@ -778,8 +843,24 @@ export class BillingService {
             stripeEventId,
             stripeEventType,
             artistId,
+            stripeEventAt,
           },
         });
+
+        if (artistId) {
+          const existing = await typedTx.subscription.findUnique({
+            where: { artistId },
+            select: { lastStripeEventAt: true },
+          });
+
+          if (
+            existing?.lastStripeEventAt &&
+            stripeEventAt.getTime() < existing.lastStripeEventAt.getTime()
+          ) {
+            this.logger.log(`Skipping stale Stripe webhook event ${stripeEventId} for ${artistId}`);
+            return;
+          }
+        }
 
         await mutate(typedTx);
       });
