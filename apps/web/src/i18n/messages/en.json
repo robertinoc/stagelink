@@ -223,6 +223,7 @@
       "current_plan_description": "Subscription status for {artist}.",
       "badges": {
         "current": "Current",
+        "billing": "Billing",
         "recommended": "Recommended",
         "included": "Included"
       },
@@ -231,6 +232,8 @@
         "effective_access": "Effective access",
         "status": "Status",
         "renewal": "Renewal date",
+        "access_until": "Access until",
+        "ended_on": "Ended on",
         "cancellation": "Cancellation",
         "active": "Active",
         "canceling": "Cancels at period end",
@@ -304,6 +307,8 @@
       },
       "plan_card": {
         "current_description": "This is the plan currently attached to your subscription.",
+        "billing_description": "This is the plan still attached to billing while effective product access is resolved separately.",
+        "effective_description": "This is the plan currently granting access inside the product.",
         "available_description": "A simple upgrade path you can start directly from the dashboard."
       },
       "feature_state": {

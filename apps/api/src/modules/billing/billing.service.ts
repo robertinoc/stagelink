@@ -685,10 +685,10 @@ export class BillingService {
       const subscriptions = await stripe.subscriptions.list({
         customer: subscription.stripeCustomerId,
         status: 'all',
-        limit: 1,
+        limit: 10,
       });
 
-      stripeSubscription = subscriptions.data[0] ?? null;
+      stripeSubscription = this.selectMostRelevantStripeSubscription(subscriptions.data);
     }
 
     if (!stripeSubscription) {
@@ -771,6 +771,38 @@ export class BillingService {
         lastStripeEventAt: stripeEventAt,
       },
     };
+  }
+
+  private selectMostRelevantStripeSubscription(
+    subscriptions: Stripe.Subscription[],
+  ): Stripe.Subscription | null {
+    if (subscriptions.length === 0) {
+      return null;
+    }
+
+    const statusPriority: Record<Stripe.Subscription.Status, number> = {
+      active: 0,
+      trialing: 1,
+      past_due: 2,
+      unpaid: 3,
+      incomplete: 4,
+      paused: 5,
+      canceled: 6,
+      incomplete_expired: 7,
+    };
+
+    return (
+      [...subscriptions].sort((left, right) => {
+        const priorityDelta = statusPriority[left.status] - statusPriority[right.status];
+        if (priorityDelta !== 0) {
+          return priorityDelta;
+        }
+
+        const leftTimestamp = left.created ?? 0;
+        const rightTimestamp = right.created ?? 0;
+        return rightTimestamp - leftTimestamp;
+      })[0] ?? null
+    );
   }
 
   private resolvePlan(
