@@ -101,11 +101,47 @@ function resolveBillingMessage(
   }
 }
 
+function getPrimaryBillingMessage(
+  summary: BillingSummaryResponse,
+  query: BillingPageQueryParams,
+): BillingSummaryResponse['billingMessages'][number] | null {
+  if (
+    summary.notes.isWebhookSyncPending ||
+    query.checkout === 'success' ||
+    query.checkout === 'canceled' ||
+    query.error
+  ) {
+    return null;
+  }
+
+  if (query.portal !== 'returned' && query.refresh !== 'done') {
+    return null;
+  }
+
+  const priority: BillingMessageCode[] = [
+    'PAYMENT_ISSUE_ACCESS_REVOKED',
+    'PAYMENT_ISSUE_ACCESS_RETAINED',
+    'ACCESS_UNTIL_PERIOD_END',
+    'SUBSCRIPTION_CANCELED',
+    'CANCELS_AT_PERIOD_END',
+  ];
+
+  for (const code of priority) {
+    const match = summary.billingMessages.find((message) => message.code === code);
+    if (match) {
+      return match;
+    }
+  }
+
+  return null;
+}
+
 function getSecondaryBillingMessages(
   summary: BillingSummaryResponse,
   query: BillingPageQueryParams,
 ) {
   const suppressedCodes = new Set<BillingMessageCode>();
+  const primaryMessage = getPrimaryBillingMessage(summary, query);
 
   if (
     query.checkout === 'success' ||
@@ -119,6 +155,14 @@ function getSecondaryBillingMessages(
   if (query.checkout === 'canceled') {
     suppressedCodes.add('NO_ACTIVE_SUBSCRIPTION');
     suppressedCodes.add('CHECKOUT_PENDING_CONFIRMATION');
+  }
+
+  if (query.refresh === 'done' || query.portal === 'returned') {
+    suppressedCodes.add('NO_ACTIVE_SUBSCRIPTION');
+  }
+
+  if (primaryMessage) {
+    suppressedCodes.add(primaryMessage.code);
   }
 
   return summary.billingMessages.filter((message) => !suppressedCodes.has(message.code));
@@ -160,26 +204,56 @@ function resolveReturnBanner(
   }
 
   if (query.portal === 'returned') {
+    const primaryMessage = getPrimaryBillingMessage(summary, query);
     return {
-      tone: summary.notes.isWebhookSyncPending ? ('warning' as const) : ('info' as const),
+      tone: summary.notes.isWebhookSyncPending
+        ? ('warning' as const)
+        : primaryMessage?.type === 'error'
+          ? ('destructive' as const)
+          : primaryMessage?.type === 'warning'
+            ? ('warning' as const)
+            : ('info' as const),
       title: summary.notes.isWebhookSyncPending
         ? t('dashboard.billing.feedback.sync_title')
         : t('dashboard.billing.feedback.info_title'),
       description: summary.notes.isWebhookSyncPending
         ? t('dashboard.billing.messages.portal_syncing')
-        : t('dashboard.billing.messages.portal_returned'),
+        : primaryMessage
+          ? resolveBillingMessage(
+              primaryMessage.code,
+              t,
+              summary.currentPeriodEnd
+                ? new Date(summary.currentPeriodEnd).toLocaleDateString()
+                : t('dashboard.billing.fields.not_available'),
+            )
+          : t('dashboard.billing.messages.portal_returned'),
     };
   }
 
   if (query.refresh === 'done') {
+    const primaryMessage = getPrimaryBillingMessage(summary, query);
     return {
-      tone: summary.notes.isWebhookSyncPending ? ('warning' as const) : ('info' as const),
+      tone: summary.notes.isWebhookSyncPending
+        ? ('warning' as const)
+        : primaryMessage?.type === 'error'
+          ? ('destructive' as const)
+          : primaryMessage?.type === 'warning'
+            ? ('warning' as const)
+            : ('info' as const),
       title: summary.notes.isWebhookSyncPending
         ? t('dashboard.billing.feedback.sync_title')
         : t('dashboard.billing.feedback.info_title'),
       description: summary.notes.isWebhookSyncPending
         ? t('dashboard.billing.messages.sync_pending')
-        : t('dashboard.billing.messages.refresh_completed'),
+        : primaryMessage
+          ? resolveBillingMessage(
+              primaryMessage.code,
+              t,
+              summary.currentPeriodEnd
+                ? new Date(summary.currentPeriodEnd).toLocaleDateString()
+                : t('dashboard.billing.fields.not_available'),
+            )
+          : t('dashboard.billing.messages.refresh_completed'),
     };
   }
 
@@ -314,6 +388,12 @@ export default async function DashboardBillingPage({
   const renewalDisplay = summary.currentPeriodEnd
     ? new Date(summary.currentPeriodEnd).toLocaleDateString(locale)
     : billingT('fields.not_available');
+  const cancellationLabel =
+    summary.billingState === 'canceling'
+      ? billingT('fields.canceling')
+      : summary.subscriptionStatus === 'canceled' || summary.billingState === 'canceled'
+        ? t('dashboard.billing.states.canceled')
+        : billingT('fields.active');
 
   return (
     <div className="space-y-6">
@@ -404,9 +484,7 @@ export default async function DashboardBillingPage({
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
               {billingT('fields.cancellation')}
             </p>
-            <p className="mt-1 text-sm font-medium">
-              {summary.cancelAtPeriodEnd ? billingT('fields.canceling') : billingT('fields.active')}
-            </p>
+            <p className="mt-1 text-sm font-medium">{cancellationLabel}</p>
           </div>
           {summary.billingPlan !== summary.effectivePlan ? (
             <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-950 sm:col-span-2 xl:col-span-5">

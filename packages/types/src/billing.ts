@@ -193,10 +193,7 @@ export function subscriptionGrantsAccess(
 
   if (PAID_STATUSES.includes(snapshot.status)) return true;
 
-  if (
-    (snapshot.status === 'past_due' || snapshot.status === 'canceled') &&
-    isFutureDate(snapshot.currentPeriodEnd, now)
-  ) {
+  if (snapshot.status === 'past_due' && isFutureDate(snapshot.currentPeriodEnd, now)) {
     return true;
   }
 
@@ -238,10 +235,6 @@ export function resolveBillingUiState(
     return snapshot.status;
   }
 
-  if (snapshot.status === 'canceled' && isFutureDate(snapshot.currentPeriodEnd, now)) {
-    return 'canceling';
-  }
-
   if (snapshot.status === 'canceled') return 'canceled';
 
   return 'syncing';
@@ -270,11 +263,7 @@ export function buildBillingMessages(
   }
 
   if (snapshot.status === 'canceled') {
-    if (isFutureDate(snapshot.currentPeriodEnd, now)) {
-      messages.push({ type: 'warning', code: 'ACCESS_UNTIL_PERIOD_END' });
-    } else {
-      messages.push({ type: 'info', code: 'SUBSCRIPTION_CANCELED' });
-    }
+    messages.push({ type: 'info', code: 'SUBSCRIPTION_CANCELED' });
   }
 
   if (snapshot.status === 'past_due' || snapshot.status === 'unpaid') {

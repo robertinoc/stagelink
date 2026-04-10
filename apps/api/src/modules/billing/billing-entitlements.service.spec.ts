@@ -127,6 +127,26 @@ describe('BillingEntitlementsService', () => {
     });
   });
 
+  it('does not retain premium access for canceled subscriptions even if currentPeriodEnd is still set', async () => {
+    const { service, prisma } = createService();
+    prisma.subscription.findUnique.mockResolvedValue({
+      plan: 'pro',
+      status: SubscriptionStatus.canceled,
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: new Date('2099-05-01T00:00:00.000Z'),
+    });
+
+    await expect(service.getArtistEntitlements('artist_canceled_final')).resolves.toMatchObject({
+      effectivePlan: 'free',
+      billingPlan: 'pro',
+      subscriptionStatus: 'canceled',
+      features: {
+        custom_domain: false,
+        epk_builder: false,
+      },
+    });
+  });
+
   it('throws a semantic feature lock error when access is not included', async () => {
     const { service, prisma } = createService();
     prisma.subscription.findUnique.mockResolvedValue(null);
