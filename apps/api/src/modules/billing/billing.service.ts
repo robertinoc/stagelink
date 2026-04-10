@@ -738,6 +738,9 @@ export class BillingService {
     stripeEventAt: Date = new Date(),
   ) {
     const item = subscription.items.data[0];
+    const hasScheduledCancellation = Boolean(
+      subscription.cancel_at_period_end || subscription.cancel_at,
+    );
 
     return {
       update: {
@@ -749,7 +752,7 @@ export class BillingService {
             : subscription.customer.id,
         stripeSubscriptionId: subscription.id,
         stripePriceId: item?.price?.id ?? null,
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        cancelAtPeriodEnd: hasScheduledCancellation,
         currentPeriodEnd: normalizeStripeTimestamp(item?.current_period_end ?? null),
         lastStripeEventAt: stripeEventAt,
       },
@@ -763,7 +766,7 @@ export class BillingService {
             : subscription.customer.id,
         stripeSubscriptionId: subscription.id,
         stripePriceId: item?.price?.id ?? null,
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        cancelAtPeriodEnd: hasScheduledCancellation,
         currentPeriodEnd: normalizeStripeTimestamp(item?.current_period_end ?? null),
         lastStripeEventAt: stripeEventAt,
       },
