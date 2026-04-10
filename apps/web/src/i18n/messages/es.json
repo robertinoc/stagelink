@@ -223,6 +223,7 @@
       "current_plan_description": "Estado de suscripción de {artist}.",
       "badges": {
         "current": "Actual",
+        "billing": "Facturado",
         "recommended": "Recomendado",
         "included": "Incluido"
       },
@@ -231,6 +232,8 @@
         "effective_access": "Acceso efectivo",
         "status": "Estado",
         "renewal": "Fecha de renovación",
+        "access_until": "Acceso hasta",
+        "ended_on": "Finalizó el",
         "cancellation": "Cancelación",
         "active": "Activa",
         "canceling": "Cancela al final del período",
@@ -304,6 +307,8 @@
       },
       "plan_card": {
         "current_description": "Este es el plan actualmente asociado a tu suscripción.",
+        "billing_description": "Este es el plan que sigue asociado al billing mientras el acceso efectivo de producto se resuelve por separado.",
+        "effective_description": "Este es el plan que actualmente está otorgando acceso dentro del producto.",
         "available_description": "Un camino de upgrade simple que podés iniciar directo desde el dashboard."
       },
       "feature_state": {

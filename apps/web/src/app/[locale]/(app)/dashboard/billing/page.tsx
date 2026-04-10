@@ -328,6 +328,21 @@ function canUpgradeToPlan(summary: BillingSummaryResponse, planCode: PlanCode | 
   return rank[planCode] > rank[summary.billingPlan];
 }
 
+function resolveRenewalLabel(
+  summary: BillingSummaryResponse,
+  billingT: Awaited<ReturnType<typeof getTranslations>>,
+) {
+  if (summary.billingState === 'payment_issue' && summary.effectivePlan !== 'free') {
+    return billingT('fields.access_until');
+  }
+
+  if (summary.billingState === 'canceled' || summary.subscriptionStatus === 'canceled') {
+    return billingT('fields.ended_on');
+  }
+
+  return billingT('fields.renewal');
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('dashboard.billing');
   return { title: t('title') };
@@ -388,6 +403,7 @@ export default async function DashboardBillingPage({
   const renewalDisplay = summary.currentPeriodEnd
     ? new Date(summary.currentPeriodEnd).toLocaleDateString(locale)
     : billingT('fields.not_available');
+  const renewalLabel = resolveRenewalLabel(summary, billingT);
   const cancellationLabel =
     summary.billingState === 'canceling'
       ? billingT('fields.canceling')
@@ -475,9 +491,7 @@ export default async function DashboardBillingPage({
             </p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              {billingT('fields.renewal')}
-            </p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">{renewalLabel}</p>
             <p className="mt-1 text-sm font-medium">{renewalDisplay}</p>
           </div>
           <div>
@@ -512,6 +526,9 @@ export default async function DashboardBillingPage({
             const showManageBilling = plan.isCurrent && summary.upgradeOptions.canManageBilling;
             const showUpgrade = canUpgrade && !isEnterprise;
             const currentCard = plan.planCode === summary.billingPlan;
+            const isEffectivePlanCard =
+              plan.planCode !== 'enterprise' && plan.planCode === summary.effectivePlan;
+            const billingMismatch = summary.billingPlan !== summary.effectivePlan;
 
             return (
               <Card
@@ -525,15 +542,33 @@ export default async function DashboardBillingPage({
                       {plan.recommended ? (
                         <Badge variant="secondary">{billingT('badges.recommended')}</Badge>
                       ) : null}
-                      <Badge variant={PLAN_BADGE_VARIANTS[plan.planCode]}>
-                        {currentCard ? billingT('badges.current') : resolvePlanLabel(plan.planCode)}
-                      </Badge>
+                      {currentCard ? (
+                        <Badge variant={PLAN_BADGE_VARIANTS[plan.planCode]}>
+                          {billingMismatch
+                            ? billingT('badges.billing')
+                            : billingT('badges.current')}
+                        </Badge>
+                      ) : null}
+                      {isEffectivePlanCard && !currentCard ? (
+                        <Badge variant={PLAN_BADGE_VARIANTS[summary.effectivePlan]}>
+                          {billingT('badges.current')}
+                        </Badge>
+                      ) : null}
+                      {!currentCard && !isEffectivePlanCard ? (
+                        <Badge variant={PLAN_BADGE_VARIANTS[plan.planCode]}>
+                          {resolvePlanLabel(plan.planCode)}
+                        </Badge>
+                      ) : null}
                     </div>
                   </div>
                   <CardDescription>
-                    {currentCard
-                      ? billingT('plan_card.current_description')
-                      : billingT('plan_card.available_description')}
+                    {currentCard && billingMismatch
+                      ? billingT('plan_card.billing_description')
+                      : currentCard
+                        ? billingT('plan_card.current_description')
+                        : isEffectivePlanCard
+                          ? billingT('plan_card.effective_description')
+                          : billingT('plan_card.available_description')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
