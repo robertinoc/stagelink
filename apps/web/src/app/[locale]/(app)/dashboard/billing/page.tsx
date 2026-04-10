@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import type { BillingUiState, FeatureKey, PlanCode } from '@stagelink/types';
+import type { BillingMessageCode, BillingUiState, FeatureKey, PlanCode } from '@stagelink/types';
 import { ClearBillingFeedbackParams } from '@/components/billing/ClearBillingFeedbackParams';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -99,6 +99,29 @@ function resolveBillingMessage(
     default:
       return t('dashboard.billing.messages.no_active_subscription');
   }
+}
+
+function getSecondaryBillingMessages(
+  summary: BillingSummaryResponse,
+  query: BillingPageQueryParams,
+) {
+  const suppressedCodes = new Set<BillingMessageCode>();
+
+  if (
+    query.checkout === 'success' ||
+    query.portal === 'returned' ||
+    query.refresh === 'done' ||
+    summary.notes.isWebhookSyncPending
+  ) {
+    suppressedCodes.add('CHECKOUT_PENDING_CONFIRMATION');
+  }
+
+  if (query.checkout === 'canceled') {
+    suppressedCodes.add('NO_ACTIVE_SUBSCRIPTION');
+    suppressedCodes.add('CHECKOUT_PENDING_CONFIRMATION');
+  }
+
+  return summary.billingMessages.filter((message) => !suppressedCodes.has(message.code));
 }
 
 function resolveReturnBanner(
@@ -288,6 +311,7 @@ export default async function DashboardBillingPage({
 
   const summary = summaryResult.summary;
   const banner = resolveReturnBanner(summary, query, t);
+  const secondaryBillingMessages = getSecondaryBillingMessages(summary, query);
   const renewalDisplay = summary.currentPeriodEnd
     ? new Date(summary.currentPeriodEnd).toLocaleDateString(locale)
     : billingT('fields.not_available');
@@ -314,9 +338,9 @@ export default async function DashboardBillingPage({
         <FeedbackBanner tone={banner.tone} title={banner.title} description={banner.description} />
       ) : null}
 
-      {summary.billingMessages.length > 0 ? (
+      {secondaryBillingMessages.length > 0 ? (
         <div className="space-y-3">
-          {summary.billingMessages.map((message, index) => (
+          {secondaryBillingMessages.map((message, index) => (
             <FeedbackBanner
               key={`${message.code}-${index}`}
               tone={
