@@ -48,12 +48,11 @@ export function buildFallbackFeaturedLinks(artist: ArtistLinkSource): EpkFeature
 
 export function getEpkPublishValidation(
   epk: EpkPublishSnapshotInput,
-  artist: Pick<Artist, 'bio'>,
+  _artist: Pick<Artist, 'bio'>,
 ): EpkPublishReadiness {
   return getEpkPublishReadiness({
     headline: epk.headline,
     shortBio: epk.shortBio,
-    inheritedShortBio: artist.bio,
     fullBio: epk.fullBio,
     featuredMedia: epk.featuredMedia,
     galleryImageUrls: epk.galleryImageUrls,

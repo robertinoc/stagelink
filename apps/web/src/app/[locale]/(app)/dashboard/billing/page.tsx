@@ -123,7 +123,6 @@ function getSecondaryBillingMessages(
 
   return summary.billingMessages.filter((message) => !suppressedCodes.has(message.code));
 }
-
 function resolveReturnBanner(
   summary: BillingSummaryResponse,
   query: BillingPageQueryParams,
