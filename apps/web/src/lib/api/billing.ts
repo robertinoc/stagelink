@@ -55,7 +55,7 @@ async function readJsonOrThrow<T>(res: Response, fallback: string): Promise<T> {
 }
 
 export async function getBillingProducts(accessToken: string): Promise<BillingProductsResponse> {
-  const res = await apiFetch('/api/billing/products', { accessToken });
+  const res = await apiFetch('/api/billing/products', { accessToken, cache: 'no-store' });
   const json = await readJsonOrThrow<WrappedResponse<BillingProductsResponse>>(
     res,
     'Failed to load billing products',
@@ -67,7 +67,10 @@ export async function getBillingSubscription(
   artistId: string,
   accessToken: string,
 ): Promise<BillingSubscriptionResponse> {
-  const res = await apiFetch(`/api/billing/${artistId}/subscription`, { accessToken });
+  const res = await apiFetch(`/api/billing/${artistId}/subscription`, {
+    accessToken,
+    cache: 'no-store',
+  });
   const json = await readJsonOrThrow<WrappedResponse<BillingSubscriptionResponse>>(
     res,
     'Failed to load subscription',
@@ -79,7 +82,10 @@ export async function getBillingEntitlements(
   artistId: string,
   accessToken: string,
 ): Promise<BillingEntitlementsResponse> {
-  const res = await apiFetch(`/api/billing/${artistId}/entitlements`, { accessToken });
+  const res = await apiFetch(`/api/billing/${artistId}/entitlements`, {
+    accessToken,
+    cache: 'no-store',
+  });
   const json = await readJsonOrThrow<WrappedResponse<BillingEntitlementsResponse>>(
     res,
     'Failed to load billing entitlements',
@@ -91,7 +97,10 @@ export async function getBillingSummary(
   artistId: string,
   accessToken: string,
 ): Promise<BillingSummaryResponse> {
-  const res = await apiFetch(`/api/billing/${artistId}/summary`, { accessToken });
+  const res = await apiFetch(`/api/billing/${artistId}/summary`, {
+    accessToken,
+    cache: 'no-store',
+  });
   const json = await readJsonOrThrow<WrappedResponse<BillingSummaryResponse>>(
     res,
     'Failed to load billing summary',
