@@ -259,7 +259,13 @@
         "portal_syncing": "We detected a return from the billing portal and are refreshing your subscription details.",
         "sync_pending": "We are still confirming your latest billing update. Product access stays conservative until Stripe webhooks finish syncing.",
         "summary_load_error": "We could not load your billing summary. Please try again.",
-        "access_differs": "Product access is currently resolved as {effectivePlan} while billing is still on {billingPlan} ({status}). StageLink uses effective access for feature gating."
+        "access_differs": "Product access is currently resolved as {effectivePlan} while billing is still on {billingPlan} ({status}). StageLink uses effective access for feature gating.",
+        "cancels_at_period_end": "Your paid access stays active until {date}.",
+        "access_until_period_end": "Your subscription was canceled, but access remains active until {date}.",
+        "payment_issue_access_retained": "We detected a payment issue. Access remains active until {date} while Stripe retries or the billing state is resolved.",
+        "payment_issue_access_revoked": "We detected a payment issue and premium access is currently disabled until the subscription is recovered.",
+        "subscription_canceled": "Your subscription is no longer active.",
+        "no_active_subscription": "No active paid subscription is currently granting premium access."
       },
       "feedback": {
         "success_title": "Billing updated",
@@ -272,18 +278,20 @@
         "free": "Free",
         "active": "Active",
         "trialing": "Trialing",
-        "past_due": "Payment issue",
+        "payment_issue": "Payment issue",
         "canceling": "Cancels at period end",
         "canceled": "Canceled",
+        "pending_checkout": "Pending confirmation",
         "syncing": "Updating"
       },
       "status_descriptions": {
         "free": "Free plan",
         "active": "Active subscription",
         "trialing": "Trial in progress",
-        "past_due": "Payment issue",
+        "payment_issue": "Payment issue",
         "canceling": "Active until the current period ends",
         "canceled": "Canceled subscription",
+        "pending_checkout": "Checkout completed but Stripe confirmation is still pending",
         "syncing": "Updating subscription"
       },
       "sections": {

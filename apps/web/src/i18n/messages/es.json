@@ -259,7 +259,13 @@
         "portal_syncing": "Detectamos que volviste del portal de billing y estamos refrescando los cambios de suscripción.",
         "sync_pending": "Todavía estamos confirmando tu último cambio de billing. El acceso de producto se mantiene conservador hasta que terminen de sincronizar los webhooks de Stripe.",
         "summary_load_error": "No pudimos cargar el resumen de billing. Intentá de nuevo.",
-        "access_differs": "El acceso de producto se está resolviendo actualmente como {effectivePlan} mientras billing sigue en {billingPlan} ({status}). StageLink usa el acceso efectivo para el gating de features."
+        "access_differs": "El acceso de producto se está resolviendo actualmente como {effectivePlan} mientras billing sigue en {billingPlan} ({status}). StageLink usa el acceso efectivo para el gating de features.",
+        "cancels_at_period_end": "Tu acceso pago sigue activo hasta {date}.",
+        "access_until_period_end": "La suscripción fue cancelada, pero el acceso sigue activo hasta {date}.",
+        "payment_issue_access_retained": "Detectamos un problema de pago. El acceso sigue activo hasta {date} mientras Stripe reintenta o se resuelve el estado de billing.",
+        "payment_issue_access_revoked": "Detectamos un problema de pago y el acceso premium está deshabilitado hasta que la suscripción se recupere.",
+        "subscription_canceled": "Tu suscripción ya no está activa.",
+        "no_active_subscription": "No hay una suscripción paga activa otorgando acceso premium en este momento."
       },
       "feedback": {
         "success_title": "Billing actualizado",
@@ -272,18 +278,20 @@
         "free": "Free",
         "active": "Activa",
         "trialing": "Prueba",
-        "past_due": "Problema de pago",
+        "payment_issue": "Problema de pago",
         "canceling": "Cancela al final del período",
         "canceled": "Cancelada",
+        "pending_checkout": "Confirmación pendiente",
         "syncing": "Actualizando"
       },
       "status_descriptions": {
         "free": "Plan Free",
         "active": "Suscripción activa",
         "trialing": "Prueba en curso",
-        "past_due": "Problema de pago",
+        "payment_issue": "Problema de pago",
         "canceling": "Activa hasta el final del período actual",
         "canceled": "Suscripción cancelada",
+        "pending_checkout": "El checkout se completó pero Stripe todavía no confirmó la suscripción",
         "syncing": "Actualizando suscripción"
       },
       "sections": {

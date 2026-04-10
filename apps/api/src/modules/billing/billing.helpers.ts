@@ -41,13 +41,15 @@ export function mapStripeSubscriptionStatus(
     case 'trialing':
       return SubscriptionStatus.trialing;
     case 'past_due':
-    case 'unpaid':
       return SubscriptionStatus.past_due;
+    case 'unpaid':
+      return SubscriptionStatus.unpaid;
     case 'canceled':
       return SubscriptionStatus.canceled;
     case 'incomplete':
-    case 'incomplete_expired':
       return SubscriptionStatus.incomplete;
+    case 'incomplete_expired':
+      return SubscriptionStatus.incomplete_expired;
     default:
       return SubscriptionStatus.incomplete;
   }

@@ -402,8 +402,10 @@ enum SubscriptionStatus {
   active
   canceled
   past_due
+  unpaid
   trialing
   incomplete
+  incomplete_expired
 
   @@map("subscription_status")
 }
@@ -418,6 +420,7 @@ model Subscription {
   stripePriceId        String?            @map("stripe_price_id")
   cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
   currentPeriodEnd     DateTime?          @map("current_period_end")
+  lastStripeEventAt    DateTime?          @map("last_stripe_event_at")
   createdAt            DateTime           @default(now()) @map("created_at")
   updatedAt            DateTime           @updatedAt @map("updated_at")
 
@@ -436,10 +439,11 @@ model StripeWebhookEvent {
   stripeEventId   String   @unique @map("stripe_event_id")
   stripeEventType String   @map("stripe_event_type")
   artistId        String?  @map("artist_id")
+  stripeEventAt   DateTime @map("stripe_event_at")
   processedAt     DateTime @default(now()) @map("processed_at")
   createdAt       DateTime @default(now()) @map("created_at")
 
-  @@index([artistId, processedAt])
+  @@index([artistId, stripeEventAt])
   @@map("stripe_webhook_events")
 }
 
