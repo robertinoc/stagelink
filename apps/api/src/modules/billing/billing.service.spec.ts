@@ -353,6 +353,65 @@ describe('BillingService', () => {
     expect(result.data.billingState).toBe('active');
   });
 
+  it('treats scheduled cancellation dates as canceling during refresh', async () => {
+    const { service, prisma, stripe } = createService();
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValueOnce({
+      artistId: 'artist_123',
+      plan: PlanTier.pro,
+      status: SubscriptionStatus.active,
+      currentPeriodEnd: new Date('2024-04-01T00:00:00.000Z'),
+      cancelAtPeriodEnd: false,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_123',
+    });
+
+    (stripe.subscriptions.retrieve as jest.Mock).mockResolvedValue({
+      object: 'subscription',
+      id: 'sub_123',
+      status: 'active',
+      cancel_at_period_end: false,
+      cancel_at: 1711929600,
+      customer: 'cus_123',
+      metadata: { artistId: 'artist_123', plan: PlanTier.pro },
+      items: {
+        data: [
+          {
+            current_period_end: 1711929600,
+            price: {
+              id: 'price_pro_123',
+            },
+          },
+        ],
+      },
+    });
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValueOnce({
+      artistId: 'artist_123',
+      plan: PlanTier.pro,
+      status: SubscriptionStatus.active,
+      currentPeriodEnd: new Date('2024-04-01T00:00:00.000Z'),
+      cancelAtPeriodEnd: true,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_123',
+    });
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValueOnce({
+      artistId: 'artist_123',
+      plan: PlanTier.pro,
+      status: SubscriptionStatus.active,
+      currentPeriodEnd: new Date('2024-04-01T00:00:00.000Z'),
+      cancelAtPeriodEnd: true,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_123',
+    });
+
+    const result = await service.refreshSubscriptionState('artist_123');
+
+    expect(result.data.cancelAtPeriodEnd).toBe(true);
+    expect(result.data.billingState).toBe('canceling');
+  });
+
   it('ignores duplicated webhook events by Stripe event id', async () => {
     const { service, prisma, stripe } = createService();
 
