@@ -412,6 +412,67 @@ describe('BillingService', () => {
     expect(result.data.billingState).toBe('canceling');
   });
 
+  it('does not retain access after Stripe returns a canceled subscription with a future currentPeriodEnd', async () => {
+    const { service, prisma, stripe } = createService();
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValueOnce({
+      artistId: 'artist_123',
+      plan: PlanTier.pro,
+      status: SubscriptionStatus.past_due,
+      currentPeriodEnd: new Date('2026-06-10T00:00:00.000Z'),
+      cancelAtPeriodEnd: true,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_123',
+    });
+
+    (stripe.subscriptions.retrieve as jest.Mock).mockResolvedValue({
+      object: 'subscription',
+      id: 'sub_123',
+      status: 'canceled',
+      cancel_at_period_end: false,
+      cancel_at: null,
+      customer: 'cus_123',
+      metadata: { artistId: 'artist_123', plan: PlanTier.pro },
+      items: {
+        data: [
+          {
+            current_period_end: 1781049600,
+            price: {
+              id: 'price_pro_123',
+            },
+          },
+        ],
+      },
+    });
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValueOnce({
+      artistId: 'artist_123',
+      plan: PlanTier.pro,
+      status: SubscriptionStatus.canceled,
+      currentPeriodEnd: new Date('2026-06-10T00:00:00.000Z'),
+      cancelAtPeriodEnd: false,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_123',
+    });
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValueOnce({
+      artistId: 'artist_123',
+      plan: PlanTier.pro,
+      status: SubscriptionStatus.canceled,
+      currentPeriodEnd: new Date('2026-06-10T00:00:00.000Z'),
+      cancelAtPeriodEnd: false,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_123',
+    });
+
+    const result = await service.refreshSubscriptionState('artist_123');
+
+    expect(result.data.billingPlan).toBe('pro');
+    expect(result.data.effectivePlan).toBe('free');
+    expect(result.data.billingState).toBe('canceled');
+    expect(result.data.cancelAtPeriodEnd).toBe(false);
+  });
+
   it('ignores duplicated webhook events by Stripe event id', async () => {
     const { service, prisma, stripe } = createService();
 
