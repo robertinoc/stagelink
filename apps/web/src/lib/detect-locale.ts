@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, type SupportedLocale } from '@stagelink/types';
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type SupportedLocale } from '@stagelink/types';
 
 /**
  * Detects the preferred locale from an Accept-Language header value.
@@ -12,4 +12,17 @@ import { DEFAULT_LOCALE, type SupportedLocale } from '@stagelink/types';
 export function detectLocale(acceptLanguage: string): SupportedLocale {
   const primary = acceptLanguage.split(',')[0]?.split(';')[0]?.trim().toLowerCase() ?? '';
   return primary.startsWith('es') ? 'es' : DEFAULT_LOCALE;
+}
+
+export function resolvePreferredLocale(options: {
+  acceptLanguage?: string | null;
+  localeCookie?: string | null;
+}): SupportedLocale {
+  const cookieLocale = options.localeCookie?.trim().toLowerCase();
+
+  if (cookieLocale && SUPPORTED_LOCALES.includes(cookieLocale as SupportedLocale)) {
+    return cookieLocale as SupportedLocale;
+  }
+
+  return detectLocale(options.acceptLanguage ?? DEFAULT_LOCALE);
 }

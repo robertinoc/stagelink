@@ -1,25 +1,17 @@
-import { headers } from 'next/headers';
-import type { Metadata } from 'next';
-import { detectLocale } from '@/lib/detect-locale';
-import {
-  buildPublicArtistMetadata,
-  PublicArtistPageDocument,
-} from '@/features/public-page/server/PublicArtistPageDocument';
+import { cookies, headers } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { resolvePreferredLocale } from '@/lib/detect-locale';
 
 interface LegacyArtistPageProps {
   params: Promise<{ username: string }>;
 }
 
-export async function generateMetadata({ params }: LegacyArtistPageProps): Promise<Metadata> {
-  const { username } = await params;
-  const locale = detectLocale((await headers()).get('accept-language') ?? '');
-
-  return buildPublicArtistMetadata(username, locale);
-}
-
 export default async function LegacyArtistPage({ params }: LegacyArtistPageProps) {
   const { username } = await params;
-  const locale = detectLocale((await headers()).get('accept-language') ?? '');
+  const locale = resolvePreferredLocale({
+    acceptLanguage: (await headers()).get('accept-language'),
+    localeCookie: (await cookies()).get('NEXT_LOCALE')?.value ?? null,
+  });
 
-  return <PublicArtistPageDocument username={username} locale={locale} />;
+  redirect(`/${locale}/${username}`);
 }
