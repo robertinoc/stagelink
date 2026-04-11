@@ -47,6 +47,7 @@ const BLOCK_TYPE_ICONS: Record<BlockType, string> = {
   music_embed: '🎵',
   video_embed: '🎬',
   email_capture: '✉️',
+  text: '📝',
 };
 
 // ─── Create Block Dialog ──────────────────────────────────────────────────────

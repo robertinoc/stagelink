@@ -430,13 +430,15 @@
       "links": "Links",
       "music_embed": "Music",
       "video_embed": "Video",
-      "email_capture": "Email Capture"
+      "email_capture": "Email Capture",
+      "text": "Text"
     },
     "type_descriptions": {
       "links": "Add clickable links to your profiles, website or anywhere.",
       "music_embed": "Embed a track or playlist from Spotify, SoundCloud and more.",
       "video_embed": "Embed a video from YouTube, Vimeo or TikTok.",
-      "email_capture": "Collect email addresses from your fans."
+      "email_capture": "Collect email addresses from your fans.",
+      "text": "Add a paragraph block for a bio, rider, story or any public info."
     },
     "fields": {
       "title": "Block title (optional)",
@@ -473,7 +475,9 @@
       "consent_section": "Consent",
       "require_consent": "Require explicit consent checkbox",
       "consent_label": "Consent label text",
-      "consent_label_placeholder": "e.g. I agree to receive updates from this artist."
+      "consent_label_placeholder": "e.g. I agree to receive updates from this artist.",
+      "body": "Body",
+      "body_placeholder": "Write a short bio, press note, technical rider, or any public text you want to show on the page…"
     },
     "smart_link": {
       "destination": "Destination",

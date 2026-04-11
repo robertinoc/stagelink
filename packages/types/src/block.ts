@@ -6,7 +6,13 @@ import type { LocalizedTextMap } from './i18n';
 // block-config.schema.ts validators in the API.
 // =============================================================
 
-export const BLOCK_TYPES = ['links', 'music_embed', 'video_embed', 'email_capture'] as const;
+export const BLOCK_TYPES = [
+  'links',
+  'music_embed',
+  'video_embed',
+  'email_capture',
+  'text',
+] as const;
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
 // ─── Config shapes per block type ────────────────────────────────────────────
@@ -109,6 +115,10 @@ export interface EmailCaptureBlockConfig {
   requireConsent?: boolean;
 }
 
+export interface TextBlockConfig {
+  body: string;
+}
+
 export interface EmailCaptureBlockTranslations {
   headline?: LocalizedTextMap;
   buttonLabel?: LocalizedTextMap;
@@ -134,7 +144,8 @@ export type BlockConfig =
   | LinksBlockConfig
   | MusicEmbedBlockConfig
   | VideoEmbedBlockConfig
-  | EmailCaptureBlockConfig;
+  | EmailCaptureBlockConfig
+  | TextBlockConfig;
 
 // ─── Block entity ─────────────────────────────────────────────────────────────
 
@@ -192,4 +203,8 @@ export function isEmailCaptureBlock(
   block: Block,
 ): block is Block & { config: EmailCaptureBlockConfig } {
   return block.type === 'email_capture';
+}
+
+export function isTextBlock(block: Block): block is Block & { config: TextBlockConfig } {
+  return block.type === 'text';
 }

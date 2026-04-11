@@ -9,6 +9,8 @@ interface LocalizedArtistPageProps {
   params: Promise<{ locale: SupportedLocale; username: string }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata({ params }: LocalizedArtistPageProps): Promise<Metadata> {
   const { locale, username } = await params;
   return buildPublicArtistMetadata(username, locale);

@@ -230,6 +230,7 @@ enum BlockType {
   music_embed
   video_embed
   email_capture
+  text
 
   @@map("block_type")
 }
