@@ -430,13 +430,15 @@
       "links": "Links",
       "music_embed": "Música",
       "video_embed": "Video",
-      "email_capture": "Captura de emails"
+      "email_capture": "Captura de emails",
+      "text": "Texto"
     },
     "type_descriptions": {
       "links": "Agregá links a tus perfiles, sitio web o cualquier lugar.",
       "music_embed": "Incrustá una canción o playlist de Spotify, SoundCloud y más.",
       "video_embed": "Incrustá un video de YouTube, Vimeo o TikTok.",
-      "email_capture": "Recopilá emails de tus fans."
+      "email_capture": "Recopilá emails de tus fans.",
+      "text": "Agregá un bloque de texto para bio, rider, historia o cualquier información pública."
     },
     "fields": {
       "title": "Título del bloque (opcional)",
@@ -473,7 +475,9 @@
       "consent_section": "Consentimiento",
       "require_consent": "Requerir checkbox de consentimiento explícito",
       "consent_label": "Texto del consentimiento",
-      "consent_label_placeholder": "ej. Acepto recibir novedades de este artista."
+      "consent_label_placeholder": "ej. Acepto recibir novedades de este artista.",
+      "body": "Contenido",
+      "body_placeholder": "Escribí una bio corta, nota de prensa, technical rider o cualquier texto público que quieras mostrar en la página…"
     },
     "smart_link": {
       "destination": "Destino",

@@ -5,11 +5,13 @@ import type {
   MusicEmbedBlockConfig,
   VideoEmbedBlockConfig,
   EmailCaptureBlockConfig,
+  TextBlockConfig,
 } from '@stagelink/types';
 import { LinksBlockRenderer } from './LinksBlockRenderer';
 import { MusicEmbedRenderer } from './MusicEmbedRenderer';
 import { VideoEmbedRenderer } from './VideoEmbedRenderer';
 import { EmailCaptureRenderer } from './EmailCaptureRenderer';
+import { TextBlockRenderer } from './TextBlockRenderer';
 
 /**
  * Minimal block shape accepted by BlockRenderer.
@@ -92,6 +94,10 @@ export function BlockRenderer({ block, onLinkClick }: BlockRendererProps) {
         blockId={block.id}
       />
     );
+  }
+
+  if (block.type === 'text') {
+    return <TextBlockRenderer title={block.title} config={block.config as TextBlockConfig} />;
   }
 
   // Unknown block type — future-proof: skip rather than crash.

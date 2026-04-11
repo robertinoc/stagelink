@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Globe, Instagram, Music2, Play } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { PublicPageResponse } from '@stagelink/types';
 import { PublicPageClient } from './PublicPageClient';
@@ -30,13 +31,52 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
   const locale = await getLocale();
   const { artist, blocks } = page;
   const socialLinks = [
-    artist.instagramUrl && { href: artist.instagramUrl, label: t('social.instagram') },
-    artist.tiktokUrl && { href: artist.tiktokUrl, label: t('social.tiktok') },
-    artist.youtubeUrl && { href: artist.youtubeUrl, label: t('social.youtube') },
-    artist.spotifyUrl && { href: artist.spotifyUrl, label: t('social.spotify') },
-    artist.soundcloudUrl && { href: artist.soundcloudUrl, label: t('social.soundcloud') },
-    artist.websiteUrl && { href: artist.websiteUrl, label: t('social.website') },
-  ].filter((item): item is { href: string; label: string } => Boolean(item));
+    artist.instagramUrl && {
+      href: artist.instagramUrl,
+      label: t('social.instagram'),
+      key: 'instagram',
+      Icon: Instagram,
+    },
+    artist.tiktokUrl && {
+      href: artist.tiktokUrl,
+      label: t('social.tiktok'),
+      key: 'tiktok',
+      Icon: Music2,
+    },
+    artist.youtubeUrl && {
+      href: artist.youtubeUrl,
+      label: t('social.youtube'),
+      key: 'youtube',
+      Icon: Play,
+    },
+    artist.spotifyUrl && {
+      href: artist.spotifyUrl,
+      label: t('social.spotify'),
+      key: 'spotify',
+      Icon: Music2,
+    },
+    artist.soundcloudUrl && {
+      href: artist.soundcloudUrl,
+      label: t('social.soundcloud'),
+      key: 'soundcloud',
+      Icon: Music2,
+    },
+    artist.websiteUrl && {
+      href: artist.websiteUrl,
+      label: t('social.website'),
+      key: 'website',
+      Icon: Globe,
+    },
+  ].filter(
+    (
+      item,
+    ): item is {
+      href: string;
+      label: string;
+      key: string;
+      Icon: typeof Globe;
+    } => Boolean(item),
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-zinc-950">
@@ -69,13 +109,16 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
               {socialLinks.map((social) => (
                 <a
-                  key={social.label}
+                  key={social.key}
                   href={social.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+                  aria-label={social.label}
+                  title={social.label}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
                 >
-                  {social.label}
+                  <social.Icon className="h-4 w-4" />
+                  <span className="sr-only">{social.label}</span>
                 </a>
               ))}
             </div>

@@ -100,7 +100,7 @@ export function LocalizedProfileContentSection({
           </p>
         </div>
 
-        <div className="grid gap-5">
+        <div key={activeLocale} className="grid gap-5">
           <div className="space-y-1.5">
             <label
               htmlFor={`translations.${activeLocale}.displayName`}

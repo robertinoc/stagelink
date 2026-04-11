@@ -14,7 +14,13 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export const BLOCK_TYPES = ['links', 'music_embed', 'video_embed', 'email_capture'] as const;
+export const BLOCK_TYPES = [
+  'links',
+  'music_embed',
+  'video_embed',
+  'email_capture',
+  'text',
+] as const;
 export type BlockTypeValue = (typeof BLOCK_TYPES)[number];
 
 // =============================================================

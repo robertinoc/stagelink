@@ -33,6 +33,7 @@ const MAX_BUTTON_LABEL_LENGTH = 50;
 const MAX_PLACEHOLDER_LENGTH = 100;
 const MAX_CONSENT_LABEL_LENGTH = 200;
 const MAX_SUCCESS_MESSAGE_LENGTH = 200;
+const MAX_TEXT_BODY_LENGTH = 5000;
 const MAX_LINK_ITEMS = 20;
 
 const BLOCKED_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'blob:'];
@@ -243,6 +244,10 @@ function validateEmailCaptureConfig(c: Record<string, unknown>): void {
   if (c['requireConsent'] !== undefined && typeof c['requireConsent'] !== 'boolean') {
     throw new BadRequestException('email_capture config.requireConsent must be a boolean');
   }
+}
+
+function validateTextConfig(c: Record<string, unknown>): void {
+  assertNonEmptyString(c['body'], 'text config.body', MAX_TEXT_BODY_LENGTH);
 }
 
 // ─── URL parsing + embed derivation ──────────────────────────────────────────
@@ -485,6 +490,9 @@ export function validateBlockConfig(type: BlockType, config: unknown): void {
       break;
     case 'email_capture':
       validateEmailCaptureConfig(config);
+      break;
+    case 'text':
+      validateTextConfig(config);
       break;
     default: {
       // Exhaustive guard — TypeScript will error here if a new BlockType

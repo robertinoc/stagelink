@@ -11,8 +11,8 @@ import type {
   MusicEmbedBlockConfig,
   VideoEmbedBlockConfig,
   EmailCaptureBlockConfig,
+  TextBlockConfig,
 } from '@stagelink/types';
-import { LINK_ICONS } from '@stagelink/types';
 import { SmartLinkPicker } from './SmartLinkForm';
 
 interface Props {
@@ -497,6 +497,34 @@ function EmailCaptureForm({
   );
 }
 
+// ─── Text ────────────────────────────────────────────────────────────────────
+
+function TextBlockForm({
+  config,
+  onChange,
+}: {
+  config: TextBlockConfig;
+  onChange: (c: TextBlockConfig) => void;
+}) {
+  const t = useTranslations('blocks.fields');
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="mb-1 block text-sm font-medium">{t('body')}</label>
+        <textarea
+          value={config.body}
+          onChange={(e) => onChange({ ...config, body: e.target.value })}
+          placeholder={t('body_placeholder')}
+          className="min-h-[180px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          maxLength={5000}
+        />
+        <p className="mt-1 text-xs text-muted-foreground">{config.body.length}/5000</p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Default configs ──────────────────────────────────────────────────────────
 
 export function defaultConfig(type: BlockType): BlockConfig {
@@ -519,6 +547,8 @@ export function defaultConfig(type: BlockType): BlockConfig {
       return { provider: 'youtube', sourceUrl: '', embedUrl: '', resourceType: 'video' };
     case 'email_capture':
       return { headline: '', buttonLabel: 'Subscribe' };
+    case 'text':
+      return { body: '' };
   }
 }
 
@@ -550,5 +580,7 @@ export function BlockConfigForm({ type, config, onChange, artistId, accessToken 
           onChange={(c) => onChange(c)}
         />
       );
+    case 'text':
+      return <TextBlockForm config={config as TextBlockConfig} onChange={(c) => onChange(c)} />;
   }
 }
