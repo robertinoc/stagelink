@@ -3,6 +3,7 @@ import {
   IsArray,
   IsEmail,
   IsIn,
+  IsObject,
   IsOptional,
   IsString,
   IsUrl,
@@ -47,6 +48,10 @@ export class EpkFeaturedLinkItemDto {
 }
 
 export class UpdateEpkDto {
+  @IsOptional()
+  @IsObject()
+  translations?: Record<string, unknown>;
+
   @IsOptional()
   @Transform(({ value }) => emptyStringToNull(value))
   @IsString()

@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { PublicPageResponseDto } from './dto/public-page-response.dto';
 import { Public } from '../../common/decorators';
 import { PublicRateLimitGuard } from '../../common/guards';
 import { detectLocale } from '../../common/utils/locale.util';
+import { DEFAULT_LOCALE, isSupportedLocale } from '@stagelink/types';
 import { extractClientIp } from '../../common/utils/request.utils';
 
 /** DTO for POST /api/public/events/link-click */
@@ -81,6 +83,7 @@ export class PublicPagesController {
   getByUsername(
     @Param('username') username: string,
     @Req() req: Request,
+    @Query('locale') localeQuery?: string,
     @Headers('accept-language') acceptLanguage?: string,
     @Headers('referer') referer?: string,
     @Headers('sec-ch-ua-platform') secChUaPlatform?: string,
@@ -91,7 +94,11 @@ export class PublicPagesController {
     @Headers('x-sl-internal') slInternal?: string,
   ): Promise<PublicPageResponseDto> {
     return this.publicPagesService.getPageByUsername(username, {
-      locale: acceptLanguage ? detectLocale(acceptLanguage) : undefined,
+      locale: isSupportedLocale(localeQuery)
+        ? localeQuery
+        : acceptLanguage
+          ? detectLocale(acceptLanguage)
+          : DEFAULT_LOCALE,
       referrer: referer,
       platform: secChUaPlatform?.replace(/"/g, '').toLowerCase() || undefined,
       userAgent,
@@ -112,6 +119,7 @@ export class PublicPagesController {
   getByDomain(
     @Req() req: Request,
     @Headers('host') host: string,
+    @Query('locale') localeQuery?: string,
     @Headers('accept-language') acceptLanguage?: string,
     @Headers('referer') referer?: string,
     @Headers('sec-ch-ua-platform') secChUaPlatform?: string,
@@ -122,7 +130,11 @@ export class PublicPagesController {
     @Headers('x-sl-internal') slInternal?: string,
   ): Promise<PublicPageResponseDto> {
     return this.publicPagesService.getPageByDomain(host, {
-      locale: acceptLanguage ? detectLocale(acceptLanguage) : undefined,
+      locale: isSupportedLocale(localeQuery)
+        ? localeQuery
+        : acceptLanguage
+          ? detectLocale(acceptLanguage)
+          : DEFAULT_LOCALE,
       referrer: referer,
       platform: secChUaPlatform?.replace(/"/g, '').toLowerCase() || undefined,
       userAgent,

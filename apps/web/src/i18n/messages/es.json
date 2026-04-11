@@ -209,6 +209,37 @@
         "seo_description_hint": "Recomendado: 120–160 caracteres",
         "username_readonly_hint": "El cambio de username requiere verificación de identidad y no está disponible aún."
       },
+      "placeholders": {
+        "display_name": "ej. The Midnight, DJ Snake, Rosalía…",
+        "bio": "Contale a tus fans un poco sobre vos…",
+        "seo_title": "ej. \"DJ Snake — Official Page\"",
+        "seo_description": "Una descripción breve de tu música, estilo y lo que los fans van a encontrar acá…"
+      },
+      "categories": {
+        "hint": "Elegí hasta 3. Tocá de nuevo para quitar.",
+        "selected": "Seleccionadas",
+        "empty": "Elegí al menos una categoría."
+      },
+      "public_url": "Tu URL pública",
+      "translations": {
+        "title": "Contenido localizado",
+        "description": "Agregá textos traducidos opcionales para tu página pública. El contenido base de arriba sigue funcionando como fallback.",
+        "fallback_note": "Los visitantes en {locale} verán este texto cuando exista. Si falta, StageLink usará tu contenido base.",
+        "lock_badge": "Pro+",
+        "lock_title": "Desbloqueá páginas multi-idioma",
+        "lock_description": "Los idiomas adicionales están disponibles en Pro+. Podés seguir editando tu perfil base, pero el contenido público traducido requiere la feature de multi-language pages.",
+        "lock_cta": "Actualizar plan",
+        "locales": {
+          "en": "Inglés",
+          "es": "Español"
+        },
+        "placeholders": {
+          "display_name": "Nombre artístico localizado",
+          "bio": "Bio corta traducida para este idioma…",
+          "seo_title": "Título SEO localizado",
+          "seo_description": "Meta descripción localizada"
+        }
+      },
       "save": "Guardar perfil",
       "saving": "Guardando…",
       "saved": "Perfil guardado correctamente.",
@@ -368,7 +399,7 @@
         "multi_language_pages": {
           "title": "Páginas multi-idioma",
           "description": "Publicá versiones localizadas de tu página pública.",
-          "note": "Las páginas multi-idioma siguen en roadmap, pero la capability ya está definida para no rehacer billing más adelante."
+          "note": "Creá copy localizado para tu página pública con SEO por idioma y fallback consistente."
         },
         "advanced_fan_insights": {
           "title": "Insights avanzados de fans",

@@ -1,3 +1,5 @@
+import type { LocalizedTextMap } from './i18n';
+
 // =============================================================
 // Block types — shared between API and web.
 // Must stay in sync with the Prisma BlockType enum and
@@ -107,6 +109,26 @@ export interface EmailCaptureBlockConfig {
   requireConsent?: boolean;
 }
 
+export interface EmailCaptureBlockTranslations {
+  headline?: LocalizedTextMap;
+  buttonLabel?: LocalizedTextMap;
+  description?: LocalizedTextMap;
+  placeholder?: LocalizedTextMap;
+  successMessage?: LocalizedTextMap;
+  consentLabel?: LocalizedTextMap;
+}
+
+export interface LinksBlockTranslations {
+  title?: LocalizedTextMap;
+  itemLabels?: Record<string, LocalizedTextMap>;
+}
+
+export interface BlockLocalizedContent {
+  title?: LocalizedTextMap;
+  emailCapture?: EmailCaptureBlockTranslations;
+  links?: LinksBlockTranslations;
+}
+
 /** Discriminated union of all config shapes */
 export type BlockConfig =
   | LinksBlockConfig
@@ -122,6 +144,7 @@ export interface Block {
   type: BlockType;
   title: string | null;
   config: BlockConfig;
+  localizedContent?: BlockLocalizedContent | null;
   position: number;
   isPublished: boolean;
   createdAt: string;
@@ -134,11 +157,13 @@ export interface CreateBlockPayload {
   type: BlockType;
   title?: string;
   config: BlockConfig;
+  localizedContent?: BlockLocalizedContent;
 }
 
 export interface UpdateBlockPayload {
   title?: string;
   config?: Partial<BlockConfig>;
+  localizedContent?: BlockLocalizedContent | null;
 }
 
 export interface ReorderBlocksPayload {

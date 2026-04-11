@@ -1,4 +1,4 @@
-export type SupportedLocale = 'en' | 'es';
+import { DEFAULT_LOCALE, type SupportedLocale } from '@stagelink/types';
 
 /**
  * Detects the preferred locale from an Accept-Language header value.
@@ -11,5 +11,5 @@ export type SupportedLocale = 'en' | 'es';
  */
 export function detectLocale(acceptLanguage: string): SupportedLocale {
   const primary = acceptLanguage.split(',')[0]?.split(';')[0]?.trim().toLowerCase() ?? '';
-  return primary.startsWith('es') ? 'es' : 'en';
+  return primary.startsWith('es') ? 'es' : DEFAULT_LOCALE;
 }

@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { fetchPublicEpk } from '@/lib/api/epk';
 import { PublicEpkView } from '@/features/epk/components/PublicEpkView';
+import { detectLocale } from '@/lib/detect-locale';
 
 interface PublicEpkPageProps {
   params: Promise<{ username: string }>;
@@ -9,7 +11,8 @@ interface PublicEpkPageProps {
 
 export async function generateMetadata({ params }: PublicEpkPageProps): Promise<Metadata> {
   const { username } = await params;
-  const epk = await fetchPublicEpk(username);
+  const locale = detectLocale((await headers()).get('accept-language') ?? '');
+  const epk = await fetchPublicEpk(username, locale);
 
   if (!epk) {
     return {
@@ -45,7 +48,8 @@ export async function generateMetadata({ params }: PublicEpkPageProps): Promise<
 
 export default async function PublicEpkPage({ params }: PublicEpkPageProps) {
   const { username } = await params;
-  const epk = await fetchPublicEpk(username);
+  const locale = detectLocale((await headers()).get('accept-language') ?? '');
+  const epk = await fetchPublicEpk(username, locale);
 
   if (!epk) notFound();
 

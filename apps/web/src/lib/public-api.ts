@@ -1,6 +1,6 @@
 import { cache } from 'react';
 import { headers, cookies } from 'next/headers';
-import type { PublicPageResponse } from '@stagelink/types';
+import { DEFAULT_LOCALE, type PublicPageResponse, type SupportedLocale } from '@stagelink/types';
 
 /**
  * public-api.ts — helpers para consumir endpoints públicos del API.
@@ -39,7 +39,10 @@ import type { PublicPageResponse } from '@stagelink/types';
 // public-api.ts is imported only in Server Components so this is safe.
 const API_URL = process.env.API_URL ?? 'http://localhost:4001';
 
-async function _fetchPublicPage(username: string): Promise<PublicPageResponse | null> {
+async function _fetchPublicPage(
+  username: string,
+  locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<PublicPageResponse | null> {
   // Forward analytics-relevant browser headers to the API. Only the headers
   // relevant for page_view context are forwarded — never Authorization, Cookie,
   // or other sensitive headers.
@@ -71,10 +74,10 @@ async function _fetchPublicPage(username: string): Promise<PublicPageResponse | 
   // sl_qa: QA mode cookie — '1' = QA session (set via ?sl_qa=1 URL param)
   if (cookieStore.get('sl_qa')?.value === '1') forwardHeaders['x-sl-qa'] = '1';
 
-  const res = await fetch(
-    `${API_URL}/api/public/pages/by-username/${encodeURIComponent(username)}`,
-    { cache: 'no-store', headers: forwardHeaders },
-  );
+  const url = new URL(`/api/public/pages/by-username/${encodeURIComponent(username)}`, API_URL);
+  url.searchParams.set('locale', locale);
+
+  const res = await fetch(url.toString(), { cache: 'no-store', headers: forwardHeaders });
 
   if (res.status === 404) return null;
 

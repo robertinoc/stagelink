@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { getArtist } from '@/lib/api/artists';
+import { getBillingEntitlements } from '@/lib/api/billing';
 import { getAuthMe } from '@/lib/api/me';
 import { ArtistProfileSettings } from '@/features/artist/components/ArtistProfileSettings';
 
@@ -43,6 +44,9 @@ export default async function DashboardProfilePage({ params }: DashboardProfileP
 
   const artist = await getArtist(artistId, session.accessToken);
   if (!artist) redirect(`/${locale}/onboarding`);
+  const entitlements = await getBillingEntitlements(artist.id, session.accessToken).catch(
+    () => null,
+  );
 
   const t = await getTranslations('dashboard.profile');
 
@@ -53,7 +57,11 @@ export default async function DashboardProfilePage({ params }: DashboardProfileP
         <p className="text-sm text-muted-foreground">{t('description')}</p>
       </div>
 
-      <ArtistProfileSettings artist={artist} />
+      <ArtistProfileSettings
+        artist={artist}
+        hasMultiLanguageAccess={!!entitlements?.features.multi_language_pages}
+        billingHref={`/${locale}/dashboard/billing`}
+      />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { apiFetch } from '@/lib/auth';
-import type { ArtistCategory } from '@stagelink/types';
+import type { ArtistCategory, ArtistTranslations } from '@stagelink/types';
 
 /**
  * Full artist data returned by GET /api/artists/:id.
@@ -25,6 +25,7 @@ export interface Artist {
   // SEO
   seoTitle: string | null;
   seoDescription: string | null;
+  translations: ArtistTranslations;
   secondaryCategories: ArtistCategory[];
   createdAt: string;
   updatedAt: string;
@@ -45,6 +46,7 @@ export interface UpdateArtistPayload {
   contactEmail?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
+  translations?: ArtistTranslations;
 }
 
 /**

@@ -4,8 +4,18 @@ import { PrismaService } from '../../lib/prisma.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
 import { PublicPageResponseDto, PublicBlockDto } from './dto/public-page-response.dto';
 import { PostHogService } from '../analytics/posthog.service';
-import { ANALYTICS_EVENTS, buildTenantEntitlements, hasFeature } from '@stagelink/types';
+import {
+  ANALYTICS_EVENTS,
+  buildTenantEntitlements,
+  hasFeature,
+  type ArtistTranslations,
+  type BlockLocalizedContent,
+  type EmailCaptureBlockConfig,
+  type LinksBlockConfig,
+  type SupportedLocale,
+} from '@stagelink/types';
 import { resolveTrafficFlags } from '../../common/utils/analytics-flags';
+import { resolveLocalizedText } from '../../common/utils/localized-content.util';
 
 /**
  * Hashes an IP address with SHA-256 for privacy-preserving storage.
@@ -20,7 +30,7 @@ function hashIp(ip: string | undefined): string {
 
 /** Analytics context extracted from visitor request headers. */
 export interface VisitorCtx {
-  locale?: string;
+  locale?: SupportedLocale;
   referrer?: string;
   platform?: string;
   userAgent?: string;
@@ -29,6 +39,111 @@ export interface VisitorCtx {
   slQa?: string;
   slAc?: string;
   slInternal?: string;
+}
+
+function localizeArtistTextFields(
+  artist: {
+    displayName: string;
+    bio: string | null;
+    seoTitle: string | null;
+    seoDescription: string | null;
+    translations: unknown;
+  },
+  locale: SupportedLocale,
+) {
+  const translations = (artist.translations as ArtistTranslations | null) ?? {};
+
+  return {
+    displayName: resolveLocalizedText(artist.displayName, translations.displayName, locale) ?? '',
+    bio: resolveLocalizedText(artist.bio, translations.bio, locale),
+    seoTitle: resolveLocalizedText(artist.seoTitle, translations.seoTitle, locale),
+    seoDescription: resolveLocalizedText(
+      artist.seoDescription,
+      translations.seoDescription,
+      locale,
+    ),
+  };
+}
+
+function localizeBlock(
+  block: {
+    id: string;
+    type: PublicBlockDto['type'];
+    title: string | null;
+    position: number;
+    config: unknown;
+    localizedContent: unknown;
+  },
+  locale: SupportedLocale,
+): PublicBlockDto {
+  const localizedContent = (block.localizedContent as BlockLocalizedContent | null) ?? {};
+  const baseConfig = (block.config as Record<string, unknown>) ?? {};
+  const localizedTitle = resolveLocalizedText(block.title, localizedContent.title, locale);
+
+  if (block.type === 'email_capture') {
+    const emailCapture = baseConfig as unknown as EmailCaptureBlockConfig;
+    const translated = localizedContent.emailCapture ?? {};
+
+    return {
+      id: block.id,
+      type: block.type,
+      title: localizedTitle,
+      position: block.position,
+      config: {
+        ...emailCapture,
+        headline: resolveLocalizedText(emailCapture.headline, translated.headline, locale) ?? '',
+        buttonLabel:
+          resolveLocalizedText(emailCapture.buttonLabel, translated.buttonLabel, locale) ?? '',
+        description: resolveLocalizedText(
+          emailCapture.description ?? null,
+          translated.description,
+          locale,
+        ),
+        placeholder: resolveLocalizedText(
+          emailCapture.placeholder ?? null,
+          translated.placeholder,
+          locale,
+        ),
+        successMessage: resolveLocalizedText(
+          emailCapture.successMessage ?? null,
+          translated.successMessage,
+          locale,
+        ),
+        consentLabel: resolveLocalizedText(
+          emailCapture.consentLabel ?? null,
+          translated.consentLabel,
+          locale,
+        ),
+      },
+    };
+  }
+
+  if (block.type === 'links') {
+    const linksConfig = baseConfig as unknown as LinksBlockConfig;
+    const itemLabels = localizedContent.links?.itemLabels ?? {};
+
+    return {
+      id: block.id,
+      type: block.type,
+      title: localizedTitle,
+      position: block.position,
+      config: {
+        ...linksConfig,
+        items: linksConfig.items.map((item) => ({
+          ...item,
+          label: resolveLocalizedText(item.label, itemLabels[item.id], locale) ?? item.label,
+        })),
+      },
+    };
+  }
+
+  return {
+    id: block.id,
+    type: block.type,
+    title: localizedTitle,
+    position: block.position,
+    config: baseConfig,
+  };
 }
 
 /** T4-4 quality header context for link-click / smart-link events. */
@@ -163,6 +278,7 @@ export class PublicPagesService {
    * @param ctx  Optional analytics context — persists page_view and emits PostHog event.
    */
   private async loadPublicPage(artistId: string, ctx?: VisitorCtx): Promise<PublicPageResponseDto> {
+    const locale = ctx?.locale ?? 'en';
     const page = await this.prisma.page.findUnique({
       where: { artistId },
       select: {
@@ -184,6 +300,7 @@ export class PublicPagesService {
             websiteUrl: true,
             seoTitle: true,
             seoDescription: true,
+            translations: true,
             subscription: {
               select: {
                 plan: true,
@@ -203,6 +320,7 @@ export class PublicPagesService {
             title: true,
             position: true,
             config: true,
+            localizedContent: true,
           },
         },
       },
@@ -270,13 +388,15 @@ export class PublicPagesService {
       }
     }
 
+    const localizedArtist = localizeArtistTextFields(page.artist, locale);
+
     return {
       artistId,
       pageId: page.id,
       artist: {
         username: page.artist.username,
-        displayName: page.artist.displayName,
-        bio: page.artist.bio,
+        displayName: localizedArtist.displayName,
+        bio: localizedArtist.bio,
         avatarUrl: page.artist.avatarUrl,
         coverUrl: page.artist.coverUrl,
         category: page.artist.category,
@@ -287,19 +407,13 @@ export class PublicPagesService {
         spotifyUrl: page.artist.spotifyUrl,
         soundcloudUrl: page.artist.soundcloudUrl,
         websiteUrl: page.artist.websiteUrl,
-        seoTitle: page.artist.seoTitle,
-        seoDescription: page.artist.seoDescription,
+        seoTitle: localizedArtist.seoTitle,
+        seoDescription: localizedArtist.seoDescription,
+        locale,
       },
-      blocks: page.blocks.map(
-        (block): PublicBlockDto => ({
-          id: block.id,
-          type: block.type,
-          title: block.title,
-          position: block.position,
-          config: (block.config as Record<string, unknown>) ?? {},
-        }),
-      ),
+      blocks: page.blocks.map((block) => localizeBlock(block, locale)),
       promoSlot,
+      locale,
     };
   }
 }

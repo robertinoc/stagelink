@@ -1,4 +1,4 @@
-import type { ArtistCategory, PublicPromoSlotKind } from '@stagelink/types';
+import type { ArtistCategory, PublicPromoSlotKind, SupportedLocale } from '@stagelink/types';
 
 /**
  * DTOs de respuesta para endpoints públicos de páginas de artistas.
@@ -37,6 +37,7 @@ export interface PublicArtistDto {
   websiteUrl: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
+  locale: SupportedLocale;
 }
 
 // ── Respuesta completa de página pública ──────────────────────
@@ -53,6 +54,7 @@ export interface PublicPageResponseDto {
   /** Página de artista visible públicamente */
   artist: PublicArtistDto;
   blocks: PublicBlockDto[];
+  locale: SupportedLocale;
   /** Slot público reservado para branding/promo según el plan efectivo. */
   promoSlot: {
     kind: PublicPromoSlotKind;
