@@ -2,7 +2,7 @@ import { authkit, partitionAuthkitHeaders, applyResponseHeaders } from '@workos-
 import createIntlMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_LOCALE } from '@stagelink/types';
-import { detectLocale } from '@/lib/detect-locale';
+import { resolvePreferredLocale } from '@/lib/detect-locale';
 
 const LOCALES = ['en', 'es'] as const;
 type SupportedLocale = (typeof LOCALES)[number];
@@ -34,7 +34,10 @@ const intlMiddleware = createIntlMiddleware({
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const segments = pathname.split('/').filter(Boolean);
-  const locale = detectLocale(request.headers.get('accept-language') ?? DEFAULT_LOCALE);
+  const locale = resolvePreferredLocale({
+    acceptLanguage: request.headers.get('accept-language') ?? DEFAULT_LOCALE,
+    localeCookie: request.cookies.get('NEXT_LOCALE')?.value ?? null,
+  });
 
   // API routes that need AuthKit session context but not locale handling.
   if (

@@ -548,9 +548,9 @@
       "website": "Website"
     },
     "branding_slot": {
-      "title": "¿Te gustaría habilitar las funciones PRO?",
+      "title": "Creá tu propia página en StageLink",
       "cta": "Ver precios y planes",
-      "secondary": "¿Aún no tenés tu página con <brand>StageLink</brand>? Creá tu cuenta <signup>aquí</signup>."
+      "secondary": "Publicá links, embeds, fan capture y más con <brand>StageLink</brand>. Creá tu cuenta <signup>aquí</signup>."
     },
     "not_found_title": "Página no encontrada",
     "not_found_description": "Esta página de artista no existe o no está disponible en este momento.",
