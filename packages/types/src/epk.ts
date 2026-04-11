@@ -1,3 +1,5 @@
+import type { LocalizedTextMap, SupportedLocale } from './i18n';
+
 export interface EpkFeaturedMediaItem {
   id: string;
   title: string;
@@ -73,8 +75,19 @@ export interface Epk {
   techRequirements: string | null;
   location: string | null;
   availabilityNotes: string | null;
+  translations: EpkTranslations;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface EpkTranslations {
+  headline?: LocalizedTextMap;
+  shortBio?: LocalizedTextMap;
+  fullBio?: LocalizedTextMap;
+  pressQuote?: LocalizedTextMap;
+  riderInfo?: LocalizedTextMap;
+  techRequirements?: LocalizedTextMap;
+  availabilityNotes?: LocalizedTextMap;
 }
 
 export interface UpdateEpkPayload {
@@ -94,6 +107,7 @@ export interface UpdateEpkPayload {
   techRequirements?: string | null;
   location?: string | null;
   availabilityNotes?: string | null;
+  translations?: EpkTranslations;
 }
 
 export interface EpkInheritedArtistSnapshot {
@@ -153,4 +167,5 @@ export interface PublicEpkResponse {
   techRequirements: string | null;
   location: string | null;
   availabilityNotes: string | null;
+  locale?: SupportedLocale;
 }

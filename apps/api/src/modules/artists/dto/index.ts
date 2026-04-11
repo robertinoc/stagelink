@@ -10,6 +10,7 @@ import {
   MaxLength,
   MinLength,
   Matches,
+  IsObject,
   registerDecorator,
   ValidationOptions,
   ValidatorConstraint,
@@ -207,4 +208,8 @@ export class UpdateArtistDto {
     typeof value === 'string' && value.trim() === '' ? null : value,
   )
   seoDescription?: string | null;
+
+  @IsOptional()
+  @IsObject()
+  translations?: Record<string, unknown>;
 }

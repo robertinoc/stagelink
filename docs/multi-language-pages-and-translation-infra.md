@@ -1,0 +1,261 @@
+# Multi-language Pages And Translation Infra
+
+## Objetivo
+
+T6-5 agrega soporte real para:
+
+1. UI translations del producto con `next-intl`
+2. content translations del artista y la página pública
+
+La implementación prioriza una base mínima, SSR-friendly y extensible sin montar un CMS multilenguaje enterprise.
+
+## Locales soportados
+
+- `en`
+- `es`
+
+Fuente compartida:
+
+- `packages/types/src/i18n.ts`
+
+## Routing
+
+### App shell
+
+Se mantiene el routing existente con locale explícito:
+
+- `/{locale}/dashboard/...`
+- `/{locale}/pricing`
+- `/{locale}/login`
+
+### Página pública del artista
+
+La página pública localizada vive en:
+
+- `/{locale}/{username}`
+
+Compatibilidad:
+
+- `/{username}` sigue funcionando, pero hace redirect al locale detectado:
+  - `/{username}` -> `/{locale}/{username}`
+- `/p/{username}` queda como ruta interna/compatibilidad y también redirige
+
+### EPK público
+
+El EPK público sigue expuesto en:
+
+- `/p/{username}/epk`
+- `/p/{username}/epk/print`
+
+Pero ahora puede resolver textos por `locale` vía query interna al backend.
+
+## Separación entre UI i18n y content i18n
+
+### UI i18n
+
+Usa `next-intl` y archivos:
+
+- `apps/web/src/i18n/messages/en.json`
+- `apps/web/src/i18n/messages/es.json`
+
+Aplica a:
+
+- navegación
+- dashboard shell
+- labels del sistema
+- billing
+- public page labels
+- editor de profile
+
+### Content i18n
+
+Se persiste por entidad y se resuelve con fallback explícito.
+
+Entidades cubiertas:
+
+- `Artist`
+- `Epk`
+- `Block` (solo contenido textual simple donde ya tenía sentido)
+
+## Modelo de datos elegido
+
+Se eligió JSON por entidad en vez de tabla separada.
+
+### Artist
+
+- campo base legacy:
+  - `displayName`
+  - `bio`
+  - `seoTitle`
+  - `seoDescription`
+- nuevo:
+  - `translations Json`
+
+Shape esperada:
+
+```json
+{
+  "displayName": { "es": "..." },
+  "bio": { "es": "..." },
+  "seoTitle": { "es": "..." },
+  "seoDescription": { "es": "..." }
+}
+```
+
+### Epk
+
+- campos base legacy permanecen
+- nuevo:
+  - `translations Json`
+
+Campos textuales soportados:
+
+- `headline`
+- `shortBio`
+- `fullBio`
+- `pressQuote`
+- `riderInfo`
+- `techRequirements`
+- `availabilityNotes`
+
+### Block
+
+- se agrega:
+  - `localized_content Json`
+
+Uso actual:
+
+- `title`
+- `email_capture` texts
+- `links` title e item labels
+
+Esto deja documentado el patrón para extenderlo a más bloques después.
+
+## Política de fallback
+
+El fallback siempre es conservador y nunca deja la página vacía si existe contenido base.
+
+Orden de resolución:
+
+1. locale solicitado
+2. fallback al locale base `en`
+3. campo base legacy
+
+Helper central:
+
+- `apps/api/src/common/utils/localized-content.util.ts`
+
+## Feature gating
+
+Feature:
+
+- `multi_language_pages`
+
+Política:
+
+- todos pueden editar contenido base
+- contenido real adicional en otros locales requiere acceso a `multi_language_pages`
+- hoy esa feature está alineada con `Pro+`
+
+Enforcement:
+
+- backend:
+  - `ArtistsService.update()` rechaza contenido extra por locale si falta la feature
+- frontend:
+  - profile editor muestra lock/upsell para locales adicionales
+
+## Backend
+
+### Lectura pública por locale
+
+La API pública ya acepta `locale` explícito:
+
+- `/api/public/pages/by-username/:username?locale=en|es`
+- `/api/public/epk/by-username/:username?locale=en|es`
+
+### Edición
+
+Profile editor envía:
+
+- campos base
+- `translations`
+
+El backend:
+
+- sanitiza locales soportados
+- descarta strings vacíos
+- aplica gating
+
+## Frontend
+
+### Página pública SSR
+
+La página pública localizada usa:
+
+- `apps/web/src/app/[locale]/[username]/page.tsx`
+
+Metadata:
+
+- `title` y `description` por locale
+- `alternates.languages` para `en` y `es`
+- canonical por locale
+
+### Editor de profile
+
+El editor mantiene:
+
+- contenido base legacy
+- nueva sección `Localized content`
+
+Permite editar por locale:
+
+- artist name
+- short bio
+- SEO title
+- SEO description
+
+## SEO
+
+Base SEO implementada:
+
+- metadata por locale en página pública
+- alternates/hreflang para `en` y `es`
+- canonical alineado al route locale-prefixed
+
+## Edge cases cubiertos
+
+- locale inválido -> fallback a locale soportado/default
+- traducción faltante -> fallback a `en` o campo base
+- tenant sin feature premium -> no puede guardar contenido extra por locale
+- contenido parcial en un idioma -> mezcla segura con fallback por campo
+- labels de UI faltantes -> quedan centralizadas en `next-intl`
+
+## Limitaciones actuales
+
+- no hay traducción automática
+- no hay workflow editorial avanzado
+- no todos los bloques tienen UI de edición multilenguaje todavía
+- EPK soporta lectura localizada en backend, pero el editor multilenguaje del EPK todavía no expone una UX dedicada
+
+## Cómo extender
+
+Para agregar un nuevo campo textual:
+
+1. agregarlo al JSON de traducciones de la entidad
+2. sanitizarlo con `sanitizeTranslationFieldMap`
+3. resolverlo con `resolveLocalizedText`
+4. exponerlo en frontend editor si corresponde
+
+Para agregar un nuevo locale:
+
+1. sumarlo en `packages/types/src/i18n.ts`
+2. agregar archivo de mensajes UI
+3. agregar labels de locale en el editor
+4. revisar reserved usernames y metadata alternates
+
+## Próximos pasos recomendados
+
+1. agregar UX multilenguaje a EPK editor
+2. exponer edición localizada para bloques textuales en dashboard page builder
+3. sumar sitemap dinámico con páginas públicas localizadas
+4. considerar selector de idioma visible en la página pública

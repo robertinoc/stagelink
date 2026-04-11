@@ -1,4 +1,5 @@
 export * from './user';
+export * from './i18n';
 export * from './artist';
 export * from './page';
 export * from './block';

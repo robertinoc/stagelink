@@ -1,6 +1,7 @@
 'use client';
 
 import type { UseFormReturn } from 'react-hook-form';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import type { ProfileFormValues } from '../schemas/profile.schema';
@@ -19,33 +20,47 @@ interface SocialField {
   placeholder: string;
 }
 
-const SOCIAL_FIELDS: SocialField[] = [
-  { key: 'instagramUrl', label: 'Instagram', placeholder: 'https://instagram.com/yourname' },
-  { key: 'tiktokUrl', label: 'TikTok', placeholder: 'https://tiktok.com/@yourname' },
-  { key: 'youtubeUrl', label: 'YouTube', placeholder: 'https://youtube.com/@yourchannel' },
-  { key: 'spotifyUrl', label: 'Spotify', placeholder: 'https://open.spotify.com/artist/...' },
-  { key: 'soundcloudUrl', label: 'SoundCloud', placeholder: 'https://soundcloud.com/yourname' },
-  { key: 'websiteUrl', label: 'Website', placeholder: 'https://yourwebsite.com' },
-];
-
 export function ProfileSocialLinks({ form, disabled }: ProfileSocialLinksProps) {
+  const t = useTranslations('dashboard.profile');
   const {
     register,
     formState: { errors },
   } = form;
+  const socialFields: SocialField[] = [
+    {
+      key: 'instagramUrl',
+      label: t('fields.instagram'),
+      placeholder: 'https://instagram.com/yourname',
+    },
+    { key: 'tiktokUrl', label: t('fields.tiktok'), placeholder: 'https://tiktok.com/@yourname' },
+    {
+      key: 'youtubeUrl',
+      label: t('fields.youtube'),
+      placeholder: 'https://youtube.com/@yourchannel',
+    },
+    {
+      key: 'spotifyUrl',
+      label: t('fields.spotify'),
+      placeholder: 'https://open.spotify.com/artist/...',
+    },
+    {
+      key: 'soundcloudUrl',
+      label: t('fields.soundcloud'),
+      placeholder: 'https://soundcloud.com/yourname',
+    },
+    { key: 'websiteUrl', label: t('fields.website'), placeholder: 'https://yourwebsite.com' },
+  ];
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Social & Contact</CardTitle>
-        <CardDescription>
-          Add your links so fans can find you everywhere. Leave blank to hide.
-        </CardDescription>
+        <CardTitle>{t('sections.social')}</CardTitle>
+        <CardDescription>{t('sections.social_hint')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         {/* Social URL fields */}
         <div className="grid gap-4 sm:grid-cols-2">
-          {SOCIAL_FIELDS.map(({ key, label, placeholder }) => (
+          {socialFields.map(({ key, label, placeholder }) => (
             <div key={key} className="space-y-1.5">
               <label htmlFor={key} className="text-sm font-medium">
                 {label}
@@ -65,7 +80,7 @@ export function ProfileSocialLinks({ form, disabled }: ProfileSocialLinksProps) 
         {/* Contact email (separate row, full width) */}
         <div className="space-y-1.5">
           <label htmlFor="contactEmail" className="text-sm font-medium">
-            Contact email
+            {t('fields.contact_email')}
           </label>
           <Input
             id="contactEmail"
@@ -77,9 +92,7 @@ export function ProfileSocialLinks({ form, disabled }: ProfileSocialLinksProps) 
           {errors.contactEmail && (
             <p className="text-xs text-destructive">{errors.contactEmail.message}</p>
           )}
-          <p className="text-xs text-muted-foreground">
-            Public booking or press contact. Not used for login.
-          </p>
+          <p className="text-xs text-muted-foreground">{t('fields.contact_email_hint')}</p>
         </div>
       </CardContent>
     </Card>

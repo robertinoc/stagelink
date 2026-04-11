@@ -103,6 +103,7 @@ model Artist {
   // SEO
   seoTitle      String?  @map("seo_title")
   seoDescription String? @map("seo_description")
+  translations  Json     @default("{}")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -148,6 +149,7 @@ model Epk {
   techRequirements   String?  @map("tech_requirements")
   location           String?
   availabilityNotes  String?  @map("availability_notes")
+  translations       Json     @default("{}")
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
@@ -238,6 +240,7 @@ model Block {
   type        BlockType
   title       String?   // Etiqueta visible opcional (display label)
   config      Json      @default("{}") // Shape validado por tipo en el backend
+  localizedContent Json  @default("{}") @map("localized_content")
   position    Int       @default(0)
   isPublished Boolean   @default(false) @map("is_published")
   createdAt   DateTime  @default(now()) @map("created_at")

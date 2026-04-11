@@ -3,11 +3,11 @@ import type { MetadataRoute } from 'next';
 /**
  * robots.txt for StageLink.
  *
- * Allow: public artist pages at /{username} (canonical).
- * Disallow: locale-prefixed app shell routes and the internal /p/ rewrite target.
+ * Allow: localized public artist pages at /{locale}/{username}.
+ * Disallow: authenticated app shell routes and the internal /p/ compatibility target.
  *
- * Crawlers should only index public artist pages and the root.
- * Authenticated app routes (/en/dashboard, /en/settings, etc.) must not be indexed.
+ * Crawlers should index marketing routes and localized public artist pages.
+ * Authenticated app routes (/en/dashboard, /es/dashboard, etc.) must not be indexed.
  */
 export default function robots(): MetadataRoute.Robots {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.stagelink.io';
@@ -18,8 +18,16 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: [
-          '/en/', // App shell (authenticated routes)
-          '/es/', // App shell — Spanish locale
+          '/en/dashboard',
+          '/en/onboarding',
+          '/en/login',
+          '/en/signup',
+          '/en/settings',
+          '/es/dashboard',
+          '/es/onboarding',
+          '/es/login',
+          '/es/signup',
+          '/es/settings',
           '/p/', // Internal rewrite target — canonical is /{username}
           '/go/', // Smart link redirect handler — not indexable content
         ],

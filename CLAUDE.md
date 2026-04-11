@@ -47,7 +47,7 @@ apps/
 │       │       ├── (app)/              # Dashboard layout (Sidebar + Topbar)
 │       │       │   ├── dashboard/
 │       │       │   └── settings/
-│       │       └── [username]/         # Página pública del artista (multi-tenant)
+│       │       └── [username]/         # Página pública del artista localizada (multi-tenant)
 │       ├── components/
 │       │   ├── ui/                     # shadcn/ui: Button, Card, Input, Badge, etc.
 │       │   ├── layout/                 # Navbar, Sidebar, Footer, PageContainer
@@ -128,6 +128,7 @@ docs/
 ├── stripe-billing-foundation.md   # Checkout, portal, webhooks, billing por artist (T5-1)
 ├── billing-state-policy.md        # Política base de billing states y recovery
 ├── billing-state-edge-cases.md    # Effective billing state, effective plan, webhook ordering y fallbacks T6-6
+├── multi-language-pages-and-translation-infra.md # Routing locale-aware, content translations, fallback y gating T6-5
 ├── plan-feature-gating.md         # effectivePlan, entitlements y patrón de gating por plan (T5-2)
 └── billing-ui-and-upgrade-flows.md # Billing dashboard, upgrade flows y retornos desde Stripe (T5-3)
 ```
@@ -220,13 +221,13 @@ Cada artista tiene un `username` único que actúa como identificador de tenant.
 ### Resolución por username (implementado)
 
 ```
-GET /[username]
-  → fetchPublicPage(username)  [apps/web/src/lib/public-api.ts]
-    → GET /api/public/pages/by-username/:username
+GET /[locale]/[username]
+  → fetchPublicPage(username, locale)  [apps/web/src/lib/public-api.ts]
+    → GET /api/public/pages/by-username/:username?locale=en|es
       → TenantResolverService.resolveByUsername()
         → normaliza username → busca en DB → retorna artistId
-      → PublicPagesService.loadPublicPage(artistId)
-        → carga page + blocks filtrados por artistId
+      → PublicPagesService.loadPublicPage(artistId, locale)
+        → carga page + blocks filtrados por artistId + fallback localizado
       ← { artist: { username, displayName, bio, ... }, blocks: [...] }
   → notFound() si no existe o no publicado
   → renderiza ArtistPage con datos del tenant

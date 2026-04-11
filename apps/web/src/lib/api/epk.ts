@@ -1,5 +1,11 @@
 import { apiFetch } from '@/lib/auth';
-import type { EpkEditorResponse, PublicEpkResponse, UpdateEpkPayload } from '@stagelink/types';
+import {
+  DEFAULT_LOCALE,
+  type EpkEditorResponse,
+  type PublicEpkResponse,
+  type SupportedLocale,
+  type UpdateEpkPayload,
+} from '@stagelink/types';
 
 export async function getArtistEpk(
   artistId: string,
@@ -73,17 +79,17 @@ export async function unpublishArtistEpk(artistId: string): Promise<EpkEditorRes
   return res.json() as Promise<EpkEditorResponse>;
 }
 
-export async function fetchPublicEpk(username: string): Promise<PublicEpkResponse | null> {
+export async function fetchPublicEpk(
+  username: string,
+  locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<PublicEpkResponse | null> {
   const configuredUrl =
     process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4001';
   const trimmedUrl = configuredUrl.replace(/\/+$/, '');
   const apiBaseUrl = trimmedUrl.endsWith('/api') ? trimmedUrl.slice(0, -4) : trimmedUrl;
-  const res = await fetch(
-    `${apiBaseUrl}/api/public/epk/by-username/${encodeURIComponent(username)}`,
-    {
-      cache: 'no-store',
-    },
-  );
+  const url = new URL(`${apiBaseUrl}/api/public/epk/by-username/${encodeURIComponent(username)}`);
+  url.searchParams.set('locale', locale);
+  const res = await fetch(url, { cache: 'no-store' });
 
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Failed to load public EPK (${res.status})`);

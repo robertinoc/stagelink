@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { updateArtist, type Artist } from '@/lib/api/artists';
 import { profileSchema, type ProfileFormValues } from '../schemas/profile.schema';
@@ -11,9 +12,12 @@ import { ProfileBasicInfo } from './ProfileBasicInfo';
 import { ProfileImagesSection } from './ProfileImagesSection';
 import { ProfileSocialLinks } from './ProfileSocialLinks';
 import { ProfileSeoSection } from './ProfileSeoSection';
+import { LocalizedProfileContentSection } from './LocalizedProfileContentSection';
 
 interface ArtistProfileSettingsProps {
   artist: Artist;
+  hasMultiLanguageAccess: boolean;
+  billingHref: string;
 }
 
 /**
@@ -33,7 +37,10 @@ interface ArtistProfileSettingsProps {
  */
 export function ArtistProfileSettings({
   artist: initialArtist,
+  hasMultiLanguageAccess,
+  billingHref,
 }: ArtistProfileSettingsProps) {
+  const t = useTranslations('dashboard.profile');
   const [artist, setArtist] = useState<Artist>(initialArtist);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -53,6 +60,20 @@ export function ArtistProfileSettings({
       contactEmail: artist.contactEmail ?? '',
       seoTitle: artist.seoTitle ?? '',
       seoDescription: artist.seoDescription ?? '',
+      translations: {
+        en: {
+          displayName: artist.translations?.displayName?.en ?? '',
+          bio: artist.translations?.bio?.en ?? '',
+          seoTitle: artist.translations?.seoTitle?.en ?? '',
+          seoDescription: artist.translations?.seoDescription?.en ?? '',
+        },
+        es: {
+          displayName: artist.translations?.displayName?.es ?? '',
+          bio: artist.translations?.bio?.es ?? '',
+          seoTitle: artist.translations?.seoTitle?.es ?? '',
+          seoDescription: artist.translations?.seoDescription?.es ?? '',
+        },
+      },
     },
   });
 
@@ -62,6 +83,18 @@ export function ArtistProfileSettings({
     formState: { isDirty, isSubmitting },
   } = form;
   const isBusy = isSubmitting || saveStatus === 'saving';
+
+  function buildLocalizedFieldMap(
+    values: Record<'en' | 'es', string | undefined>,
+  ): Record<'en' | 'es', string> | undefined {
+    const entries = Object.entries(values).filter(([, value]) => value?.trim());
+    if (entries.length === 0) return undefined;
+
+    return Object.fromEntries(entries.map(([locale, value]) => [locale, value!.trim()])) as Record<
+      'en' | 'es',
+      string
+    >;
+  }
 
   async function onSubmit(values: ProfileFormValues) {
     setSaveStatus('saving');
@@ -89,6 +122,44 @@ export function ArtistProfileSettings({
       contactEmail: values.contactEmail || null,
       seoTitle: values.seoTitle || null,
       seoDescription: values.seoDescription || null,
+      translations: {
+        ...(buildLocalizedFieldMap({
+          en: values.translations.en.displayName,
+          es: values.translations.es.displayName,
+        }) && {
+          displayName: buildLocalizedFieldMap({
+            en: values.translations.en.displayName,
+            es: values.translations.es.displayName,
+          }),
+        }),
+        ...(buildLocalizedFieldMap({
+          en: values.translations.en.bio,
+          es: values.translations.es.bio,
+        }) && {
+          bio: buildLocalizedFieldMap({
+            en: values.translations.en.bio,
+            es: values.translations.es.bio,
+          }),
+        }),
+        ...(buildLocalizedFieldMap({
+          en: values.translations.en.seoTitle,
+          es: values.translations.es.seoTitle,
+        }) && {
+          seoTitle: buildLocalizedFieldMap({
+            en: values.translations.en.seoTitle,
+            es: values.translations.es.seoTitle,
+          }),
+        }),
+        ...(buildLocalizedFieldMap({
+          en: values.translations.en.seoDescription,
+          es: values.translations.es.seoDescription,
+        }) && {
+          seoDescription: buildLocalizedFieldMap({
+            en: values.translations.en.seoDescription,
+            es: values.translations.es.seoDescription,
+          }),
+        }),
+      },
     };
 
     try {
@@ -108,6 +179,20 @@ export function ArtistProfileSettings({
         contactEmail: updated.contactEmail ?? '',
         seoTitle: updated.seoTitle ?? '',
         seoDescription: updated.seoDescription ?? '',
+        translations: {
+          en: {
+            displayName: updated.translations?.displayName?.en ?? '',
+            bio: updated.translations?.bio?.en ?? '',
+            seoTitle: updated.translations?.seoTitle?.en ?? '',
+            seoDescription: updated.translations?.seoDescription?.en ?? '',
+          },
+          es: {
+            displayName: updated.translations?.displayName?.es ?? '',
+            bio: updated.translations?.bio?.es ?? '',
+            seoTitle: updated.translations?.seoTitle?.es ?? '',
+            seoDescription: updated.translations?.seoDescription?.es ?? '',
+          },
+        },
       });
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 4000);
@@ -140,13 +225,21 @@ export function ArtistProfileSettings({
         {/* 4 — SEO */}
         <ProfileSeoSection form={form} disabled={isBusy} username={artist.username} />
 
+        {/* 5 — Additional locale content */}
+        <LocalizedProfileContentSection
+          form={form}
+          disabled={isBusy}
+          hasMultiLanguageAccess={hasMultiLanguageAccess}
+          billingHref={billingHref}
+        />
+
         {/* Save bar */}
         <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-sm">
             {saveStatus === 'success' && (
               <>
                 <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <span className="text-green-600">Profile saved successfully.</span>
+                <span className="text-green-600">{t('saved')}</span>
               </>
             )}
             {saveStatus === 'error' && (
@@ -156,12 +249,12 @@ export function ArtistProfileSettings({
               </>
             )}
             {saveStatus === 'idle' && isDirty && (
-              <span className="text-muted-foreground">You have unsaved changes.</span>
+              <span className="text-muted-foreground">{t('unsaved')}</span>
             )}
           </div>
 
           <Button type="submit" disabled={isBusy || !isDirty} className="w-full sm:w-auto">
-            {isBusy ? 'Saving…' : 'Save profile'}
+            {isBusy ? t('saving') : t('save')}
           </Button>
         </div>
       </div>

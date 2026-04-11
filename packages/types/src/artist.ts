@@ -1,3 +1,5 @@
+import type { LocalizedTextMap, SupportedLocale } from './i18n';
+
 export type ArtistRole = 'owner' | 'admin' | 'editor' | 'viewer';
 
 export interface ArtistMembership {
@@ -40,11 +42,27 @@ export interface Artist {
   contactEmail: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
+  translations: ArtistTranslations;
   createdAt: string;
   updatedAt: string;
 }
 
 import type { BlockType, BlockConfig } from './block';
+
+export interface ArtistTranslations {
+  displayName?: LocalizedTextMap;
+  bio?: LocalizedTextMap;
+  seoTitle?: LocalizedTextMap;
+  seoDescription?: LocalizedTextMap;
+}
+
+export interface LocalizedArtistContent {
+  locale: SupportedLocale;
+  displayName: string;
+  bio: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+}
 
 export interface PublicBlock {
   id: string;
@@ -70,6 +88,7 @@ export interface PublicArtist {
   websiteUrl: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
+  locale: SupportedLocale;
 }
 
 export type PublicPromoSlotKind = 'none' | 'free_branding';
@@ -84,6 +103,7 @@ export interface PublicPageResponse {
   artist: PublicArtist;
   blocks: PublicBlock[];
   promoSlot: PublicPromoSlot;
+  locale: SupportedLocale;
 }
 
 export type CustomDomainStatus = 'pending' | 'active' | 'failed' | 'disabled';

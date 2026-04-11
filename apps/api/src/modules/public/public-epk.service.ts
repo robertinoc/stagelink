@@ -1,10 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { EpkFeaturedLinkItem, EpkFeaturedMediaItem } from '@stagelink/types';
+import type {
+  EpkFeaturedLinkItem,
+  EpkFeaturedMediaItem,
+  EpkTranslations,
+  SupportedLocale,
+} from '@stagelink/types';
 import { PrismaService } from '../../lib/prisma.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
 import type { PublicEpkResponseDto } from './dto/public-epk-response.dto';
 import { buildFallbackFeaturedLinks } from '../epk/epk.helpers';
+import { resolveLocalizedText } from '../../common/utils/localized-content.util';
 
 @Injectable()
 export class PublicEpkService {
@@ -14,7 +20,10 @@ export class PublicEpkService {
     private readonly billingEntitlementsService: BillingEntitlementsService,
   ) {}
 
-  async getPublishedByUsername(username: string): Promise<PublicEpkResponseDto> {
+  async getPublishedByUsername(
+    username: string,
+    locale: SupportedLocale,
+  ): Promise<PublicEpkResponseDto> {
     const tenant = await this.tenantResolver.resolveByUsername(username);
     if (!tenant) throw new NotFoundException('Artist not found');
 
@@ -33,6 +42,7 @@ export class PublicEpkService {
         shortBio: true,
         fullBio: true,
         pressQuote: true,
+        translations: true,
         bookingEmail: true,
         managementContact: true,
         pressContact: true,
@@ -51,6 +61,7 @@ export class PublicEpkService {
             username: true,
             displayName: true,
             bio: true,
+            translations: true,
             avatarUrl: true,
             coverUrl: true,
             websiteUrl: true,
@@ -69,6 +80,12 @@ export class PublicEpkService {
     }
 
     const artist = epk.artist;
+    const epkTranslations = (epk.translations as EpkTranslations | null) ?? {};
+    const artistTranslations =
+      (artist.translations as {
+        bio?: Record<string, string>;
+        displayName?: Record<string, string>;
+      } | null) ?? {};
     const featuredLinks = (epk.featuredLinks as unknown as EpkFeaturedLinkItem[]).filter(Boolean);
     const fallbackFeaturedLinks = buildFallbackFeaturedLinks(artist);
 
@@ -78,8 +95,10 @@ export class PublicEpkService {
       isPublished: epk.isPublished,
       artist: {
         username: artist.username,
-        displayName: artist.displayName,
-        bio: artist.bio,
+        displayName:
+          resolveLocalizedText(artist.displayName, artistTranslations.displayName, locale) ??
+          artist.displayName,
+        bio: resolveLocalizedText(artist.bio, artistTranslations.bio, locale),
         avatarUrl: artist.avatarUrl,
         coverUrl: artist.coverUrl,
         websiteUrl: artist.websiteUrl,
@@ -89,10 +108,12 @@ export class PublicEpkService {
         spotifyUrl: artist.spotifyUrl,
         soundcloudUrl: artist.soundcloudUrl,
       },
-      headline: epk.headline,
-      shortBio: epk.shortBio ?? artist.bio,
-      fullBio: epk.fullBio,
-      pressQuote: epk.pressQuote,
+      headline: resolveLocalizedText(epk.headline, epkTranslations.headline, locale),
+      shortBio:
+        resolveLocalizedText(epk.shortBio, epkTranslations.shortBio, locale) ??
+        resolveLocalizedText(artist.bio, artistTranslations.bio, locale),
+      fullBio: resolveLocalizedText(epk.fullBio, epkTranslations.fullBio, locale),
+      pressQuote: resolveLocalizedText(epk.pressQuote, epkTranslations.pressQuote, locale),
       bookingEmail: epk.bookingEmail,
       managementContact: epk.managementContact,
       pressContact: epk.pressContact,
@@ -101,10 +122,19 @@ export class PublicEpkService {
       featuredMedia: (epk.featuredMedia as unknown as EpkFeaturedMediaItem[]).filter(Boolean),
       featuredLinks: featuredLinks.length > 0 ? featuredLinks : fallbackFeaturedLinks,
       highlights: (epk.highlights as unknown as string[]).filter(Boolean),
-      riderInfo: epk.riderInfo,
-      techRequirements: epk.techRequirements,
+      riderInfo: resolveLocalizedText(epk.riderInfo, epkTranslations.riderInfo, locale),
+      techRequirements: resolveLocalizedText(
+        epk.techRequirements,
+        epkTranslations.techRequirements,
+        locale,
+      ),
       location: epk.location,
-      availabilityNotes: epk.availabilityNotes,
+      availabilityNotes: resolveLocalizedText(
+        epk.availabilityNotes,
+        epkTranslations.availabilityNotes,
+        locale,
+      ),
+      locale,
     };
   }
 }

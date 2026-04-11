@@ -1,6 +1,7 @@
 'use client';
 
 import type { UseFormReturn } from 'react-hook-form';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +20,7 @@ const chipClass =
   'relative flex items-center gap-2 rounded-lg border px-3 py-3 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50';
 
 export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
+  const t = useTranslations('dashboard.profile');
   const {
     setValue,
     register,
@@ -46,17 +48,17 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Basic Info</CardTitle>
+        <CardTitle>{t('sections.basic')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         {/* Artist name */}
         <div className="space-y-1.5">
           <label htmlFor="displayName" className="text-sm font-medium">
-            Artist name <span className="text-destructive">*</span>
+            {t('fields.display_name')} <span className="text-destructive">*</span>
           </label>
           <Input
             id="displayName"
-            placeholder="e.g. The Midnight, DJ Snake, Rosalía…"
+            placeholder={t('placeholders.display_name')}
             disabled={disabled}
             {...register('displayName')}
           />
@@ -68,11 +70,11 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
         {/* Bio */}
         <div className="space-y-1.5">
           <label htmlFor="bio" className="text-sm font-medium">
-            Short bio
+            {t('fields.bio')}
           </label>
           <Textarea
             id="bio"
-            placeholder="Tell your fans a bit about yourself…"
+            placeholder={t('placeholders.bio')}
             disabled={disabled}
             className="min-h-[100px]"
             {...register('bio')}
@@ -94,13 +96,13 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
         <div className="space-y-2">
           <div className="space-y-1">
             <label className="text-sm font-medium">
-              Categories <span className="text-destructive">*</span>
+              {t('fields.category')} <span className="text-destructive">*</span>
             </label>
-            <p className="text-xs text-muted-foreground">Choose up to 3. Tap again to remove.</p>
+            <p className="text-xs text-muted-foreground">{t('categories.hint')}</p>
           </div>
           <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-foreground">Selected</span>
+              <span className="font-medium text-foreground">{t('categories.selected')}</span>
               <span className="text-muted-foreground">{selectedCategories.length}/3</span>
             </div>
             <div className="mt-3 flex min-h-11 flex-wrap gap-2">
@@ -117,7 +119,7 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
                   </span>
                 ))
               ) : (
-                <span className="text-sm text-muted-foreground">Pick at least one category.</span>
+                <span className="text-sm text-muted-foreground">{t('categories.empty')}</span>
               )}
             </div>
           </div>

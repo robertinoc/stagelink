@@ -4,6 +4,7 @@ import type {
   EpkEditorResponse,
   EpkFeaturedLinkItem,
   EpkFeaturedMediaItem,
+  EpkTranslations,
   UpdateEpkPayload,
 } from '@stagelink/types';
 import { PrismaService } from '../../lib/prisma.service';
@@ -12,6 +13,7 @@ import { AuditService } from '../audit/audit.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { UpdateEpkDto } from './dto';
 import { buildPublishedEpkSnapshot, getEpkPublishValidation } from './epk.helpers';
+import { sanitizeTranslationFieldMap } from '../../common/utils/localized-content.util';
 
 type EpkRecord = Prisma.EpkGetPayload<Record<string, never>>;
 
@@ -45,6 +47,7 @@ function mapEpk(epk: EpkRecord) {
     artistId: epk.artistId,
     isPublished: epk.isPublished,
     headline: epk.headline,
+    translations: (epk.translations as EpkTranslations | null) ?? {},
     shortBio: epk.shortBio,
     fullBio: epk.fullBio,
     pressQuote: epk.pressQuote,
@@ -266,6 +269,9 @@ export class EpkService {
   private buildUpdatePayload(dto: UpdateEpkDto): Prisma.EpkUpdateInput {
     const payload: UpdateEpkPayload = {
       ...(dto.headline !== undefined && { headline: dto.headline }),
+      ...(dto.translations !== undefined && {
+        translations: sanitizeTranslationFieldMap<EpkTranslations>(dto.translations),
+      }),
       ...(dto.shortBio !== undefined && { shortBio: dto.shortBio }),
       ...(dto.fullBio !== undefined && { fullBio: dto.fullBio }),
       ...(dto.pressQuote !== undefined && { pressQuote: dto.pressQuote }),
@@ -289,6 +295,9 @@ export class EpkService {
 
     return {
       ...(payload.headline !== undefined && { headline: payload.headline }),
+      ...(payload.translations !== undefined && {
+        translations: payload.translations as unknown as Prisma.InputJsonValue,
+      }),
       ...(payload.shortBio !== undefined && { shortBio: payload.shortBio }),
       ...(payload.fullBio !== undefined && { fullBio: payload.fullBio }),
       ...(payload.pressQuote !== undefined && { pressQuote: payload.pressQuote }),

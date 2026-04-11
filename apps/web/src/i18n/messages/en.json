@@ -209,6 +209,37 @@
         "seo_description_hint": "Recommended: 120–160 characters",
         "username_readonly_hint": "Username changes require identity verification and are not available yet."
       },
+      "placeholders": {
+        "display_name": "e.g. The Midnight, DJ Snake, Rosalía…",
+        "bio": "Tell your fans a bit about yourself…",
+        "seo_title": "e.g. \"DJ Snake — Official Page\"",
+        "seo_description": "A short description of your music, style and what fans can find here…"
+      },
+      "categories": {
+        "hint": "Choose up to 3. Tap again to remove.",
+        "selected": "Selected",
+        "empty": "Pick at least one category."
+      },
+      "public_url": "Your public URL",
+      "translations": {
+        "title": "Localized content",
+        "description": "Add optional translated text for your public page. Base content above remains the fallback.",
+        "fallback_note": "{locale} visitors will see this copy when it exists. Otherwise StageLink falls back to your base content.",
+        "lock_badge": "Pro+",
+        "lock_title": "Unlock multi-language pages",
+        "lock_description": "Additional locales are available on Pro+. You can keep editing your base profile, but translated public content needs the multi-language pages feature.",
+        "lock_cta": "Upgrade plan",
+        "locales": {
+          "en": "English",
+          "es": "Spanish"
+        },
+        "placeholders": {
+          "display_name": "Localized artist name",
+          "bio": "Translated short bio for this locale…",
+          "seo_title": "Localized SEO title",
+          "seo_description": "Localized meta description"
+        }
+      },
       "save": "Save profile",
       "saving": "Saving…",
       "saved": "Profile saved successfully.",
@@ -368,7 +399,7 @@
         "multi_language_pages": {
           "title": "Multi-language pages",
           "description": "Publish localized versions of your public page.",
-          "note": "Localization for public pages is still roadmap, but the capability is defined now to avoid reworking billing later."
+          "note": "Create localized public-page copy with locale-aware SEO metadata and fallback handling."
         },
         "advanced_fan_insights": {
           "title": "Advanced fan insights",

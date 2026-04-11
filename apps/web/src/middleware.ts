@@ -1,6 +1,8 @@
 import { authkit, partitionAuthkitHeaders, applyResponseHeaders } from '@workos-inc/authkit-nextjs';
 import createIntlMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
+import { DEFAULT_LOCALE } from '@stagelink/types';
+import { detectLocale } from '@/lib/detect-locale';
 
 const LOCALES = ['en', 'es'] as const;
 type SupportedLocale = (typeof LOCALES)[number];
@@ -25,13 +27,14 @@ const intlMiddleware = createIntlMiddleware({
  *
  * Rules:
  * 0. /go/[id] — bypass everything (Next.js route handler, no locale needed).
- * 1. /p/{username} → 301 to /{username} — prevent duplicate content.
- * 2. Single-segment non-locale paths → rewrite to /p/{username} (artist pages).
+ * 1. /p/{username} → 302 to /{locale}/{username} — prevent duplicate content.
+ * 2. Single-segment non-locale paths → 302 to /{locale}/{username}.
  * 3. Everything else → authkit session + intl locale handling.
  */
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const segments = pathname.split('/').filter(Boolean);
+  const locale = detectLocale(request.headers.get('accept-language') ?? DEFAULT_LOCALE);
 
   // API routes that need AuthKit session context but not locale handling.
   if (
@@ -64,8 +67,8 @@ export default async function middleware(request: NextRequest) {
     segments[1] !== 'print'
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = `/${segments[1]!}`;
-    return NextResponse.redirect(url, 301);
+    url.pathname = `/${locale}/${segments[1]!}`;
+    return NextResponse.redirect(url, 302);
   }
 
   // Public EPK routes live outside locale prefixes, just like the artist public page.
@@ -73,11 +76,11 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Rule 2: artist username — rewrite /{username} → /p/{username}.
+  // Rule 2: artist username — redirect /{username} → /{locale}/{username}.
   if (segments.length === 1 && !LOCALES.includes(segments[0] as SupportedLocale)) {
     const url = request.nextUrl.clone();
-    url.pathname = `/p/${segments[0]!}`;
-    return NextResponse.rewrite(url);
+    url.pathname = `/${locale}/${segments[0]!}`;
+    return NextResponse.redirect(url, 302);
   }
 
   // Rule 3: authkit session + intl locale handling.

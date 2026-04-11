@@ -1,6 +1,7 @@
 'use client';
 
 import type { UseFormReturn } from 'react-hook-form';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,6 +30,7 @@ function getPublicHost(): string {
 const PUBLIC_HOST = getPublicHost();
 
 export function ProfileSeoSection({ form, disabled, username }: ProfileSeoSectionProps) {
+  const t = useTranslations('dashboard.profile');
   const {
     register,
     formState: { errors },
@@ -41,32 +43,27 @@ export function ProfileSeoSection({ form, disabled, username }: ProfileSeoSectio
   return (
     <Card>
       <CardHeader>
-        <CardTitle>SEO & Discoverability</CardTitle>
-        <CardDescription>
-          Control how your page appears in search results. Defaults to your artist name and bio if
-          left empty.
-        </CardDescription>
+        <CardTitle>{t('sections.seo')}</CardTitle>
+        <CardDescription>{t('sections.seo_hint')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         {/* Public URL — readonly */}
         <div className="space-y-1.5">
-          <p className="text-sm font-medium">Your public URL</p>
+          <p className="text-sm font-medium">{t('public_url')}</p>
           <div className="flex h-9 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
             {PUBLIC_HOST}/<span className="font-medium text-foreground">{username}</span>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Username changes require identity verification and are not available yet.
-          </p>
+          <p className="text-xs text-muted-foreground">{t('fields.username_readonly_hint')}</p>
         </div>
 
         {/* SEO title */}
         <div className="space-y-1.5">
           <label htmlFor="seoTitle" className="text-sm font-medium">
-            Page title
+            {t('fields.seo_title')}
           </label>
           <Input
             id="seoTitle"
-            placeholder={`e.g. "DJ Snake — Official Page"`}
+            placeholder={t('placeholders.seo_title')}
             disabled={disabled}
             {...register('seoTitle')}
           />
@@ -74,7 +71,7 @@ export function ProfileSeoSection({ form, disabled, username }: ProfileSeoSectio
             {errors.seoTitle ? (
               <p className="text-xs text-destructive">{errors.seoTitle.message}</p>
             ) : (
-              <p className="text-xs text-muted-foreground">Recommended: 50–60 characters</p>
+              <p className="text-xs text-muted-foreground">{t('fields.seo_title_hint')}</p>
             )}
             <span
               className={`text-xs ${seoTitleValue.length > 50 ? 'text-amber-500' : 'text-muted-foreground'}`}
@@ -87,11 +84,11 @@ export function ProfileSeoSection({ form, disabled, username }: ProfileSeoSectio
         {/* SEO description */}
         <div className="space-y-1.5">
           <label htmlFor="seoDescription" className="text-sm font-medium">
-            Meta description
+            {t('fields.seo_description')}
           </label>
           <Textarea
             id="seoDescription"
-            placeholder="A short description of your music, style and what fans can find here…"
+            placeholder={t('placeholders.seo_description')}
             disabled={disabled}
             className="min-h-[80px]"
             {...register('seoDescription')}
@@ -100,7 +97,7 @@ export function ProfileSeoSection({ form, disabled, username }: ProfileSeoSectio
             {errors.seoDescription ? (
               <p className="text-xs text-destructive">{errors.seoDescription.message}</p>
             ) : (
-              <p className="text-xs text-muted-foreground">Recommended: 120–160 characters</p>
+              <p className="text-xs text-muted-foreground">{t('fields.seo_description_hint')}</p>
             )}
             <span
               className={`text-xs ${seoDescValue.length > 140 ? 'text-amber-500' : 'text-muted-foreground'}`}

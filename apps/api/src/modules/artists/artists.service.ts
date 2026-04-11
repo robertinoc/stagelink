@@ -1,10 +1,15 @@
 import { Injectable, ConflictException } from '@nestjs/common';
-import { ArtistCategory } from '@prisma/client';
+import { ArtistCategory, Prisma } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
 import { PostHogService } from '../analytics/posthog.service';
-import { ANALYTICS_EVENTS } from '@stagelink/types';
+import { ANALYTICS_EVENTS, type ArtistTranslations } from '@stagelink/types';
+import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
+import {
+  hasAdditionalLocaleContent,
+  sanitizeTranslationFieldMap,
+} from '../../common/utils/localized-content.util';
 
 // ── Internal payload types (not exported — presentation DTOs live in dto/) ───
 
@@ -33,7 +38,10 @@ interface UpdateArtistPayload {
   contactEmail?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
+  translations?: ArtistTranslations;
 }
+
+type ArtistRecord = Prisma.ArtistGetPayload<Record<string, never>>;
 
 function sanitizeSecondaryCategories(
   primary: ArtistCategory | undefined,
@@ -52,20 +60,31 @@ export class ArtistsService {
     private readonly membershipService: MembershipService,
     private readonly auditService: AuditService,
     private readonly posthog: PostHogService,
+    private readonly billingEntitlementsService: BillingEntitlementsService,
   ) {}
+
+  private mapArtist(artist: ArtistRecord) {
+    return {
+      ...artist,
+      translations: (artist.translations as ArtistTranslations | null) ?? {},
+    };
+  }
 
   async findAllForUser(userId: string) {
     const artistIds = await this.membershipService.getArtistIdsForUser(userId);
-    return this.prisma.artist.findMany({
+    const artists = await this.prisma.artist.findMany({
       where: { id: { in: artistIds } },
       include: { memberships: { where: { userId }, select: { role: true } } },
       orderBy: { createdAt: 'desc' },
     });
+
+    return artists.map((artist) => this.mapArtist(artist));
   }
 
   async findOne(id: string, userId: string) {
     await this.membershipService.validateAccess(userId, id, 'read');
-    return this.prisma.artist.findUniqueOrThrow({ where: { id } });
+    const artist = await this.prisma.artist.findUniqueOrThrow({ where: { id } });
+    return this.mapArtist(artist);
   }
 
   async create(payload: CreateArtistPayload, userId: string, ipAddress?: string) {
@@ -102,11 +121,19 @@ export class ArtistsService {
       ipAddress,
     });
 
-    return artist;
+    return this.mapArtist({
+      ...artist,
+      translations: {},
+    } as ArtistRecord);
   }
 
   async update(id: string, payload: UpdateArtistPayload, userId: string, ipAddress?: string) {
     await this.membershipService.validateAccess(userId, id, 'write');
+
+    const translations = sanitizeTranslationFieldMap<ArtistTranslations>(payload.translations);
+    if (hasAdditionalLocaleContent(translations)) {
+      await this.billingEntitlementsService.assertFeatureAccess(id, 'multi_language_pages');
+    }
 
     const existingArtist =
       payload.category !== undefined || payload.secondaryCategories !== undefined
@@ -140,6 +167,9 @@ export class ArtistsService {
         ...(payload.contactEmail !== undefined && { contactEmail: payload.contactEmail }),
         ...(payload.seoTitle !== undefined && { seoTitle: payload.seoTitle }),
         ...(payload.seoDescription !== undefined && { seoDescription: payload.seoDescription }),
+        ...(payload.translations !== undefined && {
+          translations: translations as unknown as Prisma.InputJsonValue,
+        }),
       },
     });
 
@@ -159,7 +189,7 @@ export class ArtistsService {
       updated_fields: Object.keys(payload),
     });
 
-    return artist;
+    return this.mapArtist(artist);
   }
 
   async remove(id: string, userId: string, ipAddress?: string) {

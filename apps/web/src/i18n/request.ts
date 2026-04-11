@@ -1,8 +1,9 @@
 import { getRequestConfig } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { SUPPORTED_LOCALES, type SupportedLocale } from '@stagelink/types';
 
-const locales = ['en', 'es'] as const;
-export type Locale = (typeof locales)[number];
+const locales = SUPPORTED_LOCALES;
+export type Locale = SupportedLocale;
 
 export default getRequestConfig(async ({ requestLocale }) => {
   const locale = await requestLocale;
