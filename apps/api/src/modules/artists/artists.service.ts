@@ -29,6 +29,7 @@ interface UpdateArtistPayload {
   bio?: string | null;
   category?: ArtistCategory;
   secondaryCategories?: ArtistCategory[];
+  tags?: string[];
   instagramUrl?: string | null;
   tiktokUrl?: string | null;
   youtubeUrl?: string | null;
@@ -51,6 +52,12 @@ function sanitizeSecondaryCategories(
 
   const unique = Array.from(new Set(secondaryCategories));
   return primary ? unique.filter((category) => category !== primary) : unique;
+}
+
+function sanitizeTags(tags?: string[]): string[] | undefined {
+  if (tags === undefined) return undefined;
+
+  return Array.from(new Set(tags.map((tag) => tag.trim()).filter((tag) => tag.length > 0)));
 }
 
 @Injectable()
@@ -148,6 +155,7 @@ export class ArtistsService {
       resolvedPrimaryCategory,
       payload.secondaryCategories,
     );
+    const tags = sanitizeTags(payload.tags);
 
     const artist = await this.prisma.artist.update({
       where: { id },
@@ -158,6 +166,7 @@ export class ArtistsService {
         ...(payload.bio !== undefined && { bio: payload.bio }),
         ...(payload.category !== undefined && { category: payload.category }),
         ...(secondaryCategories !== undefined && { secondaryCategories }),
+        ...(tags !== undefined && { tags }),
         ...(payload.instagramUrl !== undefined && { instagramUrl: payload.instagramUrl }),
         ...(payload.tiktokUrl !== undefined && { tiktokUrl: payload.tiktokUrl }),
         ...(payload.youtubeUrl !== undefined && { youtubeUrl: payload.youtubeUrl }),

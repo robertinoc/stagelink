@@ -140,6 +140,23 @@ export class UpdateArtistDto {
   })
   secondaryCategories?: ArtistCategory[];
 
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) => {
+    if (!Array.isArray(value)) return value;
+    return value
+      .map((item) => (typeof item === 'string' ? item.trim() : item))
+      .filter((item): item is string => typeof item === 'string' && item.length > 0);
+  })
+  @IsArray()
+  @ArrayUnique()
+  @ArrayMaxSize(6, { message: 'You can choose up to 6 descriptors' })
+  @IsString({ each: true, message: 'tags must contain only strings' })
+  @MaxLength(24, {
+    each: true,
+    message: 'Each descriptor must be 24 characters or less',
+  })
+  tags?: string[];
+
   // ── Social links ─────────────────────────────────────────────
 
   @IsOptional()

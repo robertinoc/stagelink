@@ -218,7 +218,27 @@
       "categories": {
         "hint": "Elegí hasta 3. Tocá de nuevo para quitar.",
         "selected": "Seleccionadas",
-        "empty": "Elegí al menos una categoría."
+        "empty": "Elegí al menos una categoría.",
+        "options": {
+          "musician": "Músico",
+          "dj": "DJ",
+          "actor": "Actor",
+          "painter": "Pintor",
+          "visual_artist": "Artista visual",
+          "performer": "Performer",
+          "creator": "Creador",
+          "band": "Banda",
+          "producer": "Productor",
+          "other": "Otro"
+        }
+      },
+      "descriptors": {
+        "hint": "Agregá hasta 6 descriptores como géneros, nichos o estilos.",
+        "selected": "Descriptores",
+        "empty": "Sumá descriptores como Hard Techno, Rock Alternativo o Educativo.",
+        "placeholder": "Escribí un género, nicho o estilo…",
+        "add": "Agregar descriptor",
+        "remove": "Quitar"
       },
       "public_url": "Tu URL pública",
       "translations": {
@@ -543,14 +563,42 @@
     "powered_by_brand": "StageLink",
     "cover_image_alt": "Imagen de portada de {name}",
     "seo_description_fallback": "Visitá la página de {name} en StageLink",
+    "tagline_separator": " · ",
     "social": {
       "instagram": "Instagram",
       "tiktok": "TikTok",
       "youtube": "YouTube",
       "spotify": "Spotify",
       "soundcloud": "SoundCloud",
-      "website": "Website"
+      "website": "Sitio web"
     },
+    "categories": {
+      "musician": "Músico",
+      "dj": "DJ",
+      "actor": "Actor",
+      "painter": "Pintor",
+      "visual_artist": "Artista visual",
+      "performer": "Performer",
+      "creator": "Creador",
+      "band": "Banda",
+      "producer": "Productor",
+      "other": "Artista"
+    },
+    "sections": {
+      "featured_links": "Links destacados",
+      "featured_media": "Media destacada",
+      "about": "Sobre el artista",
+      "bookings": "Bookings",
+      "fan_list": "Fan list",
+      "additional_info": "Información adicional"
+    },
+    "actions": {
+      "book_artist": "Contactar para bookings",
+      "send_email": "Enviar email",
+      "visit_website": "Visitar sitio"
+    },
+    "booking_copy": "Usá este contacto para bookings, colaboraciones o prensa.",
+    "fan_list_copy": "Convertí visitas casuales en fans con un bloque simple de captura.",
     "branding_slot": {
       "title": "Creá tu propia página en StageLink",
       "cta": "Ver precios y planes",

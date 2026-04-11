@@ -2,6 +2,15 @@
 
 Plataforma tipo Linktree enfocada en artistas (músicos, DJs, creadores visuales). Permite crear una página pública personalizada en `stagelink.io/username` con links, embeds de música/video, analytics y tienda.
 
+La página pública actual se apoya en una composición más rica que un simple listado de bloques:
+
+- hero/cover + avatar
+- descriptor line con `category` + `secondaryCategories`
+- `tags` públicos para géneros, nichos o estilos
+- social icons
+- featured media manual desde bloques publicados
+- bio, booking CTA y secciones editoriales con bloques `text`
+
 > "Your digital stage." — Una landing page profesional para artistas, creada en minutos.
 
 ---
@@ -57,7 +66,7 @@ apps/
 │       │   ├── auth/                   # LoginForm, SignupForm
 │       │   ├── dashboard/              # DashboardWelcome, stats
 │       │   ├── epk/                    # EPK builder + shareable/public rendering
-│       │   └── public-page/            # ArtistPagePlaceholder
+│       │   └── public-page/            # ArtistPageView SSR + composición pública localizada
 │       ├── i18n/
 │       │   ├── request.ts              # getRequestConfig (next-intl)
 │       │   └── messages/

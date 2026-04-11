@@ -12,6 +12,8 @@ export interface Artist {
   displayName: string;
   bio: string | null;
   category: ArtistCategory;
+  secondaryCategories: ArtistCategory[];
+  tags: string[];
   avatarUrl: string | null;
   coverUrl: string | null;
   // Social links
@@ -26,7 +28,6 @@ export interface Artist {
   seoTitle: string | null;
   seoDescription: string | null;
   translations: ArtistTranslations;
-  secondaryCategories: ArtistCategory[];
   createdAt: string;
   updatedAt: string;
 }
@@ -37,6 +38,7 @@ export interface UpdateArtistPayload {
   bio?: string | null;
   category?: ArtistCategory;
   secondaryCategories?: ArtistCategory[];
+  tags?: string[];
   instagramUrl?: string | null;
   tiktokUrl?: string | null;
   youtubeUrl?: string | null;

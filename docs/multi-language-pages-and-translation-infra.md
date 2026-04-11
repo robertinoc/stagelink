@@ -86,8 +86,10 @@ Se eligió JSON por entidad en vez de tabla separada.
 - campo base legacy:
   - `displayName`
   - `bio`
+  - `contactEmail`
   - `seoTitle`
   - `seoDescription`
+  - `tags`
 - nuevo:
   - `translations Json`
 
@@ -194,6 +196,17 @@ La página pública localizada usa:
 
 - `apps/web/src/app/[locale]/[username]/page.tsx`
 
+La composición pública actual organiza el contenido en:
+
+- hero del artista
+- descriptor line (`category` + `secondaryCategories`)
+- tags/descriptors públicos
+- social icons
+- links destacados desde bloques `links`
+- featured media desde bloques `music_embed` / `video_embed`
+- info adicional desde `bio` + bloques `text`
+- CTA de booking desde `contactEmail`
+
 Metadata:
 
 - `title` y `description` por locale
@@ -235,6 +248,8 @@ Base SEO implementada:
 - no hay traducción automática
 - no hay workflow editorial avanzado
 - no todos los bloques tienen UI de edición multilenguaje todavía
+- los `tags/descriptors` todavía no se traducen por locale
+- featured media es manual-first: el artista controla qué destacar por orden de bloques
 - EPK soporta lectura localizada en backend, pero el editor multilenguaje del EPK todavía no expone una UX dedicada
 
 ## Cómo extender

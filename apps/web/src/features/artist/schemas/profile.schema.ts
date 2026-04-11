@@ -45,6 +45,12 @@ const localizedProfileFieldsSchema = z.object({
   seoDescription: optionalLocalizedDescription,
 });
 
+const descriptorSchema = z
+  .string()
+  .trim()
+  .min(1, 'Descriptor cannot be empty')
+  .max(24, 'Descriptors must be 24 characters or less');
+
 // ── Artist profile form schema ────────────────────────────────────────────────
 
 export const ARTIST_CATEGORIES = [
@@ -60,19 +66,6 @@ export const ARTIST_CATEGORIES = [
   'other',
 ] as const;
 
-export const ARTIST_CATEGORY_LABELS: Record<(typeof ARTIST_CATEGORIES)[number], string> = {
-  musician: 'Musician',
-  dj: 'DJ',
-  actor: 'Actor',
-  painter: 'Painter',
-  visual_artist: 'Visual Artist',
-  performer: 'Performer',
-  creator: 'Creator',
-  band: 'Band',
-  producer: 'Producer',
-  other: 'Other',
-};
-
 export const profileSchema = z
   .object({
     // Basic info
@@ -86,6 +79,7 @@ export const profileSchema = z
       .min(1, 'Choose at least one category')
       .max(3, 'Choose up to 3 categories')
       .default([]),
+    tags: z.array(descriptorSchema).max(6, 'Choose up to 6 descriptors').default([]),
 
     // Social links (all optional, empty string = clear)
     instagramUrl: optionalUrl,
@@ -120,6 +114,14 @@ export const profileSchema = z
         code: z.ZodIssueCode.custom,
         path: ['categories'],
         message: 'Categories must be unique',
+      });
+    }
+
+    if (new Set(value.tags.map((tag) => tag.toLowerCase())).size !== value.tags.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['tags'],
+        message: 'Descriptors must be unique',
       });
     }
   });

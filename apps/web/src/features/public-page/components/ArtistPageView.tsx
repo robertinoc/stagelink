@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Globe, Instagram, Music2, Play } from 'lucide-react';
+import { Globe, Instagram, Mail, Music2, Play, Sparkles } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { PublicPageResponse } from '@stagelink/types';
 import { PublicPageClient } from './PublicPageClient';
@@ -10,26 +10,15 @@ interface ArtistPageViewProps {
   page: PublicPageResponse;
 }
 
-/**
- * Public artist page — renders the artist header and all published blocks.
- *
- * Server Component: no client-side state needed at this level.
- * Individual blocks that require client state (e.g. EmailCaptureRenderer)
- * create their own client boundary.
- *
- * Layout:
- *   ┌─ Cover image (full width, if present) ─────────────────┐
- *   │  ┌─ max-w-md centered column ─────────────────────────┐ │
- *   │  │  Avatar + name + bio                               │ │
- *   │  │  Published blocks (in position order)              │ │
- *   │  │  Free-plan branding slot (when applicable)         │ │
- *   │  └────────────────────────────────────────────────────┘ │
- *   └────────────────────────────────────────────────────────┘
- */
+function isFeaturedMediaBlock(block: PublicPageResponse['blocks'][number]) {
+  return block.type === 'music_embed' || block.type === 'video_embed';
+}
+
 export async function ArtistPageView({ page }: ArtistPageViewProps) {
   const t = await getTranslations('public_page');
   const locale = await getLocale();
   const { artist, blocks } = page;
+
   const socialLinks = [
     artist.instagramUrl && {
       href: artist.instagramUrl,
@@ -78,91 +67,274 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
     } => Boolean(item),
   );
 
+  const categoryLabels = [artist.category, ...artist.secondaryCategories].map((category) =>
+    t(`categories.${category}`),
+  );
+  const descriptorLine = categoryLabels.join(t('tagline_separator'));
+
+  const linkBlocks = blocks.filter((block) => block.type === 'links');
+  const featuredMediaBlocks = blocks.filter(isFeaturedMediaBlock);
+  const textBlocks = blocks.filter((block) => block.type === 'text');
+  const emailCaptureBlocks = blocks.filter((block) => block.type === 'email_capture');
+  const remainingBlocks = blocks.filter(
+    (block) =>
+      block.type !== 'links' &&
+      !isFeaturedMediaBlock(block) &&
+      block.type !== 'text' &&
+      block.type !== 'email_capture',
+  );
+
+  const hasAdditionalInfo = Boolean(artist.bio) || textBlocks.length > 0;
+  const hasAnyPublicContent =
+    linkBlocks.length > 0 ||
+    featuredMediaBlocks.length > 0 ||
+    hasAdditionalInfo ||
+    emailCaptureBlocks.length > 0 ||
+    remainingBlocks.length > 0;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-900 to-zinc-950">
-      {/* Cover image */}
-      {artist.coverUrl && (
-        <div className="relative h-40 w-full sm:h-56">
-          <PublicCoverImage
-            src={artist.coverUrl}
-            alt={t('cover_image_alt', { name: artist.displayName })}
-          />
-          {/* Gradient overlay — blends into the page background */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-zinc-900" />
-        </div>
-      )}
+    <div className="relative min-h-screen overflow-hidden bg-[#090411] text-white">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-0 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-violet-500/20 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-[320px] w-[320px] rounded-full bg-fuchsia-500/10 blur-3xl" />
+        <div className="absolute left-0 top-1/3 h-[260px] w-[260px] rounded-full bg-cyan-500/10 blur-3xl" />
+      </div>
 
-      <div className="relative z-10 mx-auto max-w-md px-4 pb-16">
-        {/* Artist header */}
-        <div className={`relative z-10 mb-8 text-center ${artist.coverUrl ? '-mt-14' : 'pt-12'}`}>
-          {/* Avatar */}
-          <div className="relative z-20 mx-auto mb-4 h-28 w-28 overflow-hidden rounded-full bg-zinc-800 ring-4 ring-zinc-900 shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
-            <PublicAvatarImage src={artist.avatarUrl} alt={artist.displayName} />
-          </div>
-
-          <h1 className="text-2xl font-bold text-white">{artist.displayName}</h1>
-          <p className="mt-0.5 text-sm text-zinc-400">@{artist.username}</p>
-
-          {artist.bio && <p className="mt-3 text-sm leading-relaxed text-zinc-300">{artist.bio}</p>}
-
-          {socialLinks.length > 0 && (
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.key}
-                  href={social.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={social.label}
-                  title={social.label}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
-                >
-                  <social.Icon className="h-4 w-4" />
-                  <span className="sr-only">{social.label}</span>
-                </a>
-              ))}
+      <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+        <div className="rounded-[2rem] border border-violet-500/15 bg-black/20 p-3 shadow-[0_32px_140px_rgba(0,0,0,0.45)]">
+          <div className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.24),_rgba(11,6,20,0.98)_55%)] backdrop-blur-xl">
+            <div className="relative h-52 overflow-hidden sm:h-64">
+              {artist.coverUrl ? (
+                <PublicCoverImage
+                  src={artist.coverUrl}
+                  alt={t('cover_image_alt', { name: artist.displayName })}
+                />
+              ) : (
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(139,92,246,0.92),rgba(59,7,100,0.9))]" />
+              )}
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,4,16,0.05),rgba(6,4,16,0.82))]" />
+              <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#0b0614] to-transparent" />
             </div>
-          )}
-        </div>
 
-        {/* Published blocks — delegated to a client component for click tracking */}
-        {blocks.length > 0 ? (
-          <PublicPageClient page={page} />
-        ) : (
-          <p className="text-center text-sm text-zinc-600">{t('no_blocks')}</p>
-        )}
+            <div className="relative px-5 pb-10 pt-16 sm:px-10 sm:pt-20">
+              <div className="absolute left-1/2 top-0 z-20 h-28 w-28 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full border-4 border-[#0f0918] bg-zinc-900 shadow-[0_18px_60px_rgba(0,0,0,0.45)] sm:h-32 sm:w-32">
+                <PublicAvatarImage src={artist.avatarUrl} alt={artist.displayName} />
+              </div>
 
-        {page.promoSlot.kind === 'free_branding' && (
-          <div className="mt-12 rounded-3xl border border-white/10 bg-white/5 p-5 text-center shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-sm">
-            <p className="text-sm font-medium text-zinc-100">{t('branding_slot.title')}</p>
-            <Link
-              href={`/${locale}/pricing`}
-              className="mt-4 inline-flex items-center justify-center rounded-full bg-violet-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-400"
-            >
-              {t('branding_slot.cta')}
-            </Link>
-            <p className="mt-5 text-sm leading-relaxed text-zinc-400">
-              {t.rich('branding_slot.secondary', {
-                brand: (chunks) => (
-                  <Link
-                    href={`/${locale}`}
-                    className="font-semibold text-violet-300 transition hover:text-violet-200"
-                  >
-                    {chunks}
-                  </Link>
-                ),
-                signup: (chunks) => (
-                  <Link
-                    href={`/${locale}/signup`}
-                    className="font-medium text-zinc-200 underline decoration-zinc-500 underline-offset-4 transition hover:text-white hover:decoration-zinc-300"
-                  >
-                    {chunks}
-                  </Link>
-                ),
-              })}
-            </p>
+              <div className="mx-auto max-w-3xl text-center">
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-zinc-300">
+                  <Sparkles className="h-3.5 w-3.5 text-violet-300" />
+                  StageLink
+                </div>
+
+                <h1 className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-5xl">
+                  {artist.displayName}
+                </h1>
+                <p className="mt-2 text-sm text-zinc-400 sm:text-base">@{artist.username}</p>
+
+                {descriptorLine && (
+                  <p className="mt-4 text-sm font-medium tracking-wide text-zinc-300 sm:text-base">
+                    {descriptorLine}
+                  </p>
+                )}
+
+                {artist.tags.length > 0 && (
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    {artist.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.16em] text-violet-100"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {socialLinks.length > 0 && (
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                    {socialLinks.map((social) => (
+                      <a
+                        key={social.key}
+                        href={social.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={social.label}
+                        title={social.label}
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-200 transition hover:border-violet-300/30 hover:bg-violet-400/10 hover:text-white"
+                      >
+                        <social.Icon className="h-4 w-4" />
+                        <span className="sr-only">{social.label}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+
+                {(artist.contactEmail || artist.websiteUrl) && (
+                  <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                    {artist.contactEmail && (
+                      <a
+                        href={`mailto:${artist.contactEmail}`}
+                        className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500/25"
+                      >
+                        <Mail className="h-4 w-4" />
+                        {t('actions.book_artist')}
+                      </a>
+                    )}
+                    {artist.websiteUrl && (
+                      <a
+                        href={artist.websiteUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                      >
+                        <Globe className="h-4 w-4" />
+                        {t('actions.visit_website')}
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="mx-auto mt-10 max-w-5xl space-y-10">
+                {linkBlocks.length > 0 && (
+                  <section className="mx-auto max-w-xl">
+                    <div className="mb-4 text-center">
+                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+                        {t('sections.featured_links')}
+                      </p>
+                    </div>
+                    <PublicPageClient page={page} blocks={linkBlocks} className="space-y-5" />
+                  </section>
+                )}
+
+                {featuredMediaBlocks.length > 0 && (
+                  <section className="space-y-4">
+                    <div className="space-y-2 text-center">
+                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+                        {t('sections.featured_media')}
+                      </p>
+                    </div>
+                    <PublicPageClient
+                      page={page}
+                      blocks={featuredMediaBlocks}
+                      className="grid gap-4 lg:grid-cols-2 lg:items-start"
+                    />
+                  </section>
+                )}
+
+                {(hasAdditionalInfo || artist.contactEmail) && (
+                  <section className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.9fr)]">
+                    {hasAdditionalInfo && (
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
+                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+                          {t('sections.about')}
+                        </p>
+                        {artist.bio && (
+                          <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-zinc-200 sm:text-base">
+                            {artist.bio}
+                          </p>
+                        )}
+                        {textBlocks.length > 0 && (
+                          <div className={`${artist.bio ? 'mt-6' : 'mt-4'} space-y-4`}>
+                            <PublicPageClient
+                              page={page}
+                              blocks={textBlocks}
+                              className="space-y-4"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {artist.contactEmail && (
+                      <div className="rounded-[1.5rem] border border-violet-400/20 bg-violet-500/10 p-6 shadow-[0_20px_80px_rgba(45,10,90,0.16)]">
+                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-violet-200/70">
+                          {t('sections.bookings')}
+                        </p>
+                        <p className="mt-4 text-sm leading-7 text-violet-50">{t('booking_copy')}</p>
+                        <a
+                          href={`mailto:${artist.contactEmail}`}
+                          className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
+                        >
+                          <Mail className="h-4 w-4" />
+                          {artist.contactEmail}
+                        </a>
+                      </div>
+                    )}
+                  </section>
+                )}
+
+                {emailCaptureBlocks.length > 0 && (
+                  <section className="space-y-4">
+                    <div className="space-y-2 text-center">
+                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+                        {t('sections.fan_list')}
+                      </p>
+                      <p className="mx-auto max-w-2xl text-sm leading-7 text-zinc-400">
+                        {t('fan_list_copy')}
+                      </p>
+                    </div>
+                    <div className="mx-auto max-w-2xl">
+                      <PublicPageClient
+                        page={page}
+                        blocks={emailCaptureBlocks}
+                        className="space-y-4"
+                      />
+                    </div>
+                  </section>
+                )}
+
+                {remainingBlocks.length > 0 && (
+                  <section className="space-y-4">
+                    <div className="space-y-2 text-center">
+                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+                        {t('sections.additional_info')}
+                      </p>
+                    </div>
+                    <PublicPageClient page={page} blocks={remainingBlocks} className="space-y-4" />
+                  </section>
+                )}
+
+                {!hasAnyPublicContent && (
+                  <p className="py-10 text-center text-sm text-zinc-500">{t('no_blocks')}</p>
+                )}
+
+                {page.promoSlot.kind === 'free_branding' && (
+                  <div className="mx-auto max-w-2xl rounded-[1.5rem] border border-white/10 bg-white/5 p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-sm">
+                    <p className="text-sm font-medium text-zinc-100">{t('branding_slot.title')}</p>
+                    <Link
+                      href={`/${locale}/pricing`}
+                      className="mt-4 inline-flex items-center justify-center rounded-full bg-violet-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-400"
+                    >
+                      {t('branding_slot.cta')}
+                    </Link>
+                    <p className="mt-5 text-sm leading-relaxed text-zinc-400">
+                      {t.rich('branding_slot.secondary', {
+                        brand: (chunks) => (
+                          <Link
+                            href={`/${locale}`}
+                            className="font-semibold text-violet-300 transition hover:text-violet-200"
+                          >
+                            {chunks}
+                          </Link>
+                        ),
+                        signup: (chunks) => (
+                          <Link
+                            href={`/${locale}/signup`}
+                            className="font-medium text-zinc-200 underline decoration-zinc-500 underline-offset-4 transition hover:text-white hover:decoration-zinc-300"
+                          >
+                            {chunks}
+                          </Link>
+                        ),
+                      })}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

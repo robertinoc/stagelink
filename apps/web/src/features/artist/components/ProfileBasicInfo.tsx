@@ -1,15 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  ARTIST_CATEGORIES,
-  ARTIST_CATEGORY_LABELS,
-  type ProfileFormValues,
-} from '../schemas/profile.schema';
+import { ARTIST_CATEGORIES, type ProfileFormValues } from '../schemas/profile.schema';
 
 interface ProfileBasicInfoProps {
   form: UseFormReturn<ProfileFormValues>;
@@ -21,6 +18,7 @@ const chipClass =
 
 export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
   const t = useTranslations('dashboard.profile');
+  const [tagDraft, setTagDraft] = useState('');
   const {
     setValue,
     register,
@@ -30,6 +28,7 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
 
   const bioValue = watch('bio') ?? '';
   const selectedCategories = watch('categories') ?? [];
+  const selectedTags = watch('tags') ?? [];
 
   function toggleCategory(category: (typeof ARTIST_CATEGORIES)[number]) {
     const next = selectedCategories.includes(category)
@@ -43,6 +42,28 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
   function categoryNumber(category: (typeof ARTIST_CATEGORIES)[number]): number | null {
     const index = selectedCategories.indexOf(category);
     return index === -1 ? null : index + 1;
+  }
+
+  function categoryLabel(category: (typeof ARTIST_CATEGORIES)[number]) {
+    return t(`categories.options.${category}`);
+  }
+
+  function commitTag(rawValue: string) {
+    const nextTag = rawValue.trim();
+    if (!nextTag) return;
+    if (selectedTags.length >= 6) return;
+    if (selectedTags.some((tag) => tag.toLowerCase() === nextTag.toLowerCase())) return;
+
+    setValue('tags', [...selectedTags, nextTag], { shouldDirty: true, shouldValidate: true });
+    setTagDraft('');
+  }
+
+  function removeTag(tagToRemove: string) {
+    setValue(
+      'tags',
+      selectedTags.filter((tag) => tag !== tagToRemove),
+      { shouldDirty: true, shouldValidate: true },
+    );
   }
 
   return (
@@ -115,7 +136,7 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
                     <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
                       {index + 1}
                     </span>
-                    <span>{ARTIST_CATEGORY_LABELS[category]}</span>
+                    <span>{categoryLabel(category)}</span>
                   </span>
                 ))
               ) : (
@@ -144,7 +165,7 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
                       {selectedNumber}
                     </span>
                   )}
-                  <span>{ARTIST_CATEGORY_LABELS[category]}</span>
+                  <span>{categoryLabel(category)}</span>
                 </button>
               );
             })}
@@ -152,6 +173,63 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
           {errors.categories && (
             <p className="text-xs text-destructive">{errors.categories.message}</p>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <label htmlFor="tagDraft" className="text-sm font-medium">
+              {t('fields.descriptors')}
+            </label>
+            <p className="text-xs text-muted-foreground">{t('descriptors.hint')}</p>
+          </div>
+          <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium text-foreground">{t('descriptors.selected')}</span>
+              <span className="text-muted-foreground">{selectedTags.length}/6</span>
+            </div>
+            <div className="mt-3 flex min-h-11 flex-wrap gap-2">
+              {selectedTags.length > 0 ? (
+                selectedTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    disabled={disabled}
+                    className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-sm font-medium text-violet-200 transition hover:border-violet-400/40 hover:bg-violet-500/15"
+                  >
+                    <span>{tag}</span>
+                    <span className="text-xs text-violet-300">{t('descriptors.remove')}</span>
+                  </button>
+                ))
+              ) : (
+                <span className="text-sm text-muted-foreground">{t('descriptors.empty')}</span>
+              )}
+            </div>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <Input
+                id="tagDraft"
+                value={tagDraft}
+                disabled={disabled || selectedTags.length >= 6}
+                placeholder={t('descriptors.placeholder')}
+                onChange={(event) => setTagDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ',') {
+                    event.preventDefault();
+                    commitTag(tagDraft);
+                  }
+                }}
+              />
+              <button
+                type="button"
+                disabled={disabled || !tagDraft.trim() || selectedTags.length >= 6}
+                onClick={() => commitTag(tagDraft)}
+                className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {t('descriptors.add')}
+              </button>
+            </div>
+          </div>
+          {errors.tags && <p className="text-xs text-destructive">{errors.tags.message}</p>}
         </div>
       </CardContent>
     </Card>

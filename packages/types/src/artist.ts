@@ -33,6 +33,7 @@ export interface Artist {
   coverUrl: string | null;
   category: ArtistCategory;
   secondaryCategories: ArtistCategory[];
+  tags: string[];
   instagramUrl: string | null;
   tiktokUrl: string | null;
   youtubeUrl: string | null;
@@ -80,12 +81,14 @@ export interface PublicArtist {
   coverUrl: string | null;
   category: ArtistCategory;
   secondaryCategories: ArtistCategory[];
+  tags: string[];
   instagramUrl: string | null;
   tiktokUrl: string | null;
   youtubeUrl: string | null;
   spotifyUrl: string | null;
   soundcloudUrl: string | null;
   websiteUrl: string | null;
+  contactEmail: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
   locale: SupportedLocale;
