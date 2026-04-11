@@ -13,6 +13,15 @@ function buildJsonLd(
   artist: NonNullable<Awaited<ReturnType<typeof fetchPublicPage>>>['artist'],
   canonical: string | undefined,
 ): Record<string, unknown> {
+  const sameAs = [
+    artist.instagramUrl,
+    artist.tiktokUrl,
+    artist.youtubeUrl,
+    artist.spotifyUrl,
+    artist.soundcloudUrl,
+    artist.websiteUrl,
+  ].filter((url): url is string => Boolean(url));
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Person',
@@ -20,6 +29,8 @@ function buildJsonLd(
     ...(artist.bio && { description: artist.bio }),
     ...(canonical && { url: canonical }),
     ...(artist.avatarUrl && { image: artist.avatarUrl }),
+    ...(sameAs.length > 0 && { sameAs }),
+    ...(artist.tags.length > 0 && { knowsAbout: artist.tags }),
   };
 }
 

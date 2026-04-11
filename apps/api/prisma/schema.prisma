@@ -88,6 +88,7 @@ model Artist {
   bio         String?
   category    ArtistCategory @default(other) @map("category")
   secondaryCategories ArtistCategory[] @default([]) @map("secondary_categories")
+  tags        String[] @default([])
   avatarUrl     String?  @map("avatar_url")
   coverUrl      String?  @map("cover_url")
   avatarAssetId String?  @unique @map("avatar_asset_id")

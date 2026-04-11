@@ -24,13 +24,17 @@
 import { BlockRenderer } from '@/features/blocks/components/BlockRenderer';
 import { trackPublicLinkClick } from '@/lib/analytics/track';
 import type { PublicPageResponse, LinksBlockConfig } from '@stagelink/types';
+import { cn } from '@/lib/utils';
 
 interface PublicPageClientProps {
   page: PublicPageResponse;
+  blocks?: PublicPageResponse['blocks'];
+  className?: string;
 }
 
-export function PublicPageClient({ page }: PublicPageClientProps) {
-  const { artistId, pageId, artist, blocks } = page;
+export function PublicPageClient({ page, blocks: scopedBlocks, className }: PublicPageClientProps) {
+  const { artistId, pageId, artist } = page;
+  const blocks = scopedBlocks ?? page.blocks;
 
   /**
    * Called by BlockRenderer → LinksBlockRenderer when a link is clicked.
@@ -73,7 +77,7 @@ export function PublicPageClient({ page }: PublicPageClientProps) {
   if (blocks.length === 0) return null;
 
   return (
-    <div className="space-y-4">
+    <div className={cn('space-y-4', className)}>
       {blocks.map((block) => (
         <BlockRenderer key={block.id} block={block} onLinkClick={handleLinkClick} />
       ))}

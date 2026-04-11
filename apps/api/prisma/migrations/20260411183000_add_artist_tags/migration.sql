@@ -1,0 +1,2 @@
+ALTER TABLE "artists"
+ADD COLUMN "tags" TEXT[] DEFAULT ARRAY[]::TEXT[];
