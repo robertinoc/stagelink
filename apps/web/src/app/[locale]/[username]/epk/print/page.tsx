@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import type { SupportedLocale } from '@stagelink/types';
 import { PublicEpkView } from '@/features/epk/components/PublicEpkView';
 import { fetchPublicEpk } from '@/lib/api/epk';
@@ -12,11 +13,12 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: LocalizedPrintEpkPageProps): Promise<Metadata> {
   const { locale, username } = await params;
+  const t = await getTranslations({ locale, namespace: 'public_epk.metadata' });
   const epk = await fetchPublicEpk(username, locale);
 
   if (!epk) {
     return {
-      title: 'EPK print view not found — StageLink',
+      title: t('print_not_found'),
       robots: { index: false, follow: false },
     };
   }

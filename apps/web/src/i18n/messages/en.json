@@ -613,6 +613,35 @@
       "reject": "No thanks"
     }
   },
+  "public_epk": {
+    "title": "Press kit",
+    "sections": {
+      "contacts": "Contacts",
+      "bio": "Bio",
+      "highlights": "Highlights",
+      "featured_media": "Featured media",
+      "featured_links": "Featured links",
+      "gallery": "Gallery",
+      "availability": "Availability",
+      "rider": "Rider",
+      "tech": "Tech"
+    },
+    "contact": {
+      "booking": "Booking",
+      "management": "Management",
+      "press": "Press",
+      "base": "Base"
+    },
+    "footer": {
+      "shared_via": "Shared via StageLink",
+      "print_view": "Open print view"
+    },
+    "metadata": {
+      "not_found": "EPK not found — StageLink",
+      "print_not_found": "EPK print view not found — StageLink",
+      "fallback_description": "{name} press kit on StageLink."
+    }
+  },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",
