@@ -119,9 +119,12 @@ export default async function DashboardEpkPage({
       <EpkEditor
         artistId={artistId}
         username={artist.username}
+        locale={locale}
         initialData={epkData}
         smartLinks={smartLinks}
         assets={assets}
+        hasMultiLanguageAccess={billingSummary.entitlements.multi_language_pages}
+        billingHref={`/${locale}/dashboard/billing`}
       />
     </div>
   );

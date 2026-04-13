@@ -19,14 +19,18 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { publishArtistEpk, unpublishArtistEpk, updateArtistEpk } from '@/lib/api/epk';
 import { EpkImageUploader } from './EpkImageUploader';
+import { LocalizedEpkContentSection } from './LocalizedEpkContentSection';
 import { epkFormSchema, type EpkFormValues } from '../schemas/epk.schema';
 
 interface EpkEditorProps {
   artistId: string;
   username: string;
+  locale: string;
   initialData: EpkEditorResponse;
   smartLinks: SmartLink[];
   assets: AssetDto[];
+  hasMultiLanguageAccess: boolean;
+  billingHref: string;
 }
 
 function normalizeNullable(value: string | null | undefined): string {
@@ -43,9 +47,12 @@ function providerFromUrl(url: string): EpkFeaturedMediaItem['provider'] {
 export function EpkEditor({
   artistId,
   username,
+  locale,
   initialData,
   smartLinks,
   assets: initialAssets,
+  hasMultiLanguageAccess,
+  billingHref,
 }: EpkEditorProps) {
   const [assets, setAssets] = useState<AssetDto[]>(initialAssets);
   const [editorData, setEditorData] = useState(initialData);
@@ -72,6 +79,26 @@ export function EpkEditor({
       techRequirements: editorData.epk.techRequirements ?? '',
       location: editorData.epk.location ?? '',
       availabilityNotes: editorData.epk.availabilityNotes ?? '',
+      translations: {
+        en: {
+          headline: editorData.epk.translations?.headline?.en ?? '',
+          shortBio: editorData.epk.translations?.shortBio?.en ?? '',
+          fullBio: editorData.epk.translations?.fullBio?.en ?? '',
+          pressQuote: editorData.epk.translations?.pressQuote?.en ?? '',
+          riderInfo: editorData.epk.translations?.riderInfo?.en ?? '',
+          techRequirements: editorData.epk.translations?.techRequirements?.en ?? '',
+          availabilityNotes: editorData.epk.translations?.availabilityNotes?.en ?? '',
+        },
+        es: {
+          headline: editorData.epk.translations?.headline?.es ?? '',
+          shortBio: editorData.epk.translations?.shortBio?.es ?? '',
+          fullBio: editorData.epk.translations?.fullBio?.es ?? '',
+          pressQuote: editorData.epk.translations?.pressQuote?.es ?? '',
+          riderInfo: editorData.epk.translations?.riderInfo?.es ?? '',
+          techRequirements: editorData.epk.translations?.techRequirements?.es ?? '',
+          availabilityNotes: editorData.epk.translations?.availabilityNotes?.es ?? '',
+        },
+      },
     },
   });
 
@@ -91,6 +118,7 @@ export function EpkEditor({
 
   const featuredMedia = useFieldArray({ control, name: 'featuredMedia' });
   const featuredLinks = useFieldArray({ control, name: 'featuredLinks' });
+  const isBusy = isSubmitting || saveStatus === 'saving';
 
   const watchedGallery = watch('galleryImageUrls');
   const watchedHeroImageUrl = watch('heroImageUrl');
@@ -98,6 +126,18 @@ export function EpkEditor({
   const watchedFormValues = watch();
   const inherited = editorData.inherited;
   const publishReadiness = getEpkPublishReadiness(watchedFormValues);
+
+  function buildLocalizedFieldMap(
+    values: Record<'en' | 'es', string | null | undefined>,
+  ): Record<'en' | 'es', string> | undefined {
+    const entries = Object.entries(values).filter(([, value]) => value?.trim());
+    if (entries.length === 0) return undefined;
+
+    return Object.fromEntries(entries.map(([lang, value]) => [lang, value!.trim()])) as Record<
+      'en' | 'es',
+      string
+    >;
+  }
 
   const availableImageAssets = useMemo(
     () =>
@@ -136,6 +176,73 @@ export function EpkEditor({
         techRequirements: values.techRequirements || null,
         location: values.location || null,
         availabilityNotes: values.availabilityNotes || null,
+        ...(hasMultiLanguageAccess && {
+          translations: {
+            ...(buildLocalizedFieldMap({
+              en: values.translations.en.headline,
+              es: values.translations.es.headline,
+            }) && {
+              headline: buildLocalizedFieldMap({
+                en: values.translations.en.headline,
+                es: values.translations.es.headline,
+              }),
+            }),
+            ...(buildLocalizedFieldMap({
+              en: values.translations.en.shortBio,
+              es: values.translations.es.shortBio,
+            }) && {
+              shortBio: buildLocalizedFieldMap({
+                en: values.translations.en.shortBio,
+                es: values.translations.es.shortBio,
+              }),
+            }),
+            ...(buildLocalizedFieldMap({
+              en: values.translations.en.fullBio,
+              es: values.translations.es.fullBio,
+            }) && {
+              fullBio: buildLocalizedFieldMap({
+                en: values.translations.en.fullBio,
+                es: values.translations.es.fullBio,
+              }),
+            }),
+            ...(buildLocalizedFieldMap({
+              en: values.translations.en.pressQuote,
+              es: values.translations.es.pressQuote,
+            }) && {
+              pressQuote: buildLocalizedFieldMap({
+                en: values.translations.en.pressQuote,
+                es: values.translations.es.pressQuote,
+              }),
+            }),
+            ...(buildLocalizedFieldMap({
+              en: values.translations.en.riderInfo,
+              es: values.translations.es.riderInfo,
+            }) && {
+              riderInfo: buildLocalizedFieldMap({
+                en: values.translations.en.riderInfo,
+                es: values.translations.es.riderInfo,
+              }),
+            }),
+            ...(buildLocalizedFieldMap({
+              en: values.translations.en.techRequirements,
+              es: values.translations.es.techRequirements,
+            }) && {
+              techRequirements: buildLocalizedFieldMap({
+                en: values.translations.en.techRequirements,
+                es: values.translations.es.techRequirements,
+              }),
+            }),
+            ...(buildLocalizedFieldMap({
+              en: values.translations.en.availabilityNotes,
+              es: values.translations.es.availabilityNotes,
+            }) && {
+              availabilityNotes: buildLocalizedFieldMap({
+                en: values.translations.en.availabilityNotes,
+                es: values.translations.es.availabilityNotes,
+              }),
+            }),
+          },
+        }),
       });
 
       setEditorData(updated);
@@ -156,6 +263,26 @@ export function EpkEditor({
         techRequirements: normalizeNullable(updated.epk.techRequirements),
         location: normalizeNullable(updated.epk.location),
         availabilityNotes: normalizeNullable(updated.epk.availabilityNotes),
+        translations: {
+          en: {
+            headline: updated.epk.translations?.headline?.en ?? '',
+            shortBio: updated.epk.translations?.shortBio?.en ?? '',
+            fullBio: updated.epk.translations?.fullBio?.en ?? '',
+            pressQuote: updated.epk.translations?.pressQuote?.en ?? '',
+            riderInfo: updated.epk.translations?.riderInfo?.en ?? '',
+            techRequirements: updated.epk.translations?.techRequirements?.en ?? '',
+            availabilityNotes: updated.epk.translations?.availabilityNotes?.en ?? '',
+          },
+          es: {
+            headline: updated.epk.translations?.headline?.es ?? '',
+            shortBio: updated.epk.translations?.shortBio?.es ?? '',
+            fullBio: updated.epk.translations?.fullBio?.es ?? '',
+            pressQuote: updated.epk.translations?.pressQuote?.es ?? '',
+            riderInfo: updated.epk.translations?.riderInfo?.es ?? '',
+            techRequirements: updated.epk.translations?.techRequirements?.es ?? '',
+            availabilityNotes: updated.epk.translations?.availabilityNotes?.es ?? '',
+          },
+        },
       });
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 3000);
@@ -226,8 +353,8 @@ export function EpkEditor({
     setValue('heroImageUrl', url, { shouldDirty: true });
   }
 
-  const sharePath = `/p/${username}/epk`;
-  const printPath = `/p/${username}/epk/print`;
+  const sharePath = `/${locale}/${username}/epk`;
+  const printPath = `/${locale}/${username}/epk/print`;
   const publicRoutesEnabled = editorData.epk.isPublished;
 
   return (
@@ -425,6 +552,13 @@ export function EpkEditor({
           </div>
         </CardContent>
       </Card>
+
+      <LocalizedEpkContentSection
+        form={form}
+        disabled={isBusy}
+        hasMultiLanguageAccess={hasMultiLanguageAccess}
+        billingHref={billingHref}
+      />
 
       <Card>
         <CardHeader>
