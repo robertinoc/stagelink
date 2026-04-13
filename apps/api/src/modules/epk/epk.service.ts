@@ -1,11 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, type Artist } from '@prisma/client';
-import type {
-  EpkEditorResponse,
-  EpkFeaturedLinkItem,
-  EpkFeaturedMediaItem,
-  EpkTranslations,
-  UpdateEpkPayload,
+import {
+  DEFAULT_LOCALE,
+  type EpkEditorResponse,
+  type EpkFeaturedLinkItem,
+  type EpkFeaturedMediaItem,
+  type EpkTranslations,
+  type SupportedLocale,
+  type UpdateEpkPayload,
 } from '@stagelink/types';
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
@@ -13,7 +15,10 @@ import { AuditService } from '../audit/audit.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { UpdateEpkDto } from './dto';
 import { buildPublishedEpkSnapshot, getEpkPublishValidation } from './epk.helpers';
-import { sanitizeTranslationFieldMap } from '../../common/utils/localized-content.util';
+import {
+  hasAdditionalLocaleContent,
+  sanitizeTranslationFieldMap,
+} from '../../common/utils/localized-content.util';
 
 type EpkRecord = Prisma.EpkGetPayload<Record<string, never>>;
 
@@ -46,6 +51,8 @@ function mapEpk(epk: EpkRecord) {
     id: epk.id,
     artistId: epk.artistId,
     isPublished: epk.isPublished,
+    baseLocale:
+      typeof epk.baseLocale === 'string' ? (epk.baseLocale as SupportedLocale) : DEFAULT_LOCALE,
     headline: epk.headline,
     translations: (epk.translations as EpkTranslations | null) ?? {},
     shortBio: epk.shortBio,
@@ -100,6 +107,10 @@ export class EpkService {
   ): Promise<EpkEditorResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'write');
     await this.billingEntitlementsService.assertFeatureAccess(artistId, 'epk_builder');
+    const translations = sanitizeTranslationFieldMap<EpkTranslations>(dto.translations);
+    if (hasAdditionalLocaleContent(translations)) {
+      await this.billingEntitlementsService.assertFeatureAccess(artistId, 'multi_language_pages');
+    }
 
     const artist = await this.prisma.artist.findUnique({ where: { id: artistId } });
     if (!artist) throw new NotFoundException('Artist not found');
@@ -268,6 +279,7 @@ export class EpkService {
 
   private buildUpdatePayload(dto: UpdateEpkDto): Prisma.EpkUpdateInput {
     const payload: UpdateEpkPayload = {
+      ...(dto.baseLocale !== undefined && { baseLocale: dto.baseLocale }),
       ...(dto.headline !== undefined && { headline: dto.headline }),
       ...(dto.translations !== undefined && {
         translations: sanitizeTranslationFieldMap<EpkTranslations>(dto.translations),
@@ -294,6 +306,7 @@ export class EpkService {
     };
 
     return {
+      ...(payload.baseLocale !== undefined && { baseLocale: payload.baseLocale }),
       ...(payload.headline !== undefined && { headline: payload.headline }),
       ...(payload.translations !== undefined && {
         translations: payload.translations as unknown as Prisma.InputJsonValue,

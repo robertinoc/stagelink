@@ -31,17 +31,54 @@ export function LocalizedProfileContentSection({
   const [activeLocale, setActiveLocale] = useState<LocaleTab>('es');
   const {
     register,
+    setValue,
     watch,
     formState: { errors },
   } = form;
 
+  const baseLocale = watch('baseLocale');
+  const baseValues = watch(['displayName', 'bio', 'seoTitle', 'seoDescription']);
+  const translationsValues = watch('translations');
   const activeLocaleLabel = useMemo(
     () => t(`translations.locales.${activeLocale}`),
     [activeLocale, t],
   );
-  const fieldsDisabled = disabled || !hasMultiLanguageAccess;
+  const fieldsDisabled = disabled || !hasMultiLanguageAccess || activeLocale === baseLocale;
   const translatedValues = watch(`translations.${activeLocale}`) ?? {};
   const translatedErrors = errors.translations?.[activeLocale];
+  const localeStatus = useMemo(() => {
+    return LOCALE_TABS.reduce<Record<LocaleTab, 'base' | 'complete' | 'incomplete'>>(
+      (acc, locale) => {
+        if (locale === baseLocale) {
+          acc[locale] = 'base';
+          return acc;
+        }
+
+        const sourceFields = [baseValues[0], baseValues[1], baseValues[2], baseValues[3]];
+        const translatedFields = [
+          translationsValues?.[locale]?.displayName,
+          translationsValues?.[locale]?.bio,
+          translationsValues?.[locale]?.seoTitle,
+          translationsValues?.[locale]?.seoDescription,
+        ];
+        const complete = sourceFields.every((baseValue, index) => {
+          if (!baseValue?.trim()) return true;
+          return Boolean(translatedFields[index]?.trim());
+        });
+
+        acc[locale] = complete ? 'complete' : 'incomplete';
+        return acc;
+      },
+      { en: 'incomplete', es: 'incomplete' },
+    );
+  }, [baseLocale, baseValues, translationsValues]);
+
+  function copyBaseContentToLocale(locale: LocaleTab) {
+    setValue(`translations.${locale}.displayName`, baseValues[0] ?? '', { shouldDirty: true });
+    setValue(`translations.${locale}.bio`, baseValues[1] ?? '', { shouldDirty: true });
+    setValue(`translations.${locale}.seoTitle`, baseValues[2] ?? '', { shouldDirty: true });
+    setValue(`translations.${locale}.seoDescription`, baseValues[3] ?? '', { shouldDirty: true });
+  }
 
   return (
     <Card>
@@ -63,6 +100,34 @@ export function LocalizedProfileContentSection({
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">{t('translations.base_locale_label')}</p>
+            <p className="text-xs text-muted-foreground">
+              {t('translations.base_locale_description')}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {LOCALE_TABS.map((locale) => {
+              const selected = locale === baseLocale;
+              return (
+                <button
+                  key={locale}
+                  type="button"
+                  onClick={() => form.setValue('baseLocale', locale, { shouldDirty: true })}
+                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                    selected
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border border-border bg-background text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {t(`translations.locales.${locale}`)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {!hasMultiLanguageAccess && (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
             <p className="text-sm font-medium text-foreground">{t('translations.lock_title')}</p>
@@ -90,7 +155,10 @@ export function LocalizedProfileContentSection({
                       : 'border border-border bg-background text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {t(`translations.locales.${locale}`)}
+                  <span>{t(`translations.locales.${locale}`)}</span>
+                  <span className="ml-2 text-[11px] uppercase tracking-wide opacity-80">
+                    {t(`translations.status.${localeStatus[locale]}`)}
+                  </span>
                 </button>
               );
             })}
@@ -99,6 +167,34 @@ export function LocalizedProfileContentSection({
             {t('translations.fallback_note', { locale: activeLocaleLabel })}
           </p>
         </div>
+
+        {activeLocale === baseLocale && (
+          <div className="rounded-xl border border-border bg-muted/30 p-4">
+            <p className="text-sm font-medium text-foreground">
+              {t('translations.base_edit_title')}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t('translations.base_edit_description', { locale: activeLocaleLabel })}
+            </p>
+          </div>
+        )}
+
+        {activeLocale !== baseLocale && hasMultiLanguageAccess && (
+          <div className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-3">
+            <p className="text-sm text-muted-foreground">
+              {t('translations.copy_from_base_description', { locale: activeLocaleLabel })}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => copyBaseContentToLocale(activeLocale)}
+              disabled={disabled}
+            >
+              {t('translations.copy_from_base')}
+            </Button>
+          </div>
+        )}
 
         <div key={activeLocale} className="grid gap-5">
           <div className="space-y-1.5">

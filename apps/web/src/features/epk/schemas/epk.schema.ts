@@ -3,6 +3,7 @@ import { getEpkPublishReadiness } from '@stagelink/types';
 
 const optionalUrl = z.string().trim().url().or(z.literal('')).nullable().optional();
 const optionalEmail = z.string().trim().email().or(z.literal('')).nullable().optional();
+const supportedLocales = ['en', 'es'] as const;
 
 export const epkFeaturedMediaSchema = z.object({
   id: z.string(),
@@ -29,6 +30,7 @@ const localizedEpkFieldsSchema = z.object({
 
 export const epkFormSchema = z
   .object({
+    baseLocale: z.enum(supportedLocales).default('en'),
     headline: z.string().trim().max(140).optional().nullable(),
     shortBio: z.string().trim().max(500).optional().nullable(),
     fullBio: z.string().trim().max(5000).optional().nullable(),

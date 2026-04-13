@@ -6,6 +6,10 @@ import {
 } from '@stagelink/types';
 
 type TranslationFieldMap = Record<string, LocalizedTextMap | undefined>;
+interface LocalizedDocumentField {
+  baseValue: string | null | undefined;
+  localizedValue?: LocalizedTextMap;
+}
 
 function hasText(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
@@ -13,6 +17,10 @@ function hasText(value: unknown): value is string {
 
 export function isSupportedLocale(value: unknown): value is SupportedLocale {
   return typeof value === 'string' && SUPPORTED_LOCALES.includes(value as SupportedLocale);
+}
+
+export function normalizeBaseLocale(value: unknown): SupportedLocale {
+  return isSupportedLocale(value) ? value : DEFAULT_LOCALE;
 }
 
 export function sanitizeLocalizedTextMap(value: unknown): LocalizedTextMap | undefined {
@@ -54,6 +62,45 @@ export function hasAdditionalLocaleContent(
   return Object.values(translations).some((localizedValue) =>
     Object.values(localizedValue ?? {}).some((text) => hasText(text)),
   );
+}
+
+export function isLocaleCompleteForDocument(
+  locale: SupportedLocale,
+  fields: LocalizedDocumentField[],
+): boolean {
+  return fields
+    .filter(({ baseValue }) => hasText(baseValue))
+    .every(({ localizedValue }) => hasText(localizedValue?.[locale]));
+}
+
+export function resolveDocumentLocale(
+  requestedLocale: SupportedLocale,
+  baseLocale: unknown,
+  fields: LocalizedDocumentField[],
+): SupportedLocale {
+  const normalizedBaseLocale = normalizeBaseLocale(baseLocale);
+  if (requestedLocale === normalizedBaseLocale) {
+    return normalizedBaseLocale;
+  }
+
+  return isLocaleCompleteForDocument(requestedLocale, fields)
+    ? requestedLocale
+    : normalizedBaseLocale;
+}
+
+export function resolveDocumentText(
+  baseValue: string | null | undefined,
+  localizedValue: LocalizedTextMap | undefined,
+  localeToRender: SupportedLocale,
+  baseLocale: unknown,
+): string | null {
+  const normalizedBaseLocale = normalizeBaseLocale(baseLocale);
+  if (localeToRender === normalizedBaseLocale) {
+    return hasText(baseValue) ? baseValue.trim() : null;
+  }
+
+  const translated = localizedValue?.[localeToRender];
+  return hasText(translated) ? translated.trim() : null;
 }
 
 export function resolveLocalizedText(

@@ -29,6 +29,7 @@ export interface Artist {
   username: string;
   displayName: string;
   bio: string | null;
+  baseLocale: SupportedLocale;
   avatarUrl: string | null;
   coverUrl: string | null;
   category: ArtistCategory;
@@ -77,6 +78,8 @@ export interface PublicArtist {
   username: string;
   displayName: string;
   bio: string | null;
+  locale: SupportedLocale;
+  baseLocale: SupportedLocale;
   avatarUrl: string | null;
   coverUrl: string | null;
   category: ArtistCategory;
@@ -91,7 +94,6 @@ export interface PublicArtist {
   contactEmail: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
-  locale: SupportedLocale;
 }
 
 export type PublicPromoSlotKind = 'none' | 'free_branding';
@@ -107,6 +109,7 @@ export interface PublicPageResponse {
   blocks: PublicBlock[];
   promoSlot: PublicPromoSlot;
   locale: SupportedLocale;
+  contentLocale: SupportedLocale;
 }
 
 export type CustomDomainStatus = 'pending' | 'active' | 'failed' | 'disabled';

@@ -244,7 +244,13 @@
       "translations": {
         "title": "Localized content",
         "description": "Add optional translated text for your public page. Base content above remains the fallback.",
+        "base_locale_label": "Base content language",
+        "base_locale_description": "Choose the language your main profile fields are written in. If another locale is incomplete, StageLink will fall back to this base content.",
         "fallback_note": "{locale} visitors will see this copy when it exists. Otherwise StageLink falls back to your base content.",
+        "base_edit_title": "This is your base content locale",
+        "base_edit_description": "Edit the main profile fields above to update {locale}. Additional locale tabs are only for translated variants.",
+        "copy_from_base": "Copy base content",
+        "copy_from_base_description": "Start from your base profile copy and adapt it for {locale}.",
         "lock_badge": "Pro+",
         "lock_title": "Unlock multi-language pages",
         "lock_description": "Additional locales are available on Pro+. You can keep editing your base profile, but translated public content needs the multi-language pages feature.",
@@ -258,6 +264,11 @@
           "bio": "Translated short bio for this locale…",
           "seo_title": "Localized SEO title",
           "seo_description": "Localized meta description"
+        },
+        "status": {
+          "base": "Base",
+          "complete": "Ready",
+          "incomplete": "Incomplete"
         }
       },
       "save": "Save profile",

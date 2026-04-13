@@ -6,6 +6,7 @@ import { PublicPageResponseDto, PublicBlockDto } from './dto/public-page-respons
 import { PostHogService } from '../analytics/posthog.service';
 import {
   ANALYTICS_EVENTS,
+  DEFAULT_LOCALE,
   buildTenantEntitlements,
   hasFeature,
   type ArtistTranslations,
@@ -15,7 +16,12 @@ import {
   type SupportedLocale,
 } from '@stagelink/types';
 import { resolveTrafficFlags } from '../../common/utils/analytics-flags';
-import { resolveLocalizedText } from '../../common/utils/localized-content.util';
+import {
+  normalizeBaseLocale,
+  resolveDocumentLocale,
+  resolveDocumentText,
+  resolveLocalizedText,
+} from '../../common/utils/localized-content.util';
 
 /**
  * Hashes an IP address with SHA-256 for privacy-preserving storage.
@@ -47,20 +53,49 @@ function localizeArtistTextFields(
     bio: string | null;
     seoTitle: string | null;
     seoDescription: string | null;
+    baseLocale?: string | null;
     translations: unknown;
   },
-  locale: SupportedLocale,
+  requestedLocale: SupportedLocale,
 ) {
   const translations = (artist.translations as ArtistTranslations | null) ?? {};
+  const contentLocale = resolveDocumentLocale(
+    requestedLocale,
+    artist.baseLocale ?? DEFAULT_LOCALE,
+    [
+      { baseValue: artist.displayName, localizedValue: translations.displayName },
+      { baseValue: artist.bio, localizedValue: translations.bio },
+      { baseValue: artist.seoTitle, localizedValue: translations.seoTitle },
+      { baseValue: artist.seoDescription, localizedValue: translations.seoDescription },
+    ],
+  );
 
   return {
-    displayName: resolveLocalizedText(artist.displayName, translations.displayName, locale) ?? '',
-    bio: resolveLocalizedText(artist.bio, translations.bio, locale),
-    seoTitle: resolveLocalizedText(artist.seoTitle, translations.seoTitle, locale),
-    seoDescription: resolveLocalizedText(
+    contentLocale,
+    displayName:
+      resolveDocumentText(
+        artist.displayName,
+        translations.displayName,
+        contentLocale,
+        artist.baseLocale ?? DEFAULT_LOCALE,
+      ) ?? '',
+    bio: resolveDocumentText(
+      artist.bio,
+      translations.bio,
+      contentLocale,
+      artist.baseLocale ?? DEFAULT_LOCALE,
+    ),
+    seoTitle: resolveDocumentText(
+      artist.seoTitle,
+      translations.seoTitle,
+      contentLocale,
+      artist.baseLocale ?? DEFAULT_LOCALE,
+    ),
+    seoDescription: resolveDocumentText(
       artist.seoDescription,
       translations.seoDescription,
-      locale,
+      contentLocale,
+      artist.baseLocale ?? DEFAULT_LOCALE,
     ),
   };
 }
@@ -302,6 +337,7 @@ export class PublicPagesService {
             contactEmail: true,
             seoTitle: true,
             seoDescription: true,
+            baseLocale: true,
             translations: true,
             subscription: {
               select: {
@@ -413,11 +449,13 @@ export class PublicPagesService {
         contactEmail: page.artist.contactEmail,
         seoTitle: localizedArtist.seoTitle,
         seoDescription: localizedArtist.seoDescription,
+        baseLocale: normalizeBaseLocale(page.artist.baseLocale ?? DEFAULT_LOCALE),
         locale,
       },
       blocks: page.blocks.map((block) => localizeBlock(block, locale)),
       promoSlot,
       locale,
+      contentLocale: localizedArtist.contentLocale,
     };
   }
 }

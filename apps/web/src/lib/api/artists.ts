@@ -1,5 +1,5 @@
 import { apiFetch } from '@/lib/auth';
-import type { ArtistCategory, ArtistTranslations } from '@stagelink/types';
+import type { ArtistCategory, ArtistTranslations, SupportedLocale } from '@stagelink/types';
 
 /**
  * Full artist data returned by GET /api/artists/:id.
@@ -11,6 +11,7 @@ export interface Artist {
   username: string;
   displayName: string;
   bio: string | null;
+  baseLocale: SupportedLocale;
   category: ArtistCategory;
   secondaryCategories: ArtistCategory[];
   tags: string[];
@@ -36,6 +37,7 @@ export interface Artist {
 export interface UpdateArtistPayload {
   displayName?: string;
   bio?: string | null;
+  baseLocale?: SupportedLocale;
   category?: ArtistCategory;
   secondaryCategories?: ArtistCategory[];
   tags?: string[];
