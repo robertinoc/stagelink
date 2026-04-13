@@ -5,6 +5,9 @@ import { BillingService } from './billing.service';
 describe('BillingService', () => {
   interface PrismaMock {
     $transaction: jest.Mock<Promise<unknown>, [(tx: PrismaMock) => Promise<unknown>]>;
+    artist: {
+      findUnique: jest.Mock;
+    };
     subscription: {
       findUnique: jest.Mock;
       update: jest.Mock;
@@ -22,6 +25,9 @@ describe('BillingService', () => {
     prisma.$transaction = jest.fn(async (callback: (tx: PrismaMock) => Promise<unknown>) =>
       callback(prisma),
     );
+    prisma.artist = {
+      findUnique: jest.fn(),
+    };
     prisma.subscription = {
       findUnique: jest.fn().mockResolvedValue(null),
       update: jest.fn(),
@@ -52,6 +58,17 @@ describe('BillingService', () => {
     };
 
     const stripe = {
+      checkout: {
+        sessions: {
+          create: jest.fn(async () => ({
+            id: 'cs_test_123',
+            url: 'https://checkout.stripe.test/session',
+          })),
+        },
+      },
+      customers: {
+        create: jest.fn(async () => ({ id: 'cus_123' })),
+      },
       prices: {
         retrieve: jest.fn(async (priceId: string) => ({
           id: priceId,
@@ -71,6 +88,7 @@ describe('BillingService', () => {
       subscriptions: {
         retrieve: jest.fn(),
         list: jest.fn(),
+        update: jest.fn(),
       },
     };
 
@@ -88,6 +106,153 @@ describe('BillingService', () => {
         { email: 'owner@example.com' } as never,
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('creates a checkout session for free to paid upgrades', async () => {
+    const { service, prisma, stripe } = createService();
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValueOnce({
+      artistId: 'artist_123',
+      plan: PlanTier.free,
+      status: SubscriptionStatus.inactive,
+      stripeCustomerId: null,
+    });
+
+    prisma.artist.findUnique.mockResolvedValue({
+      id: 'artist_123',
+      username: 'robertinoc',
+      displayName: 'Robertino',
+      contactEmail: 'artist@example.com',
+      user: { email: 'owner@example.com' },
+      subscription: {
+        artistId: 'artist_123',
+        plan: PlanTier.free,
+        status: SubscriptionStatus.inactive,
+        stripeCustomerId: null,
+      },
+    });
+
+    const result = await service.createCheckoutSession(
+      'artist_123',
+      { plan: 'pro', returnUrl: 'http://localhost:4000/en/dashboard/billing' },
+      { id: 'user_123', email: 'owner@example.com' } as never,
+    );
+
+    expect(stripe.checkout.sessions.create).toHaveBeenCalled();
+    expect(result.data.url).toBe('https://checkout.stripe.test/session');
+  });
+
+  it('upgrades an active paid subscription directly instead of opening a second checkout session', async () => {
+    const { service, prisma, stripe } = createService();
+
+    prisma.artist.findUnique.mockResolvedValue({
+      id: 'artist_123',
+      username: 'robertinoc',
+      displayName: 'Robertino',
+      contactEmail: 'artist@example.com',
+      user: { email: 'owner@example.com' },
+      subscription: {
+        artistId: 'artist_123',
+        plan: PlanTier.pro,
+        status: SubscriptionStatus.active,
+        stripeCustomerId: 'cus_123',
+        stripeSubscriptionId: 'sub_pro_123',
+      },
+    });
+
+    (stripe.subscriptions.retrieve as jest.Mock).mockResolvedValue({
+      id: 'sub_pro_123',
+      status: 'active',
+      cancel_at_period_end: false,
+      customer: 'cus_123',
+      metadata: { artistId: 'artist_123', plan: PlanTier.pro },
+      items: {
+        data: [
+          {
+            id: 'si_pro_123',
+            current_period_end: 1781049600,
+            price: { id: 'price_pro_123' },
+          },
+        ],
+      },
+    });
+
+    (stripe.subscriptions.update as jest.Mock).mockResolvedValue({
+      id: 'sub_pro_123',
+      status: 'active',
+      cancel_at_period_end: false,
+      customer: 'cus_123',
+      metadata: { artistId: 'artist_123', plan: PlanTier.pro_plus },
+      items: {
+        data: [
+          {
+            id: 'si_pro_123',
+            current_period_end: 1781049600,
+            price: { id: 'price_pro_plus_456' },
+          },
+        ],
+      },
+    });
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValue({
+      artistId: 'artist_123',
+      plan: PlanTier.pro_plus,
+      status: SubscriptionStatus.active,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_pro_123',
+      stripePriceId: 'price_pro_plus_456',
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: new Date('2026-06-10T00:00:00.000Z'),
+    });
+
+    const result = await service.createCheckoutSession(
+      'artist_123',
+      { plan: 'pro_plus', returnUrl: 'http://localhost:4000/en/dashboard/billing' },
+      { id: 'user_123', email: 'owner@example.com' } as never,
+    );
+
+    expect(stripe.checkout.sessions.create).not.toHaveBeenCalled();
+    expect(stripe.subscriptions.update).toHaveBeenCalledWith('sub_pro_123', {
+      items: [
+        {
+          id: 'si_pro_123',
+          price: 'price_pro_plus_456',
+        },
+      ],
+      billing_cycle_anchor: 'unchanged',
+      cancel_at_period_end: false,
+      metadata: {
+        artistId: 'artist_123',
+        plan: PlanTier.pro_plus,
+        environment: 'test',
+      },
+      proration_behavior: 'always_invoice',
+    });
+    expect(prisma.subscription.upsert).toHaveBeenCalledWith({
+      where: { artistId: 'artist_123' },
+      update: {
+        plan: PlanTier.pro_plus,
+        status: SubscriptionStatus.active,
+        stripeCustomerId: 'cus_123',
+        stripeSubscriptionId: 'sub_pro_123',
+        stripePriceId: 'price_pro_plus_456',
+        cancelAtPeriodEnd: false,
+        currentPeriodEnd: new Date('2026-06-10T00:00:00.000Z'),
+        lastStripeEventAt: expect.any(Date),
+      },
+      create: {
+        artistId: 'artist_123',
+        plan: PlanTier.pro_plus,
+        status: SubscriptionStatus.active,
+        stripeCustomerId: 'cus_123',
+        stripeSubscriptionId: 'sub_pro_123',
+        stripePriceId: 'price_pro_plus_456',
+        cancelAtPeriodEnd: false,
+        currentPeriodEnd: new Date('2026-06-10T00:00:00.000Z'),
+        lastStripeEventAt: expect.any(Date),
+      },
+    });
+    expect(result.data.url).toBe('http://localhost:4000/en/dashboard/billing?refresh=done');
   });
 
   it('syncs subscription data from Stripe webhook events', async () => {
@@ -439,6 +604,96 @@ describe('BillingService', () => {
     expect(result.data.billingPlan).toBe('pro_plus');
     expect(result.data.effectivePlan).toBe('pro_plus');
     expect(result.data.billingState).toBe('active');
+  });
+
+  it('refresh prefers the newest relevant customer subscription even if a stale stripeSubscriptionId exists locally', async () => {
+    const { service, prisma, stripe } = createService();
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValueOnce({
+      artistId: 'artist_123',
+      plan: PlanTier.pro,
+      status: SubscriptionStatus.active,
+      currentPeriodEnd: new Date('2026-05-01T00:00:00.000Z'),
+      cancelAtPeriodEnd: false,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_pro_old',
+    });
+
+    (stripe.subscriptions.list as jest.Mock).mockResolvedValue({
+      data: [
+        {
+          object: 'subscription',
+          id: 'sub_pro_old',
+          created: 1711000000,
+          status: 'active',
+          cancel_at_period_end: false,
+          customer: 'cus_123',
+          metadata: { artistId: 'artist_123', plan: PlanTier.pro },
+          items: {
+            data: [
+              {
+                id: 'si_old',
+                current_period_end: 1781049600,
+                price: {
+                  id: 'price_pro_123',
+                },
+              },
+            ],
+          },
+        },
+        {
+          object: 'subscription',
+          id: 'sub_pro_plus_new',
+          created: 1712000000,
+          status: 'active',
+          cancel_at_period_end: false,
+          customer: 'cus_123',
+          metadata: { artistId: 'artist_123', plan: PlanTier.pro_plus },
+          items: {
+            data: [
+              {
+                id: 'si_new',
+                current_period_end: 1782049600,
+                price: {
+                  id: 'price_pro_plus_456',
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValueOnce({
+      artistId: 'artist_123',
+      plan: PlanTier.pro_plus,
+      status: SubscriptionStatus.active,
+      currentPeriodEnd: new Date('2026-06-21T13:46:40.000Z'),
+      cancelAtPeriodEnd: false,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_pro_plus_new',
+    });
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValueOnce({
+      artistId: 'artist_123',
+      plan: PlanTier.pro_plus,
+      status: SubscriptionStatus.active,
+      currentPeriodEnd: new Date('2026-06-21T13:46:40.000Z'),
+      cancelAtPeriodEnd: false,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_pro_plus_new',
+    });
+
+    const result = await service.refreshSubscriptionState('artist_123');
+
+    expect(stripe.subscriptions.list).toHaveBeenCalledWith({
+      customer: 'cus_123',
+      status: 'all',
+      limit: 10,
+    });
+    expect(stripe.subscriptions.retrieve).not.toHaveBeenCalled();
+    expect(result.data.billingPlan).toBe('pro_plus');
+    expect(result.data.effectivePlan).toBe('pro_plus');
   });
 
   it('treats scheduled cancellation dates as canceling during refresh', async () => {
