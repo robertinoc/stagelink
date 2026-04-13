@@ -9,6 +9,7 @@ type TranslationFieldMap = Record<string, LocalizedTextMap | undefined>;
 interface LocalizedDocumentField {
   baseValue: string | null | undefined;
   localizedValue?: LocalizedTextMap;
+  required?: boolean;
 }
 
 function hasText(value: unknown): value is string {
@@ -69,7 +70,7 @@ export function isLocaleCompleteForDocument(
   fields: LocalizedDocumentField[],
 ): boolean {
   return fields
-    .filter(({ baseValue }) => hasText(baseValue))
+    .filter(({ baseValue, required = true }) => required && hasText(baseValue))
     .every(({ localizedValue }) => hasText(localizedValue?.[locale]));
 }
 
@@ -121,4 +122,16 @@ export function resolveLocalizedText(
   }
 
   return hasText(baseValue) ? baseValue.trim() : null;
+}
+
+/**
+ * Use this helper for independently localized block fields where falling back
+ * field-by-field is preferred over the stricter document-level locale policy.
+ */
+export function resolveFieldLevelLocalizedText(
+  baseValue: string | null | undefined,
+  localizedValue: LocalizedTextMap | undefined,
+  locale: SupportedLocale,
+): string | null {
+  return resolveLocalizedText(baseValue, localizedValue, locale);
 }

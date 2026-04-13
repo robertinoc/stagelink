@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { Globe2, Lock } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -21,6 +21,10 @@ type LocaleTab = 'en' | 'es';
 
 const LOCALE_TABS: LocaleTab[] = ['en', 'es'];
 
+function getDefaultTranslatedLocale(baseLocale: LocaleTab): LocaleTab {
+  return LOCALE_TABS.find((locale) => locale !== baseLocale) ?? 'en';
+}
+
 export function LocalizedProfileContentSection({
   form,
   disabled,
@@ -28,7 +32,6 @@ export function LocalizedProfileContentSection({
   billingHref,
 }: LocalizedProfileContentSectionProps) {
   const t = useTranslations('dashboard.profile');
-  const [activeLocale, setActiveLocale] = useState<LocaleTab>('es');
   const {
     register,
     setValue,
@@ -37,6 +40,8 @@ export function LocalizedProfileContentSection({
   } = form;
 
   const baseLocale = watch('baseLocale');
+  const defaultTranslatedLocale = getDefaultTranslatedLocale(baseLocale);
+  const [activeLocale, setActiveLocale] = useState<LocaleTab>(defaultTranslatedLocale);
   const baseValues = watch(['displayName', 'bio', 'seoTitle', 'seoDescription']);
   const translationsValues = watch('translations');
   const activeLocaleLabel = useMemo(
@@ -46,6 +51,13 @@ export function LocalizedProfileContentSection({
   const fieldsDisabled = disabled || !hasMultiLanguageAccess || activeLocale === baseLocale;
   const translatedValues = watch(`translations.${activeLocale}`) ?? {};
   const translatedErrors = errors.translations?.[activeLocale];
+
+  useEffect(() => {
+    if (activeLocale === baseLocale) {
+      setActiveLocale(defaultTranslatedLocale);
+    }
+  }, [activeLocale, baseLocale, defaultTranslatedLocale]);
+
   const localeStatus = useMemo(() => {
     return LOCALE_TABS.reduce<Record<LocaleTab, 'base' | 'complete' | 'incomplete'>>(
       (acc, locale) => {
@@ -54,12 +66,10 @@ export function LocalizedProfileContentSection({
           return acc;
         }
 
-        const sourceFields = [baseValues[0], baseValues[1], baseValues[2], baseValues[3]];
+        const sourceFields = [baseValues[0], baseValues[1]];
         const translatedFields = [
           translationsValues?.[locale]?.displayName,
           translationsValues?.[locale]?.bio,
-          translationsValues?.[locale]?.seoTitle,
-          translationsValues?.[locale]?.seoDescription,
         ];
         const complete = sourceFields.every((baseValue, index) => {
           if (!baseValue?.trim()) return true;

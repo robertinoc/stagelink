@@ -20,7 +20,7 @@ import {
   normalizeBaseLocale,
   resolveDocumentLocale,
   resolveDocumentText,
-  resolveLocalizedText,
+  resolveFieldLevelLocalizedText,
 } from '../../common/utils/localized-content.util';
 
 /**
@@ -65,8 +65,16 @@ function localizeArtistTextFields(
     [
       { baseValue: artist.displayName, localizedValue: translations.displayName },
       { baseValue: artist.bio, localizedValue: translations.bio },
-      { baseValue: artist.seoTitle, localizedValue: translations.seoTitle },
-      { baseValue: artist.seoDescription, localizedValue: translations.seoDescription },
+      {
+        baseValue: artist.seoTitle,
+        localizedValue: translations.seoTitle,
+        required: false,
+      },
+      {
+        baseValue: artist.seoDescription,
+        localizedValue: translations.seoDescription,
+        required: false,
+      },
     ],
   );
 
@@ -113,7 +121,11 @@ function localizeBlock(
 ): PublicBlockDto {
   const localizedContent = (block.localizedContent as BlockLocalizedContent | null) ?? {};
   const baseConfig = (block.config as Record<string, unknown>) ?? {};
-  const localizedTitle = resolveLocalizedText(block.title, localizedContent.title, locale);
+  const localizedTitle = resolveFieldLevelLocalizedText(
+    block.title,
+    localizedContent.title,
+    locale,
+  );
 
   if (block.type === 'email_capture') {
     const emailCapture = baseConfig as unknown as EmailCaptureBlockConfig;
@@ -126,25 +138,30 @@ function localizeBlock(
       position: block.position,
       config: {
         ...emailCapture,
-        headline: resolveLocalizedText(emailCapture.headline, translated.headline, locale) ?? '',
+        headline:
+          resolveFieldLevelLocalizedText(emailCapture.headline, translated.headline, locale) ?? '',
         buttonLabel:
-          resolveLocalizedText(emailCapture.buttonLabel, translated.buttonLabel, locale) ?? '',
-        description: resolveLocalizedText(
+          resolveFieldLevelLocalizedText(
+            emailCapture.buttonLabel,
+            translated.buttonLabel,
+            locale,
+          ) ?? '',
+        description: resolveFieldLevelLocalizedText(
           emailCapture.description ?? null,
           translated.description,
           locale,
         ),
-        placeholder: resolveLocalizedText(
+        placeholder: resolveFieldLevelLocalizedText(
           emailCapture.placeholder ?? null,
           translated.placeholder,
           locale,
         ),
-        successMessage: resolveLocalizedText(
+        successMessage: resolveFieldLevelLocalizedText(
           emailCapture.successMessage ?? null,
           translated.successMessage,
           locale,
         ),
-        consentLabel: resolveLocalizedText(
+        consentLabel: resolveFieldLevelLocalizedText(
           emailCapture.consentLabel ?? null,
           translated.consentLabel,
           locale,
@@ -166,7 +183,8 @@ function localizeBlock(
         ...linksConfig,
         items: linksConfig.items.map((item) => ({
           ...item,
-          label: resolveLocalizedText(item.label, itemLabels[item.id], locale) ?? item.label,
+          label:
+            resolveFieldLevelLocalizedText(item.label, itemLabels[item.id], locale) ?? item.label,
         })),
       },
     };

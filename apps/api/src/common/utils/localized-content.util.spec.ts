@@ -1,6 +1,7 @@
 import {
   resolveDocumentLocale,
   resolveDocumentText,
+  resolveFieldLevelLocalizedText,
   resolveLocalizedText,
 } from './localized-content.util';
 
@@ -35,6 +36,22 @@ describe('localized-content.util', () => {
         ]),
       ).toBe('en');
     });
+
+    it('ignores optional fields when deciding whether a document locale is complete', () => {
+      expect(
+        resolveDocumentLocale('en', 'es', [
+          {
+            baseValue: 'Bio en espanol',
+            localizedValue: { en: 'English bio' },
+          },
+          {
+            baseValue: 'Rider en espanol',
+            localizedValue: {},
+            required: false,
+          },
+        ]),
+      ).toBe('en');
+    });
   });
 
   describe('resolveDocumentText', () => {
@@ -55,6 +72,14 @@ describe('localized-content.util', () => {
     it('still keeps legacy field-level fallback behavior for simple localized fields', () => {
       expect(resolveLocalizedText('Texto base', { en: 'English text' }, 'en')).toBe('English text');
       expect(resolveLocalizedText('Texto base', { en: 'English text' }, 'es')).toBe('English text');
+    });
+  });
+
+  describe('resolveFieldLevelLocalizedText', () => {
+    it('keeps field-by-field fallback behavior explicit for block content', () => {
+      expect(resolveFieldLevelLocalizedText('Texto base', { en: 'English text' }, 'es')).toBe(
+        'English text',
+      );
     });
   });
 });
