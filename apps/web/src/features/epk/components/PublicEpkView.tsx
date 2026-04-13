@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Globe2, PlayCircle, Radio } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 import { DEFAULT_LOCALE, type PublicEpkResponse, type SupportedLocale } from '@stagelink/types';
 
 interface PublicEpkViewProps {
@@ -19,11 +20,12 @@ function getMediaIcon(provider: string) {
   }
 }
 
-export function PublicEpkView({
+export async function PublicEpkView({
   epk,
   printMode = false,
   locale = DEFAULT_LOCALE,
 }: PublicEpkViewProps) {
+  const t = await getTranslations({ locale, namespace: 'public_epk' });
   const { artist } = epk;
   const surfaceClass = printMode
     ? 'border-zinc-200 bg-white text-zinc-900 shadow-sm'
@@ -68,7 +70,7 @@ export function PublicEpkView({
                       {artist.displayName}
                     </h1>
                     <p className={`text-sm uppercase tracking-[0.25em] ${mutedHeadingClass}`}>
-                      Press kit
+                      {t('title')}
                     </p>
                   </div>
                 </div>
@@ -90,11 +92,11 @@ export function PublicEpkView({
                 <h2
                   className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
                 >
-                  Contacts
+                  {t('sections.contacts')}
                 </h2>
                 {epk.bookingEmail ? (
                   <p className="text-sm">
-                    <span className={`block ${mutedHeadingClass}`}>Booking</span>
+                    <span className={`block ${mutedHeadingClass}`}>{t('contact.booking')}</span>
                     <a href={`mailto:${epk.bookingEmail}`} className={bodyTextClass}>
                       {epk.bookingEmail}
                     </a>
@@ -102,19 +104,19 @@ export function PublicEpkView({
                 ) : null}
                 {epk.managementContact ? (
                   <p className="text-sm">
-                    <span className={`block ${mutedHeadingClass}`}>Management</span>
+                    <span className={`block ${mutedHeadingClass}`}>{t('contact.management')}</span>
                     <span className={bodyTextClass}>{epk.managementContact}</span>
                   </p>
                 ) : null}
                 {epk.pressContact ? (
                   <p className="text-sm">
-                    <span className={`block ${mutedHeadingClass}`}>Press</span>
+                    <span className={`block ${mutedHeadingClass}`}>{t('contact.press')}</span>
                     <span className={bodyTextClass}>{epk.pressContact}</span>
                   </p>
                 ) : null}
                 {epk.location ? (
                   <p className="text-sm">
-                    <span className={`block ${mutedHeadingClass}`}>Base</span>
+                    <span className={`block ${mutedHeadingClass}`}>{t('contact.base')}</span>
                     <span className={bodyTextClass}>{epk.location}</span>
                   </p>
                 ) : null}
@@ -132,7 +134,7 @@ export function PublicEpkView({
                 <h2
                   className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
                 >
-                  Bio
+                  {t('sections.bio')}
                 </h2>
                 <div
                   className={`max-w-4xl whitespace-pre-line text-base leading-8 ${bodyTextClass}`}
@@ -147,7 +149,7 @@ export function PublicEpkView({
                 <h2
                   className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
                 >
-                  Highlights
+                  {t('sections.highlights')}
                 </h2>
                 <div className="grid gap-3 md:grid-cols-2">
                   {epk.highlights.map((highlight) => (
@@ -167,7 +169,7 @@ export function PublicEpkView({
                 <h2
                   className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
                 >
-                  Featured media
+                  {t('sections.featured_media')}
                 </h2>
                 <div className="grid gap-3 md:grid-cols-2">
                   {epk.featuredMedia.map((item) => {
@@ -213,7 +215,7 @@ export function PublicEpkView({
                 <h2
                   className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
                 >
-                  Featured links
+                  {t('sections.featured_links')}
                 </h2>
                 <div className="flex flex-wrap gap-3">
                   {epk.featuredLinks.map((item) => (
@@ -240,7 +242,7 @@ export function PublicEpkView({
                 <h2
                   className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
                 >
-                  Gallery
+                  {t('sections.gallery')}
                 </h2>
                 <div className="grid gap-3 md:grid-cols-3 print:grid-cols-2">
                   {epk.galleryImageUrls.map((imageUrl) => (
@@ -263,7 +265,7 @@ export function PublicEpkView({
                     <h3
                       className={`text-sm font-semibold uppercase tracking-[0.18em] ${mutedHeadingClass}`}
                     >
-                      Availability
+                      {t('sections.availability')}
                     </h3>
                     <p className={`whitespace-pre-line text-sm leading-7 ${bodyTextClass}`}>
                       {epk.availabilityNotes}
@@ -275,7 +277,7 @@ export function PublicEpkView({
                     <h3
                       className={`text-sm font-semibold uppercase tracking-[0.18em] ${mutedHeadingClass}`}
                     >
-                      Rider
+                      {t('sections.rider')}
                     </h3>
                     <p className={`whitespace-pre-line text-sm leading-7 ${bodyTextClass}`}>
                       {epk.riderInfo}
@@ -287,7 +289,7 @@ export function PublicEpkView({
                     <h3
                       className={`text-sm font-semibold uppercase tracking-[0.18em] ${mutedHeadingClass}`}
                     >
-                      Tech
+                      {t('sections.tech')}
                     </h3>
                     <p className={`whitespace-pre-line text-sm leading-7 ${bodyTextClass}`}>
                       {epk.techRequirements}
@@ -299,9 +301,9 @@ export function PublicEpkView({
 
             {!printMode ? (
               <footer className="flex items-center justify-between border-t border-white/10 pt-6 text-xs text-zinc-500">
-                <span>Shared via StageLink</span>
+                <span>{t('footer.shared_via')}</span>
                 <Link href={`/${locale}/${artist.username}/epk/print`} className="hover:text-white">
-                  Open print view
+                  {t('footer.print_view')}
                 </Link>
               </footer>
             ) : null}
