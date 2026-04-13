@@ -34,5 +34,5 @@ export default async function PrintEpkPage({ params }: PrintEpkPageProps) {
 
   if (!epk) notFound();
 
-  return <PublicEpkView epk={epk} printMode />;
+  return <PublicEpkView epk={epk} printMode locale={locale} />;
 }

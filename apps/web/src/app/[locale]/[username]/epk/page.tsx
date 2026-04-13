@@ -1,17 +1,17 @@
-import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
-import { fetchPublicEpk } from '@/lib/api/epk';
+import { notFound } from 'next/navigation';
+import type { SupportedLocale } from '@stagelink/types';
 import { PublicEpkView } from '@/features/epk/components/PublicEpkView';
-import { detectLocale } from '@/lib/detect-locale';
+import { fetchPublicEpk } from '@/lib/api/epk';
 
-interface PublicEpkPageProps {
-  params: Promise<{ username: string }>;
+interface LocalizedPublicEpkPageProps {
+  params: Promise<{ locale: SupportedLocale; username: string }>;
 }
 
-export async function generateMetadata({ params }: PublicEpkPageProps): Promise<Metadata> {
-  const { username } = await params;
-  const locale = detectLocale((await headers()).get('accept-language') ?? '');
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: LocalizedPublicEpkPageProps): Promise<Metadata> {
+  const { locale, username } = await params;
   const epk = await fetchPublicEpk(username, locale);
 
   if (!epk) {
@@ -21,6 +21,8 @@ export async function generateMetadata({ params }: PublicEpkPageProps): Promise<
     };
   }
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const canonical = appUrl ? `${appUrl}/${locale}/${epk.artist.username}/epk` : undefined;
   const title = `${epk.artist.displayName} EPK — StageLink`;
   const description =
     epk.headline ??
@@ -31,11 +33,22 @@ export async function generateMetadata({ params }: PublicEpkPageProps): Promise<
   return {
     title,
     description,
+    ...(canonical && {
+      alternates: {
+        canonical,
+        languages: {
+          en: `${appUrl}/en/${epk.artist.username}/epk`,
+          es: `${appUrl}/es/${epk.artist.username}/epk`,
+        },
+      },
+    }),
     openGraph: {
       title,
       description,
+      ...(canonical && { url: canonical }),
       images: epk.heroImageUrl ? [{ url: epk.heroImageUrl, alt: epk.artist.displayName }] : [],
       type: 'article',
+      locale,
     },
     twitter: {
       card: epk.heroImageUrl ? 'summary_large_image' : 'summary',
@@ -46,9 +59,8 @@ export async function generateMetadata({ params }: PublicEpkPageProps): Promise<
   };
 }
 
-export default async function PublicEpkPage({ params }: PublicEpkPageProps) {
-  const { username } = await params;
-  const locale = detectLocale((await headers()).get('accept-language') ?? '');
+export default async function LocalizedPublicEpkPage({ params }: LocalizedPublicEpkPageProps) {
+  const { locale, username } = await params;
   const epk = await fetchPublicEpk(username, locale);
 
   if (!epk) notFound();
