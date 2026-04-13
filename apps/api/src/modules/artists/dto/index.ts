@@ -4,6 +4,7 @@ import {
   IsUrl,
   IsEmail,
   IsEnum,
+  IsIn,
   IsArray,
   ArrayUnique,
   ArrayMaxSize,
@@ -25,6 +26,7 @@ import {
   USERNAME_MIN_LENGTH,
   USERNAME_MAX_LENGTH,
 } from '../../../common/utils/username.util';
+import { SUPPORTED_LOCALES, type SupportedLocale } from '@stagelink/types';
 import { isReservedUsername } from '../../../common/constants/reserved-usernames';
 
 // ── Decorador personalizado: username no reservado ─────────────
@@ -225,6 +227,10 @@ export class UpdateArtistDto {
     typeof value === 'string' && value.trim() === '' ? null : value,
   )
   seoDescription?: string | null;
+
+  @IsOptional()
+  @IsIn(SUPPORTED_LOCALES, { message: 'baseLocale must be a supported locale' })
+  baseLocale?: SupportedLocale;
 
   @IsOptional()
   @IsObject()

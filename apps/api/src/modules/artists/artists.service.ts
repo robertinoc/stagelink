@@ -4,7 +4,12 @@ import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
 import { PostHogService } from '../analytics/posthog.service';
-import { ANALYTICS_EVENTS, type ArtistTranslations } from '@stagelink/types';
+import {
+  ANALYTICS_EVENTS,
+  DEFAULT_LOCALE,
+  type ArtistTranslations,
+  type SupportedLocale,
+} from '@stagelink/types';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import {
   hasAdditionalLocaleContent,
@@ -27,6 +32,7 @@ interface CreateArtistPayload {
 interface UpdateArtistPayload {
   displayName?: string;
   bio?: string | null;
+  baseLocale?: SupportedLocale;
   category?: ArtistCategory;
   secondaryCategories?: ArtistCategory[];
   tags?: string[];
@@ -73,6 +79,10 @@ export class ArtistsService {
   private mapArtist(artist: ArtistRecord) {
     return {
       ...artist,
+      baseLocale:
+        typeof artist.baseLocale === 'string'
+          ? (artist.baseLocale as SupportedLocale)
+          : DEFAULT_LOCALE,
       translations: (artist.translations as ArtistTranslations | null) ?? {},
     };
   }
@@ -164,6 +174,7 @@ export class ArtistsService {
         // This avoids accidentally clearing fields that weren't sent.
         ...(payload.displayName !== undefined && { displayName: payload.displayName }),
         ...(payload.bio !== undefined && { bio: payload.bio }),
+        ...(payload.baseLocale !== undefined && { baseLocale: payload.baseLocale }),
         ...(payload.category !== undefined && { category: payload.category }),
         ...(secondaryCategories !== undefined && { secondaryCategories }),
         ...(tags !== undefined && { tags }),

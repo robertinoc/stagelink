@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { updateArtist, type Artist } from '@/lib/api/artists';
+import { updateArtist, type Artist, type UpdateArtistPayload } from '@/lib/api/artists';
 import { profileSchema, type ProfileFormValues } from '../schemas/profile.schema';
 import { ProfileBasicInfo } from './ProfileBasicInfo';
 import { ProfileImagesSection } from './ProfileImagesSection';
@@ -50,6 +50,7 @@ export function ArtistProfileSettings({
     defaultValues: {
       displayName: artist.displayName,
       bio: artist.bio ?? '',
+      baseLocale: artist.baseLocale,
       categories: [artist.category, ...(artist.secondaryCategories ?? [])],
       tags: artist.tags ?? [],
       instagramUrl: artist.instagramUrl ?? '',
@@ -97,6 +98,43 @@ export function ArtistProfileSettings({
     >;
   }
 
+  function buildTranslationsPayload(
+    values: ProfileFormValues,
+  ): NonNullable<UpdateArtistPayload['translations']> {
+    const otherLocale = values.baseLocale === 'en' ? 'es' : 'en';
+
+    return {
+      ...(buildLocalizedFieldMap({
+        [otherLocale]: values.translations[otherLocale].displayName,
+      } as Record<'en' | 'es', string | undefined>) && {
+        displayName: buildLocalizedFieldMap({
+          [otherLocale]: values.translations[otherLocale].displayName,
+        } as Record<'en' | 'es', string | undefined>),
+      }),
+      ...(buildLocalizedFieldMap({
+        [otherLocale]: values.translations[otherLocale].bio,
+      } as Record<'en' | 'es', string | undefined>) && {
+        bio: buildLocalizedFieldMap({
+          [otherLocale]: values.translations[otherLocale].bio,
+        } as Record<'en' | 'es', string | undefined>),
+      }),
+      ...(buildLocalizedFieldMap({
+        [otherLocale]: values.translations[otherLocale].seoTitle,
+      } as Record<'en' | 'es', string | undefined>) && {
+        seoTitle: buildLocalizedFieldMap({
+          [otherLocale]: values.translations[otherLocale].seoTitle,
+        } as Record<'en' | 'es', string | undefined>),
+      }),
+      ...(buildLocalizedFieldMap({
+        [otherLocale]: values.translations[otherLocale].seoDescription,
+      } as Record<'en' | 'es', string | undefined>) && {
+        seoDescription: buildLocalizedFieldMap({
+          [otherLocale]: values.translations[otherLocale].seoDescription,
+        } as Record<'en' | 'es', string | undefined>),
+      }),
+    };
+  }
+
   async function onSubmit(values: ProfileFormValues) {
     setSaveStatus('saving');
     setSaveError(null);
@@ -112,6 +150,7 @@ export function ArtistProfileSettings({
     const payload = {
       displayName: values.displayName,
       bio: values.bio || null,
+      baseLocale: values.baseLocale,
       category,
       secondaryCategories,
       tags: values.tags,
@@ -124,44 +163,9 @@ export function ArtistProfileSettings({
       contactEmail: values.contactEmail || null,
       seoTitle: values.seoTitle || null,
       seoDescription: values.seoDescription || null,
-      translations: {
-        ...(buildLocalizedFieldMap({
-          en: values.translations.en.displayName,
-          es: values.translations.es.displayName,
-        }) && {
-          displayName: buildLocalizedFieldMap({
-            en: values.translations.en.displayName,
-            es: values.translations.es.displayName,
-          }),
-        }),
-        ...(buildLocalizedFieldMap({
-          en: values.translations.en.bio,
-          es: values.translations.es.bio,
-        }) && {
-          bio: buildLocalizedFieldMap({
-            en: values.translations.en.bio,
-            es: values.translations.es.bio,
-          }),
-        }),
-        ...(buildLocalizedFieldMap({
-          en: values.translations.en.seoTitle,
-          es: values.translations.es.seoTitle,
-        }) && {
-          seoTitle: buildLocalizedFieldMap({
-            en: values.translations.en.seoTitle,
-            es: values.translations.es.seoTitle,
-          }),
-        }),
-        ...(buildLocalizedFieldMap({
-          en: values.translations.en.seoDescription,
-          es: values.translations.es.seoDescription,
-        }) && {
-          seoDescription: buildLocalizedFieldMap({
-            en: values.translations.en.seoDescription,
-            es: values.translations.es.seoDescription,
-          }),
-        }),
-      },
+      ...(hasMultiLanguageAccess && {
+        translations: buildTranslationsPayload(values),
+      }),
     };
 
     try {
@@ -171,6 +175,7 @@ export function ArtistProfileSettings({
       reset({
         displayName: updated.displayName,
         bio: updated.bio ?? '',
+        baseLocale: updated.baseLocale,
         categories: [updated.category, ...(updated.secondaryCategories ?? [])],
         tags: updated.tags ?? [],
         instagramUrl: updated.instagramUrl ?? '',

@@ -25,6 +25,7 @@ export interface PublicArtistDto {
   username: string;
   displayName: string;
   bio: string | null;
+  baseLocale: SupportedLocale;
   avatarUrl: string | null;
   coverUrl: string | null;
   category: ArtistCategory;
@@ -57,6 +58,7 @@ export interface PublicPageResponseDto {
   artist: PublicArtistDto;
   blocks: PublicBlockDto[];
   locale: SupportedLocale;
+  contentLocale: SupportedLocale;
   /** Slot público reservado para branding/promo según el plan efectivo. */
   promoSlot: {
     kind: PublicPromoSlotKind;

@@ -10,6 +10,7 @@ import type {
   EpkFeaturedLinkItem,
   EpkFeaturedMediaItem,
   SmartLink,
+  UpdateEpkPayload,
 } from '@stagelink/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,7 @@ export function EpkEditor({
   const form = useForm<EpkFormValues>({
     resolver: zodResolver(epkFormSchema),
     defaultValues: {
+      baseLocale: editorData.epk.baseLocale,
       headline: editorData.epk.headline ?? '',
       shortBio: editorData.epk.shortBio ?? '',
       fullBio: editorData.epk.fullBio ?? '',
@@ -139,6 +141,64 @@ export function EpkEditor({
     >;
   }
 
+  function buildTranslationsPayload(
+    values: EpkFormValues,
+  ): NonNullable<UpdateEpkPayload['translations']> {
+    const otherLocale = values.baseLocale === 'en' ? 'es' : 'en';
+
+    return {
+      ...(buildLocalizedFieldMap({
+        [otherLocale]: values.translations[otherLocale].headline,
+      } as Record<'en' | 'es', string | null | undefined>) && {
+        headline: buildLocalizedFieldMap({
+          [otherLocale]: values.translations[otherLocale].headline,
+        } as Record<'en' | 'es', string | null | undefined>),
+      }),
+      ...(buildLocalizedFieldMap({
+        [otherLocale]: values.translations[otherLocale].shortBio,
+      } as Record<'en' | 'es', string | null | undefined>) && {
+        shortBio: buildLocalizedFieldMap({
+          [otherLocale]: values.translations[otherLocale].shortBio,
+        } as Record<'en' | 'es', string | null | undefined>),
+      }),
+      ...(buildLocalizedFieldMap({
+        [otherLocale]: values.translations[otherLocale].fullBio,
+      } as Record<'en' | 'es', string | null | undefined>) && {
+        fullBio: buildLocalizedFieldMap({
+          [otherLocale]: values.translations[otherLocale].fullBio,
+        } as Record<'en' | 'es', string | null | undefined>),
+      }),
+      ...(buildLocalizedFieldMap({
+        [otherLocale]: values.translations[otherLocale].pressQuote,
+      } as Record<'en' | 'es', string | null | undefined>) && {
+        pressQuote: buildLocalizedFieldMap({
+          [otherLocale]: values.translations[otherLocale].pressQuote,
+        } as Record<'en' | 'es', string | null | undefined>),
+      }),
+      ...(buildLocalizedFieldMap({
+        [otherLocale]: values.translations[otherLocale].riderInfo,
+      } as Record<'en' | 'es', string | null | undefined>) && {
+        riderInfo: buildLocalizedFieldMap({
+          [otherLocale]: values.translations[otherLocale].riderInfo,
+        } as Record<'en' | 'es', string | null | undefined>),
+      }),
+      ...(buildLocalizedFieldMap({
+        [otherLocale]: values.translations[otherLocale].techRequirements,
+      } as Record<'en' | 'es', string | null | undefined>) && {
+        techRequirements: buildLocalizedFieldMap({
+          [otherLocale]: values.translations[otherLocale].techRequirements,
+        } as Record<'en' | 'es', string | null | undefined>),
+      }),
+      ...(buildLocalizedFieldMap({
+        [otherLocale]: values.translations[otherLocale].availabilityNotes,
+      } as Record<'en' | 'es', string | null | undefined>) && {
+        availabilityNotes: buildLocalizedFieldMap({
+          [otherLocale]: values.translations[otherLocale].availabilityNotes,
+        } as Record<'en' | 'es', string | null | undefined>),
+      }),
+    };
+  }
+
   const availableImageAssets = useMemo(
     () =>
       assets.filter(
@@ -160,6 +220,7 @@ export function EpkEditor({
 
     try {
       const updated = await updateArtistEpk(artistId, {
+        baseLocale: values.baseLocale,
         headline: values.headline || null,
         shortBio: values.shortBio || null,
         fullBio: values.fullBio || null,
@@ -177,76 +238,13 @@ export function EpkEditor({
         location: values.location || null,
         availabilityNotes: values.availabilityNotes || null,
         ...(hasMultiLanguageAccess && {
-          translations: {
-            ...(buildLocalizedFieldMap({
-              en: values.translations.en.headline,
-              es: values.translations.es.headline,
-            }) && {
-              headline: buildLocalizedFieldMap({
-                en: values.translations.en.headline,
-                es: values.translations.es.headline,
-              }),
-            }),
-            ...(buildLocalizedFieldMap({
-              en: values.translations.en.shortBio,
-              es: values.translations.es.shortBio,
-            }) && {
-              shortBio: buildLocalizedFieldMap({
-                en: values.translations.en.shortBio,
-                es: values.translations.es.shortBio,
-              }),
-            }),
-            ...(buildLocalizedFieldMap({
-              en: values.translations.en.fullBio,
-              es: values.translations.es.fullBio,
-            }) && {
-              fullBio: buildLocalizedFieldMap({
-                en: values.translations.en.fullBio,
-                es: values.translations.es.fullBio,
-              }),
-            }),
-            ...(buildLocalizedFieldMap({
-              en: values.translations.en.pressQuote,
-              es: values.translations.es.pressQuote,
-            }) && {
-              pressQuote: buildLocalizedFieldMap({
-                en: values.translations.en.pressQuote,
-                es: values.translations.es.pressQuote,
-              }),
-            }),
-            ...(buildLocalizedFieldMap({
-              en: values.translations.en.riderInfo,
-              es: values.translations.es.riderInfo,
-            }) && {
-              riderInfo: buildLocalizedFieldMap({
-                en: values.translations.en.riderInfo,
-                es: values.translations.es.riderInfo,
-              }),
-            }),
-            ...(buildLocalizedFieldMap({
-              en: values.translations.en.techRequirements,
-              es: values.translations.es.techRequirements,
-            }) && {
-              techRequirements: buildLocalizedFieldMap({
-                en: values.translations.en.techRequirements,
-                es: values.translations.es.techRequirements,
-              }),
-            }),
-            ...(buildLocalizedFieldMap({
-              en: values.translations.en.availabilityNotes,
-              es: values.translations.es.availabilityNotes,
-            }) && {
-              availabilityNotes: buildLocalizedFieldMap({
-                en: values.translations.en.availabilityNotes,
-                es: values.translations.es.availabilityNotes,
-              }),
-            }),
-          },
+          translations: buildTranslationsPayload(values),
         }),
       });
 
       setEditorData(updated);
       reset({
+        baseLocale: updated.epk.baseLocale,
         headline: normalizeNullable(updated.epk.headline),
         shortBio: normalizeNullable(updated.epk.shortBio),
         fullBio: normalizeNullable(updated.epk.fullBio),

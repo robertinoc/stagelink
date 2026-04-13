@@ -104,6 +104,7 @@ model Artist {
   // SEO
   seoTitle      String?  @map("seo_title")
   seoDescription String? @map("seo_description")
+  baseLocale    String   @default("en") @map("base_locale")
   translations  Json     @default("{}")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
@@ -150,6 +151,7 @@ model Epk {
   techRequirements   String?  @map("tech_requirements")
   location           String?
   availabilityNotes  String?  @map("availability_notes")
+  baseLocale         String   @default("en") @map("base_locale")
   translations       Json     @default("{}")
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")

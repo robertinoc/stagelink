@@ -137,7 +137,7 @@ docs/
 ├── stripe-billing-foundation.md   # Checkout, portal, webhooks, billing por artist (T5-1)
 ├── billing-state-policy.md        # Política base de billing states y recovery
 ├── billing-state-edge-cases.md    # Effective billing state, effective plan, webhook ordering y fallbacks T6-6
-├── multi-language-pages-and-translation-infra.md # Routing locale-aware, content translations, fallback y gating T6-5
+├── multi-language-pages-and-translation-infra.md # Routing locale-aware, content translations, baseLocale, fallback coherente y gating T6-5
 ├── plan-feature-gating.md         # effectivePlan, entitlements y patrón de gating por plan (T5-2)
 └── billing-ui-and-upgrade-flows.md # Billing dashboard, upgrade flows y retornos desde Stripe (T5-3)
 ```

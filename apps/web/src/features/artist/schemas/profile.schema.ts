@@ -51,6 +51,8 @@ const descriptorSchema = z
   .min(1, 'Descriptor cannot be empty')
   .max(24, 'Descriptors must be 24 characters or less');
 
+const supportedLocales = ['en', 'es'] as const;
+
 // ── Artist profile form schema ────────────────────────────────────────────────
 
 export const ARTIST_CATEGORIES = [
@@ -74,6 +76,7 @@ export const profileSchema = z
       .min(1, 'Artist name is required')
       .max(100, 'Artist name must be 100 characters or less'),
     bio: z.string().max(500, 'Bio must be 500 characters or less').optional(),
+    baseLocale: z.enum(supportedLocales).default('en'),
     categories: z
       .array(z.enum(ARTIST_CATEGORIES))
       .min(1, 'Choose at least one category')

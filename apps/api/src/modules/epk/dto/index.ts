@@ -11,6 +11,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { SUPPORTED_LOCALES, type SupportedLocale } from '@stagelink/types';
 
 function emptyStringToNull(value: unknown) {
   return typeof value === 'string' && value.trim() === '' ? null : value;
@@ -48,6 +49,10 @@ export class EpkFeaturedLinkItemDto {
 }
 
 export class UpdateEpkDto {
+  @IsOptional()
+  @IsIn(SUPPORTED_LOCALES)
+  baseLocale?: SupportedLocale;
+
   @IsOptional()
   @IsObject()
   translations?: Record<string, unknown>;

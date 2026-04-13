@@ -59,6 +59,7 @@ export interface Epk {
   id: string;
   artistId: string;
   isPublished: boolean;
+  baseLocale: SupportedLocale;
   headline: string | null;
   shortBio: string | null;
   fullBio: string | null;
@@ -91,6 +92,7 @@ export interface EpkTranslations {
 }
 
 export interface UpdateEpkPayload {
+  baseLocale?: SupportedLocale;
   headline?: string | null;
   shortBio?: string | null;
   fullBio?: string | null;
@@ -150,6 +152,7 @@ export interface PublicEpkResponse {
   artistId: string;
   epkId: string;
   isPublished: boolean;
+  baseLocale: SupportedLocale;
   artist: PublicEpkArtist;
   headline: string | null;
   shortBio: string | null;
@@ -168,4 +171,5 @@ export interface PublicEpkResponse {
   location: string | null;
   availabilityNotes: string | null;
   locale?: SupportedLocale;
+  contentLocale?: SupportedLocale;
 }

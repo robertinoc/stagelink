@@ -133,15 +133,55 @@ Uso actual:
 
 Esto deja documentado el patrón para extenderlo a más bloques después.
 
+### Base locale
+
+`Artist` y `Epk` ahora guardan:
+
+- `baseLocale`
+
+Este campo define en qué idioma están escritos los campos base legacy de cada documento.
+
+Ejemplos:
+
+- un perfil puede tener `baseLocale = es`
+- un EPK puede tener `baseLocale = en`
+
+Las traducciones adicionales viven en `translations`, pero el contenido base sigue estando en los campos legacy principales.
+
 ## Política de fallback
 
-El fallback siempre es conservador y nunca deja la página vacía si existe contenido base.
+El fallback sigue siendo conservador y nunca deja la página vacía si existe contenido base, pero ahora se diferencia entre dos casos:
 
-Orden de resolución:
+### Campos simples
+
+Para campos localizados simples, donde una mezcla no rompe la UX:
 
 1. locale solicitado
-2. fallback al locale base `en`
+2. fallback a `en`
 3. campo base legacy
+
+Se usa:
+
+- `resolveLocalizedText(...)`
+
+### Documentos completos
+
+Para superficies completas donde una mezcla de idiomas es confusa, como:
+
+- página pública del artista
+- EPK público
+- EPK print view
+
+la resolución ahora es por documento:
+
+1. si el locale solicitado es el `baseLocale`, se renderiza todo el documento con los campos base
+2. si el locale solicitado es adicional y está suficientemente completo, se renderiza todo el documento en ese locale
+3. si ese locale está incompleto, se hace fallback a `baseLocale` para todo el documento
+
+Se usa:
+
+- `resolveDocumentLocale(...)`
+- `resolveDocumentText(...)`
 
 Helper central:
 
@@ -187,6 +227,7 @@ El backend:
 - sanitiza locales soportados
 - descarta strings vacíos
 - aplica gating
+- persiste `baseLocale`
 
 ## Frontend
 
@@ -218,6 +259,7 @@ Metadata:
 El editor mantiene:
 
 - contenido base legacy
+- `baseLocale`
 - nueva sección `Localized content`
 
 Permite editar por locale:
@@ -226,6 +268,22 @@ Permite editar por locale:
 - short bio
 - SEO title
 - SEO description
+
+Además:
+
+- deja elegir el idioma base del documento
+- marca el locale base como tal
+- deja copiar el contenido base al locale traducido como punto de partida
+
+### Editor de EPK
+
+El editor de EPK ahora expone una UX dedicada para `EN / ES`:
+
+- tabs por locale
+- idioma base explícito
+- fallback note
+- copy-from-base
+- guardado de `epk.translations`
 
 ## SEO
 
@@ -238,9 +296,9 @@ Base SEO implementada:
 ## Edge cases cubiertos
 
 - locale inválido -> fallback a locale soportado/default
-- traducción faltante -> fallback a `en` o campo base
+- traducción faltante -> fallback a `en` o campo base en campos simples
+- traducción parcial en profile/EPK -> fallback coherente al `baseLocale` del documento
 - tenant sin feature premium -> no puede guardar contenido extra por locale
-- contenido parcial en un idioma -> mezcla segura con fallback por campo
 - labels de UI faltantes -> quedan centralizadas en `next-intl`
 
 ## Limitaciones actuales
@@ -250,7 +308,9 @@ Base SEO implementada:
 - no todos los bloques tienen UI de edición multilenguaje todavía
 - los `tags/descriptors` todavía no se traducen por locale
 - featured media es manual-first: el artista controla qué destacar por orden de bloques
-- EPK soporta lectura localizada en backend, pero el editor multilenguaje del EPK todavía no expone una UX dedicada
+- los bloques `text` siguen siendo locale-agnostic por ahora
+- featured links / media labels del EPK todavía no tienen traducción por locale
+- elegir `baseLocale` correctamente sigue siendo importante para documentos legacy ya escritos antes de este cambio
 
 ## Cómo extender
 
@@ -258,7 +318,7 @@ Para agregar un nuevo campo textual:
 
 1. agregarlo al JSON de traducciones de la entidad
 2. sanitizarlo con `sanitizeTranslationFieldMap`
-3. resolverlo con `resolveLocalizedText`
+3. decidir si usa fallback por campo (`resolveLocalizedText`) o por documento (`resolveDocumentText`)
 4. exponerlo en frontend editor si corresponde
 
 Para agregar un nuevo locale:
@@ -270,7 +330,8 @@ Para agregar un nuevo locale:
 
 ## Próximos pasos recomendados
 
-1. agregar UX multilenguaje a EPK editor
-2. exponer edición localizada para bloques textuales en dashboard page builder
-3. sumar sitemap dinámico con páginas públicas localizadas
-4. considerar selector de idioma visible en la página pública
+1. exponer edición localizada para bloques textuales en dashboard page builder
+2. sumar un indicador de completitud por locale más explícito
+3. agregar acción para copiar traducción desde IA o proveedor externo, opcional y controlada
+4. sumar sitemap dinámico con páginas públicas localizadas
+5. considerar selector de idioma visible en la página pública

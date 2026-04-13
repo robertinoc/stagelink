@@ -1,16 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type {
-  EpkFeaturedLinkItem,
-  EpkFeaturedMediaItem,
-  EpkTranslations,
-  SupportedLocale,
+import {
+  DEFAULT_LOCALE,
+  type EpkFeaturedLinkItem,
+  type EpkFeaturedMediaItem,
+  type EpkTranslations,
+  type SupportedLocale,
 } from '@stagelink/types';
 import { PrismaService } from '../../lib/prisma.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
 import type { PublicEpkResponseDto } from './dto/public-epk-response.dto';
 import { buildFallbackFeaturedLinks } from '../epk/epk.helpers';
-import { resolveLocalizedText } from '../../common/utils/localized-content.util';
+import {
+  normalizeBaseLocale,
+  resolveDocumentLocale,
+  resolveDocumentText,
+} from '../../common/utils/localized-content.util';
 
 @Injectable()
 export class PublicEpkService {
@@ -42,6 +47,7 @@ export class PublicEpkService {
         shortBio: true,
         fullBio: true,
         pressQuote: true,
+        baseLocale: true,
         translations: true,
         bookingEmail: true,
         managementContact: true,
@@ -61,6 +67,7 @@ export class PublicEpkService {
             username: true,
             displayName: true,
             bio: true,
+            baseLocale: true,
             translations: true,
             avatarUrl: true,
             coverUrl: true,
@@ -88,17 +95,39 @@ export class PublicEpkService {
       } | null) ?? {};
     const featuredLinks = (epk.featuredLinks as unknown as EpkFeaturedLinkItem[]).filter(Boolean);
     const fallbackFeaturedLinks = buildFallbackFeaturedLinks(artist);
+    const baseLocale = normalizeBaseLocale(epk.baseLocale ?? artist.baseLocale ?? DEFAULT_LOCALE);
+    const baseShortBio = epk.shortBio ?? artist.bio;
+    const contentLocale = resolveDocumentLocale(locale, baseLocale, [
+      { baseValue: artist.displayName, localizedValue: artistTranslations.displayName },
+      { baseValue: baseShortBio, localizedValue: epkTranslations.shortBio },
+      { baseValue: epk.headline, localizedValue: epkTranslations.headline },
+      { baseValue: epk.fullBio, localizedValue: epkTranslations.fullBio },
+      { baseValue: epk.pressQuote, localizedValue: epkTranslations.pressQuote },
+      { baseValue: epk.riderInfo, localizedValue: epkTranslations.riderInfo },
+      { baseValue: epk.techRequirements, localizedValue: epkTranslations.techRequirements },
+      { baseValue: epk.availabilityNotes, localizedValue: epkTranslations.availabilityNotes },
+    ]);
 
     return {
       artistId: artist.id,
       epkId: epk.id,
       isPublished: epk.isPublished,
+      baseLocale,
       artist: {
         username: artist.username,
         displayName:
-          resolveLocalizedText(artist.displayName, artistTranslations.displayName, locale) ??
-          artist.displayName,
-        bio: resolveLocalizedText(artist.bio, artistTranslations.bio, locale),
+          resolveDocumentText(
+            artist.displayName,
+            artistTranslations.displayName,
+            contentLocale,
+            artist.baseLocale ?? baseLocale,
+          ) ?? artist.displayName,
+        bio: resolveDocumentText(
+          artist.bio,
+          artistTranslations.bio,
+          contentLocale,
+          artist.baseLocale ?? baseLocale,
+        ),
         avatarUrl: artist.avatarUrl,
         coverUrl: artist.coverUrl,
         websiteUrl: artist.websiteUrl,
@@ -108,12 +137,27 @@ export class PublicEpkService {
         spotifyUrl: artist.spotifyUrl,
         soundcloudUrl: artist.soundcloudUrl,
       },
-      headline: resolveLocalizedText(epk.headline, epkTranslations.headline, locale),
+      headline: resolveDocumentText(
+        epk.headline,
+        epkTranslations.headline,
+        contentLocale,
+        baseLocale,
+      ),
       shortBio:
-        resolveLocalizedText(epk.shortBio, epkTranslations.shortBio, locale) ??
-        resolveLocalizedText(artist.bio, artistTranslations.bio, locale),
-      fullBio: resolveLocalizedText(epk.fullBio, epkTranslations.fullBio, locale),
-      pressQuote: resolveLocalizedText(epk.pressQuote, epkTranslations.pressQuote, locale),
+        resolveDocumentText(baseShortBio, epkTranslations.shortBio, contentLocale, baseLocale) ??
+        resolveDocumentText(
+          artist.bio,
+          artistTranslations.bio,
+          contentLocale,
+          artist.baseLocale ?? baseLocale,
+        ),
+      fullBio: resolveDocumentText(epk.fullBio, epkTranslations.fullBio, contentLocale, baseLocale),
+      pressQuote: resolveDocumentText(
+        epk.pressQuote,
+        epkTranslations.pressQuote,
+        contentLocale,
+        baseLocale,
+      ),
       bookingEmail: epk.bookingEmail,
       managementContact: epk.managementContact,
       pressContact: epk.pressContact,
@@ -122,19 +166,27 @@ export class PublicEpkService {
       featuredMedia: (epk.featuredMedia as unknown as EpkFeaturedMediaItem[]).filter(Boolean),
       featuredLinks: featuredLinks.length > 0 ? featuredLinks : fallbackFeaturedLinks,
       highlights: (epk.highlights as unknown as string[]).filter(Boolean),
-      riderInfo: resolveLocalizedText(epk.riderInfo, epkTranslations.riderInfo, locale),
-      techRequirements: resolveLocalizedText(
+      riderInfo: resolveDocumentText(
+        epk.riderInfo,
+        epkTranslations.riderInfo,
+        contentLocale,
+        baseLocale,
+      ),
+      techRequirements: resolveDocumentText(
         epk.techRequirements,
         epkTranslations.techRequirements,
-        locale,
+        contentLocale,
+        baseLocale,
       ),
       location: epk.location,
-      availabilityNotes: resolveLocalizedText(
+      availabilityNotes: resolveDocumentText(
         epk.availabilityNotes,
         epkTranslations.availabilityNotes,
-        locale,
+        contentLocale,
+        baseLocale,
       ),
       locale,
+      contentLocale,
     };
   }
 }
