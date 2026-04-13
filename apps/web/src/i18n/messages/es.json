@@ -599,6 +599,7 @@
       "featured_links": "Links destacados",
       "featured_media": "Media destacada",
       "about": "Sobre el artista",
+      "presskit": "Press kit",
       "bookings": "Bookings",
       "fan_list": "Fan list",
       "additional_info": "Información adicional"
@@ -606,9 +607,12 @@
     "actions": {
       "book_artist": "Contactar para bookings",
       "send_email": "Enviar email",
-      "visit_website": "Visitar sitio"
+      "visit_website": "Visitar sitio",
+      "view_presskit": "Ver press kit",
+      "download_presskit": "Descargar press kit"
     },
     "booking_copy": "Usá este contacto para bookings, colaboraciones o prensa.",
+    "presskit_copy": "Abrí el press kit público o saltá directo a la versión imprimible.",
     "fan_list_copy": "Convertí visitas casuales en fans con un bloque simple de captura.",
     "branding_slot": {
       "title": "Creá tu propia página en StageLink",

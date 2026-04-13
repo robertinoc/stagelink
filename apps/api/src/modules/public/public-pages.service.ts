@@ -339,6 +339,11 @@ export class PublicPagesService {
             seoDescription: true,
             baseLocale: true,
             translations: true,
+            epk: {
+              select: {
+                isPublished: true,
+              },
+            },
             subscription: {
               select: {
                 plan: true,
@@ -374,6 +379,9 @@ export class PublicPagesService {
         ? ('none' as const)
         : ('free_branding' as const),
     };
+    const publicEpkAvailable =
+      hasFeature(entitlements.effectivePlan, 'epk_builder') &&
+      page.artist.epk?.isPublished === true;
 
     // T4-4: Persist page_view for ALL requests (including bots) — flag at write time,
     // filter at query time. Only skip when no analytics context is available (e.g.
@@ -454,6 +462,7 @@ export class PublicPagesService {
       },
       blocks: page.blocks.map((block) => localizeBlock(block, locale)),
       promoSlot,
+      publicEpkAvailable,
       locale,
       contentLocale: localizedArtist.contentLocale,
     };
