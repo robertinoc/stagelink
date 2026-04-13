@@ -17,6 +17,16 @@ export const epkFeaturedLinkSchema = z.object({
   url: z.string().trim().url().max(2048),
 });
 
+const localizedEpkFieldsSchema = z.object({
+  headline: z.string().trim().max(140).optional().nullable(),
+  shortBio: z.string().trim().max(500).optional().nullable(),
+  fullBio: z.string().trim().max(5000).optional().nullable(),
+  pressQuote: z.string().trim().max(280).optional().nullable(),
+  riderInfo: z.string().trim().max(2000).optional().nullable(),
+  techRequirements: z.string().trim().max(2000).optional().nullable(),
+  availabilityNotes: z.string().trim().max(500).optional().nullable(),
+});
+
 export const epkFormSchema = z
   .object({
     headline: z.string().trim().max(140).optional().nullable(),
@@ -35,6 +45,10 @@ export const epkFormSchema = z
     techRequirements: z.string().trim().max(2000).optional().nullable(),
     location: z.string().trim().max(120).optional().nullable(),
     availabilityNotes: z.string().trim().max(500).optional().nullable(),
+    translations: z.object({
+      en: localizedEpkFieldsSchema,
+      es: localizedEpkFieldsSchema,
+    }),
   })
   .superRefine((value, ctx) => {
     const readiness = getEpkPublishReadiness(value);
