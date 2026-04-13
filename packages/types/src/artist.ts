@@ -108,6 +108,7 @@ export interface PublicPageResponse {
   artist: PublicArtist;
   blocks: PublicBlock[];
   promoSlot: PublicPromoSlot;
+  publicEpkAvailable: boolean;
   locale: SupportedLocale;
   contentLocale: SupportedLocale;
 }

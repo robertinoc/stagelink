@@ -57,6 +57,7 @@ export interface PublicPageResponseDto {
   /** Página de artista visible públicamente */
   artist: PublicArtistDto;
   blocks: PublicBlockDto[];
+  publicEpkAvailable: boolean;
   locale: SupportedLocale;
   contentLocale: SupportedLocale;
   /** Slot público reservado para branding/promo según el plan efectivo. */

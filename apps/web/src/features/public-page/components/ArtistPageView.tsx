@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Globe, Instagram, Mail, Music2, Play, Sparkles } from 'lucide-react';
+import { Download, FileText, Globe, Instagram, Mail, Music2, Play, Sparkles } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { PublicPageResponse } from '@stagelink/types';
 import { PublicPageClient } from './PublicPageClient';
@@ -226,8 +226,8 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                   </section>
                 )}
 
-                {(hasAboutSection || artist.contactEmail) && (
-                  <section className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.9fr)]">
+                {(hasAboutSection || page.publicEpkAvailable || artist.contactEmail) && (
+                  <section className="space-y-4">
                     {hasAboutSection && (
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
                         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
@@ -238,6 +238,33 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                             {artist.bio}
                           </p>
                         )}
+                      </div>
+                    )}
+
+                    {page.publicEpkAvailable && (
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+                            {t('sections.presskit')}
+                          </p>
+                          <p className="text-sm leading-7 text-zinc-300">{t('presskit_copy')}</p>
+                        </div>
+                        <div className="mt-6 flex flex-wrap gap-3">
+                          <Link
+                            href={`/${locale}/${artist.username}/epk`}
+                            className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500/25"
+                          >
+                            <FileText className="h-4 w-4" />
+                            {t('actions.view_presskit')}
+                          </Link>
+                          <Link
+                            href={`/${locale}/${artist.username}/epk/print`}
+                            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                          >
+                            <Download className="h-4 w-4" />
+                            {t('actions.download_presskit')}
+                          </Link>
+                        </div>
                       </div>
                     )}
 
