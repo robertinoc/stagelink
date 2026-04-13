@@ -175,6 +175,20 @@ export class BillingService {
       throw new NotFoundException('Artist not found');
     }
 
+    if (this.shouldUpgradeExistingPaidSubscription(artist.subscription, dto.plan)) {
+      const upgradedSubscription = await this.upgradeExistingStripeSubscription(
+        artistId,
+        artist.subscription,
+        dto.plan,
+      );
+
+      await this.persistStripeSubscription(artistId, dto.plan, upgradedSubscription);
+
+      const upgradedReturnUrl = new URL(returnUrl);
+      upgradedReturnUrl.searchParams.set('refresh', 'done');
+      return ok({ url: upgradedReturnUrl.toString() });
+    }
+
     const customerId = await this.ensureStripeCustomer(artist.subscription, {
       artistId: artist.id,
       displayName: artist.displayName,
@@ -671,6 +685,93 @@ export class BillingService {
     );
   }
 
+  private shouldUpgradeExistingPaidSubscription(
+    subscription: PrismaSubscription | null,
+    targetPlan: PlanTier,
+  ): subscription is PrismaSubscription {
+    if (!subscription) {
+      return false;
+    }
+
+    if (!PAID_BILLING_PLANS.includes(subscription.plan)) {
+      return false;
+    }
+
+    if (
+      subscription.status !== SubscriptionStatus.active &&
+      subscription.status !== SubscriptionStatus.trialing
+    ) {
+      return false;
+    }
+
+    if (!subscription.stripeSubscriptionId) {
+      return false;
+    }
+
+    return this.planRank(targetPlan) > this.planRank(subscription.plan);
+  }
+
+  private async upgradeExistingStripeSubscription(
+    artistId: string,
+    subscription: PrismaSubscription,
+    targetPlan: PlanTier,
+  ): Promise<Stripe.Subscription> {
+    const stripe = this.getStripeClientOrThrow();
+    const stripeSubscription = await stripe.subscriptions.retrieve(
+      subscription.stripeSubscriptionId!,
+    );
+    const subscriptionItem = stripeSubscription.items.data[0];
+    const targetPriceId = getStripePriceIdForPlan(targetPlan, this.getPriceConfig());
+
+    if (!subscriptionItem?.id) {
+      throw new ServiceUnavailableException(
+        `Stripe subscription item is missing for artist ${artistId}`,
+      );
+    }
+
+    if (!targetPriceId) {
+      throw new ServiceUnavailableException(`Stripe price not configured for plan "${targetPlan}"`);
+    }
+
+    return stripe.subscriptions.update(stripeSubscription.id, {
+      items: [
+        {
+          id: subscriptionItem.id,
+          price: targetPriceId,
+        },
+      ],
+      billing_cycle_anchor: 'unchanged',
+      cancel_at_period_end: false,
+      metadata: {
+        ...stripeSubscription.metadata,
+        artistId,
+        plan: targetPlan,
+        environment: this.getBillingEnvironment(),
+      },
+      proration_behavior: 'always_invoice',
+    });
+  }
+
+  private async persistStripeSubscription(
+    artistId: string,
+    fallbackPlan: PlanTier,
+    stripeSubscription: Stripe.Subscription,
+  ) {
+    const plan =
+      this.resolvePlan(
+        stripeSubscription.metadata?.plan,
+        stripeSubscription.items.data[0]?.price?.id ?? null,
+      ) ?? fallbackPlan;
+
+    const write = this.buildStripeSubscriptionWrite(artistId, plan, stripeSubscription);
+
+    return this.prisma.subscription.upsert({
+      where: { artistId },
+      update: write.update,
+      create: write.create,
+    });
+  }
+
   private async reconcileSubscriptionFromStripe(
     artistId: string,
     subscription: PrismaSubscription,
@@ -679,16 +780,18 @@ export class BillingService {
 
     let stripeSubscription: Stripe.Subscription | null = null;
 
-    if (subscription.stripeSubscriptionId) {
-      stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
-    } else if (subscription.stripeCustomerId) {
+    if (subscription.stripeCustomerId) {
       const subscriptions = await stripe.subscriptions.list({
         customer: subscription.stripeCustomerId,
         status: 'all',
         limit: 10,
       });
 
-      stripeSubscription = this.selectMostRelevantStripeSubscription(subscriptions.data);
+      stripeSubscription = this.selectMostRelevantStripeSubscription(subscriptions?.data ?? []);
+    }
+
+    if (!stripeSubscription && subscription.stripeSubscriptionId) {
+      stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
     }
 
     if (!stripeSubscription) {
