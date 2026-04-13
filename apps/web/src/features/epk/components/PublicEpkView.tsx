@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { Globe2, PlayCircle, Radio } from 'lucide-react';
-import type { PublicEpkResponse } from '@stagelink/types';
+import { DEFAULT_LOCALE, type PublicEpkResponse, type SupportedLocale } from '@stagelink/types';
 
 interface PublicEpkViewProps {
   epk: PublicEpkResponse;
   printMode?: boolean;
+  locale?: SupportedLocale;
 }
 
 function getMediaIcon(provider: string) {
@@ -18,7 +19,11 @@ function getMediaIcon(provider: string) {
   }
 }
 
-export function PublicEpkView({ epk, printMode = false }: PublicEpkViewProps) {
+export function PublicEpkView({
+  epk,
+  printMode = false,
+  locale = DEFAULT_LOCALE,
+}: PublicEpkViewProps) {
   const { artist } = epk;
   const surfaceClass = printMode
     ? 'border-zinc-200 bg-white text-zinc-900 shadow-sm'
@@ -295,7 +300,7 @@ export function PublicEpkView({ epk, printMode = false }: PublicEpkViewProps) {
             {!printMode ? (
               <footer className="flex items-center justify-between border-t border-white/10 pt-6 text-xs text-zinc-500">
                 <span>Shared via StageLink</span>
-                <Link href={`/p/${artist.username}/epk/print`} className="hover:text-white">
+                <Link href={`/${locale}/${artist.username}/epk/print`} className="hover:text-white">
                   Open print view
                 </Link>
               </footer>

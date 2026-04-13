@@ -83,11 +83,14 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       block.type !== 'text' &&
       block.type !== 'email_capture',
   );
+  const additionalInfoBlocks = [...textBlocks, ...remainingBlocks];
 
-  const hasAdditionalInfo = Boolean(artist.bio) || textBlocks.length > 0;
+  const hasAboutSection = Boolean(artist.bio);
+  const hasAdditionalInfo = additionalInfoBlocks.length > 0;
   const hasAnyPublicContent =
     linkBlocks.length > 0 ||
     featuredMediaBlocks.length > 0 ||
+    hasAboutSection ||
     hasAdditionalInfo ||
     emailCaptureBlocks.length > 0 ||
     remainingBlocks.length > 0;
@@ -223,9 +226,9 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                   </section>
                 )}
 
-                {(hasAdditionalInfo || artist.contactEmail) && (
+                {(hasAboutSection || artist.contactEmail) && (
                   <section className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.9fr)]">
-                    {hasAdditionalInfo && (
+                    {hasAboutSection && (
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
                         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
                           {t('sections.about')}
@@ -234,15 +237,6 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                           <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-zinc-200 sm:text-base">
                             {artist.bio}
                           </p>
-                        )}
-                        {textBlocks.length > 0 && (
-                          <div className={`${artist.bio ? 'mt-6' : 'mt-4'} space-y-4`}>
-                            <PublicPageClient
-                              page={page}
-                              blocks={textBlocks}
-                              className="space-y-4"
-                            />
-                          </div>
                         )}
                       </div>
                     )}
@@ -285,14 +279,18 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                   </section>
                 )}
 
-                {remainingBlocks.length > 0 && (
+                {additionalInfoBlocks.length > 0 && (
                   <section className="space-y-4">
                     <div className="space-y-2 text-center">
                       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
                         {t('sections.additional_info')}
                       </p>
                     </div>
-                    <PublicPageClient page={page} blocks={remainingBlocks} className="space-y-4" />
+                    <PublicPageClient
+                      page={page}
+                      blocks={additionalInfoBlocks}
+                      className="space-y-4"
+                    />
                   </section>
                 )}
 
