@@ -125,10 +125,12 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
               </div>
 
               <div className="mx-auto max-w-3xl text-center">
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-zinc-300">
-                  <Sparkles className="h-3.5 w-3.5 text-violet-300" />
-                  StageLink
-                </div>
+                {page.promoSlot.kind === 'free_branding' && (
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-zinc-300">
+                    <Sparkles className="h-3.5 w-3.5 text-violet-300" />
+                    StageLink
+                  </div>
+                )}
 
                 <h1 className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-5xl">
                   {artist.displayName}

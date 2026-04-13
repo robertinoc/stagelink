@@ -74,9 +74,13 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 302);
   }
 
-  // Public EPK routes live outside locale prefixes, just like the artist public page.
+  // Public EPK routes redirect to the localized canonical URLs.
   if (segments[0] === 'p' && segments.length >= 3 && segments[2] === 'epk') {
-    return NextResponse.next();
+    const url = request.nextUrl.clone();
+    const username = segments[1];
+    const isPrintRoute = segments[3] === 'print';
+    url.pathname = isPrintRoute ? `/${locale}/${username}/epk/print` : `/${locale}/${username}/epk`;
+    return NextResponse.redirect(url, 302);
   }
 
   // Rule 2: artist username — redirect /{username} → /{locale}/{username}.
