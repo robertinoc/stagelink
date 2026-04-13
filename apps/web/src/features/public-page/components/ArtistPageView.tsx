@@ -258,7 +258,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                             {t('actions.view_presskit')}
                           </Link>
                           <Link
-                            href={`/${locale}/${artist.username}/epk/print`}
+                            href={`/${locale}/${artist.username}/epk/print?download=1`}
                             className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
                           >
                             <Download className="h-4 w-4" />

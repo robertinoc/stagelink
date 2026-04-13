@@ -3,10 +3,12 @@ import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { SupportedLocale } from '@stagelink/types';
 import { PublicEpkView } from '@/features/epk/components/PublicEpkView';
+import { AutoPrintOnMount } from '@/features/epk/components/AutoPrintOnMount';
 import { fetchPublicEpk } from '@/lib/api/epk';
 
 interface LocalizedPrintEpkPageProps {
   params: Promise<{ locale: SupportedLocale; username: string }>;
+  searchParams?: Promise<{ download?: string }>;
 }
 
 export const dynamic = 'force-dynamic';
@@ -29,11 +31,20 @@ export async function generateMetadata({ params }: LocalizedPrintEpkPageProps): 
   };
 }
 
-export default async function LocalizedPrintEpkPage({ params }: LocalizedPrintEpkPageProps) {
+export default async function LocalizedPrintEpkPage({
+  params,
+  searchParams,
+}: LocalizedPrintEpkPageProps) {
   const { locale, username } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const epk = await fetchPublicEpk(username, locale);
 
   if (!epk) notFound();
 
-  return <PublicEpkView epk={epk} printMode locale={locale} />;
+  return (
+    <>
+      <AutoPrintOnMount enabled={resolvedSearchParams?.download === '1'} />
+      <PublicEpkView epk={epk} printMode locale={locale} />
+    </>
+  );
 }
