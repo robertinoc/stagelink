@@ -74,12 +74,14 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
 
   const linkBlocks = blocks.filter((block) => block.type === 'links');
   const featuredMediaBlocks = blocks.filter(isFeaturedMediaBlock);
+  const merchBlocks = blocks.filter((block) => block.type === 'shopify_store');
   const textBlocks = blocks.filter((block) => block.type === 'text');
   const emailCaptureBlocks = blocks.filter((block) => block.type === 'email_capture');
   const remainingBlocks = blocks.filter(
     (block) =>
       block.type !== 'links' &&
       !isFeaturedMediaBlock(block) &&
+      block.type !== 'shopify_store' &&
       block.type !== 'text' &&
       block.type !== 'email_capture',
   );
@@ -225,6 +227,17 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                       blocks={featuredMediaBlocks}
                       className="grid gap-4 lg:grid-cols-2 lg:items-start"
                     />
+                  </section>
+                )}
+
+                {merchBlocks.length > 0 && (
+                  <section className="space-y-4">
+                    <div className="space-y-2 text-center">
+                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+                        {t('sections.merch')}
+                      </p>
+                    </div>
+                    <PublicPageClient page={page} blocks={merchBlocks} className="space-y-4" />
                   </section>
                 )}
 

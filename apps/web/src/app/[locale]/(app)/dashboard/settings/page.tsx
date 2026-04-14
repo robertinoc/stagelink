@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getBillingSummary } from '@/lib/api/billing';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
+import { getShopifyConnection } from '@/lib/api/shopify';
 import { getSession } from '@/lib/auth';
 import { FEATURE_KEYS, getMinimumPlanForFeature, type FeatureKey } from '@stagelink/types';
+import { ShopifySettingsCard } from '@/features/dashboard/components/ShopifySettingsCard';
 
 const FEATURE_ORDER: FeatureKey[] = [...FEATURE_KEYS];
 
@@ -50,6 +52,9 @@ export default async function DashboardSettingsPage({
   }
 
   const summary = await getBillingSummary(artistId, session.accessToken);
+  const shopifyConnection = summary.entitlements.shopify_integration
+    ? await getShopifyConnection(artistId, session.accessToken).catch(() => null)
+    : null;
   const lockedCount = summary.featureHighlights.filter((feature) => !feature.included).length;
   const syncing = summary.billingState === 'syncing';
 
@@ -85,6 +90,13 @@ export default async function DashboardSettingsPage({
           </Button>
         </CardContent>
       </Card>
+
+      <ShopifySettingsCard
+        artistId={artistId}
+        currentPlanLabel={resolvePlanLabel(summary.effectivePlan)}
+        hasFeatureAccess={summary.entitlements.shopify_integration}
+        initialConnection={shopifyConnection}
+      />
 
       <div className="grid gap-4 lg:grid-cols-2">
         {FEATURE_ORDER.map((feature) => {

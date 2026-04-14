@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { BlocksController, PagesBlocksController } from './blocks.controller';
 import { BlocksService } from './blocks.service';
 import { SmartLinksModule } from '../smart-links/smart-links.module';
+import { BillingModule } from '../billing/billing.module';
 
 /**
  * BlocksModule
@@ -15,7 +16,7 @@ import { SmartLinksModule } from '../smart-links/smart-links.module';
  * No need to import their modules here.
  */
 @Module({
-  imports: [SmartLinksModule],
+  imports: [SmartLinksModule, BillingModule],
   controllers: [BlocksController, PagesBlocksController],
   providers: [BlocksService],
   exports: [BlocksService],

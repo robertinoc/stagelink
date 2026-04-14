@@ -1,4 +1,5 @@
 import type { LocalizedTextMap } from './i18n';
+import type { ShopifySelectionMode, ShopifyStoreProduct } from './shopify';
 
 // =============================================================
 // Block types — shared between API and web.
@@ -12,6 +13,7 @@ export const BLOCK_TYPES = [
   'video_embed',
   'email_capture',
   'text',
+  'shopify_store',
 ] as const;
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
@@ -119,6 +121,16 @@ export interface TextBlockConfig {
   body: string;
 }
 
+export interface ShopifyStoreBlockConfig {
+  headline?: string;
+  description?: string;
+  ctaLabel?: string;
+  maxItems?: number;
+  selectionMode?: ShopifySelectionMode;
+  collectionTitle?: string | null;
+  products?: ShopifyStoreProduct[];
+}
+
 export interface EmailCaptureBlockTranslations {
   headline?: LocalizedTextMap;
   buttonLabel?: LocalizedTextMap;
@@ -145,7 +157,8 @@ export type BlockConfig =
   | MusicEmbedBlockConfig
   | VideoEmbedBlockConfig
   | EmailCaptureBlockConfig
-  | TextBlockConfig;
+  | TextBlockConfig
+  | ShopifyStoreBlockConfig;
 
 // ─── Block entity ─────────────────────────────────────────────────────────────
 
@@ -207,4 +220,10 @@ export function isEmailCaptureBlock(
 
 export function isTextBlock(block: Block): block is Block & { config: TextBlockConfig } {
   return block.type === 'text';
+}
+
+export function isShopifyStoreBlock(
+  block: Block,
+): block is Block & { config: ShopifyStoreBlockConfig } {
+  return block.type === 'shopify_store';
 }

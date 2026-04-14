@@ -38,6 +38,7 @@ interface Props {
   pageId: string;
   artistId: string;
   accessToken: string;
+  canUseShopifyIntegration: boolean;
 }
 
 // ─── Block type metadata ──────────────────────────────────────────────────────
@@ -48,6 +49,7 @@ const BLOCK_TYPE_ICONS: Record<BlockType, string> = {
   video_embed: '🎬',
   email_capture: '✉️',
   text: '📝',
+  shopify_store: '🛍️',
 };
 
 // ─── Create Block Dialog ──────────────────────────────────────────────────────
@@ -57,6 +59,7 @@ function CreateBlockDialog({
   pageId,
   artistId,
   accessToken,
+  canUseShopifyIntegration,
   onCreated,
   onClose,
 }: {
@@ -64,6 +67,7 @@ function CreateBlockDialog({
   pageId: string;
   artistId: string;
   accessToken: string;
+  canUseShopifyIntegration: boolean;
   onCreated: (block: Block) => void;
   onClose: () => void;
 }) {
@@ -73,6 +77,9 @@ function CreateBlockDialog({
   const [config, setConfig] = useState<BlockConfig | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const availableBlockTypes = canUseShopifyIntegration
+    ? BLOCK_TYPES
+    : BLOCK_TYPES.filter((type) => type !== 'shopify_store');
 
   function selectType(type: BlockType) {
     setSelectedType(type);
@@ -123,7 +130,7 @@ function CreateBlockDialog({
 
         {!selectedType ? (
           <div className="grid grid-cols-2 gap-3 pt-2">
-            {BLOCK_TYPES.map((type) => (
+            {availableBlockTypes.map((type) => (
               <button
                 key={type}
                 onClick={() => selectType(type)}
@@ -396,7 +403,7 @@ function BlockRow({
 
 // ─── Main BlockManager ────────────────────────────────────────────────────────
 
-export function BlockManager({ pageId, artistId, accessToken }: Props) {
+export function BlockManager({ pageId, artistId, accessToken, canUseShopifyIntegration }: Props) {
   const t = useTranslations('blocks');
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [loading, setLoading] = useState(true);
@@ -521,6 +528,7 @@ export function BlockManager({ pageId, artistId, accessToken }: Props) {
         pageId={pageId}
         artistId={artistId}
         accessToken={accessToken}
+        canUseShopifyIntegration={canUseShopifyIntegration}
         onCreated={handleCreated}
         onClose={() => setCreateOpen(false)}
       />

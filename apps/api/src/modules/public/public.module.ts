@@ -10,6 +10,7 @@ import { PublicSubscribeService } from './public-subscribe.service';
 import { PublicEpkService } from './public-epk.service';
 import { PublicRateLimitGuard } from '../../common/guards/public-rate-limit.guard';
 import { BillingModule } from '../billing/billing.module';
+import { ShopifyModule } from '../shopify/shopify.module';
 
 /**
  * PublicModule — endpoints públicos sin autenticación.
@@ -19,7 +20,7 @@ import { BillingModule } from '../billing/billing.module';
  * PrismaModule es global, no necesita importarse explícitamente.
  */
 @Module({
-  imports: [TenantModule, SmartLinksModule, BillingModule],
+  imports: [TenantModule, SmartLinksModule, BillingModule, ShopifyModule],
   controllers: [
     PublicPagesController,
     PublicBlocksController,

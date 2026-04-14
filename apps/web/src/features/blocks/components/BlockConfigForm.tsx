@@ -12,6 +12,7 @@ import type {
   VideoEmbedBlockConfig,
   EmailCaptureBlockConfig,
   TextBlockConfig,
+  ShopifyStoreBlockConfig,
 } from '@stagelink/types';
 import { SmartLinkPicker } from './SmartLinkForm';
 
@@ -525,6 +526,70 @@ function TextBlockForm({
   );
 }
 
+function ShopifyStoreBlockForm({
+  config,
+  onChange,
+}: {
+  config: ShopifyStoreBlockConfig;
+  onChange: (c: ShopifyStoreBlockConfig) => void;
+}) {
+  const t = useTranslations('blocks.fields');
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="mb-1 block text-sm font-medium">{t('shopify_headline')}</label>
+        <input
+          type="text"
+          placeholder={t('shopify_headline_placeholder')}
+          value={config.headline ?? ''}
+          onChange={(e) => onChange({ ...config, headline: e.target.value || undefined })}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          maxLength={100}
+        />
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium">{t('shopify_description')}</label>
+        <textarea
+          value={config.description ?? ''}
+          onChange={(e) => onChange({ ...config, description: e.target.value || undefined })}
+          placeholder={t('shopify_description_placeholder')}
+          className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          maxLength={300}
+        />
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium">{t('shopify_cta_label')}</label>
+        <input
+          type="text"
+          placeholder={t('shopify_cta_label_placeholder')}
+          value={config.ctaLabel ?? ''}
+          onChange={(e) => onChange({ ...config, ctaLabel: e.target.value || undefined })}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          maxLength={40}
+        />
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium">{t('shopify_max_items')}</label>
+        <input
+          type="number"
+          min={1}
+          max={8}
+          value={config.maxItems ?? 4}
+          onChange={(e) =>
+            onChange({
+              ...config,
+              maxItems: Number.isFinite(Number(e.target.value)) ? Number(e.target.value) : 4,
+            })
+          }
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        />
+        <p className="mt-1 text-xs text-muted-foreground">{t('shopify_settings_hint')}</p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Default configs ──────────────────────────────────────────────────────────
 
 export function defaultConfig(type: BlockType): BlockConfig {
@@ -549,6 +614,8 @@ export function defaultConfig(type: BlockType): BlockConfig {
       return { headline: '', buttonLabel: 'Subscribe' };
     case 'text':
       return { body: '' };
+    case 'shopify_store':
+      return { headline: '', description: '', ctaLabel: '', maxItems: 4 };
   }
 }
 
@@ -582,5 +649,12 @@ export function BlockConfigForm({ type, config, onChange, artistId, accessToken 
       );
     case 'text':
       return <TextBlockForm config={config as TextBlockConfig} onChange={(c) => onChange(c)} />;
+    case 'shopify_store':
+      return (
+        <ShopifyStoreBlockForm
+          config={config as ShopifyStoreBlockConfig}
+          onChange={(c) => onChange(c)}
+        />
+      );
   }
 }

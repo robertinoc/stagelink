@@ -121,6 +121,7 @@ model Artist {
   smartLinks      SmartLink[]
   subscribers     Subscriber[]
   epk             Epk?
+  shopifyConnection ShopifyConnection?
 
   @@map("artists")
 }
@@ -234,6 +235,7 @@ enum BlockType {
   video_embed
   email_capture
   text
+  shopify_store
 
   @@map("block_type")
 }
@@ -434,6 +436,32 @@ model Subscription {
   artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
+}
+
+enum ShopifySelectionMode {
+  collection
+  products
+
+  @@map("shopify_selection_mode")
+}
+
+model ShopifyConnection {
+  id               String                @id @default(cuid())
+  artistId         String                @unique @map("artist_id")
+  storeDomain      String                @map("store_domain")
+  storefrontToken  String                @map("storefront_token")
+  storeName        String?               @map("store_name")
+  isConnected      Boolean               @default(false) @map("is_connected")
+  selectionMode    ShopifySelectionMode  @default(collection) @map("selection_mode")
+  collectionHandle String?               @map("collection_handle")
+  productHandles   Json                  @default("[]") @map("product_handles")
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([storeDomain])
+  @@map("shopify_connections")
 }
 
 // =============================================================

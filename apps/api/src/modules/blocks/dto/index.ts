@@ -20,6 +20,7 @@ export const BLOCK_TYPES = [
   'video_embed',
   'email_capture',
   'text',
+  'shopify_store',
 ] as const;
 export type BlockTypeValue = (typeof BLOCK_TYPES)[number];
 
