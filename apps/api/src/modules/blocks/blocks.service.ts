@@ -19,6 +19,7 @@ import {
 import { CreateBlockDto, UpdateBlockDto, ReorderBlocksDto } from './dto';
 import { SmartLinksService } from '../smart-links/smart-links.service';
 import { ANALYTICS_EVENTS } from '@stagelink/types';
+import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 
 // Maximum blocks allowed per page — prevents unbounded data growth.
 const MAX_BLOCKS_PER_PAGE = 50;
@@ -31,6 +32,7 @@ export class BlocksService {
     private readonly auditService: AuditService,
     private readonly smartLinksService: SmartLinksService,
     private readonly posthog: PostHogService,
+    private readonly billingEntitlementsService: BillingEntitlementsService,
   ) {}
 
   // ─── List ─────────────────────────────────────────────────────────────────
@@ -62,6 +64,10 @@ export class BlocksService {
     validateBlockTitle(dto.title);
     const blockType = dto.type as BlockType;
     validateBlockConfig(blockType, dto.config);
+
+    if (blockType === 'shopify_store') {
+      await this.billingEntitlementsService.assertFeatureAccess(artistId, 'shopify_integration');
+    }
 
     // Guard: verify that any referenced smartLinkIds belong to this artist.
     // Prevents IDOR where a user embeds another artist's SmartLink in their block.
@@ -155,6 +161,10 @@ export class BlocksService {
           : {};
       const mergedConfig = { ...existing, ...dto.config };
       validateBlockConfig(block.type, mergedConfig);
+
+      if (block.type === 'shopify_store') {
+        await this.billingEntitlementsService.assertFeatureAccess(artistId, 'shopify_integration');
+      }
 
       // Guard: verify that any referenced smartLinkIds belong to this artist.
       if (block.type === 'links') {

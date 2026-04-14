@@ -13,6 +13,8 @@ import {
   type BlockLocalizedContent,
   type EmailCaptureBlockConfig,
   type LinksBlockConfig,
+  type ShopifyStoreBlockConfig,
+  type ShopifyStoreProduct,
   type SupportedLocale,
 } from '@stagelink/types';
 import { resolveTrafficFlags } from '../../common/utils/analytics-flags';
@@ -22,6 +24,8 @@ import {
   resolveDocumentText,
   resolveLocalizedText,
 } from '../../common/utils/localized-content.util';
+import { ShopifyService } from '../shopify/shopify.service';
+import { resolvePreviewLimit, SHOPIFY_DEFAULT_PREVIEW_LIMIT } from '../shopify/shopify.helpers';
 
 /**
  * Hashes an IP address with SHA-256 for privacy-preserving storage.
@@ -110,6 +114,10 @@ function localizeBlock(
     localizedContent: unknown;
   },
   locale: SupportedLocale,
+  shopifySelection?: {
+    collectionTitle: string | null;
+    products: ShopifyStoreProduct[];
+  },
 ): PublicBlockDto {
   const localizedContent = (block.localizedContent as BlockLocalizedContent | null) ?? {};
   const baseConfig = (block.config as Record<string, unknown>) ?? {};
@@ -172,6 +180,23 @@ function localizeBlock(
     };
   }
 
+  if (block.type === 'shopify_store') {
+    const merchConfig = baseConfig as ShopifyStoreBlockConfig;
+    const maxItems = resolvePreviewLimit(merchConfig.maxItems ?? SHOPIFY_DEFAULT_PREVIEW_LIMIT);
+
+    return {
+      id: block.id,
+      type: block.type,
+      title: localizedTitle,
+      position: block.position,
+      config: {
+        ...merchConfig,
+        collectionTitle: shopifySelection?.collectionTitle ?? null,
+        products: (shopifySelection?.products ?? []).slice(0, maxItems),
+      },
+    };
+  }
+
   return {
     id: block.id,
     type: block.type,
@@ -215,6 +240,7 @@ export class PublicPagesService {
     private readonly prisma: PrismaService,
     private readonly tenantResolver: TenantResolverService,
     private readonly posthog: PostHogService,
+    private readonly shopifyService: ShopifyService,
   ) {}
 
   /**
@@ -435,6 +461,26 @@ export class PublicPagesService {
     }
 
     const localizedArtist = localizeArtistTextFields(page.artist, locale);
+    const maxShopifyItems = page.blocks
+      .filter((block) => block.type === 'shopify_store')
+      .reduce((currentMax, block) => {
+        const config = (block.config as Record<string, unknown>) ?? {};
+        return Math.max(currentMax, resolvePreviewLimit(config['maxItems']));
+      }, SHOPIFY_DEFAULT_PREVIEW_LIMIT);
+    const shopifySelection =
+      page.blocks.some((block) => block.type === 'shopify_store') &&
+      hasFeature(entitlements.effectivePlan, 'shopify_integration')
+        ? await this.shopifyService.getPublicStoreSelection(artistId, {
+            maxItems: maxShopifyItems,
+          })
+        : null;
+    const localizedBlocks = page.blocks
+      .map((block) => localizeBlock(block, locale, shopifySelection ?? undefined))
+      .filter(
+        (block) =>
+          block.type !== 'shopify_store' ||
+          ((block.config as ShopifyStoreBlockConfig).products ?? []).length > 0,
+      );
 
     return {
       artistId,
@@ -460,7 +506,7 @@ export class PublicPagesService {
         baseLocale: normalizeBaseLocale(page.artist.baseLocale ?? DEFAULT_LOCALE),
         locale,
       },
-      blocks: page.blocks.map((block) => localizeBlock(block, locale)),
+      blocks: localizedBlocks,
       promoSlot,
       publicEpkAvailable,
       locale,

@@ -6,12 +6,14 @@ import type {
   VideoEmbedBlockConfig,
   EmailCaptureBlockConfig,
   TextBlockConfig,
+  ShopifyStoreBlockConfig,
 } from '@stagelink/types';
 import { LinksBlockRenderer } from './LinksBlockRenderer';
 import { MusicEmbedRenderer } from './MusicEmbedRenderer';
 import { VideoEmbedRenderer } from './VideoEmbedRenderer';
 import { EmailCaptureRenderer } from './EmailCaptureRenderer';
 import { TextBlockRenderer } from './TextBlockRenderer';
+import { ShopifyStoreRenderer } from './ShopifyStoreRenderer';
 
 /**
  * Minimal block shape accepted by BlockRenderer.
@@ -98,6 +100,12 @@ export function BlockRenderer({ block, onLinkClick }: BlockRendererProps) {
 
   if (block.type === 'text') {
     return <TextBlockRenderer title={block.title} config={block.config as TextBlockConfig} />;
+  }
+
+  if (block.type === 'shopify_store') {
+    return (
+      <ShopifyStoreRenderer title={block.title} config={block.config as ShopifyStoreBlockConfig} />
+    );
   }
 
   // Unknown block type — future-proof: skip rather than crash.

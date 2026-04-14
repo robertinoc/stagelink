@@ -9,7 +9,13 @@ import type { ArtistCategory, PublicPromoSlotKind, SupportedLocale } from '@stag
 
 // ── Bloques ────────────────────────────────────────────────────
 
-export type PublicBlockType = 'links' | 'music_embed' | 'video_embed' | 'email_capture' | 'text';
+export type PublicBlockType =
+  | 'links'
+  | 'music_embed'
+  | 'video_embed'
+  | 'email_capture'
+  | 'text'
+  | 'shopify_store';
 
 export interface PublicBlockDto {
   id: string;

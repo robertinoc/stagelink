@@ -401,6 +401,49 @@
         "upgrade": "Upgrade plan",
         "manage_plan": "Manage plan"
       },
+      "shopify": {
+        "title": "Shopify storefront",
+        "description": "Connect a Shopify store, validate credentials, and choose what merch to show on your public page.",
+        "status": {
+          "connected": "Connected",
+          "not_connected": "Not connected"
+        },
+        "lock": {
+          "description": "Shopify storefront is available on Pro+.",
+          "copy": "Your current plan is {currentPlan}. Upgrade to Pro+ to connect a Shopify store and publish merch on your public page.",
+          "cta": "Upgrade to Pro+"
+        },
+        "fields": {
+          "store_domain": "Store domain",
+          "storefront_token": "Storefront token",
+          "selection_mode": "What should StageLink show?",
+          "collection_handle": "Collection handle",
+          "product_handles": "Product handles"
+        },
+        "selection": {
+          "collection": "Collection",
+          "products": "Products"
+        },
+        "actions_card": {
+          "validate": "Validate connection",
+          "validating": "Validating...",
+          "save": "Save Shopify settings",
+          "saving": "Saving..."
+        },
+        "hints": {
+          "store_domain": "Use the store hostname only, without https:// or any path.",
+          "storefront_token": "Saved securely on the backend and never exposed on the public page.",
+          "token_saved": "Leave blank to keep the saved token",
+          "collection_handle": "StageLink will pull products from this Shopify collection handle.",
+          "product_handles": "One product handle per line, or separate them with commas."
+        },
+        "messages": {
+          "saved": "Shopify settings saved.",
+          "save_error": "Could not save Shopify settings.",
+          "validate_error": "Could not validate this Shopify connection.",
+          "no_preview": "No preview products were returned for the current selection."
+        }
+      },
       "features": {
         "remove_stagelink_branding": {
           "title": "Remove StageLink branding",
@@ -415,7 +458,7 @@
         "shopify_integration": {
           "title": "Shopify integration",
           "description": "Connect storefront commerce flows to the artist experience.",
-          "note": "Shopify is a roadmap feature. When its module lands, backend gating will use this same capability key."
+          "note": "Connect a Shopify Storefront token, choose a collection or product handles, and render merch cards on the public page."
         },
         "epk_builder": {
           "title": "EPK builder",
@@ -462,14 +505,16 @@
       "music_embed": "Music",
       "video_embed": "Video",
       "email_capture": "Email Capture",
-      "text": "Text"
+      "text": "Text",
+      "shopify_store": "Merch"
     },
     "type_descriptions": {
       "links": "Add clickable links to your profiles, website or anywhere.",
       "music_embed": "Embed a track or playlist from Spotify, SoundCloud and more.",
       "video_embed": "Embed a video from YouTube, Vimeo or TikTok.",
       "email_capture": "Collect email addresses from your fans.",
-      "text": "Add a paragraph block for a bio, rider, story or any public info."
+      "text": "Add a paragraph block for a bio, rider, story or any public info.",
+      "shopify_store": "Show selected merch from your connected Shopify storefront."
     },
     "fields": {
       "title": "Block title (optional)",
@@ -508,7 +553,15 @@
       "consent_label": "Consent label text",
       "consent_label_placeholder": "e.g. I agree to receive updates from this artist.",
       "body": "Body",
-      "body_placeholder": "Write a short bio, press note, technical rider, or any public text you want to show on the page…"
+      "body_placeholder": "Write a short bio, press note, technical rider, or any public text you want to show on the page…",
+      "shopify_headline": "Merch headline (optional)",
+      "shopify_headline_placeholder": "e.g. Latest merch drop",
+      "shopify_description": "Merch description (optional)",
+      "shopify_description_placeholder": "Add a short intro above the merch cards.",
+      "shopify_cta_label": "CTA label (optional)",
+      "shopify_cta_label_placeholder": "e.g. View product",
+      "shopify_max_items": "Max products to show",
+      "shopify_settings_hint": "Shopify products and collections are configured in Dashboard > Settings."
     },
     "smart_link": {
       "destination": "Destination",
@@ -565,6 +618,13 @@
         "preview_hint": "Form is inactive in preview mode.",
         "consent_default": "I agree to receive updates from this artist.",
         "consent_required": "Please accept the terms to continue."
+      },
+      "shopify_store": {
+        "title": "Merch",
+        "empty": "Connect Shopify in Settings and choose products or a collection to show merch here.",
+        "cta": "View product",
+        "available": "Available",
+        "sold_out": "Sold out"
       }
     }
   },
@@ -598,6 +658,7 @@
     "sections": {
       "featured_links": "Featured links",
       "featured_media": "Featured media",
+      "merch": "Merch",
       "about": "About",
       "presskit": "Press kit",
       "bookings": "Bookings",

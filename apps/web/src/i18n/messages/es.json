@@ -401,6 +401,49 @@
         "upgrade": "Actualizar plan",
         "manage_plan": "Gestionar plan"
       },
+      "shopify": {
+        "title": "Storefront de Shopify",
+        "description": "Conectá una tienda Shopify, validá las credenciales y elegí qué merch mostrar en tu página pública.",
+        "status": {
+          "connected": "Conectado",
+          "not_connected": "Sin conexión"
+        },
+        "lock": {
+          "description": "El storefront de Shopify está disponible en Pro+.",
+          "copy": "Tu plan actual es {currentPlan}. Actualizá a Pro+ para conectar una tienda Shopify y publicar merch en tu página pública.",
+          "cta": "Actualizar a Pro+"
+        },
+        "fields": {
+          "store_domain": "Dominio de la tienda",
+          "storefront_token": "Storefront token",
+          "selection_mode": "¿Qué debería mostrar StageLink?",
+          "collection_handle": "Handle de la colección",
+          "product_handles": "Handles de productos"
+        },
+        "selection": {
+          "collection": "Colección",
+          "products": "Productos"
+        },
+        "actions_card": {
+          "validate": "Validar conexión",
+          "validating": "Validando...",
+          "save": "Guardar Shopify",
+          "saving": "Guardando..."
+        },
+        "hints": {
+          "store_domain": "Usá solo el hostname de la tienda, sin https:// ni paths.",
+          "storefront_token": "Se guarda de forma segura en backend y nunca se expone en la página pública.",
+          "token_saved": "Dejalo vacío para mantener el token guardado",
+          "collection_handle": "StageLink traerá productos desde este handle de colección de Shopify.",
+          "product_handles": "Un handle por línea, o separalos con comas."
+        },
+        "messages": {
+          "saved": "Configuración de Shopify guardada.",
+          "save_error": "No se pudo guardar la configuración de Shopify.",
+          "validate_error": "No se pudo validar esta conexión con Shopify.",
+          "no_preview": "La selección actual no devolvió productos para la vista previa."
+        }
+      },
       "features": {
         "remove_stagelink_branding": {
           "title": "Quitar branding de StageLink",
@@ -415,7 +458,7 @@
         "shopify_integration": {
           "title": "Integración con Shopify",
           "description": "Conectá flujos de ecommerce al producto del artista.",
-          "note": "Shopify sigue en roadmap. Cuando exista el módulo, el backend usará esta misma capability key."
+          "note": "Conectá un Storefront token de Shopify, elegí una colección o handles de productos y renderizá merch en la página pública."
         },
         "epk_builder": {
           "title": "Constructor de EPK",
@@ -462,14 +505,16 @@
       "music_embed": "Música",
       "video_embed": "Video",
       "email_capture": "Captura de emails",
-      "text": "Texto"
+      "text": "Texto",
+      "shopify_store": "Merch"
     },
     "type_descriptions": {
       "links": "Agregá links a tus perfiles, sitio web o cualquier lugar.",
       "music_embed": "Incrustá una canción o playlist de Spotify, SoundCloud y más.",
       "video_embed": "Incrustá un video de YouTube, Vimeo o TikTok.",
       "email_capture": "Recopilá emails de tus fans.",
-      "text": "Agregá un bloque de texto para bio, rider, historia o cualquier información pública."
+      "text": "Agregá un bloque de texto para bio, rider, historia o cualquier información pública.",
+      "shopify_store": "Mostrá merch seleccionada desde tu storefront conectado de Shopify."
     },
     "fields": {
       "title": "Título del bloque (opcional)",
@@ -508,7 +553,15 @@
       "consent_label": "Texto del consentimiento",
       "consent_label_placeholder": "ej. Acepto recibir novedades de este artista.",
       "body": "Contenido",
-      "body_placeholder": "Escribí una bio corta, nota de prensa, technical rider o cualquier texto público que quieras mostrar en la página…"
+      "body_placeholder": "Escribí una bio corta, nota de prensa, technical rider o cualquier texto público que quieras mostrar en la página…",
+      "shopify_headline": "Título de merch (opcional)",
+      "shopify_headline_placeholder": "ej. Último drop de merch",
+      "shopify_description": "Descripción de merch (opcional)",
+      "shopify_description_placeholder": "Agregá una intro breve arriba de las cards de merch.",
+      "shopify_cta_label": "Texto del CTA (opcional)",
+      "shopify_cta_label_placeholder": "ej. Ver producto",
+      "shopify_max_items": "Máximo de productos a mostrar",
+      "shopify_settings_hint": "Los productos y colecciones de Shopify se configuran en Dashboard > Settings."
     },
     "smart_link": {
       "destination": "Destino",
@@ -565,6 +618,13 @@
         "preview_hint": "El formulario está inactivo en modo vista previa.",
         "consent_default": "Acepto recibir novedades de este artista.",
         "consent_required": "Por favor acepta los términos para continuar."
+      },
+      "shopify_store": {
+        "title": "Merch",
+        "empty": "Conectá Shopify en Settings y elegí productos o una colección para mostrar merch acá.",
+        "cta": "Ver producto",
+        "available": "Disponible",
+        "sold_out": "Agotado"
       }
     }
   },
@@ -598,6 +658,7 @@
     "sections": {
       "featured_links": "Links destacados",
       "featured_media": "Media destacada",
+      "merch": "Merch",
       "about": "Sobre el artista",
       "presskit": "Press kit",
       "bookings": "Bookings",

@@ -30,7 +30,7 @@ La página pública actual se apoya en una composición más rica que un simple 
 - **i18n**: next-intl
 - **Deploy**: Vercel (frontend) + Railway (backend, us-west2) + Cloudflare (DNS/CDN/proxy)
 - **AI**: LLM para bio generada (Fase 3, no acoplado a un proveedor específico)
-- **E-commerce**: Shopify Storefront API (plan Pro)
+- **E-commerce**: Shopify Storefront API (capability `shopify_integration`, actualmente plan Pro+)
 
 ---
 
@@ -55,7 +55,7 @@ apps/
 │       │       │   └── signup/
 │       │       ├── (app)/              # Dashboard layout (Sidebar + Topbar)
 │       │       │   ├── dashboard/
-│       │       │   └── settings/
+│       │       │   └── settings/        # Settings incluye integraciones como Shopify Storefront
 │       │       └── [username]/         # Página pública del artista localizada (multi-tenant)
 │       ├── components/
 │       │   ├── ui/                     # shadcn/ui: Button, Card, Input, Badge, etc.
@@ -64,7 +64,7 @@ apps/
 │       ├── features/
 │       │   ├── marketing/              # LandingPage, hero, pricing
 │       │   ├── auth/                   # LoginForm, SignupForm
-│       │   ├── dashboard/              # DashboardWelcome, stats
+│       │   ├── dashboard/              # DashboardWelcome, stats, Shopify settings card
 │       │   ├── epk/                    # EPK builder + shareable/public rendering
 │       │   └── public-page/            # ArtistPageView SSR + composición pública localizada
 │       ├── i18n/
@@ -121,7 +121,8 @@ apps/
             ├── pages/      # CRUD páginas públicas (stub)
             ├── blocks/     # CRUD bloques (stub)
             ├── analytics/  # Dashboard analytics básico + Analytics Pro / fan insights con gates por plan
-            └── billing/    # Stripe billing + entitlements + billing summary para dashboard/upgrade flows
+            ├── billing/    # Stripe billing + entitlements + billing summary para dashboard/upgrade flows
+            └── shopify/    # Conexión Storefront por artista, validación y selección pública de merch
 packages/
 ├── types/                  # Interfaces compartidas (Artist, Page, Block, User, Asset, PublicPageResponse)
 ├── ui/                     # Wrappers shadcn + primitivos custom
@@ -138,6 +139,7 @@ docs/
 ├── billing-state-policy.md        # Política base de billing states y recovery
 ├── billing-state-edge-cases.md    # Effective billing state, effective plan, webhook ordering y fallbacks T6-6
 ├── multi-language-pages-and-translation-infra.md # Routing locale-aware, content translations, baseLocale, fallback coherente y gating T6-5
+├── shopify-storefront-integration.md # Shopify Storefront API por artista, gating, bloque público de merch y límites de la v1
 ├── plan-feature-gating.md         # effectivePlan, entitlements y patrón de gating por plan (T5-2)
 └── billing-ui-and-upgrade-flows.md # Billing dashboard, upgrade flows y retornos desde Stripe (T5-3)
 ```

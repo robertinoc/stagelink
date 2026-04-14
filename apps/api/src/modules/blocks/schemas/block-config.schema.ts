@@ -35,6 +35,9 @@ const MAX_CONSENT_LABEL_LENGTH = 200;
 const MAX_SUCCESS_MESSAGE_LENGTH = 200;
 const MAX_TEXT_BODY_LENGTH = 5000;
 const MAX_LINK_ITEMS = 20;
+const MAX_SHOPIFY_HEADLINE_LENGTH = 100;
+const MAX_SHOPIFY_DESCRIPTION_LENGTH = 300;
+const MAX_SHOPIFY_CTA_LENGTH = 40;
 
 const BLOCKED_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'blob:'];
 const MUSIC_PROVIDERS = ['spotify', 'apple_music', 'soundcloud', 'youtube'] as const;
@@ -248,6 +251,28 @@ function validateEmailCaptureConfig(c: Record<string, unknown>): void {
 
 function validateTextConfig(c: Record<string, unknown>): void {
   assertNonEmptyString(c['body'], 'text config.body', MAX_TEXT_BODY_LENGTH);
+}
+
+function validateShopifyStoreConfig(c: Record<string, unknown>): void {
+  assertOptionalString(c['headline'], 'shopify_store config.headline', MAX_SHOPIFY_HEADLINE_LENGTH);
+  assertOptionalString(
+    c['description'],
+    'shopify_store config.description',
+    MAX_SHOPIFY_DESCRIPTION_LENGTH,
+  );
+  assertOptionalString(c['ctaLabel'], 'shopify_store config.ctaLabel', MAX_SHOPIFY_CTA_LENGTH);
+
+  if (c['maxItems'] !== undefined) {
+    if (
+      !Number.isInteger(c['maxItems']) ||
+      (c['maxItems'] as number) < 1 ||
+      (c['maxItems'] as number) > 8
+    ) {
+      throw new BadRequestException(
+        'shopify_store config.maxItems must be an integer between 1 and 8',
+      );
+    }
+  }
 }
 
 // ─── URL parsing + embed derivation ──────────────────────────────────────────
@@ -493,6 +518,9 @@ export function validateBlockConfig(type: BlockType, config: unknown): void {
       break;
     case 'text':
       validateTextConfig(config);
+      break;
+    case 'shopify_store':
+      validateShopifyStoreConfig(config);
       break;
     default: {
       // Exhaustive guard — TypeScript will error here if a new BlockType

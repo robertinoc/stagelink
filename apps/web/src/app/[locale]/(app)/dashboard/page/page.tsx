@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { getArtist } from '@/lib/api/artists';
+import { getBillingSummary } from '@/lib/api/billing';
 import { getAuthMe } from '@/lib/api/me';
 import { getArtistPages } from '@/lib/api/pages';
 import { BlockManager } from '@/features/blocks/components/BlockManager';
@@ -40,6 +41,7 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
 
   const artist = await getArtist(artistId, session.accessToken);
   const pages = await getArtistPages(artistId, session.accessToken);
+  const billingSummary = await getBillingSummary(artistId, session.accessToken);
   const page = pages[0];
   if (!page) redirect(`/${locale}/onboarding`);
 
@@ -66,7 +68,12 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
         )}
       </div>
 
-      <BlockManager pageId={page.id} artistId={artistId} accessToken={session.accessToken} />
+      <BlockManager
+        pageId={page.id}
+        artistId={artistId}
+        accessToken={session.accessToken}
+        canUseShopifyIntegration={billingSummary.entitlements.shopify_integration}
+      />
     </div>
   );
 }
