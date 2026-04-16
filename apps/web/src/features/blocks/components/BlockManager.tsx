@@ -117,7 +117,7 @@ function CreateBlockDialog({
         ...(title.trim() && { title: title.trim() }),
         ...(hasLocalizedContent(localizedContent) && { localizedContent }),
       };
-      const block = await createBlock(pageId, payload, accessToken);
+      const block = await createBlock(pageId, payload);
       onCreated(block);
       reset();
       onClose();
@@ -255,7 +255,7 @@ function EditBlockSheet({
       if (!hasLocalizedContent(localizedContent) && block.localizedContent) {
         payload.localizedContent = null;
       }
-      const updated = await updateBlock(block.id, payload, accessToken);
+      const updated = await updateBlock(block.id, payload);
       onUpdated(updated);
       onClose();
     } catch (err) {
@@ -324,7 +324,6 @@ function BlockRow({
   block,
   isFirst,
   isLast,
-  accessToken,
   onEdit,
   onUpdated,
   onDeleted,
@@ -333,7 +332,6 @@ function BlockRow({
   block: Block;
   isFirst: boolean;
   isLast: boolean;
-  accessToken: string;
   onEdit: () => void;
   onUpdated: (block: Block) => void;
   onDeleted: (id: string) => void;
@@ -347,8 +345,8 @@ function BlockRow({
     setToggling(true);
     try {
       const updated = block.isPublished
-        ? await unpublishBlock(block.id, accessToken)
-        : await publishBlock(block.id, accessToken);
+        ? await unpublishBlock(block.id)
+        : await publishBlock(block.id);
       onUpdated(updated);
     } finally {
       setToggling(false);
@@ -359,7 +357,7 @@ function BlockRow({
     if (!confirm(t('delete_confirm'))) return;
     setDeleting(true);
     try {
-      await deleteBlock(block.id, accessToken);
+      await deleteBlock(block.id);
       onDeleted(block.id);
     } finally {
       setDeleting(false);
@@ -438,14 +436,14 @@ export function BlockManager({ pageId, artistId, accessToken, canUseShopifyInteg
     setLoading(true);
     setError(null);
     try {
-      const data = await getBlocks(pageId, accessToken);
+      const data = await getBlocks(pageId);
       setBlocks(data);
     } catch {
       setError(t('error'));
     } finally {
       setLoading(false);
     }
-  }, [pageId, accessToken, t]);
+  }, [pageId, t]);
 
   useEffect(() => {
     void load();
@@ -479,11 +477,9 @@ export function BlockManager({ pageId, artistId, accessToken, canUseShopifyInteg
     setBlocks(reordered);
 
     try {
-      const updated = await reorderBlocks(
-        pageId,
-        { blocks: reordered.map((b) => ({ id: b.id, position: b.position })) },
-        accessToken,
-      );
+      const updated = await reorderBlocks(pageId, {
+        blocks: reordered.map((b) => ({ id: b.id, position: b.position })),
+      });
       setBlocks(updated);
     } catch {
       // Revert on failure
@@ -535,7 +531,6 @@ export function BlockManager({ pageId, artistId, accessToken, canUseShopifyInteg
               block={block}
               isFirst={index === 0}
               isLast={index === blocks.length - 1}
-              accessToken={accessToken}
               onEdit={() => setEditingBlock(block)}
               onUpdated={handleUpdated}
               onDeleted={handleDeleted}
