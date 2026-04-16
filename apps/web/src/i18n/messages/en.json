@@ -278,6 +278,50 @@
       "cover": "Cover image",
       "avatar": "Profile picture"
     },
+    "epk": {
+      "fields": {
+        "headline": "Headline",
+        "short_bio": "Short bio",
+        "full_bio": "Full bio",
+        "press_quote": "Press quote",
+        "availability": "Availability",
+        "rider": "Rider",
+        "tech_requirements": "Tech requirements"
+      },
+      "translations": {
+        "title": "Localized EPK content",
+        "description": "Add locale-specific EPK copy for public routes. Base EPK fields above remain the fallback.",
+        "base_locale_label": "Base content language",
+        "base_locale_description": "Choose the language your main EPK fields are written in. If another locale is incomplete, public EPK routes fall back to this base content.",
+        "fallback_note": "{locale} visitors will see this copy when it exists. Otherwise StageLink falls back to your base EPK content.",
+        "base_edit_title": "This is your base EPK locale",
+        "base_edit_description": "Edit the main EPK fields above to update {locale}. Additional locale tabs are only for translated variants.",
+        "copy_from_base": "Copy base content",
+        "copy_from_base_description": "Start from your base EPK copy and adapt it for {locale}.",
+        "lock_badge": "Pro+",
+        "lock_title": "Unlock localized EPK copy",
+        "lock_description": "Additional locales are available on Pro+. Your base EPK stays available, but locale-specific public EPK content needs the multi-language pages feature.",
+        "lock_cta": "Upgrade plan",
+        "locales": {
+          "en": "English",
+          "es": "Spanish"
+        },
+        "status": {
+          "base": "Base",
+          "complete": "Ready",
+          "incomplete": "Incomplete"
+        },
+        "placeholders": {
+          "headline": "Genre, positioning, key context…",
+          "short_bio": "Localized short bio for this locale",
+          "full_bio": "Longer localized artist story for this locale",
+          "press_quote": "Optional localized quote from media, curator or promoter",
+          "availability": "Localized availability notes",
+          "rider": "Localized rider details",
+          "tech_requirements": "Localized technical requirements"
+        }
+      }
+    },
     "billing": {
       "title": "Billing",
       "description": "See your current plan, compare upgrades, and manage billing from one place.",

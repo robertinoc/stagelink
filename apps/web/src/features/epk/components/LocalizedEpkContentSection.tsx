@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { Globe2, Lock } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,17 +12,11 @@ import type { EpkFormValues } from '../schemas/epk.schema';
 
 type LocaleTab = 'en' | 'es';
 
-const LOCALE_LABELS: Record<LocaleTab, string> = {
-  en: 'English',
-  es: 'Spanish',
-};
-const LOCALE_STATUS_LABELS: Record<'base' | 'complete' | 'incomplete', string> = {
-  base: 'Base',
-  complete: 'Ready',
-  incomplete: 'Incomplete',
-};
-
 const LOCALE_TABS: LocaleTab[] = ['en', 'es'];
+
+function getDefaultTranslatedLocale(baseLocale: LocaleTab): LocaleTab {
+  return LOCALE_TABS.find((locale) => locale !== baseLocale) ?? 'en';
+}
 
 interface LocalizedEpkContentSectionProps {
   form: UseFormReturn<EpkFormValues>;
@@ -36,7 +31,7 @@ export function LocalizedEpkContentSection({
   hasMultiLanguageAccess,
   billingHref,
 }: LocalizedEpkContentSectionProps) {
-  const [activeLocale, setActiveLocale] = useState<LocaleTab>('en');
+  const t = useTranslations('dashboard.epk');
   const {
     register,
     setValue,
@@ -45,6 +40,8 @@ export function LocalizedEpkContentSection({
   } = form;
 
   const baseLocale = watch('baseLocale');
+  const defaultTranslatedLocale = getDefaultTranslatedLocale(baseLocale);
+  const [activeLocale, setActiveLocale] = useState<LocaleTab>(defaultTranslatedLocale);
   const baseValues = watch([
     'headline',
     'shortBio',
@@ -55,10 +52,20 @@ export function LocalizedEpkContentSection({
     'availabilityNotes',
   ]);
   const translationsValues = watch('translations');
-  const activeLocaleLabel = useMemo(() => LOCALE_LABELS[activeLocale], [activeLocale]);
+  const activeLocaleLabel = useMemo(
+    () => t(`translations.locales.${activeLocale}`),
+    [activeLocale, t],
+  );
   const fieldsDisabled = disabled || !hasMultiLanguageAccess || activeLocale === baseLocale;
   const translatedValues = watch(`translations.${activeLocale}`) ?? {};
   const translatedErrors = errors.translations?.[activeLocale];
+
+  useEffect(() => {
+    if (activeLocale === baseLocale) {
+      setActiveLocale(defaultTranslatedLocale);
+    }
+  }, [activeLocale, baseLocale, defaultTranslatedLocale]);
+
   const localeStatus = useMemo(() => {
     return LOCALE_TABS.reduce<Record<LocaleTab, 'base' | 'complete' | 'incomplete'>>(
       (acc, locale) => {
@@ -67,16 +74,13 @@ export function LocalizedEpkContentSection({
           return acc;
         }
 
+        const sourceFields = [baseValues[0], baseValues[1], baseValues[2]];
         const translatedFields = [
           translationsValues?.[locale]?.headline,
           translationsValues?.[locale]?.shortBio,
           translationsValues?.[locale]?.fullBio,
-          translationsValues?.[locale]?.pressQuote,
-          translationsValues?.[locale]?.riderInfo,
-          translationsValues?.[locale]?.techRequirements,
-          translationsValues?.[locale]?.availabilityNotes,
         ];
-        const complete = baseValues.every((baseValue, index) => {
+        const complete = sourceFields.every((baseValue, index) => {
           if (!baseValue?.trim()) return true;
           return Boolean(translatedFields[index]?.trim());
         });
@@ -107,17 +111,14 @@ export function LocalizedEpkContentSection({
           <div>
             <CardTitle className="flex items-center gap-2">
               <Globe2 className="h-4 w-4" />
-              Localized EPK content
+              {t('translations.title')}
             </CardTitle>
-            <CardDescription>
-              Add locale-specific EPK copy for public routes. Base EPK fields above remain the
-              fallback.
-            </CardDescription>
+            <CardDescription>{t('translations.description')}</CardDescription>
           </div>
           {!hasMultiLanguageAccess && (
             <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700">
               <Lock className="h-3.5 w-3.5" />
-              Pro+
+              {t('translations.lock_badge')}
             </span>
           )}
         </div>
@@ -125,10 +126,9 @@ export function LocalizedEpkContentSection({
       <CardContent className="space-y-5">
         <div className="space-y-3">
           <div className="space-y-1">
-            <p className="text-sm font-medium">Base content language</p>
+            <p className="text-sm font-medium">{t('translations.base_locale_label')}</p>
             <p className="text-xs text-muted-foreground">
-              Choose the language your main EPK fields are written in. If another locale is
-              incomplete, public EPK routes fall back to this base content.
+              {t('translations.base_locale_description')}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -145,7 +145,7 @@ export function LocalizedEpkContentSection({
                       : 'border border-border bg-background text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {LOCALE_LABELS[locale]}
+                  {t(`translations.locales.${locale}`)}
                 </button>
               );
             })}
@@ -154,13 +154,12 @@ export function LocalizedEpkContentSection({
 
         {!hasMultiLanguageAccess && (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
-            <p className="text-sm font-medium text-foreground">Unlock localized EPK copy</p>
+            <p className="text-sm font-medium text-foreground">{t('translations.lock_title')}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Additional locales are available on Pro+. Your base EPK stays available, but
-              locale-specific public EPK content needs the multi-language pages feature.
+              {t('translations.lock_description')}
             </p>
             <Button asChild className="mt-3" size="sm">
-              <a href={billingHref}>Upgrade plan</a>
+              <a href={billingHref}>{t('translations.lock_cta')}</a>
             </Button>
           </div>
         )}
@@ -180,26 +179,26 @@ export function LocalizedEpkContentSection({
                       : 'border border-border bg-background text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <span>{LOCALE_LABELS[locale]}</span>
+                  <span>{t(`translations.locales.${locale}`)}</span>
                   <span className="ml-2 text-[11px] uppercase tracking-wide opacity-80">
-                    {LOCALE_STATUS_LABELS[localeStatus[locale]]}
+                    {t(`translations.status.${localeStatus[locale]}`)}
                   </span>
                 </button>
               );
             })}
           </div>
           <p className="text-xs text-muted-foreground">
-            {activeLocaleLabel} visitors will see this copy when it exists. Otherwise StageLink
-            falls back to your base EPK content.
+            {t('translations.fallback_note', { locale: activeLocaleLabel })}
           </p>
         </div>
 
         {activeLocale === baseLocale && (
           <div className="rounded-xl border border-border bg-muted/30 p-4">
-            <p className="text-sm font-medium text-foreground">This is your base EPK locale</p>
+            <p className="text-sm font-medium text-foreground">
+              {t('translations.base_edit_title')}
+            </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Edit the main EPK fields above to update {activeLocaleLabel}. Additional locale tabs
-              are only for translated variants.
+              {t('translations.base_edit_description', { locale: activeLocaleLabel })}
             </p>
           </div>
         )}
@@ -207,7 +206,7 @@ export function LocalizedEpkContentSection({
         {activeLocale !== baseLocale && hasMultiLanguageAccess && (
           <div className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-3">
             <p className="text-sm text-muted-foreground">
-              Start from your base EPK copy and adapt it for {activeLocaleLabel}.
+              {t('translations.copy_from_base_description', { locale: activeLocaleLabel })}
             </p>
             <Button
               type="button"
@@ -216,7 +215,7 @@ export function LocalizedEpkContentSection({
               onClick={() => copyBaseContentToLocale(activeLocale)}
               disabled={disabled}
             >
-              Copy base content
+              {t('translations.copy_from_base')}
             </Button>
           </div>
         )}
@@ -227,11 +226,11 @@ export function LocalizedEpkContentSection({
               htmlFor={`translations.${activeLocale}.headline`}
               className="text-sm font-medium"
             >
-              Headline
+              {t('fields.headline')}
             </label>
             <Input
               id={`translations.${activeLocale}.headline`}
-              placeholder="Genre, positioning, key context…"
+              placeholder={t('translations.placeholders.headline')}
               disabled={fieldsDisabled}
               {...register(`translations.${activeLocale}.headline`)}
             />
@@ -245,11 +244,11 @@ export function LocalizedEpkContentSection({
               htmlFor={`translations.${activeLocale}.shortBio`}
               className="text-sm font-medium"
             >
-              Short bio
+              {t('fields.short_bio')}
             </label>
             <Textarea
               id={`translations.${activeLocale}.shortBio`}
-              placeholder="Localized short bio for this locale"
+              placeholder={t('translations.placeholders.short_bio')}
               disabled={fieldsDisabled}
               className="min-h-[100px]"
               {...register(`translations.${activeLocale}.shortBio`)}
@@ -274,11 +273,11 @@ export function LocalizedEpkContentSection({
 
           <div className="space-y-1.5">
             <label htmlFor={`translations.${activeLocale}.fullBio`} className="text-sm font-medium">
-              Full bio
+              {t('fields.full_bio')}
             </label>
             <Textarea
               id={`translations.${activeLocale}.fullBio`}
-              placeholder="Longer localized artist story for this locale"
+              placeholder={t('translations.placeholders.full_bio')}
               disabled={fieldsDisabled}
               className="min-h-[180px]"
               {...register(`translations.${activeLocale}.fullBio`)}
@@ -306,11 +305,11 @@ export function LocalizedEpkContentSection({
               htmlFor={`translations.${activeLocale}.pressQuote`}
               className="text-sm font-medium"
             >
-              Press quote
+              {t('fields.press_quote')}
             </label>
             <Textarea
               id={`translations.${activeLocale}.pressQuote`}
-              placeholder="Optional localized quote from media, curator or promoter"
+              placeholder={t('translations.placeholders.press_quote')}
               disabled={fieldsDisabled}
               className="min-h-[80px]"
               {...register(`translations.${activeLocale}.pressQuote`)}
@@ -323,11 +322,11 @@ export function LocalizedEpkContentSection({
                 htmlFor={`translations.${activeLocale}.availabilityNotes`}
                 className="text-sm font-medium"
               >
-                Availability
+                {t('fields.availability')}
               </label>
               <Textarea
                 id={`translations.${activeLocale}.availabilityNotes`}
-                placeholder="Localized availability notes"
+                placeholder={t('translations.placeholders.availability')}
                 disabled={fieldsDisabled}
                 className="min-h-[140px]"
                 {...register(`translations.${activeLocale}.availabilityNotes`)}
@@ -339,11 +338,11 @@ export function LocalizedEpkContentSection({
                 htmlFor={`translations.${activeLocale}.riderInfo`}
                 className="text-sm font-medium"
               >
-                Rider
+                {t('fields.rider')}
               </label>
               <Textarea
                 id={`translations.${activeLocale}.riderInfo`}
-                placeholder="Localized rider details"
+                placeholder={t('translations.placeholders.rider')}
                 disabled={fieldsDisabled}
                 className="min-h-[140px]"
                 {...register(`translations.${activeLocale}.riderInfo`)}
@@ -356,11 +355,11 @@ export function LocalizedEpkContentSection({
               htmlFor={`translations.${activeLocale}.techRequirements`}
               className="text-sm font-medium"
             >
-              Tech requirements
+              {t('fields.tech_requirements')}
             </label>
             <Textarea
               id={`translations.${activeLocale}.techRequirements`}
-              placeholder="Localized technical requirements"
+              placeholder={t('translations.placeholders.tech_requirements')}
               disabled={fieldsDisabled}
               className="min-h-[160px]"
               {...register(`translations.${activeLocale}.techRequirements`)}

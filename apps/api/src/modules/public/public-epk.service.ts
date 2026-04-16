@@ -97,15 +97,34 @@ export class PublicEpkService {
     const fallbackFeaturedLinks = buildFallbackFeaturedLinks(artist);
     const baseLocale = normalizeBaseLocale(epk.baseLocale ?? artist.baseLocale ?? DEFAULT_LOCALE);
     const baseShortBio = epk.shortBio ?? artist.bio;
+    const effectiveShortBioTranslations = epk.shortBio?.trim()
+      ? epkTranslations.shortBio
+      : artistTranslations.bio;
     const contentLocale = resolveDocumentLocale(locale, baseLocale, [
       { baseValue: artist.displayName, localizedValue: artistTranslations.displayName },
-      { baseValue: baseShortBio, localizedValue: epkTranslations.shortBio },
+      { baseValue: baseShortBio, localizedValue: effectiveShortBioTranslations },
       { baseValue: epk.headline, localizedValue: epkTranslations.headline },
       { baseValue: epk.fullBio, localizedValue: epkTranslations.fullBio },
-      { baseValue: epk.pressQuote, localizedValue: epkTranslations.pressQuote },
-      { baseValue: epk.riderInfo, localizedValue: epkTranslations.riderInfo },
-      { baseValue: epk.techRequirements, localizedValue: epkTranslations.techRequirements },
-      { baseValue: epk.availabilityNotes, localizedValue: epkTranslations.availabilityNotes },
+      {
+        baseValue: epk.pressQuote,
+        localizedValue: epkTranslations.pressQuote,
+        required: false,
+      },
+      {
+        baseValue: epk.riderInfo,
+        localizedValue: epkTranslations.riderInfo,
+        required: false,
+      },
+      {
+        baseValue: epk.techRequirements,
+        localizedValue: epkTranslations.techRequirements,
+        required: false,
+      },
+      {
+        baseValue: epk.availabilityNotes,
+        localizedValue: epkTranslations.availabilityNotes,
+        required: false,
+      },
     ]);
 
     return {
@@ -144,7 +163,12 @@ export class PublicEpkService {
         baseLocale,
       ),
       shortBio:
-        resolveDocumentText(baseShortBio, epkTranslations.shortBio, contentLocale, baseLocale) ??
+        resolveDocumentText(
+          baseShortBio,
+          effectiveShortBioTranslations,
+          contentLocale,
+          baseLocale,
+        ) ??
         resolveDocumentText(
           artist.bio,
           artistTranslations.bio,

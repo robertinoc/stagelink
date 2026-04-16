@@ -278,6 +278,50 @@
       "cover": "Imagen de portada",
       "avatar": "Foto de perfil"
     },
+    "epk": {
+      "fields": {
+        "headline": "Titular",
+        "short_bio": "Bio corta",
+        "full_bio": "Bio completa",
+        "press_quote": "Cita de prensa",
+        "availability": "Disponibilidad",
+        "rider": "Rider",
+        "tech_requirements": "Requerimientos técnicos"
+      },
+      "translations": {
+        "title": "Contenido localizado del EPK",
+        "description": "Agregá textos específicos por idioma para las rutas públicas del EPK. Los campos base de arriba siguen funcionando como fallback.",
+        "base_locale_label": "Idioma base del contenido",
+        "base_locale_description": "Elegí en qué idioma están escritos los campos principales del EPK. Si otro idioma está incompleto, las rutas públicas del EPK van a usar este contenido base.",
+        "fallback_note": "Los visitantes en {locale} van a ver este texto cuando exista. Si falta, StageLink usará tu contenido base del EPK.",
+        "base_edit_title": "Este es tu idioma base del EPK",
+        "base_edit_description": "Editá los campos principales del EPK de arriba para actualizar {locale}. Las tabs adicionales son solo para versiones traducidas.",
+        "copy_from_base": "Copiar contenido base",
+        "copy_from_base_description": "Usá tu EPK base como punto de partida y adaptalo a {locale}.",
+        "lock_badge": "Pro+",
+        "lock_title": "Desbloqueá contenido localizado del EPK",
+        "lock_description": "Los idiomas adicionales están disponibles en Pro+. Tu EPK base sigue estando disponible, pero el contenido público específico por idioma necesita la feature de multi-language pages.",
+        "lock_cta": "Actualizar plan",
+        "locales": {
+          "en": "Inglés",
+          "es": "Español"
+        },
+        "status": {
+          "base": "Base",
+          "complete": "Listo",
+          "incomplete": "Incompleto"
+        },
+        "placeholders": {
+          "headline": "Género, posicionamiento, contexto clave…",
+          "short_bio": "Bio corta localizada para este idioma",
+          "full_bio": "Historia ampliada del artista para este idioma",
+          "press_quote": "Cita localizada opcional de prensa, curator o promoter",
+          "availability": "Notas de disponibilidad localizadas",
+          "rider": "Detalles localizados del rider",
+          "tech_requirements": "Requerimientos técnicos localizados"
+        }
+      }
+    },
     "billing": {
       "title": "Facturación",
       "description": "Revisá tu plan actual, compará upgrades y gestioná billing desde un solo lugar.",

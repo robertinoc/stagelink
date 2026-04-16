@@ -1,46 +1,20 @@
-import { notFound } from 'next/navigation';
-import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import { fetchPublicEpk } from '@/lib/api/epk';
-import { AutoPrintOnMount } from '@/features/epk/components/AutoPrintOnMount';
-import { PublicEpkView } from '@/features/epk/components/PublicEpkView';
+import { redirect } from 'next/navigation';
 import { detectLocale } from '@/lib/detect-locale';
 
-interface PrintEpkPageProps {
+interface PublicEpkPrintRedirectPageProps {
   params: Promise<{ username: string }>;
   searchParams?: Promise<{ download?: string }>;
 }
 
-export async function generateMetadata({ params }: PrintEpkPageProps): Promise<Metadata> {
+export default async function PublicEpkPrintRedirectPage({
+  params,
+  searchParams,
+}: PublicEpkPrintRedirectPageProps) {
   const { username } = await params;
   const locale = detectLocale((await headers()).get('accept-language') ?? '');
-  const epk = await fetchPublicEpk(username, locale);
-
-  if (!epk) {
-    return {
-      title: 'EPK print view not found — StageLink',
-      robots: { index: false, follow: false },
-    };
-  }
-
-  return {
-    title: `${epk.artist.displayName} EPK Print — StageLink`,
-    robots: { index: false, follow: false },
-  };
-}
-
-export default async function PrintEpkPage({ params, searchParams }: PrintEpkPageProps) {
-  const { username } = await params;
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const locale = detectLocale((await headers()).get('accept-language') ?? '');
-  const epk = await fetchPublicEpk(username, locale);
+  const suffix = resolvedSearchParams?.download === '1' ? '?download=1' : '';
 
-  if (!epk) notFound();
-
-  return (
-    <>
-      <AutoPrintOnMount enabled={resolvedSearchParams?.download === '1'} />
-      <PublicEpkView epk={epk} printMode locale={locale} />
-    </>
-  );
+  redirect(`/${locale}/${username}/epk/print${suffix}`);
 }
