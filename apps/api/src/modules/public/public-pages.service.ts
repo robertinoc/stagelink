@@ -201,6 +201,7 @@ function localizeBlock(
   if (block.type === 'shopify_store') {
     const merchConfig = baseConfig as ShopifyStoreBlockConfig;
     const maxItems = resolvePreviewLimit(merchConfig.maxItems ?? SHOPIFY_DEFAULT_PREVIEW_LIMIT);
+    const translated = localizedContent.shopifyStore ?? {};
 
     return {
       id: block.id,
@@ -209,6 +210,21 @@ function localizeBlock(
       position: block.position,
       config: {
         ...merchConfig,
+        headline: resolveFieldLevelLocalizedText(
+          merchConfig.headline ?? null,
+          translated.headline,
+          locale,
+        ),
+        description: resolveFieldLevelLocalizedText(
+          merchConfig.description ?? null,
+          translated.description,
+          locale,
+        ),
+        ctaLabel: resolveFieldLevelLocalizedText(
+          merchConfig.ctaLabel ?? null,
+          translated.ctaLabel,
+          locale,
+        ),
         collectionTitle: shopifySelection?.collectionTitle ?? null,
         products: (shopifySelection?.products ?? []).slice(0, maxItems),
       },

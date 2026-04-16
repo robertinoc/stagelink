@@ -15,10 +15,11 @@ import {
   validateBlockTitle,
   enrichBlockConfig,
   sanitizeBlockConfig,
+  sanitizeBlockLocalizedContent,
 } from './schemas/block-config.schema';
 import { CreateBlockDto, UpdateBlockDto, ReorderBlocksDto } from './dto';
 import { SmartLinksService } from '../smart-links/smart-links.service';
-import { ANALYTICS_EVENTS } from '@stagelink/types';
+import { ANALYTICS_EVENTS, type BlockLocalizedContent } from '@stagelink/types';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 
 // Maximum blocks allowed per page — prevents unbounded data growth.
@@ -82,6 +83,7 @@ export class BlocksService {
       blockType,
       enrichBlockConfig(blockType, dto.config as Record<string, unknown>),
     );
+    const localizedContent = sanitizeBlockLocalizedContent(blockType, dto.localizedContent);
 
     // Wrap count + position lookup + insert in a single transaction so two
     // concurrent creates on the same page cannot race past the block limit or
@@ -107,6 +109,7 @@ export class BlocksService {
           type: blockType,
           title: dto.title?.trim() ?? null,
           config: enrichedConfig as Prisma.InputJsonValue,
+          localizedContent: localizedContent as Prisma.InputJsonValue,
           position,
           isPublished: false,
         },
@@ -154,6 +157,7 @@ export class BlocksService {
     }
 
     let enrichedConfig: Record<string, unknown> | undefined;
+    let localizedContent: BlockLocalizedContent | undefined;
     if (dto.config !== undefined) {
       const existing =
         typeof block.config === 'object' && block.config !== null
@@ -174,12 +178,19 @@ export class BlocksService {
       enrichedConfig = sanitizeBlockConfig(block.type, enrichBlockConfig(block.type, mergedConfig));
     }
 
+    if (dto.localizedContent !== undefined) {
+      localizedContent = sanitizeBlockLocalizedContent(block.type, dto.localizedContent);
+    }
+
     const updated = await this.prisma.block.update({
       where: { id: blockId },
       data: {
         ...(dto.title !== undefined && { title: dto.title.trim() || null }),
         ...(enrichedConfig !== undefined && {
           config: enrichedConfig as Prisma.InputJsonValue,
+        }),
+        ...(localizedContent !== undefined && {
+          localizedContent: localizedContent as Prisma.InputJsonValue,
         }),
       },
     });

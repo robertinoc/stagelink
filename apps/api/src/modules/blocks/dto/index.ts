@@ -42,6 +42,10 @@ export class CreateBlockDto {
    */
   @IsObject()
   config!: Record<string, unknown>;
+
+  @IsOptional()
+  @IsObject()
+  localizedContent?: Record<string, unknown> | null;
 }
 
 // =============================================================
@@ -60,6 +64,10 @@ export class UpdateBlockDto {
   @IsOptional()
   @IsObject()
   config?: Record<string, unknown>;
+
+  @IsOptional()
+  @IsObject()
+  localizedContent?: Record<string, unknown> | null;
 }
 
 // =============================================================

@@ -145,10 +145,17 @@ export interface LinksBlockTranslations {
   itemLabels?: Record<string, LocalizedTextMap>;
 }
 
+export interface ShopifyStoreBlockTranslations {
+  headline?: LocalizedTextMap;
+  description?: LocalizedTextMap;
+  ctaLabel?: LocalizedTextMap;
+}
+
 export interface BlockLocalizedContent {
   title?: LocalizedTextMap;
   emailCapture?: EmailCaptureBlockTranslations;
   links?: LinksBlockTranslations;
+  shopifyStore?: ShopifyStoreBlockTranslations;
 }
 
 /** Discriminated union of all config shapes */

@@ -605,7 +605,14 @@
       "shopify_cta_label": "CTA label (optional)",
       "shopify_cta_label_placeholder": "e.g. View product",
       "shopify_max_items": "Max products to show",
-      "shopify_settings_hint": "Shopify products and collections are configured in Dashboard > Settings."
+      "shopify_settings_hint": "Shopify products and collections are configured in Dashboard > Settings.",
+      "shopify_localized_section": "Localized merch copy",
+      "shopify_localized_hint": "These fields are optional per locale. Base merch copy above remains the fallback when a locale is empty.",
+      "shopify_locale_en": "English",
+      "shopify_locale_es": "Spanish",
+      "shopify_localized_headline": "Localized headline",
+      "shopify_localized_description": "Localized description (optional)",
+      "shopify_localized_cta": "Localized CTA label (optional)"
     },
     "smart_link": {
       "destination": "Destination",

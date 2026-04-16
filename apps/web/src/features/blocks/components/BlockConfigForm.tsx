@@ -1,9 +1,11 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import type {
   BlockType,
   BlockConfig,
+  BlockLocalizedContent,
   LinksBlockConfig,
   LinkItem,
   LinkIcon,
@@ -13,13 +15,17 @@ import type {
   EmailCaptureBlockConfig,
   TextBlockConfig,
   ShopifyStoreBlockConfig,
+  SupportedLocale,
 } from '@stagelink/types';
+import { SUPPORTED_LOCALES } from '@stagelink/types';
 import { SmartLinkPicker } from './SmartLinkForm';
 
 interface Props {
   type: BlockType;
   config: BlockConfig;
   onChange: (config: BlockConfig) => void;
+  localizedContent?: BlockLocalizedContent | null;
+  onLocalizedContentChange?: (localizedContent: BlockLocalizedContent) => void;
   /**
    * Required for the smart link picker inside the links block form.
    * When absent, the smart link option is hidden.
@@ -529,11 +535,54 @@ function TextBlockForm({
 function ShopifyStoreBlockForm({
   config,
   onChange,
+  localizedContent,
+  onLocalizedContentChange,
 }: {
   config: ShopifyStoreBlockConfig;
   onChange: (c: ShopifyStoreBlockConfig) => void;
+  localizedContent?: BlockLocalizedContent | null;
+  onLocalizedContentChange?: (localizedContent: BlockLocalizedContent) => void;
 }) {
   const t = useTranslations('blocks.fields');
+  const currentLocale = useLocale();
+  const [activeLocale, setActiveLocale] = useState<SupportedLocale>(
+    currentLocale === 'es' ? 'es' : 'en',
+  );
+  const shopifyTranslations = localizedContent?.shopifyStore ?? {};
+
+  function updateLocalizedField(field: 'headline' | 'description' | 'ctaLabel', value: string) {
+    if (!onLocalizedContentChange) return;
+
+    const nextLocalizedContent: BlockLocalizedContent = {
+      ...(localizedContent ?? {}),
+    };
+    const nextShopifyStore = {
+      ...(nextLocalizedContent.shopifyStore ?? {}),
+    };
+    const nextFieldTranslations = {
+      ...(nextShopifyStore[field] ?? {}),
+    };
+
+    if (value.trim()) {
+      nextFieldTranslations[activeLocale] = value;
+    } else {
+      delete nextFieldTranslations[activeLocale];
+    }
+
+    if (Object.keys(nextFieldTranslations).length > 0) {
+      nextShopifyStore[field] = nextFieldTranslations;
+    } else {
+      delete nextShopifyStore[field];
+    }
+
+    if (Object.keys(nextShopifyStore).length > 0) {
+      nextLocalizedContent.shopifyStore = nextShopifyStore;
+    } else {
+      delete nextLocalizedContent.shopifyStore;
+    }
+
+    onLocalizedContentChange(nextLocalizedContent);
+  }
 
   return (
     <div className="space-y-3">
@@ -586,6 +635,71 @@ function ShopifyStoreBlockForm({
         />
         <p className="mt-1 text-xs text-muted-foreground">{t('shopify_settings_hint')}</p>
       </div>
+
+      <div className="rounded-md border border-input bg-muted/20 p-3">
+        <div className="space-y-2">
+          <div>
+            <p className="text-sm font-medium">{t('shopify_localized_section')}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t('shopify_localized_hint')}</p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {SUPPORTED_LOCALES.map((localeOption) => (
+              <button
+                key={localeOption}
+                type="button"
+                onClick={() => setActiveLocale(localeOption)}
+                className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                  activeLocale === localeOption
+                    ? 'bg-primary text-primary-foreground'
+                    : 'border border-input bg-background text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {localeOption === 'en' ? t('shopify_locale_en') : t('shopify_locale_es')}
+              </button>
+            ))}
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              {t('shopify_localized_headline')}
+            </label>
+            <input
+              type="text"
+              placeholder={t('shopify_headline_placeholder')}
+              value={shopifyTranslations.headline?.[activeLocale] ?? ''}
+              onChange={(e) => updateLocalizedField('headline', e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              maxLength={100}
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              {t('shopify_localized_description')}
+            </label>
+            <textarea
+              value={shopifyTranslations.description?.[activeLocale] ?? ''}
+              onChange={(e) => updateLocalizedField('description', e.target.value)}
+              placeholder={t('shopify_description_placeholder')}
+              className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              maxLength={300}
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">{t('shopify_localized_cta')}</label>
+            <input
+              type="text"
+              placeholder={t('shopify_cta_label_placeholder')}
+              value={shopifyTranslations.ctaLabel?.[activeLocale] ?? ''}
+              onChange={(e) => updateLocalizedField('ctaLabel', e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              maxLength={40}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -621,7 +735,15 @@ export function defaultConfig(type: BlockType): BlockConfig {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function BlockConfigForm({ type, config, onChange, artistId, accessToken }: Props) {
+export function BlockConfigForm({
+  type,
+  config,
+  onChange,
+  localizedContent,
+  onLocalizedContentChange,
+  artistId,
+  accessToken,
+}: Props) {
   switch (type) {
     case 'links':
       return (
@@ -654,6 +776,8 @@ export function BlockConfigForm({ type, config, onChange, artistId, accessToken 
         <ShopifyStoreBlockForm
           config={config as ShopifyStoreBlockConfig}
           onChange={(c) => onChange(c)}
+          localizedContent={localizedContent}
+          onLocalizedContentChange={onLocalizedContentChange}
         />
       );
   }
