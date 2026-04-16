@@ -365,7 +365,7 @@ export class ShopifyService {
       return {
         collectionTitle: data.collection?.title ?? null,
         products: (data.collection?.products.nodes ?? []).map((product) =>
-          this.mapStorefrontProduct(product),
+          this.mapStorefrontProduct(product, params.storeDomain),
         ),
       };
     }
@@ -410,17 +410,20 @@ export class ShopifyService {
       products: handles
         .map((_, index) => data[`product_${index}`] ?? null)
         .filter((product): product is StorefrontProductNode => Boolean(product))
-        .map((product) => this.mapStorefrontProduct(product)),
+        .map((product) => this.mapStorefrontProduct(product, params.storeDomain)),
     };
   }
 
-  private mapStorefrontProduct(product: StorefrontProductNode): ShopifyStoreProduct {
+  private mapStorefrontProduct(
+    product: StorefrontProductNode,
+    storeDomain: string,
+  ): ShopifyStoreProduct {
     return {
       id: product.id,
       title: product.title,
       handle: product.handle,
       imageUrl: product.featuredImage?.url ?? null,
-      productUrl: product.onlineStoreUrl ?? null,
+      productUrl: product.onlineStoreUrl ?? `https://${storeDomain}/products/${product.handle}`,
       priceAmount: product.priceRange.minVariantPrice.amount,
       currencyCode: product.priceRange.minVariantPrice.currencyCode,
       availableForSale: product.availableForSale,
