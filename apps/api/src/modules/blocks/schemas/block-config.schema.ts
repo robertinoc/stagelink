@@ -1,6 +1,18 @@
 import { BadRequestException } from '@nestjs/common';
 import { type BlockType } from '@prisma/client';
-import { LINK_ICONS as LINK_ICONS_SHARED, LINK_ITEM_KINDS, MAX_URL_LENGTH } from '@stagelink/types';
+import {
+  LINK_ICONS as LINK_ICONS_SHARED,
+  LINK_ITEM_KINDS,
+  MAX_URL_LENGTH,
+  type BlockLocalizedContent,
+  type EmailCaptureBlockTranslations,
+  type LinksBlockTranslations,
+  type ShopifyStoreBlockTranslations,
+} from '@stagelink/types';
+import {
+  sanitizeLocalizedTextMap,
+  sanitizeTranslationFieldMap,
+} from '../../../common/utils/localized-content.util';
 
 // =============================================================
 // Block Config Validation + Enrichment
@@ -99,6 +111,84 @@ function assertPlainObject(config: unknown): asserts config is Record<string, un
   ) {
     throw new BadRequestException('config must be a plain object');
   }
+}
+
+function sanitizeItemLabelTranslations(
+  value: unknown,
+): Record<string, NonNullable<ReturnType<typeof sanitizeLocalizedTextMap>>> | undefined {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const sanitized = Object.entries(value).reduce<
+    Record<string, NonNullable<ReturnType<typeof sanitizeLocalizedTextMap>>>
+  >((acc, [itemId, localizedValue]) => {
+    const localizedText = sanitizeLocalizedTextMap(localizedValue);
+    if (localizedText) {
+      acc[itemId] = localizedText;
+    }
+    return acc;
+  }, {});
+
+  return Object.keys(sanitized).length > 0 ? sanitized : undefined;
+}
+
+export function sanitizeBlockLocalizedContent(
+  type: BlockType,
+  value: unknown,
+): BlockLocalizedContent {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return {};
+  }
+
+  const content = value as Record<string, unknown>;
+  const sanitized: BlockLocalizedContent = {};
+  const localizedTitle = sanitizeLocalizedTextMap(content['title']);
+  if (localizedTitle) {
+    sanitized.title = localizedTitle;
+  }
+
+  if (type === 'email_capture') {
+    const emailCapture = sanitizeTranslationFieldMap<EmailCaptureBlockTranslations>(
+      content['emailCapture'],
+    );
+    if (Object.keys(emailCapture).length > 0) {
+      sanitized.emailCapture = emailCapture;
+    }
+  }
+
+  if (type === 'links') {
+    const rawLinks = content['links'];
+    if (typeof rawLinks === 'object' && rawLinks !== null && !Array.isArray(rawLinks)) {
+      const linksContent = rawLinks as Record<string, unknown>;
+      const linksTranslations: LinksBlockTranslations = {};
+      const linksTitle = sanitizeLocalizedTextMap(linksContent['title']);
+      const itemLabels = sanitizeItemLabelTranslations(linksContent['itemLabels']);
+
+      if (linksTitle) {
+        linksTranslations.title = linksTitle;
+      }
+
+      if (itemLabels) {
+        linksTranslations.itemLabels = itemLabels;
+      }
+
+      if (Object.keys(linksTranslations).length > 0) {
+        sanitized.links = linksTranslations;
+      }
+    }
+  }
+
+  if (type === 'shopify_store') {
+    const shopifyStore = sanitizeTranslationFieldMap<ShopifyStoreBlockTranslations>(
+      content['shopifyStore'],
+    );
+    if (Object.keys(shopifyStore).length > 0) {
+      sanitized.shopifyStore = shopifyStore;
+    }
+  }
+
+  return sanitized;
 }
 
 // ─── per-type validators ──────────────────────────────────────────────────────

@@ -605,7 +605,14 @@
       "shopify_cta_label": "Texto del CTA (opcional)",
       "shopify_cta_label_placeholder": "ej. Ver producto",
       "shopify_max_items": "Máximo de productos a mostrar",
-      "shopify_settings_hint": "Los productos y colecciones de Shopify se configuran en Dashboard > Settings."
+      "shopify_settings_hint": "Los productos y colecciones de Shopify se configuran en Dashboard > Settings.",
+      "shopify_localized_section": "Copy localizado de merch",
+      "shopify_localized_hint": "Estos campos son opcionales por idioma. El copy base de merch de arriba sigue funcionando como fallback cuando un idioma está vacío.",
+      "shopify_locale_en": "Inglés",
+      "shopify_locale_es": "Español",
+      "shopify_localized_headline": "Título localizado",
+      "shopify_localized_description": "Descripción localizada (opcional)",
+      "shopify_localized_cta": "Texto localizado del CTA (opcional)"
     },
     "smart_link": {
       "destination": "Destino",

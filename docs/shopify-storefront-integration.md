@@ -69,6 +69,19 @@ No persistimos:
 - checkout state
 - órdenes o fulfillment
 
+### Cache SSR
+
+La selección pública de merch usa una cache corta en memoria del backend:
+
+- TTL aproximado: 60 segundos
+- scope: por artista + selección + límite de productos
+
+Objetivo:
+
+- reducir latencia variable contra Shopify
+- evitar que la sección de merch desaparezca ante fallos transitorios
+- mantener una base simple sin jobs ni persistencia adicional
+
 ## Endpoints creados
 
 ### Privados
@@ -207,6 +220,20 @@ Características:
 - integrado en la página pública del artista
 - sin carrito interno
 
+### Copy localizado del bloque
+
+El bloque `shopify_store` soporta copy localizado por locale para:
+
+- `headline`
+- `description`
+- `ctaLabel`
+
+Política:
+
+- el copy base del bloque sigue siendo el fallback
+- las traducciones adicionales se guardan en `localizedContent.shopifyStore`
+- el catálogo de Shopify sigue siendo único; solo cambia la capa editorial del bloque
+
 El checkout ocurre completamente en Shopify a través de `onlineStoreUrl`.
 
 ## Seguridad
@@ -218,7 +245,11 @@ La integración sigue estas reglas:
 3. cada operación privada valida membership real del artista
 4. el backend valida `shopify_integration`
 5. no se mezclan tiendas entre tenants porque la conexión se resuelve por `artistId`
-6. no se loggea el token
+
+### Limitación actual
+
+En esta v1, el `storefrontToken` se guarda en la base de datos sin cifrado en reposo.
+No se expone al frontend público y no se devuelve en la UI privada, pero sigue siendo una mejora recomendada para una siguiente iteración de seguridad. 6. no se loggea el token
 
 ### Nota sobre secretos
 

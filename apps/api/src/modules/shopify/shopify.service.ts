@@ -48,8 +48,17 @@ interface ShopifySelectionPreview {
   products: ShopifyStoreProduct[];
 }
 
+interface CachedShopifySelectionPreview {
+  preview: ShopifySelectionPreview;
+  expiresAt: number;
+}
+
+const SHOPIFY_SELECTION_CACHE_TTL_MS = 60_000;
+
 @Injectable()
 export class ShopifyService {
+  private readonly selectionPreviewCache = new Map<string, CachedShopifySelectionPreview>();
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly membershipService: MembershipService,
@@ -69,7 +78,11 @@ export class ShopifyService {
       return this.buildEmptyConnection(artistId);
     }
 
-    const preview = await this.getSelectionPreviewSafe(connection, SHOPIFY_DEFAULT_PREVIEW_LIMIT);
+    const preview = await this.getSelectionPreviewSafe(
+      artistId,
+      connection,
+      SHOPIFY_DEFAULT_PREVIEW_LIMIT,
+    );
     return this.mapConnection(connection, preview);
   }
 
@@ -179,6 +192,8 @@ export class ShopifyService {
       ipAddress,
     });
 
+    this.clearSelectionPreviewCache(artistId);
+
     return this.mapConnection(saved, preview);
   }
 
@@ -203,6 +218,7 @@ export class ShopifyService {
     }
 
     return this.getSelectionPreviewSafe(
+      artistId,
       connection,
       options?.maxItems ?? SHOPIFY_DEFAULT_PREVIEW_LIMIT,
     );
@@ -256,6 +272,7 @@ export class ShopifyService {
   }
 
   private async getSelectionPreviewSafe(
+    artistId: string,
     connection: {
       storeDomain: string;
       storefrontToken: string;
@@ -265,8 +282,14 @@ export class ShopifyService {
     },
     maxItems: number,
   ): Promise<ShopifySelectionPreview> {
+    const cacheKey = this.buildSelectionPreviewCacheKey(artistId, connection, maxItems);
+    const cachedPreview = this.readSelectionPreviewCache(cacheKey);
+    if (cachedPreview && cachedPreview.expiresAt > Date.now()) {
+      return cachedPreview.preview;
+    }
+
     try {
-      return await this.fetchSelectionPreview({
+      const preview = await this.fetchSelectionPreview({
         storeDomain: connection.storeDomain,
         storefrontToken: connection.storefrontToken,
         selectionMode: connection.selectionMode,
@@ -274,9 +297,49 @@ export class ShopifyService {
         productHandles: this.readProductHandles(connection.productHandles),
         maxItems,
       });
+      this.selectionPreviewCache.set(cacheKey, {
+        preview,
+        expiresAt: Date.now() + SHOPIFY_SELECTION_CACHE_TTL_MS,
+      });
+      return preview;
     } catch (error) {
       console.error('[shopify] Failed to fetch selection preview', error);
+      if (cachedPreview) {
+        return cachedPreview.preview;
+      }
       return { collectionTitle: null, products: [] };
+    }
+  }
+
+  private buildSelectionPreviewCacheKey(
+    artistId: string,
+    connection: {
+      storeDomain: string;
+      selectionMode: ShopifySelectionMode;
+      collectionHandle: string | null;
+      productHandles: Prisma.JsonValue;
+    },
+    maxItems: number,
+  ): string {
+    return JSON.stringify({
+      artistId,
+      storeDomain: connection.storeDomain,
+      selectionMode: connection.selectionMode,
+      collectionHandle: connection.collectionHandle,
+      productHandles: this.readProductHandles(connection.productHandles),
+      maxItems,
+    });
+  }
+
+  private readSelectionPreviewCache(cacheKey: string): CachedShopifySelectionPreview | null {
+    return this.selectionPreviewCache.get(cacheKey) ?? null;
+  }
+
+  private clearSelectionPreviewCache(artistId: string): void {
+    for (const key of this.selectionPreviewCache.keys()) {
+      if (key.includes(`"artistId":"${artistId}"`)) {
+        this.selectionPreviewCache.delete(key);
+      }
     }
   }
 

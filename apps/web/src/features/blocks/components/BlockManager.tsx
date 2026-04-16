@@ -6,6 +6,7 @@ import type {
   Block,
   BlockType,
   BlockConfig,
+  BlockLocalizedContent,
   CreateBlockPayload,
   UpdateBlockPayload,
 } from '@stagelink/types';
@@ -52,6 +53,14 @@ const BLOCK_TYPE_ICONS: Record<BlockType, string> = {
   shopify_store: '🛍️',
 };
 
+function hasLocalizedContent(content: BlockLocalizedContent | null | undefined): boolean {
+  if (!content) return false;
+  return Object.values(content).some((value) => {
+    if (!value || typeof value !== 'object') return false;
+    return Object.keys(value).length > 0;
+  });
+}
+
 // ─── Create Block Dialog ──────────────────────────────────────────────────────
 
 function CreateBlockDialog({
@@ -75,6 +84,7 @@ function CreateBlockDialog({
   const [selectedType, setSelectedType] = useState<BlockType | null>(null);
   const [title, setTitle] = useState('');
   const [config, setConfig] = useState<BlockConfig | null>(null);
+  const [localizedContent, setLocalizedContent] = useState<BlockLocalizedContent>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const availableBlockTypes = canUseShopifyIntegration
@@ -84,6 +94,7 @@ function CreateBlockDialog({
   function selectType(type: BlockType) {
     setSelectedType(type);
     setConfig(defaultConfig(type));
+    setLocalizedContent({});
     setError(null);
   }
 
@@ -91,6 +102,7 @@ function CreateBlockDialog({
     setSelectedType(null);
     setTitle('');
     setConfig(null);
+    setLocalizedContent({});
     setError(null);
   }
 
@@ -103,6 +115,7 @@ function CreateBlockDialog({
         type: selectedType,
         config,
         ...(title.trim() && { title: title.trim() }),
+        ...(hasLocalizedContent(localizedContent) && { localizedContent }),
       };
       const block = await createBlock(pageId, payload, accessToken);
       onCreated(block);
@@ -174,6 +187,8 @@ function CreateBlockDialog({
                 type={selectedType}
                 config={config}
                 onChange={setConfig}
+                localizedContent={localizedContent}
+                onLocalizedContentChange={setLocalizedContent}
                 artistId={artistId}
                 accessToken={accessToken}
               />
@@ -214,6 +229,7 @@ function EditBlockSheet({
   const t = useTranslations('blocks');
   const [title, setTitle] = useState('');
   const [config, setConfig] = useState<BlockConfig | null>(null);
+  const [localizedContent, setLocalizedContent] = useState<BlockLocalizedContent>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -221,6 +237,7 @@ function EditBlockSheet({
     if (block) {
       setTitle(block.title ?? '');
       setConfig(block.config);
+      setLocalizedContent(block.localizedContent ?? {});
       setError(null);
     }
   }, [block]);
@@ -233,7 +250,11 @@ function EditBlockSheet({
       const payload: UpdateBlockPayload = {
         config,
         ...(title.trim() !== (block.title ?? '') && { title: title.trim() || undefined }),
+        ...(hasLocalizedContent(localizedContent) && { localizedContent }),
       };
+      if (!hasLocalizedContent(localizedContent) && block.localizedContent) {
+        payload.localizedContent = null;
+      }
       const updated = await updateBlock(block.id, payload, accessToken);
       onUpdated(updated);
       onClose();
@@ -273,6 +294,8 @@ function EditBlockSheet({
                 type={block.type}
                 config={config}
                 onChange={setConfig}
+                localizedContent={localizedContent}
+                onLocalizedContentChange={setLocalizedContent}
                 artistId={artistId}
                 accessToken={accessToken}
               />

@@ -4,7 +4,11 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import type { ShopifyConnection, ShopifySelectionMode } from '@stagelink/types';
+import {
+  getMinimumPlanForFeature,
+  type ShopifyConnection,
+  type ShopifySelectionMode,
+} from '@stagelink/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +32,17 @@ function parseHandlesInput(value: string): string[] {
 
 function serializeHandlesInput(handles: string[]): string {
   return handles.join('\n');
+}
+
+function resolvePlanLabel(plan: 'free' | 'pro' | 'pro_plus') {
+  switch (plan) {
+    case 'pro':
+      return 'Pro';
+    case 'pro_plus':
+      return 'Pro+';
+    default:
+      return 'Free';
+  }
 }
 
 export function ShopifySettingsCard({
@@ -57,6 +72,7 @@ export function ShopifySettingsCard({
 
   const previewProducts = connection?.previewProducts ?? [];
   const upgradeHref = `/${locale}/dashboard/billing`;
+  const requiredPlanLabel = resolvePlanLabel(getMinimumPlanForFeature('shopify_integration'));
   const parsedProductHandles = useMemo(
     () => parseHandlesInput(productHandlesInput),
     [productHandlesInput],
@@ -112,7 +128,7 @@ export function ShopifySettingsCard({
               <CardTitle>{t('title')}</CardTitle>
               <CardDescription>{t('lock.description')}</CardDescription>
             </div>
-            <Badge variant="secondary">Pro+</Badge>
+            <Badge variant="secondary">{requiredPlanLabel}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
