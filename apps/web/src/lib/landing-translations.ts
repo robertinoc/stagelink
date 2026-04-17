@@ -46,8 +46,25 @@ export interface LandingTranslation {
     ctaPrimary: string;
     ctaSecondary: string;
     previewLabel: string;
+    previewHandle: string;
+    previewRoles: string;
+    previewTags: string[];
     previewTitle: string;
     previewDescription: string;
+    previewMediaLabel: string;
+    previewMediaBadge: string;
+    previewMediaItems: string[];
+    previewMediaMeta: string[];
+    previewAboutLabel: string;
+    previewAboutText: string;
+    previewMerchLabel: string;
+    previewMerchName: string;
+    previewMerchPrice: string;
+    previewMerchStatus: string;
+    previewAudienceLabel: string;
+    previewAudienceText: string;
+    previewAudienceCta: string;
+    previewFanLabel: string;
     mockLinks: string[];
   };
   strip: {
@@ -156,9 +173,27 @@ const en: LandingTranslation = {
     ctaPrimary: 'Create your StageLink',
     ctaSecondary: 'View preview',
     previewLabel: 'Artist page preview',
+    previewHandle: '@robertino',
+    previewRoles: 'DJ · Producer · Creator',
+    previewTags: ['Techno', 'Hard Techno', 'Bounce', 'Psytrance'],
     previewTitle: 'One link for your music, content, merch, and audience',
     previewDescription:
       'A premium artist bio link built to look sharp, load fast, and help fans know exactly where to go next.',
+    previewMediaLabel: 'Featured media',
+    previewMediaBadge: 'Live preview',
+    previewMediaItems: ['Last video', 'Latest set'],
+    previewMediaMeta: ['YouTube / Live set', 'SoundCloud / Mix preview'],
+    previewAboutLabel: 'About',
+    previewAboutText:
+      'A premium artist page can also show your bio, current focus, press-ready details, and the sections fans actually need.',
+    previewMerchLabel: 'Merch',
+    previewMerchName: 'Limited gear drop',
+    previewMerchPrice: '$149',
+    previewMerchStatus: 'Available now',
+    previewAudienceLabel: 'Audience',
+    previewAudienceText: 'Capture fans and keep your next release one click away.',
+    previewAudienceCta: 'Join',
+    previewFanLabel: 'Join the fan list',
     mockLinks: ['Listen on Spotify', 'Watch the latest video', 'Shop merch', 'Join the fan list'],
   },
   strip: {
@@ -378,9 +413,27 @@ const es: LandingTranslation = {
     ctaPrimary: 'Crear tu StageLink',
     ctaSecondary: 'Ver preview',
     previewLabel: 'Preview de página de artista',
+    previewHandle: '@robertino',
+    previewRoles: 'DJ · Producer · Creator',
+    previewTags: ['Techno', 'Hard Techno', 'Bounce', 'Psytrance'],
     previewTitle: 'Un solo link para tu música, contenido, merch y audiencia',
     previewDescription:
       'Un artist bio link premium pensado para verse bien, cargar rápido y mostrarle a cada fan exactamente cuál es el próximo paso.',
+    previewMediaLabel: 'Media destacada',
+    previewMediaBadge: 'Preview en vivo',
+    previewMediaItems: ['Último video', 'Último set'],
+    previewMediaMeta: ['YouTube / Live set', 'SoundCloud / Preview del mix'],
+    previewAboutLabel: 'Sobre el artista',
+    previewAboutText:
+      'Una página premium de artista también puede mostrar tu bio, tu foco actual, detalles listos para prensa y las secciones que tus fans realmente necesitan.',
+    previewMerchLabel: 'Merch',
+    previewMerchName: 'Drop limitado de gear',
+    previewMerchPrice: '$149',
+    previewMerchStatus: 'Disponible ahora',
+    previewAudienceLabel: 'Audiencia',
+    previewAudienceText: 'Capturá fans y dejá tu próximo lanzamiento a un solo click.',
+    previewAudienceCta: 'Sumarme',
+    previewFanLabel: 'Sumarme a la lista de fans',
     mockLinks: [
       'Escuchar en Spotify',
       'Ver el último video',

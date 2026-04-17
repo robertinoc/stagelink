@@ -12,6 +12,131 @@ interface LandingPageProps {
 const featureNumbers = ['01', '02', '03', '04', '05', '06'] as const;
 const pillarNumbers = ['A', 'B', 'C'] as const;
 
+function SpotifyIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+      <path
+        d="M5 9.8c4.2-1.3 9.8-.9 13.9 1.2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M6.5 13.2c3.4-1 7.5-.7 10.5 1"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M8.1 16.3c2.5-.7 5.2-.4 7.2.7"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.4" opacity="0.45" />
+    </svg>
+  );
+}
+
+function PlayIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+      <path
+        d="M9 7.5v9l7-4.5-7-4.5Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.4" opacity="0.45" />
+    </svg>
+  );
+}
+
+function BagIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+      <path d="M7 9h10l-.8 9H7.8L7 9Z" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M9.5 9a2.5 2.5 0 0 1 5 0" stroke="currentColor" strokeWidth="1.7" />
+    </svg>
+  );
+}
+
+function FanIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+      <path
+        d="M12 6v12M6 12h12M8.5 8.5l7 7M15.5 8.5l-7 7"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        opacity="0.5"
+      />
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
+function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+      <rect
+        x="5.2"
+        y="5.2"
+        width="13.6"
+        height="13.6"
+        rx="4"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <circle cx="12" cy="12" r="3.2" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="16.4" cy="7.7" r="0.9" fill="currentColor" />
+    </svg>
+  );
+}
+
+function SoundwaveIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+      <path
+        d="M6 14v2M9 11v5M12 8v8M15 10v6M18 12v4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function TikTokIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+      <path
+        d="M14 5.5c.6 1.7 1.8 3 3.5 3.7V12c-1.5-.1-2.7-.6-3.8-1.4v4.2a4.2 4.2 0 1 1-4.2-4.2c.3 0 .6 0 .9.1"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function GlobeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M3.5 12h17M12 3.5c2.2 2.4 3.4 5.4 3.4 8.5s-1.2 6.1-3.4 8.5c-2.2-2.4-3.4-5.4-3.4-8.5S9.8 5.9 12 3.5Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+    </svg>
+  );
+}
+
+const mockActionIcons = [SpotifyIcon, PlayIcon, BagIcon, FanIcon] as const;
+const socialIcons = [InstagramIcon, PlayIcon, TikTokIcon, SoundwaveIcon, GlobeIcon] as const;
+
 export function LandingPage({ locale }: LandingPageProps) {
   const resolvedLocale: SupportedLocale = locale === 'es' ? 'es' : 'en';
   const t = getLandingT(resolvedLocale);
@@ -70,32 +195,152 @@ export function LandingPage({ locale }: LandingPageProps) {
 
           <div id="preview" className="relative">
             <div className="mx-auto max-w-xl rounded-[2rem] border border-white/10 bg-white/5 p-4 shadow-[0_30px_80px_rgba(155,48,208,0.18)] backdrop-blur">
-              <div className="rounded-[1.6rem] border border-white/10 bg-sidebar p-5">
-                <div className="h-44 rounded-[1.25rem] bg-brand-gradient opacity-65" />
-                <div className="mx-auto -mt-12 h-24 w-24 rounded-full border-4 border-sidebar bg-white/10" />
-                <div className="mt-4 text-center">
-                  <div className="text-xs font-medium uppercase tracking-[0.22em] text-primary/80">
-                    {t.hero.previewLabel}
+              <div className="rounded-[1.6rem] border border-white/10 bg-sidebar p-4">
+                <div className="max-h-[40rem] overflow-y-auto rounded-[1.35rem] border border-white/10 bg-[#140a22] p-3 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
+                  <div className="relative h-40 overflow-hidden rounded-[1.2rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(155,48,208,0.55),rgba(64,18,108,0.92)_58%,rgba(18,11,28,1)_100%)]">
+                    <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),transparent_35%,rgba(255,255,255,0.02)_65%,transparent)]" />
+                    <div className="absolute bottom-0 left-4 h-28 w-16 rounded-t-full bg-white/10 blur-[1px]" />
+                    <div className="absolute bottom-0 left-1/2 h-32 w-20 -translate-x-1/2 rounded-t-full bg-white/20 blur-[1px]" />
+                    <div className="absolute bottom-0 right-4 h-28 w-16 rounded-t-full bg-white/10 blur-[1px]" />
+                    <div className="absolute bottom-6 left-1/2 h-10 w-10 -translate-x-1/2 rounded-full bg-white/8" />
                   </div>
-                  <h2 className="mt-3 text-2xl font-semibold">Robertino</h2>
-                  <p className="mt-1 text-sm text-white/50">DJ · Producer · Creator</p>
-                </div>
 
-                <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
-                  <h3 className="text-lg font-semibold">{t.hero.previewTitle}</h3>
-                  <p className="mt-3 text-sm leading-7 text-white/60">
-                    {t.hero.previewDescription}
-                  </p>
+                  <div className="relative z-10 mx-auto -mt-12 flex h-24 w-24 items-center justify-center rounded-full border-4 border-[#140a22] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.92),rgba(187,132,255,0.95)_28%,rgba(55,22,92,0.98)_74%,rgba(17,9,31,1)_100%)] shadow-[0_18px_35px_rgba(0,0,0,0.45)]">
+                    <div className="h-16 w-16 rounded-full bg-[radial-gradient(circle_at_40%_20%,rgba(255,255,255,0.95),rgba(255,215,188,0.92)_34%,rgba(55,29,18,0.65)_36%,rgba(18,10,31,0.92)_68%)]" />
+                  </div>
 
-                  <div className="mt-5 grid gap-3">
-                    {t.hero.mockLinks.map((item) => (
-                      <div
-                        key={item}
-                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80"
+                  <div className="mt-4 text-center">
+                    <div className="text-xs font-medium uppercase tracking-[0.22em] text-primary/80">
+                      {t.hero.previewLabel}
+                    </div>
+                    <h2 className="mt-3 text-2xl font-semibold">Robertino</h2>
+                    <p className="mt-1 text-sm text-white/45">{t.hero.previewHandle}</p>
+                    <p className="mt-2 text-sm text-white/55">{t.hero.previewRoles}</p>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    {t.hero.previewTags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-white/60"
                       >
-                        {item}
-                      </div>
+                        {tag}
+                      </span>
                     ))}
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-center gap-2">
+                    {socialIcons.map((Icon, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/65"
+                      >
+                        <Icon />
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="mt-5 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
+                    <h3 className="text-lg font-semibold">{t.hero.previewTitle}</h3>
+                    <p className="mt-3 text-sm leading-7 text-white/60">
+                      {t.hero.previewDescription}
+                    </p>
+
+                    <div className="mt-5 grid gap-3">
+                      {t.hero.mockLinks.map((item, index) => {
+                        const Icon = mockActionIcons[index] ?? PlayIcon;
+
+                        return (
+                          <div
+                            key={item}
+                            className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80"
+                          >
+                            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-primary">
+                              <Icon />
+                            </span>
+                            <span>{item}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-[1.45rem] border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.22em] text-white/40">
+                      <span>{t.hero.previewMediaLabel}</span>
+                      <span className="text-primary/80">{t.hero.previewMediaBadge}</span>
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      {t.hero.previewMediaItems.map((item, index) => (
+                        <div
+                          key={item}
+                          className="overflow-hidden rounded-[1.2rem] border border-white/10 bg-sidebar/75"
+                        >
+                          <div
+                            className={`h-24 ${
+                              index === 0
+                                ? 'bg-[linear-gradient(135deg,rgba(240,98,146,0.38),rgba(70,19,122,0.95))]'
+                                : 'bg-[linear-gradient(135deg,rgba(83,204,255,0.28),rgba(76,24,129,0.95))]'
+                            }`}
+                          />
+                          <div className="p-3">
+                            <div className="text-sm font-medium text-white/90">{item}</div>
+                            <div className="mt-1 text-xs text-white/45">
+                              {t.hero.previewMediaMeta[index]}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-[1.45rem] border border-white/10 bg-white/5 p-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/40">
+                      {t.hero.previewAboutLabel}
+                    </div>
+                    <p className="mt-3 text-sm leading-7 text-white/65">
+                      {t.hero.previewAboutText}
+                    </p>
+                  </div>
+
+                  <div className="mt-4 rounded-[1.45rem] border border-white/10 bg-white/5 p-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/40">
+                      {t.hero.previewMerchLabel}
+                    </div>
+                    <div className="mt-3 flex items-center gap-4 rounded-[1.2rem] border border-white/10 bg-sidebar/75 p-3">
+                      <div className="h-20 w-20 rounded-[1rem] bg-[linear-gradient(135deg,rgba(94,214,255,0.22),rgba(89,35,156,0.9))]" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-semibold text-white/90">
+                          {t.hero.previewMerchName}
+                        </div>
+                        <div className="mt-1 text-xs text-white/45">{t.hero.previewMerchPrice}</div>
+                        <div className="mt-3 inline-flex rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
+                          {t.hero.previewMerchStatus}
+                        </div>
+                      </div>
+                      <span className="rounded-full border border-white/10 px-3 py-2 text-xs font-medium text-white/75">
+                        {t.hero.mockLinks[2]}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-[1.45rem] border border-primary/20 bg-primary/5 p-4">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary/85">
+                      {t.hero.previewAudienceLabel}
+                    </div>
+                    <div className="mt-3 flex items-center justify-between gap-4 rounded-[1.2rem] border border-primary/20 bg-white/5 px-4 py-3">
+                      <div>
+                        <div className="text-sm font-semibold text-white">
+                          {t.hero.previewFanLabel}
+                        </div>
+                        <div className="mt-1 text-xs text-white/50">
+                          {t.hero.previewAudienceText}
+                        </div>
+                      </div>
+                      <span className="rounded-full bg-brand-gradient px-3 py-2 text-xs font-semibold text-white">
+                        {t.hero.previewAudienceCta}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
