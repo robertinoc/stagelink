@@ -4,14 +4,32 @@ import './globals.css';
 export const metadata: Metadata = {
   title: {
     template: '%s | StageLink',
-    default: 'StageLink — Your digital stage',
+    default: 'StageLink — Artist Landing Page & Link in Bio for Musicians',
   },
-  description: 'Create your artist page. Share music, links, videos and connect with your fans.',
+  description:
+    'Build your artist landing page in minutes. A modern link in bio for musicians, DJs, producers, and creators who want music, links, merch, and fans in one place.',
+  keywords: [
+    'artist landing page',
+    'link in bio for artists',
+    'landing page for musicians',
+    'link in bio for DJs',
+    'creator landing page',
+    'artist bio link',
+    'music creator profile',
+    'musician website',
+    'DJ landing page',
+  ],
   openGraph: {
     type: 'website',
     siteName: 'StageLink',
-    title: 'StageLink — Your digital stage',
-    description: 'Create your artist page. Share music, links, videos and connect with your fans.',
+    title: 'StageLink — Artist Landing Page & Link in Bio for Musicians',
+    description:
+      'Build your artist landing page in minutes. Centralize your music, links, merch, and fans in one place.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'StageLink — Artist Landing Page & Link in Bio',
+    description: 'A modern link-in-bio platform for musicians, DJs, producers, and creators.',
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://stagelink.app'),
 };

@@ -114,3 +114,67 @@ h6 {
 @utility border-brand {
   border-color: #9b30d0;
 }
+
+@keyframes landing-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.landing-platform-marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+}
+
+.landing-platform-track {
+  display: flex;
+  width: max-content;
+  animation: landing-marquee 20s linear infinite;
+}
+
+.landing-platform-marquee:hover .landing-platform-track {
+  animation-play-state: paused;
+}
+
+.landing-hover-card {
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.landing-hover-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(155, 48, 208, 0.35);
+  background-color: rgba(155, 48, 208, 0.08);
+  box-shadow: 0 20px 45px rgba(155, 48, 208, 0.18);
+}
+
+.landing-surface-glow {
+  position: relative;
+  isolation: isolate;
+}
+
+.landing-surface-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at top left, rgba(155, 48, 208, 0.22), transparent 36%),
+    radial-gradient(circle at bottom right, rgba(232, 121, 249, 0.16), transparent 34%);
+  opacity: 0;
+  transition: opacity 240ms ease;
+  pointer-events: none;
+}
+
+.landing-surface-glow:hover::before {
+  opacity: 1;
+}
