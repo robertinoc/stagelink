@@ -4,9 +4,13 @@ import {
   LINK_ICONS as LINK_ICONS_SHARED,
   LINK_ITEM_KINDS,
   MAX_URL_LENGTH,
+  SMART_MERCH_DISPLAY_MODES,
+  SMART_MERCH_PROVIDERS,
+  SMART_MERCH_SOURCE_MODES,
   type BlockLocalizedContent,
   type EmailCaptureBlockTranslations,
   type LinksBlockTranslations,
+  type SmartMerchBlockTranslations,
   type ShopifyStoreBlockTranslations,
 } from '@stagelink/types';
 import {
@@ -50,6 +54,10 @@ const MAX_LINK_ITEMS = 20;
 const MAX_SHOPIFY_HEADLINE_LENGTH = 100;
 const MAX_SHOPIFY_DESCRIPTION_LENGTH = 300;
 const MAX_SHOPIFY_CTA_LENGTH = 40;
+const MAX_SMART_MERCH_HEADLINE_LENGTH = 100;
+const MAX_SMART_MERCH_SUBTITLE_LENGTH = 300;
+const MAX_SMART_MERCH_CTA_LENGTH = 40;
+const MAX_SMART_MERCH_PRODUCTS = 12;
 
 const BLOCKED_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'blob:'];
 const MUSIC_PROVIDERS = ['spotify', 'apple_music', 'soundcloud', 'youtube'] as const;
@@ -185,6 +193,15 @@ export function sanitizeBlockLocalizedContent(
     );
     if (Object.keys(shopifyStore).length > 0) {
       sanitized.shopifyStore = shopifyStore;
+    }
+  }
+
+  if (type === 'smart_merch') {
+    const smartMerch = sanitizeTranslationFieldMap<SmartMerchBlockTranslations>(
+      content['smartMerch'],
+    );
+    if (Object.keys(smartMerch).length > 0) {
+      sanitized.smartMerch = smartMerch;
     }
   }
 
@@ -361,6 +378,103 @@ function validateShopifyStoreConfig(c: Record<string, unknown>): void {
       throw new BadRequestException(
         'shopify_store config.maxItems must be an integer between 1 and 8',
       );
+    }
+  }
+}
+
+function validateSmartMerchConfig(c: Record<string, unknown>): void {
+  if (!SMART_MERCH_PROVIDERS.includes(c['provider'] as (typeof SMART_MERCH_PROVIDERS)[number])) {
+    throw new BadRequestException(
+      `smart_merch config.provider must be one of: ${SMART_MERCH_PROVIDERS.join(', ')}`,
+    );
+  }
+
+  assertOptionalString(
+    c['headline'],
+    'smart_merch config.headline',
+    MAX_SMART_MERCH_HEADLINE_LENGTH,
+  );
+  assertOptionalString(
+    c['subtitle'],
+    'smart_merch config.subtitle',
+    MAX_SMART_MERCH_SUBTITLE_LENGTH,
+  );
+  assertOptionalString(c['ctaLabel'], 'smart_merch config.ctaLabel', MAX_SMART_MERCH_CTA_LENGTH);
+
+  if (c['displayMode'] !== undefined) {
+    if (
+      !SMART_MERCH_DISPLAY_MODES.includes(
+        c['displayMode'] as (typeof SMART_MERCH_DISPLAY_MODES)[number],
+      )
+    ) {
+      throw new BadRequestException(
+        `smart_merch config.displayMode must be one of: ${SMART_MERCH_DISPLAY_MODES.join(', ')}`,
+      );
+    }
+  }
+
+  if (c['sourceMode'] !== undefined) {
+    if (
+      !SMART_MERCH_SOURCE_MODES.includes(
+        c['sourceMode'] as (typeof SMART_MERCH_SOURCE_MODES)[number],
+      )
+    ) {
+      throw new BadRequestException(
+        `smart_merch config.sourceMode must be one of: ${SMART_MERCH_SOURCE_MODES.join(', ')}`,
+      );
+    }
+  }
+
+  if (c['maxItems'] !== undefined) {
+    if (
+      !Number.isInteger(c['maxItems']) ||
+      (c['maxItems'] as number) < 1 ||
+      (c['maxItems'] as number) > MAX_SMART_MERCH_PRODUCTS
+    ) {
+      throw new BadRequestException(
+        `smart_merch config.maxItems must be an integer between 1 and ${MAX_SMART_MERCH_PRODUCTS}`,
+      );
+    }
+  }
+
+  if (c['selectedProducts'] !== undefined) {
+    if (!Array.isArray(c['selectedProducts'])) {
+      throw new BadRequestException('smart_merch config.selectedProducts must be an array');
+    }
+
+    if ((c['selectedProducts'] as unknown[]).length > MAX_SMART_MERCH_PRODUCTS) {
+      throw new BadRequestException(
+        `smart_merch config.selectedProducts must contain at most ${MAX_SMART_MERCH_PRODUCTS} items`,
+      );
+    }
+
+    const seenProductIds = new Set<string>();
+    for (const [index, selection] of (c['selectedProducts'] as unknown[]).entries()) {
+      if (typeof selection !== 'object' || selection === null || Array.isArray(selection)) {
+        throw new BadRequestException(
+          `smart_merch config.selectedProducts[${index}] must be an object`,
+        );
+      }
+
+      const entry = selection as Record<string, unknown>;
+      assertNonEmptyString(
+        entry['productId'],
+        `smart_merch config.selectedProducts[${index}].productId`,
+        100,
+      );
+      assertSafeUrl(
+        entry['purchaseUrl'],
+        `smart_merch config.selectedProducts[${index}].purchaseUrl`,
+      );
+
+      const productId = entry['productId'] as string;
+      if (seenProductIds.has(productId)) {
+        throw new BadRequestException(
+          `smart_merch config.selectedProducts[${index}].productId must be unique`,
+        );
+      }
+
+      seenProductIds.add(productId);
     }
   }
 }
@@ -612,6 +726,9 @@ export function validateBlockConfig(type: BlockType, config: unknown): void {
     case 'shopify_store':
       validateShopifyStoreConfig(config);
       break;
+    case 'smart_merch':
+      validateSmartMerchConfig(config);
+      break;
     default: {
       // Exhaustive guard — TypeScript will error here if a new BlockType
       // is added to the enum without a corresponding case above.
@@ -660,20 +777,40 @@ export function sanitizeBlockConfig(
   type: BlockType,
   config: Record<string, unknown>,
 ): Record<string, unknown> {
-  if (type !== 'links') return config;
-  if (!Array.isArray(config['items'])) return config;
+  if (type === 'links') {
+    if (!Array.isArray(config['items'])) return config;
 
-  return {
-    ...config,
-    items: (config['items'] as Record<string, unknown>[]).map((item) => ({
-      ...item,
-      // Only trim url for 'url' kind items — smart_link items have an empty url field.
-      url:
-        item['kind'] !== 'smart_link' && typeof item['url'] === 'string'
-          ? item['url'].trim()
-          : item['url'],
-    })),
-  };
+    return {
+      ...config,
+      items: (config['items'] as Record<string, unknown>[]).map((item) => ({
+        ...item,
+        // Only trim url for 'url' kind items — smart_link items have an empty url field.
+        url:
+          item['kind'] !== 'smart_link' && typeof item['url'] === 'string'
+            ? item['url'].trim()
+            : item['url'],
+      })),
+    };
+  }
+
+  if (type === 'smart_merch') {
+    return {
+      ...config,
+      selectedProducts: Array.isArray(config['selectedProducts'])
+        ? (config['selectedProducts'] as Record<string, unknown>[]).map((item) => ({
+            ...item,
+            productId:
+              typeof item['productId'] === 'string' ? item['productId'].trim() : item['productId'],
+            purchaseUrl:
+              typeof item['purchaseUrl'] === 'string'
+                ? item['purchaseUrl'].trim()
+                : item['purchaseUrl'],
+          }))
+        : config['selectedProducts'],
+    };
+  }
+
+  return config;
 }
 
 /**

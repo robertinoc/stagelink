@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import type {
   BlockType,
@@ -14,10 +14,13 @@ import type {
   VideoEmbedBlockConfig,
   EmailCaptureBlockConfig,
   TextBlockConfig,
+  SmartMerchBlockConfig,
+  SmartMerchProduct,
   ShopifyStoreBlockConfig,
   SupportedLocale,
 } from '@stagelink/types';
 import { SUPPORTED_LOCALES } from '@stagelink/types';
+import { listMerchProducts } from '@/lib/api/merch';
 import { SmartLinkPicker } from './SmartLinkForm';
 
 interface Props {
@@ -704,6 +707,344 @@ function ShopifyStoreBlockForm({
   );
 }
 
+function SmartMerchBlockForm({
+  config,
+  onChange,
+  localizedContent,
+  onLocalizedContentChange,
+  artistId,
+}: {
+  config: SmartMerchBlockConfig;
+  onChange: (c: SmartMerchBlockConfig) => void;
+  localizedContent?: BlockLocalizedContent | null;
+  onLocalizedContentChange?: (localizedContent: BlockLocalizedContent) => void;
+  artistId?: string;
+}) {
+  const t = useTranslations('blocks.fields');
+  const currentLocale = useLocale();
+  const [activeLocale, setActiveLocale] = useState<SupportedLocale>(
+    currentLocale === 'es' ? 'es' : 'en',
+  );
+  const [availableProducts, setAvailableProducts] = useState<SmartMerchProduct[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(Boolean(artistId));
+  const [productsError, setProductsError] = useState<string | null>(null);
+
+  const smartMerchTranslations = localizedContent?.smartMerch ?? {};
+  const selectedProducts = config.selectedProducts ?? [];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProducts() {
+      if (!artistId) {
+        setAvailableProducts([]);
+        setLoadingProducts(false);
+        setProductsError(t('smart_merch_products_missing_artist'));
+        return;
+      }
+
+      setLoadingProducts(true);
+      setProductsError(null);
+
+      try {
+        const products = await listMerchProducts(artistId, 12);
+        if (!cancelled) {
+          setAvailableProducts(products);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setProductsError(
+            error instanceof Error ? error.message : t('smart_merch_products_error'),
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingProducts(false);
+        }
+      }
+    }
+
+    void loadProducts();
+    return () => {
+      cancelled = true;
+    };
+  }, [artistId, t]);
+
+  function updateLocalizedField(field: 'headline' | 'subtitle' | 'ctaLabel', value: string) {
+    if (!onLocalizedContentChange) return;
+
+    const nextLocalizedContent: BlockLocalizedContent = {
+      ...(localizedContent ?? {}),
+    };
+    const nextSmartMerch = {
+      ...(nextLocalizedContent.smartMerch ?? {}),
+    };
+    const nextFieldTranslations = {
+      ...(nextSmartMerch[field] ?? {}),
+    };
+
+    if (value.trim()) {
+      nextFieldTranslations[activeLocale] = value;
+    } else {
+      delete nextFieldTranslations[activeLocale];
+    }
+
+    if (Object.keys(nextFieldTranslations).length > 0) {
+      nextSmartMerch[field] = nextFieldTranslations;
+    } else {
+      delete nextSmartMerch[field];
+    }
+
+    if (Object.keys(nextSmartMerch).length > 0) {
+      nextLocalizedContent.smartMerch = nextSmartMerch;
+    } else {
+      delete nextLocalizedContent.smartMerch;
+    }
+
+    onLocalizedContentChange(nextLocalizedContent);
+  }
+
+  function toggleProduct(productId: string) {
+    const exists = selectedProducts.some((product) => product.productId === productId);
+    if (exists) {
+      onChange({
+        ...config,
+        selectedProducts: selectedProducts.filter((product) => product.productId !== productId),
+      });
+      return;
+    }
+
+    onChange({
+      ...config,
+      selectedProducts: [...selectedProducts, { productId, purchaseUrl: '' }],
+    });
+  }
+
+  function updatePurchaseUrl(productId: string, purchaseUrl: string) {
+    onChange({
+      ...config,
+      selectedProducts: selectedProducts.map((product) =>
+        product.productId === productId ? { ...product, purchaseUrl } : product,
+      ),
+    });
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-md border border-input bg-muted/20 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium">{t('smart_merch_provider')}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t('smart_merch_provider_hint')}</p>
+          </div>
+          <span className="rounded-full border border-input bg-background px-3 py-1 text-xs font-medium">
+            Printful
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">{t('smart_merch_headline')}</label>
+        <input
+          type="text"
+          placeholder={t('smart_merch_headline_placeholder')}
+          value={config.headline ?? ''}
+          onChange={(e) => onChange({ ...config, headline: e.target.value || undefined })}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          maxLength={100}
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">{t('smart_merch_subtitle')}</label>
+        <textarea
+          value={config.subtitle ?? ''}
+          onChange={(e) => onChange({ ...config, subtitle: e.target.value || undefined })}
+          placeholder={t('smart_merch_subtitle_placeholder')}
+          className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          maxLength={300}
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">{t('smart_merch_cta_label')}</label>
+        <input
+          type="text"
+          placeholder={t('smart_merch_cta_label_placeholder')}
+          value={config.ctaLabel ?? ''}
+          onChange={(e) => onChange({ ...config, ctaLabel: e.target.value || undefined })}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          maxLength={40}
+        />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-sm font-medium">{t('smart_merch_display_mode')}</label>
+          <div className="flex gap-2">
+            {(['grid', 'list'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => onChange({ ...config, displayMode: mode })}
+                className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                  (config.displayMode ?? 'grid') === mode
+                    ? 'bg-primary text-primary-foreground'
+                    : 'border border-input bg-background text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {mode === 'grid' ? t('smart_merch_display_grid') : t('smart_merch_display_list')}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm font-medium">{t('smart_merch_max_items')}</label>
+          <input
+            type="number"
+            min={1}
+            max={12}
+            value={config.maxItems ?? 4}
+            onChange={(e) =>
+              onChange({
+                ...config,
+                maxItems: Number.isFinite(Number(e.target.value)) ? Number(e.target.value) : 4,
+              })
+            }
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">{t('smart_merch_settings_hint')}</p>
+        </div>
+      </div>
+
+      <div className="space-y-3 rounded-md border border-input bg-muted/20 p-3">
+        <div>
+          <p className="text-sm font-medium">{t('smart_merch_products_title')}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t('smart_merch_products_hint')}</p>
+        </div>
+
+        {loadingProducts ? (
+          <p className="text-sm text-muted-foreground">{t('smart_merch_products_loading')}</p>
+        ) : productsError ? (
+          <p className="text-sm text-destructive">{productsError}</p>
+        ) : availableProducts.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('smart_merch_products_empty')}</p>
+        ) : (
+          <div className="space-y-3">
+            {availableProducts.map((product) => {
+              const selectedProduct = selectedProducts.find(
+                (entry) => entry.productId === product.id,
+              );
+
+              return (
+                <div key={product.id} className="rounded-lg border border-input bg-background p-3">
+                  <label className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(selectedProduct)}
+                      onChange={() => toggleProduct(product.id)}
+                      className="mt-1 h-4 w-4 rounded border-input"
+                    />
+                    <div className="flex-1 space-y-2">
+                      <div>
+                        <p className="text-sm font-medium">{product.title}</p>
+                        <p className="text-xs text-muted-foreground">{product.id}</p>
+                      </div>
+
+                      {selectedProduct ? (
+                        <div>
+                          <label className="mb-1 block text-xs font-medium">
+                            {t('smart_merch_purchase_url')}
+                          </label>
+                          <input
+                            type="url"
+                            value={selectedProduct.purchaseUrl}
+                            onChange={(event) => updatePurchaseUrl(product.id, event.target.value)}
+                            placeholder="https://..."
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-md border border-input bg-muted/20 p-3">
+        <div className="space-y-2">
+          <div>
+            <p className="text-sm font-medium">{t('smart_merch_localized_section')}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t('smart_merch_localized_hint')}</p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {SUPPORTED_LOCALES.map((localeOption) => (
+              <button
+                key={localeOption}
+                type="button"
+                onClick={() => setActiveLocale(localeOption)}
+                className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                  activeLocale === localeOption
+                    ? 'bg-primary text-primary-foreground'
+                    : 'border border-input bg-background text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {localeOption === 'en' ? t('smart_merch_locale_en') : t('smart_merch_locale_es')}
+              </button>
+            ))}
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              {t('smart_merch_localized_headline')}
+            </label>
+            <input
+              type="text"
+              placeholder={t('smart_merch_headline_placeholder')}
+              value={smartMerchTranslations.headline?.[activeLocale] ?? ''}
+              onChange={(e) => updateLocalizedField('headline', e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              maxLength={100}
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              {t('smart_merch_localized_subtitle')}
+            </label>
+            <textarea
+              value={smartMerchTranslations.subtitle?.[activeLocale] ?? ''}
+              onChange={(e) => updateLocalizedField('subtitle', e.target.value)}
+              placeholder={t('smart_merch_subtitle_placeholder')}
+              className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              maxLength={300}
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              {t('smart_merch_localized_cta')}
+            </label>
+            <input
+              type="text"
+              placeholder={t('smart_merch_cta_label_placeholder')}
+              value={smartMerchTranslations.ctaLabel?.[activeLocale] ?? ''}
+              onChange={(e) => updateLocalizedField('ctaLabel', e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              maxLength={40}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Default configs ──────────────────────────────────────────────────────────
 
 export function defaultConfig(type: BlockType): BlockConfig {
@@ -730,6 +1071,17 @@ export function defaultConfig(type: BlockType): BlockConfig {
       return { body: '' };
     case 'shopify_store':
       return { headline: '', description: '', ctaLabel: '', maxItems: 4 };
+    case 'smart_merch':
+      return {
+        provider: 'printful',
+        headline: '',
+        subtitle: '',
+        ctaLabel: '',
+        displayMode: 'grid',
+        sourceMode: 'selected_products',
+        selectedProducts: [],
+        maxItems: 4,
+      };
   }
 }
 
@@ -778,6 +1130,16 @@ export function BlockConfigForm({
           onChange={(c) => onChange(c)}
           localizedContent={localizedContent}
           onLocalizedContentChange={onLocalizedContentChange}
+        />
+      );
+    case 'smart_merch':
+      return (
+        <SmartMerchBlockForm
+          config={config as SmartMerchBlockConfig}
+          onChange={(c) => onChange(c)}
+          localizedContent={localizedContent}
+          onLocalizedContentChange={onLocalizedContentChange}
+          artistId={artistId}
         />
       );
   }

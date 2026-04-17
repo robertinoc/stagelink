@@ -3,6 +3,7 @@ import { BlocksController, PagesBlocksController } from './blocks.controller';
 import { BlocksService } from './blocks.service';
 import { SmartLinksModule } from '../smart-links/smart-links.module';
 import { BillingModule } from '../billing/billing.module';
+import { MerchModule } from '../merch/merch.module';
 
 /**
  * BlocksModule
@@ -16,7 +17,7 @@ import { BillingModule } from '../billing/billing.module';
  * No need to import their modules here.
  */
 @Module({
-  imports: [SmartLinksModule, BillingModule],
+  imports: [SmartLinksModule, BillingModule, MerchModule],
   controllers: [BlocksController, PagesBlocksController],
   providers: [BlocksService],
   exports: [BlocksService],

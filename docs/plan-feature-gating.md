@@ -92,6 +92,7 @@ This means feature gating does not trust the raw plan column in isolation.
 - `multi_language_pages`
 - `advanced_fan_insights`
 - `shopify_integration`
+- `smart_merch`
 
 This matrix is intentionally v1 and should evolve by editing the centralized shared map, not by scattering conditionals through product modules.
 
@@ -179,5 +180,6 @@ If a user returns from Stripe before webhook sync finishes, entitlements remain 
 - enforce `custom_domain` when the domain module is implemented
 - enforce `epk_builder` when EPK CRUD/publish flows ship
 - enforce `shopify_integration` when commerce connection endpoints exist
+- enforce `smart_merch` for Printful/Printify-backed merch blocks
 - add premium analytics breakdown endpoints behind `analytics_pro`
 - consider a shared web helper or provider if more dashboard areas need entitlements frequently

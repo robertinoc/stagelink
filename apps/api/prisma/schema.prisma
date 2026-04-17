@@ -122,6 +122,7 @@ model Artist {
   subscribers     Subscriber[]
   epk             Epk?
   shopifyConnection ShopifyConnection?
+  merchProviderConnection MerchProviderConnection?
 
   @@map("artists")
 }
@@ -236,6 +237,7 @@ enum BlockType {
   email_capture
   text
   shopify_store
+  smart_merch
 
   @@map("block_type")
 }
@@ -462,6 +464,30 @@ model ShopifyConnection {
 
   @@index([storeDomain])
   @@map("shopify_connections")
+}
+
+enum MerchProvider {
+  printful
+  printify
+
+  @@map("merch_provider")
+}
+
+model MerchProviderConnection {
+  id         String        @id @default(cuid())
+  artistId   String        @unique @map("artist_id")
+  provider   MerchProvider @default(printful)
+  apiToken   String        @map("api_token")
+  storeId    String?       @map("store_id")
+  storeName  String?       @map("store_name")
+  isConnected Boolean      @default(false) @map("is_connected")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@index([provider])
+  @@map("merch_provider_connections")
 }
 
 // =============================================================

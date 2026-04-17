@@ -1,4 +1,11 @@
 import type { LocalizedTextMap } from './i18n';
+import type {
+  SmartMerchDisplayMode,
+  SmartMerchProduct,
+  SmartMerchProductSelection,
+  SmartMerchProvider,
+  SmartMerchSourceMode,
+} from './merch';
 import type { ShopifySelectionMode, ShopifyStoreProduct } from './shopify';
 
 // =============================================================
@@ -14,6 +21,7 @@ export const BLOCK_TYPES = [
   'email_capture',
   'text',
   'shopify_store',
+  'smart_merch',
 ] as const;
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
@@ -131,6 +139,18 @@ export interface ShopifyStoreBlockConfig {
   products?: ShopifyStoreProduct[];
 }
 
+export interface SmartMerchBlockConfig {
+  provider: SmartMerchProvider;
+  headline?: string;
+  subtitle?: string;
+  ctaLabel?: string;
+  displayMode?: SmartMerchDisplayMode;
+  sourceMode?: SmartMerchSourceMode;
+  selectedProducts?: SmartMerchProductSelection[];
+  maxItems?: number;
+  products?: SmartMerchProduct[];
+}
+
 export interface EmailCaptureBlockTranslations {
   headline?: LocalizedTextMap;
   buttonLabel?: LocalizedTextMap;
@@ -151,11 +171,18 @@ export interface ShopifyStoreBlockTranslations {
   ctaLabel?: LocalizedTextMap;
 }
 
+export interface SmartMerchBlockTranslations {
+  headline?: LocalizedTextMap;
+  subtitle?: LocalizedTextMap;
+  ctaLabel?: LocalizedTextMap;
+}
+
 export interface BlockLocalizedContent {
   title?: LocalizedTextMap;
   emailCapture?: EmailCaptureBlockTranslations;
   links?: LinksBlockTranslations;
   shopifyStore?: ShopifyStoreBlockTranslations;
+  smartMerch?: SmartMerchBlockTranslations;
 }
 
 /** Discriminated union of all config shapes */
@@ -165,7 +192,8 @@ export type BlockConfig =
   | VideoEmbedBlockConfig
   | EmailCaptureBlockConfig
   | TextBlockConfig
-  | ShopifyStoreBlockConfig;
+  | ShopifyStoreBlockConfig
+  | SmartMerchBlockConfig;
 
 // ─── Block entity ─────────────────────────────────────────────────────────────
 
@@ -233,4 +261,10 @@ export function isShopifyStoreBlock(
   block: Block,
 ): block is Block & { config: ShopifyStoreBlockConfig } {
   return block.type === 'shopify_store';
+}
+
+export function isSmartMerchBlock(
+  block: Block,
+): block is Block & { config: SmartMerchBlockConfig } {
+  return block.type === 'smart_merch';
 }

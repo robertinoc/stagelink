@@ -9,3 +9,4 @@ export * from './smart-link';
 export * from './analytics';
 export * from './billing';
 export * from './shopify';
+export * from './merch';

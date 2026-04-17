@@ -21,6 +21,7 @@ import { CreateBlockDto, UpdateBlockDto, ReorderBlocksDto } from './dto';
 import { SmartLinksService } from '../smart-links/smart-links.service';
 import { ANALYTICS_EVENTS, type BlockLocalizedContent } from '@stagelink/types';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
+import { MerchService } from '../merch/merch.service';
 
 // Maximum blocks allowed per page — prevents unbounded data growth.
 const MAX_BLOCKS_PER_PAGE = 50;
@@ -34,6 +35,7 @@ export class BlocksService {
     private readonly smartLinksService: SmartLinksService,
     private readonly posthog: PostHogService,
     private readonly billingEntitlementsService: BillingEntitlementsService,
+    private readonly merchService: MerchService,
   ) {}
 
   // ─── List ─────────────────────────────────────────────────────────────────
@@ -66,9 +68,7 @@ export class BlocksService {
     const blockType = dto.type as BlockType;
     validateBlockConfig(blockType, dto.config);
 
-    if (blockType === 'shopify_store') {
-      await this.billingEntitlementsService.assertFeatureAccess(artistId, 'shopify_integration');
-    }
+    await this.assertFeatureAccessForBlock(artistId, blockType);
 
     // Guard: verify that any referenced smartLinkIds belong to this artist.
     // Prevents IDOR where a user embeds another artist's SmartLink in their block.
@@ -77,6 +77,10 @@ export class BlocksService {
         dto.config as Record<string, unknown>,
         artistId,
       );
+    }
+
+    if (blockType === 'smart_merch') {
+      await this.assertSmartMerchSelection(artistId, dto.config as Record<string, unknown>);
     }
 
     const enrichedConfig = sanitizeBlockConfig(
@@ -166,13 +170,15 @@ export class BlocksService {
       const mergedConfig = { ...existing, ...dto.config };
       validateBlockConfig(block.type, mergedConfig);
 
-      if (block.type === 'shopify_store') {
-        await this.billingEntitlementsService.assertFeatureAccess(artistId, 'shopify_integration');
-      }
+      await this.assertFeatureAccessForBlock(artistId, block.type);
 
       // Guard: verify that any referenced smartLinkIds belong to this artist.
       if (block.type === 'links') {
         await this.smartLinksService.verifySmartLinkOwnership(mergedConfig, artistId);
+      }
+
+      if (block.type === 'smart_merch') {
+        await this.assertSmartMerchSelection(artistId, mergedConfig);
       }
 
       enrichedConfig = sanitizeBlockConfig(block.type, enrichBlockConfig(block.type, mergedConfig));
@@ -314,10 +320,19 @@ export class BlocksService {
    * Marks a block as published (visible on the public page).
    */
   async publish(blockId: string, userId: string, ipAddress?: string) {
-    const { artistId } = await this.resolveBlock(blockId);
+    const { block, artistId } = await this.resolveBlock(blockId);
     await this.membershipService.validateAccess(userId, artistId, 'write');
+    await this.assertFeatureAccessForBlock(artistId, block.type);
 
-    const block = await this.prisma.block.update({
+    if (block.type === 'smart_merch') {
+      const config =
+        typeof block.config === 'object' && block.config !== null
+          ? (block.config as Record<string, unknown>)
+          : {};
+      await this.assertSmartMerchSelection(artistId, config);
+    }
+
+    const updatedBlock = await this.prisma.block.update({
       where: { id: blockId },
       data: { isPublished: true },
     });
@@ -335,11 +350,11 @@ export class BlocksService {
       artist_id: artistId,
       environment: process.env.NODE_ENV ?? 'development',
       block_id: blockId,
-      block_type: block.type,
-      page_id: block.pageId,
+      block_type: updatedBlock.type,
+      page_id: updatedBlock.pageId,
     });
 
-    return block;
+    return updatedBlock;
   }
 
   /**
@@ -389,5 +404,48 @@ export class BlocksService {
     });
     if (!block) throw new NotFoundException('Block not found');
     return { block, artistId: block.page.artistId };
+  }
+
+  private async assertFeatureAccessForBlock(artistId: string, blockType: BlockType): Promise<void> {
+    if (blockType === 'shopify_store') {
+      await this.billingEntitlementsService.assertFeatureAccess(artistId, 'shopify_integration');
+    }
+
+    if (blockType === 'smart_merch') {
+      await this.billingEntitlementsService.assertFeatureAccess(artistId, 'smart_merch');
+    }
+  }
+
+  private async assertSmartMerchSelection(
+    artistId: string,
+    config: Record<string, unknown>,
+  ): Promise<void> {
+    const provider = config['provider'];
+    const selectedProducts = config['selectedProducts'];
+
+    if (provider !== 'printful' && provider !== 'printify') {
+      return;
+    }
+
+    if (!Array.isArray(selectedProducts) || selectedProducts.length === 0) {
+      return;
+    }
+
+    await this.merchService.assertSelectedProductsValid(
+      artistId,
+      provider,
+      selectedProducts
+        .filter(
+          (entry): entry is { productId: string; purchaseUrl: string } =>
+            typeof entry === 'object' &&
+            entry !== null &&
+            typeof (entry as Record<string, unknown>)['productId'] === 'string' &&
+            typeof (entry as Record<string, unknown>)['purchaseUrl'] === 'string',
+        )
+        .map((entry) => ({
+          productId: entry.productId,
+          purchaseUrl: entry.purchaseUrl,
+        })),
+    );
   }
 }
