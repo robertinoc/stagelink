@@ -520,8 +520,9 @@ export function LandingPage({ locale }: LandingPageProps) {
         </div>
       </section>
 
-      <section id="features" className="px-6 py-20">
-        <div className="mx-auto max-w-7xl">
+      <section id="features" className="relative overflow-hidden px-6 py-20">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(155,48,208,0.16),transparent_28%),radial-gradient(circle_at_82%_75%,rgba(232,121,249,0.12),transparent_30%)]" />
+        <div className="relative mx-auto max-w-7xl">
           <div className="max-w-3xl">
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">
               {t.features.eyebrow}
@@ -536,7 +537,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             {t.features.items.map((feature, index) => (
               <div
                 key={feature.title}
-                className="rounded-[1.8rem] border border-white/10 bg-white/5 p-6 backdrop-blur transition-colors hover:border-primary/30 hover:bg-primary/5"
+                className="landing-surface-glow rounded-[1.8rem] border border-white/10 bg-white/5 p-6 backdrop-blur transition-colors hover:border-primary/30 hover:bg-primary/5"
               >
                 <div className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/85">
                   {featureNumbers[index] ?? '00'}
@@ -602,8 +603,9 @@ export function LandingPage({ locale }: LandingPageProps) {
         </div>
       </section>
 
-      <section className="px-6 py-20">
-        <div className="mx-auto max-w-7xl rounded-[2rem] border border-white/10 bg-white/5 p-8 md:p-12">
+      <section className="relative overflow-hidden px-6 py-20">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(155,48,208,0.16),transparent_28%),radial-gradient(circle_at_14%_84%,rgba(110,56,210,0.14),transparent_30%)]" />
+        <div className="relative mx-auto max-w-7xl rounded-[2rem] border border-white/10 bg-white/5 p-8 md:p-12">
           <div className="grid gap-10 lg:grid-cols-[1fr_1.05fr]">
             <div>
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/50">
@@ -630,7 +632,7 @@ export function LandingPage({ locale }: LandingPageProps) {
               {t.monetization.pillars.map((pillar, index) => (
                 <div
                   key={pillar.title}
-                  className="rounded-[1.7rem] border border-white/10 bg-sidebar/75 p-6"
+                  className="landing-surface-glow rounded-[1.7rem] border border-white/10 bg-sidebar/75 p-6"
                 >
                   <div className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/85">
                     {pillarNumbers[index] ?? 'A'}
@@ -687,7 +689,10 @@ export function LandingPage({ locale }: LandingPageProps) {
                 <p className="mt-4 text-lg font-semibold text-white">{t.contact.success}</p>
               </div>
             ) : (
-              <form onSubmit={handleContactSubmit} className="mt-10 grid gap-5">
+              <form
+                onSubmit={handleContactSubmit}
+                className="landing-surface-glow mt-10 grid gap-5 rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 transition-colors hover:border-primary/25 hover:bg-white/[0.05]"
+              >
                 <div aria-hidden="true" className="absolute -left-[9999px] -top-[9999px] opacity-0">
                   <label htmlFor="landing-website">Website</label>
                   <input
