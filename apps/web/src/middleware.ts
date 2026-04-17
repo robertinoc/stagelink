@@ -34,6 +34,13 @@ const intlMiddleware = createIntlMiddleware({
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const segments = pathname.split('/').filter(Boolean);
+
+  if (pathname === '/') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/en';
+    return NextResponse.redirect(url, 302);
+  }
+
   const locale = resolvePreferredLocale({
     acceptLanguage: request.headers.get('accept-language') ?? DEFAULT_LOCALE,
     localeCookie: request.cookies.get('NEXT_LOCALE')?.value ?? null,

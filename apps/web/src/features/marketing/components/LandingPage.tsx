@@ -52,6 +52,29 @@ function PlayIcon() {
   );
 }
 
+function YouTubeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+      <rect
+        x="4.5"
+        y="6.5"
+        width="15"
+        height="11"
+        rx="3.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <path
+        d="M10 9.5v5l4-2.5-4-2.5Z"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="0.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function BagIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
@@ -136,12 +159,31 @@ function GlobeIcon() {
 
 const mockActionIcons = [SpotifyIcon, PlayIcon, BagIcon, FanIcon] as const;
 const socialIcons = [InstagramIcon, PlayIcon, TikTokIcon, SoundwaveIcon, GlobeIcon] as const;
+const platformIcons = [
+  SpotifyIcon,
+  SoundwaveIcon,
+  YouTubeIcon,
+  BagIcon,
+  TikTokIcon,
+  InstagramIcon,
+] as const;
+const platformToneClasses = [
+  'text-emerald-300/90 bg-emerald-400/10 border-emerald-400/20',
+  'text-orange-200/90 bg-orange-400/10 border-orange-400/20',
+  'text-rose-200/90 bg-rose-400/10 border-rose-400/20',
+  'text-cyan-200/90 bg-cyan-400/10 border-cyan-400/20',
+  'text-pink-200/90 bg-pink-400/10 border-pink-400/20',
+  'text-fuchsia-200/90 bg-fuchsia-400/10 border-fuchsia-400/20',
+] as const;
 
 export function LandingPage({ locale }: LandingPageProps) {
   const resolvedLocale: SupportedLocale = locale === 'es' ? 'es' : 'en';
   const t = getLandingT(resolvedLocale);
 
   const [contactState, setContactState] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [contactError, setContactError] = useState<string | null>(null);
+  const [honeypot, setHoneypot] = useState('');
+  const [startedAt, setStartedAt] = useState(() => Date.now());
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -152,14 +194,49 @@ export function LandingPage({ locale }: LandingPageProps) {
   function handleFormChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) {
+    if (contactError) setContactError(null);
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
   async function handleContactSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (contactState === 'submitting') return;
+
+    setContactError(null);
     setContactState('submitting');
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setContactState('success');
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...form,
+          website: honeypot,
+          startedAt,
+        }),
+      });
+
+      if (!response.ok) {
+        setContactState('idle');
+        setContactError(t.contact.error);
+        return;
+      }
+
+      setContactState('success');
+      setForm({
+        name: '',
+        email: '',
+        artistType: '',
+        message: '',
+      });
+      setHoneypot('');
+      setStartedAt(Date.now());
+    } catch {
+      setContactState('idle');
+      setContactError(t.contact.error);
+    }
   }
 
   return (
@@ -359,7 +436,7 @@ export function LandingPage({ locale }: LandingPageProps) {
               {t.strip.items.map((item) => (
                 <span
                   key={item}
-                  className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70"
+                  className="landing-hover-card rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70"
                 >
                   {item}
                 </span>
@@ -371,12 +448,25 @@ export function LandingPage({ locale }: LandingPageProps) {
             <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/30">
               {t.strip.platformsLabel}
             </p>
-            <div className="mt-4 flex flex-wrap gap-4">
-              {t.strip.platforms.map((platform) => (
-                <span key={platform} className="text-sm font-medium text-white/45">
-                  {platform}
-                </span>
-              ))}
+            <div className="landing-platform-marquee mt-4">
+              <div className="landing-platform-track gap-3 pr-3">
+                {[...t.strip.platforms, ...t.strip.platforms].map((platform, index) => {
+                  const Icon = platformIcons[index % platformIcons.length] ?? GlobeIcon;
+                  const toneClass =
+                    platformToneClasses[index % platformToneClasses.length] ??
+                    'text-white/80 bg-white/5 border-white/10';
+
+                  return (
+                    <span
+                      key={`${platform}-${index}`}
+                      className={`landing-hover-card inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium whitespace-nowrap ${toneClass}`}
+                    >
+                      <Icon />
+                      <span>{platform}</span>
+                    </span>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -393,13 +483,13 @@ export function LandingPage({ locale }: LandingPageProps) {
           <p className="mt-6 max-w-3xl text-base leading-8 text-white/60">{t.problem.intro}</p>
 
           <div className="mt-10 grid gap-6 lg:grid-cols-2">
-            <div className="rounded-[1.8rem] border border-white/10 bg-sidebar/70 p-6">
+            <div className="landing-hover-card rounded-[1.8rem] border border-white/10 bg-sidebar/70 p-6">
               <h3 className="text-lg font-semibold">{t.problem.painLabel}</h3>
               <div className="mt-5 space-y-3">
                 {t.problem.painPoints.map((item) => (
                   <div
                     key={item}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-7 text-white/70"
+                    className="landing-hover-card rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-7 text-white/70"
                   >
                     {item}
                   </div>
@@ -407,13 +497,13 @@ export function LandingPage({ locale }: LandingPageProps) {
               </div>
             </div>
 
-            <div className="rounded-[1.8rem] border border-primary/20 bg-primary/5 p-6">
+            <div className="landing-hover-card rounded-[1.8rem] border border-primary/20 bg-primary/5 p-6">
               <h3 className="text-lg font-semibold">{t.problem.solutionLabel}</h3>
               <div className="mt-5 space-y-3">
                 {t.problem.solutionPoints.map((item) => (
                   <div
                     key={item}
-                    className="rounded-2xl border border-primary/20 bg-white/5 px-4 py-3 text-sm leading-7 text-white/80"
+                    className="landing-hover-card rounded-2xl border border-primary/20 bg-white/5 px-4 py-3 text-sm leading-7 text-white/80"
                   >
                     {item}
                   </div>
@@ -592,6 +682,18 @@ export function LandingPage({ locale }: LandingPageProps) {
               </div>
             ) : (
               <form onSubmit={handleContactSubmit} className="mt-10 grid gap-5">
+                <div aria-hidden="true" className="absolute -left-[9999px] -top-[9999px] opacity-0">
+                  <label htmlFor="landing-website">Website</label>
+                  <input
+                    id="landing-website"
+                    name="website"
+                    type="text"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </div>
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div>
                     <label className="mb-2 block text-sm font-medium text-white/70">
@@ -657,6 +759,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                     className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
                   />
                 </div>
+                {contactError && <p className="text-sm text-rose-300">{contactError}</p>}
                 <div>
                   <button
                     type="submit"

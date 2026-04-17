@@ -130,6 +130,7 @@ export interface LandingTranslation {
     submit: string;
     submitting: string;
     success: string;
+    error: string;
   };
   footer: {
     description: string;
@@ -146,12 +147,12 @@ export interface LandingTranslation {
 
 const en: LandingTranslation = {
   seo: {
-    title: 'Artist landing page and premium link in bio for artists',
+    title: 'Artist landing page and link in bio for artists',
     description:
-      'StageLink is the premium artist landing page and link in bio for artists, musicians, DJs, producers, bands, creators, and visual artists. Bring your music, content, merch, and audience into one polished page.',
-    ogTitle: 'StageLink | Artist landing page and premium link in bio for artists',
+      'StageLink is the modern artist landing page and link in bio for artists, musicians, DJs, producers, bands, creators, and visual artists. Bring your music, content, merch, and audience into one polished page.',
+    ogTitle: 'StageLink | Artist landing page and link in bio for artists',
     ogDescription:
-      'Build a premium artist page in minutes. Centralize your music, videos, merch, smart links, and fan touchpoints in one place.',
+      'Build a modern artist page in minutes. Centralize your music, videos, merch, smart links, and fan touchpoints in one place.',
   },
   nav: {
     product: 'Product',
@@ -163,11 +164,11 @@ const en: LandingTranslation = {
     cta: 'Create your StageLink',
     languageLabel: 'Language',
   },
-  badge: 'Premium artist page platform',
+  badge: 'Artist-first page platform',
   hero: {
     headline: 'Build your artist landing page in minutes',
     subheadline:
-      'StageLink is a premium link in bio for artists who need more than a list of links. Bring your music, videos, merch, smart links, and audience touchpoints into one polished page.',
+      'StageLink is a modern link in bio for artists who need more than a list of links. Bring your music, videos, merch, smart links, and audience touchpoints into one polished page.',
     supportingText:
       'Made for DJs, musicians, producers, bands, creators, and visual artists who want one link that actually feels like their brand.',
     ctaPrimary: 'Create your StageLink',
@@ -178,14 +179,14 @@ const en: LandingTranslation = {
     previewTags: ['Techno', 'Hard Techno', 'Bounce', 'Psytrance'],
     previewTitle: 'One link for your music, content, merch, and audience',
     previewDescription:
-      'A premium artist bio link built to look sharp, load fast, and help fans know exactly where to go next.',
+      'A modern artist bio link built to look sharp, load fast, and help fans know exactly where to go next.',
     previewMediaLabel: 'Featured media',
     previewMediaBadge: 'Live preview',
     previewMediaItems: ['Last video', 'Latest set'],
     previewMediaMeta: ['YouTube / Live set', 'SoundCloud / Mix preview'],
     previewAboutLabel: 'About',
     previewAboutText:
-      'A premium artist page can also show your bio, current focus, press-ready details, and the sections fans actually need.',
+      'A strong artist page can also show your bio, current focus, press-ready details, and the sections fans actually need.',
     previewMerchLabel: 'Merch',
     previewMerchName: 'Limited gear drop',
     previewMerchPrice: '$149',
@@ -220,14 +221,14 @@ const en: LandingTranslation = {
     ],
     solutionLabel: 'What StageLink changes',
     solutionPoints: [
-      'One premium page for your music, content, merch, and audience touchpoints',
+      'One modern page for your music, content, merch, and audience touchpoints',
       'A cleaner way to share your artist landing page across social media, releases, and campaigns',
       'A presentation that feels built for artists, not for everyone and everything at once',
     ],
   },
   features: {
     eyebrow: 'Features',
-    headline: 'Everything artists need. Clear, premium, and ready to share.',
+    headline: 'Everything artists need. Clear, modern, and ready to share.',
     intro:
       'StageLink helps you build a landing page for musicians, DJs, producers, and creators without turning your page into a cluttered stack of buttons.',
     items: [
@@ -239,10 +240,10 @@ const en: LandingTranslation = {
       {
         title: 'Artist-first design',
         description:
-          'Present your brand with a polished mobile-first layout that feels premium from the first click.',
+          'Present your brand with a polished mobile-first layout that feels modern from the first click.',
       },
       {
-        title: 'Merch and monetization support',
+        title: 'Merch and store support',
         description:
           'Connect Shopify, highlight products, and turn attention into actual sales without building a custom store.',
       },
@@ -257,7 +258,7 @@ const en: LandingTranslation = {
           'Create your profile, add your links and content, and publish a strong artist page in just a few minutes.',
       },
       {
-        title: 'Premium presentation',
+        title: 'Modern presentation',
         description:
           'Use smart links, embeds, EPK tools, and focused sections that help fans, bookers, and collaborators find what matters.',
       },
@@ -320,9 +321,9 @@ const en: LandingTranslation = {
     ],
   },
   monetization: {
-    eyebrow: 'Monetization / differentiation',
+    eyebrow: 'Why StageLink',
     headline: 'More than a generic link-in-bio tool',
-    body: 'StageLink is built for artists and creators who need a real home for music, content, merch, and audience growth. It helps you present your work well and monetize without sending people through a maze.',
+    body: 'StageLink is built for artists and creators who need a real home for music, content, merch, and audience growth. It helps you present your work clearly without sending people through a maze.',
     pillars: [
       {
         title: 'Sell merch without extra friction',
@@ -337,26 +338,26 @@ const en: LandingTranslation = {
       {
         title: 'Look ready for opportunities',
         description:
-          'Use premium sections, embeds, and press-ready tools to present yourself more professionally to fans, bookers, and collaborators.',
+          'If you want a more complete platform, unlock the next level with Pro and Pro+ features for a more unique experience.',
       },
     ],
     points: [
       'Built specifically for artist landing pages, not generic profiles',
       'A cleaner link in bio for DJs, musicians, producers, and creators',
-      'One premium page for music, merch, videos, and fan relationships',
+      'One modern page for music, merch, videos, and fan relationships',
     ],
   },
   cta: {
     eyebrow: 'Ready to start',
     headline: 'Build one link that actually feels like you',
-    body: 'Create a premium artist page for your music, content, merch, and audience. Start simple, publish fast, and grow from there.',
+    body: 'Create a modern artist page for your music, content, merch, and audience. Start simple, publish fast, and grow from there.',
     primary: 'Create your StageLink',
     secondary: 'Explore how it works',
   },
   contact: {
     eyebrow: 'Contact',
     headline: 'Tell us what you want to build',
-    body: "Whether you're launching your first artist page or looking for a more premium home for your brand, we'd love to hear from you.",
+    body: "Whether you're launching your first artist page or looking for a stronger home for your brand, we'd love to hear from you.",
     name: 'Name',
     namePlaceholder: 'Your name',
     email: 'Email',
@@ -369,10 +370,11 @@ const en: LandingTranslation = {
     submit: 'Send message',
     submitting: 'Sending...',
     success: "Thanks. We'll get back to you soon.",
+    error: 'Something went wrong. Please try again in a minute.',
   },
   footer: {
     description:
-      'StageLink is a premium artist landing page and link in bio for artists, musicians, DJs, producers, bands, creators, and visual artists who want one polished place for music, content, merch, and fans.',
+      'StageLink is a modern artist landing page and link in bio for artists, musicians, DJs, producers, bands, creators, and visual artists who want one polished place for music, content, merch, and fans.',
     links: {
       product: 'Product',
       features: 'Features',
@@ -386,12 +388,12 @@ const en: LandingTranslation = {
 
 const es: LandingTranslation = {
   seo: {
-    title: 'Página de artista y link in bio premium para artistas',
+    title: 'Página de artista y link in bio para artistas',
     description:
-      'StageLink es una página de artista premium y un link in bio para artistas, músicos, DJs, productores, bandas, creadores y artistas visuales. Uní tu música, contenido, merch y audiencia en una sola página.',
-    ogTitle: 'StageLink | Página de artista y link in bio premium para artistas',
+      'StageLink es una página de artista moderna y un link in bio para artistas, músicos, DJs, productores, bandas, creadores y artistas visuales. Uní tu música, contenido, merch y audiencia en una sola página.',
+    ogTitle: 'StageLink | Página de artista y link in bio para artistas',
     ogDescription:
-      'Creá una página premium de artista en minutos. Centralizá tu música, videos, merch, smart links y puntos de contacto con tu audiencia en un solo lugar.',
+      'Creá una página moderna de artista en minutos. Centralizá tu música, videos, merch, smart links y puntos de contacto con tu audiencia en un solo lugar.',
   },
   nav: {
     product: 'Producto',
@@ -403,11 +405,11 @@ const es: LandingTranslation = {
     cta: 'Crear tu StageLink',
     languageLabel: 'Idioma',
   },
-  badge: 'Plataforma premium para artistas',
+  badge: 'Plataforma para artistas',
   hero: {
     headline: 'Creá tu página de artista en minutos',
     subheadline:
-      'StageLink es un link in bio premium para artistas que necesitan algo más que una lista de links. Uní tu música, videos, merch, smart links y puntos de contacto con tu audiencia en una sola página prolija.',
+      'StageLink es un link in bio moderno para artistas que necesitan algo más que una lista de links. Uní tu música, videos, merch, smart links y puntos de contacto con tu audiencia en una sola página prolija.',
     supportingText:
       'Hecho para DJs, músicos, productores, bandas, creadores y artistas visuales que quieren un solo link que realmente se sienta como su marca.',
     ctaPrimary: 'Crear tu StageLink',
@@ -418,14 +420,14 @@ const es: LandingTranslation = {
     previewTags: ['Techno', 'Hard Techno', 'Bounce', 'Psytrance'],
     previewTitle: 'Un solo link para tu música, contenido, merch y audiencia',
     previewDescription:
-      'Un artist bio link premium pensado para verse bien, cargar rápido y mostrarle a cada fan exactamente cuál es el próximo paso.',
+      'Un artist bio link moderno pensado para verse bien, cargar rápido y mostrarle a cada fan exactamente cuál es el próximo paso.',
     previewMediaLabel: 'Media destacada',
     previewMediaBadge: 'Preview en vivo',
     previewMediaItems: ['Último video', 'Último set'],
     previewMediaMeta: ['YouTube / Live set', 'SoundCloud / Preview del mix'],
     previewAboutLabel: 'Sobre el artista',
     previewAboutText:
-      'Una página premium de artista también puede mostrar tu bio, tu foco actual, detalles listos para prensa y las secciones que tus fans realmente necesitan.',
+      'Una buena página de artista también puede mostrar tu bio, tu foco actual, detalles listos para prensa y las secciones que tus fans realmente necesitan.',
     previewMerchLabel: 'Merch',
     previewMerchName: 'Drop limitado de gear',
     previewMerchPrice: '$149',
@@ -465,14 +467,14 @@ const es: LandingTranslation = {
     ],
     solutionLabel: 'Lo que cambia con StageLink',
     solutionPoints: [
-      'Una sola página premium para tu música, contenido, merch y puntos de contacto con tu audiencia',
+      'Una sola página moderna para tu música, contenido, merch y puntos de contacto con tu audiencia',
       'Una forma más clara de compartir tu página de artista en redes, lanzamientos y campañas',
       'Una presentación pensada para artistas, no para una lista interminable de botones',
     ],
   },
   features: {
     eyebrow: 'Funciones',
-    headline: 'Todo lo que un artista necesita. Claro, premium y listo para compartir.',
+    headline: 'Todo lo que un artista necesita. Claro, moderno y listo para compartir.',
     intro:
       'StageLink te ayuda a construir una landing page para músicos, DJs, productores y creadores sin convertir tu página en un stack desordenado de botones.',
     items: [
@@ -484,10 +486,10 @@ const es: LandingTranslation = {
       {
         title: 'Diseño pensado para artistas',
         description:
-          'Mostrá tu marca con un layout mobile-first prolijo y premium desde el primer click.',
+          'Mostrá tu marca con un layout mobile-first prolijo y moderno desde el primer click.',
       },
       {
-        title: 'Merch y monetización',
+        title: 'Merch y tienda',
         description:
           'Conectá Shopify, destacá productos y convertí atención en ventas sin tener que armar una tienda custom.',
       },
@@ -502,7 +504,7 @@ const es: LandingTranslation = {
           'Creá tu perfil, agregá tus links y publicá una página sólida de artista en apenas unos minutos.',
       },
       {
-        title: 'Presentación premium',
+        title: 'Presentación moderna',
         description:
           'Usá smart links, embeds, herramientas de EPK y secciones enfocadas para fans, bookers y colaboradores.',
       },
@@ -565,9 +567,9 @@ const es: LandingTranslation = {
     ],
   },
   monetization: {
-    eyebrow: 'Monetización / diferenciación',
+    eyebrow: 'Por qué StageLink',
     headline: 'Mucho más que una herramienta genérica de link in bio',
-    body: 'StageLink está hecho para artistas y creadores que necesitan una base real para música, contenido, merch y crecimiento de audiencia. Te ayuda a presentar mejor tu trabajo y monetizar sin mandar a la gente por un laberinto.',
+    body: 'StageLink está hecho para artistas y creadores que necesitan una base real para música, contenido, merch y crecimiento de audiencia. Te ayuda a presentar mejor tu trabajo sin mandar a la gente por un laberinto.',
     pillars: [
       {
         title: 'Vendé merch sin sumar fricción',
@@ -582,26 +584,26 @@ const es: LandingTranslation = {
       {
         title: 'Mostrate listo para oportunidades reales',
         description:
-          'Usá secciones premium, embeds y herramientas listas para prensa para presentarte mejor ante fans, bookers y colaboradores.',
+          'Si querés una plataforma más completa, desbloqueá tu próximo nivel con funciones de los planes Pro y Pro+ para tener una experiencia más única.',
       },
     ],
     points: [
       'Pensado específicamente para páginas de artista, no para perfiles genéricos',
       'Un link in bio más claro para DJs, músicos, productores y creadores',
-      'Una sola página premium para música, merch, videos y relación con fans',
+      'Una sola página moderna para música, merch, videos y relación con fans',
     ],
   },
   cta: {
     eyebrow: 'Listo para empezar',
     headline: 'Construí un solo link que realmente se sienta como vos',
-    body: 'Creá una página premium para tu música, contenido, merch y audiencia. Empezá simple, publicá rápido y crecé desde ahí.',
+    body: 'Creá una página moderna para tu música, contenido, merch y audiencia. Empezá simple, publicá rápido y crecé desde ahí.',
     primary: 'Crear tu StageLink',
     secondary: 'Explorar cómo funciona',
   },
   contact: {
     eyebrow: 'Contacto',
     headline: 'Contanos qué querés construir',
-    body: 'Ya sea que estés lanzando tu primera página de artista o buscando una casa más premium para tu marca, queremos escucharte.',
+    body: 'Ya sea que estés lanzando tu primera página de artista o buscando una mejor casa para tu marca, queremos escucharte.',
     name: 'Nombre',
     namePlaceholder: 'Tu nombre',
     email: 'Email',
@@ -614,10 +616,11 @@ const es: LandingTranslation = {
     submit: 'Enviar mensaje',
     submitting: 'Enviando...',
     success: 'Gracias. Te vamos a responder pronto.',
+    error: 'Algo salió mal. Probá de nuevo en un minuto.',
   },
   footer: {
     description:
-      'StageLink es una página de artista premium y un link in bio para artistas, músicos, DJs, productores, bandas, creadores y artistas visuales que quieren un solo lugar prolijo para su música, contenido, merch y audiencia.',
+      'StageLink es una página de artista moderna y un link in bio para artistas, músicos, DJs, productores, bandas, creadores y artistas visuales que quieren un solo lugar prolijo para su música, contenido, merch y audiencia.',
     links: {
       product: 'Producto',
       features: 'Funciones',

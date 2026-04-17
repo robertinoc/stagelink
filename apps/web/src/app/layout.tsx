@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     default: 'StageLink — Artist Landing Page & Link in Bio for Musicians',
   },
   description:
-    'Build your artist landing page in minutes. The premium link-in-bio platform for musicians, DJs, producers, and creators. Centralize your music, links, merch, and fans in one place.',
+    'Build your artist landing page in minutes. A modern link in bio for musicians, DJs, producers, and creators who want music, links, merch, and fans in one place.',
   keywords: [
     'artist landing page',
     'link in bio for artists',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'StageLink — Artist Landing Page & Link in Bio',
-    description: 'The premium link-in-bio platform for musicians, DJs, producers, and creators.',
+    description: 'A modern link-in-bio platform for musicians, DJs, producers, and creators.',
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://stagelink.app'),
 };
