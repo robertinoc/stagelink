@@ -427,28 +427,36 @@ export function LandingPage({ locale }: LandingPageProps) {
       </section>
 
       <section className="border-y border-white/5 bg-white/[0.02] px-6 py-5">
-        <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/30">
-              {t.strip.label}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {t.strip.items.map((item) => (
-                <span
-                  key={item}
-                  className="landing-hover-card rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70"
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
+        <div className="mx-auto max-w-7xl rounded-[2rem] border border-white/8 bg-white/[0.03] p-6 md:p-8">
+          <div className="flex flex-col gap-7">
+            <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
+              <div className="min-w-0">
+                <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/30">
+                  {t.strip.label}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {t.strip.items.map((item) => (
+                    <span
+                      key={item}
+                      className="landing-hover-card rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
 
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/30">
-              {t.strip.platformsLabel}
-            </p>
-            <div className="landing-platform-marquee mt-4">
+              <div className="min-w-0">
+                <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/30">
+                  {t.strip.platformsLabel}
+                </p>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-white/45">
+                  {t.strip.platformsDescription}
+                </p>
+              </div>
+            </div>
+
+            <div className="landing-platform-marquee">
               <div className="landing-platform-track gap-3 pr-3">
                 {[...t.strip.platforms, ...t.strip.platforms].map((platform, index) => {
                   const Icon = platformIcons[index % platformIcons.length] ?? GlobeIcon;

@@ -71,6 +71,7 @@ export interface LandingTranslation {
     label: string;
     items: string[];
     platformsLabel: string;
+    platformsDescription: string;
     platforms: string[];
   };
   problem: {
@@ -206,6 +207,8 @@ const en: LandingTranslation = {
       'Creator landing page',
     ],
     platformsLabel: 'Works with the platforms your audience already uses',
+    platformsDescription:
+      'Spotify, SoundCloud, YouTube, Shopify, TikTok, and Instagram are already part of your audience flow. StageLink helps you bring them into one place without making your page feel generic.',
     platforms: ['Spotify', 'SoundCloud', 'YouTube', 'Shopify', 'TikTok', 'Instagram'],
   },
   problem: {
@@ -452,6 +455,8 @@ const es: LandingTranslation = {
       'Landing page para creadores',
     ],
     platformsLabel: 'Se integra con las plataformas que tu audiencia ya usa',
+    platformsDescription:
+      'Spotify, SoundCloud, YouTube, Shopify, TikTok e Instagram ya son parte del recorrido de tu audiencia. StageLink te ayuda a unirlos en un solo lugar sin que tu página se sienta genérica.',
     platforms: ['Spotify', 'SoundCloud', 'YouTube', 'Shopify', 'TikTok', 'Instagram'],
   },
   problem: {
