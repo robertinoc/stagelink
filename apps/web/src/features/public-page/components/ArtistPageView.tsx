@@ -74,7 +74,9 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
 
   const linkBlocks = blocks.filter((block) => block.type === 'links');
   const featuredMediaBlocks = blocks.filter(isFeaturedMediaBlock);
-  const merchBlocks = blocks.filter((block) => block.type === 'shopify_store');
+  const merchBlocks = blocks.filter(
+    (block) => block.type === 'shopify_store' || block.type === 'smart_merch',
+  );
   const textBlocks = blocks.filter((block) => block.type === 'text');
   const emailCaptureBlocks = blocks.filter((block) => block.type === 'email_capture');
   const remainingBlocks = blocks.filter(
@@ -82,6 +84,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       block.type !== 'links' &&
       !isFeaturedMediaBlock(block) &&
       block.type !== 'shopify_store' &&
+      block.type !== 'smart_merch' &&
       block.type !== 'text' &&
       block.type !== 'email_capture',
   );

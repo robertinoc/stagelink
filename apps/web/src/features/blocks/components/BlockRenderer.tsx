@@ -6,6 +6,7 @@ import type {
   VideoEmbedBlockConfig,
   EmailCaptureBlockConfig,
   TextBlockConfig,
+  SmartMerchBlockConfig,
   ShopifyStoreBlockConfig,
 } from '@stagelink/types';
 import { LinksBlockRenderer } from './LinksBlockRenderer';
@@ -13,6 +14,7 @@ import { MusicEmbedRenderer } from './MusicEmbedRenderer';
 import { VideoEmbedRenderer } from './VideoEmbedRenderer';
 import { EmailCaptureRenderer } from './EmailCaptureRenderer';
 import { TextBlockRenderer } from './TextBlockRenderer';
+import { SmartMerchRenderer } from './SmartMerchRenderer';
 import { ShopifyStoreRenderer } from './ShopifyStoreRenderer';
 
 /**
@@ -105,6 +107,12 @@ export function BlockRenderer({ block, onLinkClick }: BlockRendererProps) {
   if (block.type === 'shopify_store') {
     return (
       <ShopifyStoreRenderer title={block.title} config={block.config as ShopifyStoreBlockConfig} />
+    );
+  }
+
+  if (block.type === 'smart_merch') {
+    return (
+      <SmartMerchRenderer title={block.title} config={block.config as SmartMerchBlockConfig} />
     );
   }
 

@@ -15,6 +15,7 @@ import { BillingModule } from './modules/billing/billing.module';
 import { BlocksModule } from './modules/blocks/blocks.module';
 import { HealthModule } from './modules/health/health.module';
 import { MembershipModule } from './modules/membership/membership.module';
+import { MerchModule } from './modules/merch/merch.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { PagesModule } from './modules/pages/pages.module';
 import { PublicModule } from './modules/public/public.module';
@@ -50,6 +51,7 @@ import { TenantModule } from './modules/tenant/tenant.module';
     BillingModule,
     AssetsModule,
     OnboardingModule,
+    MerchModule,
     SmartLinksModule,
     SubscribersModule,
     EpkModule,

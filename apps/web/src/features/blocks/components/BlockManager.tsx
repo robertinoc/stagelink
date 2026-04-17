@@ -40,6 +40,7 @@ interface Props {
   artistId: string;
   accessToken: string;
   canUseShopifyIntegration: boolean;
+  canUseSmartMerch: boolean;
 }
 
 // ─── Block type metadata ──────────────────────────────────────────────────────
@@ -51,6 +52,7 @@ const BLOCK_TYPE_ICONS: Record<BlockType, string> = {
   email_capture: '✉️',
   text: '📝',
   shopify_store: '🛍️',
+  smart_merch: '👕',
 };
 
 function hasLocalizedContent(content: BlockLocalizedContent | null | undefined): boolean {
@@ -69,6 +71,7 @@ function CreateBlockDialog({
   artistId,
   accessToken,
   canUseShopifyIntegration,
+  canUseSmartMerch,
   onCreated,
   onClose,
 }: {
@@ -77,6 +80,7 @@ function CreateBlockDialog({
   artistId: string;
   accessToken: string;
   canUseShopifyIntegration: boolean;
+  canUseSmartMerch: boolean;
   onCreated: (block: Block) => void;
   onClose: () => void;
 }) {
@@ -87,9 +91,11 @@ function CreateBlockDialog({
   const [localizedContent, setLocalizedContent] = useState<BlockLocalizedContent>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const availableBlockTypes = canUseShopifyIntegration
-    ? BLOCK_TYPES
-    : BLOCK_TYPES.filter((type) => type !== 'shopify_store');
+  const availableBlockTypes = BLOCK_TYPES.filter((type) => {
+    if (type === 'shopify_store') return canUseShopifyIntegration;
+    if (type === 'smart_merch') return canUseSmartMerch;
+    return true;
+  });
 
   function selectType(type: BlockType) {
     setSelectedType(type);
@@ -424,7 +430,13 @@ function BlockRow({
 
 // ─── Main BlockManager ────────────────────────────────────────────────────────
 
-export function BlockManager({ pageId, artistId, accessToken, canUseShopifyIntegration }: Props) {
+export function BlockManager({
+  pageId,
+  artistId,
+  accessToken,
+  canUseShopifyIntegration,
+  canUseSmartMerch,
+}: Props) {
   const t = useTranslations('blocks');
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [loading, setLoading] = useState(true);
@@ -547,6 +559,7 @@ export function BlockManager({ pageId, artistId, accessToken, canUseShopifyInteg
         artistId={artistId}
         accessToken={accessToken}
         canUseShopifyIntegration={canUseShopifyIntegration}
+        canUseSmartMerch={canUseSmartMerch}
         onCreated={handleCreated}
         onClose={() => setCreateOpen(false)}
       />

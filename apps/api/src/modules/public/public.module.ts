@@ -10,6 +10,7 @@ import { PublicSubscribeService } from './public-subscribe.service';
 import { PublicEpkService } from './public-epk.service';
 import { PublicRateLimitGuard } from '../../common/guards/public-rate-limit.guard';
 import { BillingModule } from '../billing/billing.module';
+import { MerchModule } from '../merch/merch.module';
 import { ShopifyModule } from '../shopify/shopify.module';
 
 /**
@@ -20,7 +21,7 @@ import { ShopifyModule } from '../shopify/shopify.module';
  * PrismaModule es global, no necesita importarse explícitamente.
  */
 @Module({
-  imports: [TenantModule, SmartLinksModule, BillingModule, ShopifyModule],
+  imports: [TenantModule, SmartLinksModule, BillingModule, ShopifyModule, MerchModule],
   controllers: [
     PublicPagesController,
     PublicBlocksController,

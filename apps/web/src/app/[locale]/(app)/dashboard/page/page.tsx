@@ -73,6 +73,7 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
         artistId={artistId}
         accessToken={session.accessToken}
         canUseShopifyIntegration={billingSummary.entitlements.shopify_integration}
+        canUseSmartMerch={billingSummary.entitlements.smart_merch}
       />
     </div>
   );

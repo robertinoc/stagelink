@@ -17,6 +17,7 @@ export const FEATURE_KEYS = [
   'remove_stagelink_branding',
   'custom_domain',
   'shopify_integration',
+  'smart_merch',
   'epk_builder',
   'analytics_pro',
   'multi_language_pages',
@@ -48,6 +49,7 @@ export const PLAN_FEATURE_MATRIX: Record<PlanCode, readonly FeatureKey[]> = {
     'multi_language_pages',
     'advanced_fan_insights',
     'shopify_integration',
+    'smart_merch',
   ],
 };
 

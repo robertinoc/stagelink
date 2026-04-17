@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getBillingSummary } from '@/lib/api/billing';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
+import { getMerchConnection } from '@/lib/api/merch';
 import { getShopifyConnection } from '@/lib/api/shopify';
 import { getSession } from '@/lib/auth';
 import { FEATURE_KEYS, getMinimumPlanForFeature, type FeatureKey } from '@stagelink/types';
+import { MerchProviderSettingsCard } from '@/features/dashboard/components/MerchProviderSettingsCard';
 import { ShopifySettingsCard } from '@/features/dashboard/components/ShopifySettingsCard';
 
 const FEATURE_ORDER: FeatureKey[] = [...FEATURE_KEYS];
@@ -55,6 +57,9 @@ export default async function DashboardSettingsPage({
   const shopifyConnection = summary.entitlements.shopify_integration
     ? await getShopifyConnection(artistId, session.accessToken).catch(() => null)
     : null;
+  const merchConnection = summary.entitlements.smart_merch
+    ? await getMerchConnection(artistId, session.accessToken).catch(() => null)
+    : null;
   const lockedCount = summary.featureHighlights.filter((feature) => !feature.included).length;
   const syncing = summary.billingState === 'syncing';
 
@@ -90,6 +95,13 @@ export default async function DashboardSettingsPage({
           </Button>
         </CardContent>
       </Card>
+
+      <MerchProviderSettingsCard
+        artistId={artistId}
+        currentPlanLabel={resolvePlanLabel(summary.effectivePlan)}
+        hasFeatureAccess={summary.entitlements.smart_merch}
+        initialConnection={merchConnection}
+      />
 
       <ShopifySettingsCard
         artistId={artistId}

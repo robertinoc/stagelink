@@ -488,6 +488,48 @@
           "no_preview": "No preview products were returned for the current selection."
         }
       },
+      "merch": {
+        "title": "Smart Merch",
+        "description": "Connect Printful, validate your token, and use real merch products inside Smart Merch blocks.",
+        "status": {
+          "connected": "Connected",
+          "not_connected": "Not connected"
+        },
+        "lock": {
+          "description": "Smart Merch is available on Pro+.",
+          "copy": "Your current plan is {currentPlan}. Upgrade to Pro+ to connect Printful and publish merch blocks on your public page.",
+          "cta": "Upgrade to Pro+"
+        },
+        "fields": {
+          "provider": "Provider",
+          "api_token": "Printful API token"
+        },
+        "actions_card": {
+          "validate": "Validate connection",
+          "validating": "Validating...",
+          "save": "Save Smart Merch settings",
+          "saving": "Saving..."
+        },
+        "hints": {
+          "provider": "Printful is the first Smart Merch provider. Printify can plug into the same architecture later.",
+          "api_token": "Stored on the backend and never exposed on your public page.",
+          "token_saved": "Leave blank to keep the saved token"
+        },
+        "messages": {
+          "saved": "Smart Merch settings saved.",
+          "save_error": "Could not save Smart Merch settings.",
+          "validate_error": "Could not validate this Printful connection.",
+          "no_preview": "No products are available yet for this connected Printful store."
+        },
+        "store": {
+          "connected_to": "Connected to {name}",
+          "store_id": "Store ID: {id}"
+        },
+        "preview": {
+          "title": "Preview products",
+          "description": "These products are available to select inside your Smart Merch block."
+        }
+      },
       "features": {
         "remove_stagelink_branding": {
           "title": "Remove StageLink branding",
@@ -503,6 +545,11 @@
           "title": "Shopify integration",
           "description": "Connect storefront commerce flows to the artist experience.",
           "note": "Connect a Shopify Storefront token, choose a collection or product handles, and render merch cards on the public page."
+        },
+        "smart_merch": {
+          "title": "Smart Merch",
+          "description": "Show real merch products from an external provider without building checkout yourself.",
+          "note": "Connect Printful in Settings, choose products inside the block editor, and send fans to an external purchase URL."
         },
         "epk_builder": {
           "title": "EPK builder",
@@ -550,7 +597,8 @@
       "video_embed": "Video",
       "email_capture": "Email Capture",
       "text": "Text",
-      "shopify_store": "Merch"
+      "shopify_store": "Merch",
+      "smart_merch": "Smart Merch"
     },
     "type_descriptions": {
       "links": "Add clickable links to your profiles, website or anywhere.",
@@ -558,7 +606,8 @@
       "video_embed": "Embed a video from YouTube, Vimeo or TikTok.",
       "email_capture": "Collect email addresses from your fans.",
       "text": "Add a paragraph block for a bio, rider, story or any public info.",
-      "shopify_store": "Show selected merch from your connected Shopify storefront."
+      "shopify_store": "Show selected merch from your connected Shopify storefront.",
+      "smart_merch": "Pick real products from Printful and attach an external purchase link for each one."
     },
     "fields": {
       "title": "Block title (optional)",
@@ -612,7 +661,34 @@
       "shopify_locale_es": "Spanish",
       "shopify_localized_headline": "Localized headline",
       "shopify_localized_description": "Localized description (optional)",
-      "shopify_localized_cta": "Localized CTA label (optional)"
+      "shopify_localized_cta": "Localized CTA label (optional)",
+      "smart_merch_provider": "Merch provider",
+      "smart_merch_provider_hint": "Connect Printful first in Dashboard > Settings. This block only stores what to show and where fans should buy it.",
+      "smart_merch_headline": "Merch headline (optional)",
+      "smart_merch_headline_placeholder": "e.g. Tour merch favorites",
+      "smart_merch_subtitle": "Merch subtitle (optional)",
+      "smart_merch_subtitle_placeholder": "Add a short intro above the Smart Merch products.",
+      "smart_merch_cta_label": "CTA label (optional)",
+      "smart_merch_cta_label_placeholder": "e.g. Buy now",
+      "smart_merch_display_mode": "Display mode",
+      "smart_merch_display_grid": "Grid",
+      "smart_merch_display_list": "List",
+      "smart_merch_max_items": "Max products to show",
+      "smart_merch_settings_hint": "Select up to 12 products. Each product needs its own external purchase URL.",
+      "smart_merch_products_title": "Products to show",
+      "smart_merch_products_hint": "Choose the Printful products you want to feature and add the external link where fans can buy each one.",
+      "smart_merch_products_loading": "Loading merch products…",
+      "smart_merch_products_empty": "No Printful products are available yet. Connect the provider in Settings and sync at least one product first.",
+      "smart_merch_products_error": "Could not load Printful products right now.",
+      "smart_merch_products_missing_artist": "Select an artist page before configuring Smart Merch.",
+      "smart_merch_purchase_url": "External purchase URL",
+      "smart_merch_localized_section": "Localized merch copy",
+      "smart_merch_localized_hint": "These fields are optional per locale. Base Smart Merch copy above remains the fallback when a locale is empty.",
+      "smart_merch_locale_en": "English",
+      "smart_merch_locale_es": "Spanish",
+      "smart_merch_localized_headline": "Localized headline",
+      "smart_merch_localized_subtitle": "Localized subtitle (optional)",
+      "smart_merch_localized_cta": "Localized CTA label (optional)"
     },
     "smart_link": {
       "destination": "Destination",
@@ -676,6 +752,13 @@
         "cta": "View product",
         "available": "Available",
         "sold_out": "Sold out"
+      },
+      "smart_merch": {
+        "title": "Smart Merch",
+        "empty": "Connect Printful in Settings, choose products in the block editor, and add purchase URLs to show merch here.",
+        "cta": "Buy now",
+        "available": "Available",
+        "sold_out": "Unavailable"
       }
     }
   },
