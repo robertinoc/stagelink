@@ -1,4 +1,3 @@
-import { apiFetch } from '@/lib/auth';
 import type {
   Block,
   CreateBlockPayload,
@@ -12,8 +11,10 @@ import type {
  * GET /api/pages/:pageId/blocks
  * Returns all blocks for a page ordered by position.
  */
-export async function getBlocks(pageId: string, accessToken: string): Promise<Block[]> {
-  const res = await apiFetch(`/api/pages/${pageId}/blocks`, { accessToken });
+export async function getBlocks(pageId: string): Promise<Block[]> {
+  const res = await fetch(`/api/pages/${pageId}/blocks`, {
+    cache: 'no-store',
+  });
   if (!res.ok) throw new Error(`Failed to load blocks (${res.status})`);
   return res.json() as Promise<Block[]>;
 }
@@ -24,14 +25,9 @@ export async function getBlocks(pageId: string, accessToken: string): Promise<Bl
  * POST /api/pages/:pageId/blocks
  * Creates a new block. Throws on non-2xx with the backend error message.
  */
-export async function createBlock(
-  pageId: string,
-  payload: CreateBlockPayload,
-  accessToken: string,
-): Promise<Block> {
-  const res = await apiFetch(`/api/pages/${pageId}/blocks`, {
+export async function createBlock(pageId: string, payload: CreateBlockPayload): Promise<Block> {
+  const res = await fetch(`/api/pages/${pageId}/blocks`, {
     method: 'POST',
-    accessToken,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
@@ -48,14 +44,9 @@ export async function createBlock(
  * PATCH /api/blocks/:blockId
  * Updates title and/or config. Throws on non-2xx.
  */
-export async function updateBlock(
-  blockId: string,
-  payload: UpdateBlockPayload,
-  accessToken: string,
-): Promise<Block> {
-  const res = await apiFetch(`/api/blocks/${blockId}`, {
+export async function updateBlock(blockId: string, payload: UpdateBlockPayload): Promise<Block> {
+  const res = await fetch(`/api/blocks/${blockId}`, {
     method: 'PATCH',
-    accessToken,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
@@ -72,10 +63,9 @@ export async function updateBlock(
  * DELETE /api/blocks/:blockId
  * Throws on non-2xx.
  */
-export async function deleteBlock(blockId: string, accessToken: string): Promise<void> {
-  const res = await apiFetch(`/api/blocks/${blockId}`, {
+export async function deleteBlock(blockId: string): Promise<void> {
+  const res = await fetch(`/api/blocks/${blockId}`, {
     method: 'DELETE',
-    accessToken,
   });
   if (!res.ok) {
     throw new Error(`Failed to delete block (${res.status})`);
@@ -91,11 +81,9 @@ export async function deleteBlock(blockId: string, accessToken: string): Promise
 export async function reorderBlocks(
   pageId: string,
   payload: ReorderBlocksPayload,
-  accessToken: string,
 ): Promise<Block[]> {
-  const res = await apiFetch(`/api/pages/${pageId}/blocks/reorder`, {
+  const res = await fetch(`/api/pages/${pageId}/blocks/reorder`, {
     method: 'PATCH',
-    accessToken,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
@@ -110,10 +98,9 @@ export async function reorderBlocks(
 /**
  * POST /api/blocks/:blockId/publish
  */
-export async function publishBlock(blockId: string, accessToken: string): Promise<Block> {
-  const res = await apiFetch(`/api/blocks/${blockId}/publish`, {
+export async function publishBlock(blockId: string): Promise<Block> {
+  const res = await fetch(`/api/blocks/${blockId}/publish`, {
     method: 'POST',
-    accessToken,
   });
   if (!res.ok) {
     throw new Error(`Failed to publish block (${res.status})`);
@@ -124,10 +111,9 @@ export async function publishBlock(blockId: string, accessToken: string): Promis
 /**
  * POST /api/blocks/:blockId/unpublish
  */
-export async function unpublishBlock(blockId: string, accessToken: string): Promise<Block> {
-  const res = await apiFetch(`/api/blocks/${blockId}/unpublish`, {
+export async function unpublishBlock(blockId: string): Promise<Block> {
+  const res = await fetch(`/api/blocks/${blockId}/unpublish`, {
     method: 'POST',
-    accessToken,
   });
   if (!res.ok) {
     throw new Error(`Failed to unpublish block (${res.status})`);
