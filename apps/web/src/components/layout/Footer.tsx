@@ -5,6 +5,7 @@ export function Footer({ locale }: { locale: string }) {
   const t = getLandingT(locale);
   const year = new Date().getFullYear();
   const copyright = t.footer.copyright.replace('{year}', String(year));
+  const homePath = `/${locale}`;
 
   return (
     <footer className="border-t border-white/10 py-12">
@@ -24,18 +25,36 @@ export function Footer({ locale }: { locale: string }) {
 
           {/* Links */}
           <nav className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
-            <a href="#features" className="text-white/40 transition-colors hover:text-white/70">
+            <Link
+              href={`${homePath}#product`}
+              className="text-white/40 transition-colors hover:text-white/70"
+            >
+              {t.footer.links.product}
+            </Link>
+            <Link
+              href={`${homePath}#features`}
+              className="text-white/40 transition-colors hover:text-white/70"
+            >
               {t.footer.links.features}
-            </a>
+            </Link>
+            <Link
+              href={`${homePath}#how-it-works`}
+              className="text-white/40 transition-colors hover:text-white/70"
+            >
+              {t.footer.links.howItWorks}
+            </Link>
             <Link
               href={`/${locale}/pricing`}
               className="text-white/40 transition-colors hover:text-white/70"
             >
               {t.footer.links.pricing}
             </Link>
-            <a href="#contact" className="text-white/40 transition-colors hover:text-white/70">
+            <Link
+              href={`${homePath}#contact`}
+              className="text-white/40 transition-colors hover:text-white/70"
+            >
               {t.footer.links.contact}
-            </a>
+            </Link>
           </nav>
         </div>
 

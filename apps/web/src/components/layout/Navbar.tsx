@@ -15,19 +15,22 @@ export function Navbar({ locale }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const otherLocale = locale === 'en' ? 'es' : 'en';
-  const switchPath = pathname.replace(`/${locale}`, `/${otherLocale}`);
+  const currentPath = pathname || `/${locale}`;
+  const switchPath = currentPath.replace(`/${locale}`, `/${otherLocale}`);
+  const homePath = `/${locale}`;
+  const navHref = (hash: string) => (currentPath === homePath ? hash : `${homePath}${hash}`);
 
   const navLinks = [
-    { label: t.nav.product, href: '#product' },
-    { label: t.nav.features, href: '#features' },
-    { label: t.nav.howItWorks, href: '#how-it-works' },
-    { label: t.nav.forArtists, href: '#for-artists' },
-    { label: t.nav.contact, href: '#contact' },
+    { label: t.nav.product, href: navHref('#product') },
+    { label: t.nav.features, href: navHref('#features') },
+    { label: t.nav.howItWorks, href: navHref('#how-it-works') },
+    { label: t.nav.forArtists, href: navHref('#for-artists') },
+    { label: t.nav.contact, href: navHref('#contact') },
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 md:px-6">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/75 shadow-[0_18px_50px_rgba(13,10,25,0.35)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link
           href={`/${locale}`}
@@ -40,13 +43,13 @@ export function Navbar({ locale }: NavbarProps) {
         {/* Desktop nav */}
         <nav className="hidden items-center gap-6 text-sm md:flex">
           {navLinks.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               className="text-white/60 transition-colors hover:text-white"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -55,7 +58,8 @@ export function Navbar({ locale }: NavbarProps) {
           {/* Language switcher */}
           <Link
             href={switchPath}
-            className="hidden rounded-full border border-white/10 px-3 py-1.5 text-xs font-medium text-white/50 transition-colors hover:border-white/20 hover:text-white/80 sm:flex"
+            className="hidden rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/50 transition-colors hover:border-white/20 hover:text-white/80 sm:flex"
+            aria-label={`${t.nav.languageLabel}: ${otherLocale.toUpperCase()}`}
           >
             {otherLocale.toUpperCase()}
           </Link>
@@ -109,14 +113,14 @@ export function Navbar({ locale }: NavbarProps) {
         <div className="border-t border-white/10 bg-background/95 px-4 py-4 md:hidden">
           <nav className="flex flex-col gap-1">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
                 className="rounded-xl px-3 py-2.5 text-sm text-white/70 transition-colors hover:bg-white/5 hover:text-white"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
             <div className="mt-3 flex items-center gap-3 border-t border-white/10 pt-3">
               <Link href={`/${locale}/login`} className="text-sm text-white/60 hover:text-white">
