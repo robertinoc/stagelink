@@ -44,7 +44,9 @@ export default async function middleware(request: NextRequest) {
     pathname === '/api/onboarding/complete' ||
     pathname === '/api/assets/upload-intent' ||
     (pathname.startsWith('/api/assets/') && pathname.endsWith('/confirm')) ||
-    pathname.startsWith('/api/artists/')
+    pathname.startsWith('/api/artists/') ||
+    pathname.startsWith('/api/pages/') ||
+    pathname.startsWith('/api/blocks/')
   ) {
     const { headers: authkitHeaders } = await authkit(request);
     const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
@@ -118,6 +120,8 @@ export const config = {
     '/api/assets/upload-intent',
     '/api/assets/:path*',
     '/api/artists/:path*',
+    '/api/pages/:path*',
+    '/api/blocks/:path*',
     '/((?!api|_next|_vercel|.*\\..*).*)',
   ],
 };
