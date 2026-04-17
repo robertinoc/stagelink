@@ -208,7 +208,7 @@ const en: LandingTranslation = {
     ],
     platformsLabel: 'Works with the platforms your audience already uses',
     platformsDescription:
-      'Spotify, SoundCloud, YouTube, Shopify, TikTok, and Instagram are already part of your audience flow. StageLink helps you bring them into one place without making your page feel generic.',
+      'The most important platforms are already part of your audience. StageLink helps you bring them into one place without making your page feel generic.',
     platforms: ['Spotify', 'SoundCloud', 'YouTube', 'Shopify', 'TikTok', 'Instagram'],
   },
   problem: {
@@ -456,7 +456,7 @@ const es: LandingTranslation = {
     ],
     platformsLabel: 'Se integra con las plataformas que tu audiencia ya usa',
     platformsDescription:
-      'Spotify, SoundCloud, YouTube, Shopify, TikTok e Instagram ya son parte del recorrido de tu audiencia. StageLink te ayuda a unirlos en un solo lugar sin que tu página se sienta genérica.',
+      'Las plataformas más importantes ya son parte de tu audiencia. StageLink te ayuda a unirlas en un solo lugar sin que tu página se sienta genérica.',
     platforms: ['Spotify', 'SoundCloud', 'YouTube', 'Shopify', 'TikTok', 'Instagram'],
   },
   problem: {
