@@ -2,118 +2,58 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-
-interface Feature {
-  title: string;
-  description: string;
-}
-
-interface Plan {
-  name: string;
-  price: string;
-  description: string;
-  items: string[];
-  cta: string;
-  featured?: boolean;
-}
+import { useState } from 'react';
+import { getLandingT } from '@/lib/landing-translations';
 
 export function LandingPage() {
   const params = useParams<{ locale?: string }>();
   const locale = params?.locale ?? 'en';
+  const t = getLandingT(locale);
 
-  const features: Feature[] = [
-    {
-      title: 'Built for artists',
-      description:
-        'Musicians, DJs, painters, actors, photographers and creators can build a professional page in minutes.',
-    },
-    {
-      title: 'All your platforms in one place',
-      description:
-        'Connect Spotify, SoundCloud, YouTube, TikTok, Instagram and more with a simple setup.',
-    },
-    {
-      title: 'Sell merch easily',
-      description:
-        'Connect Shopify to showcase products, drops and limited editions directly from your page.',
-    },
-    {
-      title: 'Grow your audience',
-      description:
-        'Capture emails, promote events, launch releases and understand fan behavior with analytics.',
-    },
-  ];
+  const [contactState, setContactState] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    artistType: '',
+    message: '',
+  });
 
-  const blocks: string[] = [
-    'Music embeds',
-    'Video embeds',
-    'Event dates',
-    'Portfolio gallery',
-    'Mailing list',
-    'Shopify store',
-    'Electronic press kit',
-    'Smart links',
-  ];
+  function handleFormChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
 
-  const plans: Plan[] = [
-    {
-      name: 'Free',
-      price: '$0',
-      description: 'Perfect to get started',
-      items: ['1 artist page', 'Core links and embeds', 'Basic analytics', 'Google Ads enabled'],
-      cta: 'Start free',
-    },
-    {
-      name: 'Pro',
-      price: '$5/mo',
-      description: 'For growing artists',
-      items: ['No ads', 'Advanced analytics', 'Custom domain', 'Shopify integration'],
-      cta: 'Go Pro',
-      featured: true,
-    },
-    {
-      name: 'Pro+',
-      price: '$9/mo',
-      description: 'For serious creator brands',
-      items: ['EPK builder', 'Fan email capture', 'Multi-language pages', 'Priority features'],
-      cta: 'Get Pro+',
-    },
-  ];
+  async function handleContactSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setContactState('submitting');
+    // TODO: wire up to a real contact API endpoint (e.g. POST /api/contact)
+    await new Promise((r) => setTimeout(r, 1200));
+    setContactState('success');
+  }
 
   return (
     <div className="min-h-screen bg-background text-white">
-      {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden px-6 pb-20 pt-16 md:pb-28 md:pt-24">
+      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      <section id="product" className="relative overflow-hidden px-6 pb-20 pt-16 md:pb-28 md:pt-24">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(155,48,208,0.25),transparent_35%),radial-gradient(circle_at_80%_20%,rgba(232,121,249,0.12),transparent_30%)]" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 md:grid-cols-2">
           <div>
             <div className="mb-4 inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-              Your Digital Stage
+              {t.badge}
             </div>
             <h1 className="max-w-2xl text-5xl font-semibold tracking-tight md:text-7xl">
-              One page for every song, show, drop and link.
+              {t.hero.headline}
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-white/60">
-              StageLink helps artists create a professional landing page in minutes. Connect music,
-              videos, merch, events and fan signups in one beautiful place.
-            </p>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-white/60">{t.hero.subheadline}</p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/api/auth/signin"
                 className="rounded-full bg-brand-gradient px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
               >
-                Create your page
+                {t.hero.ctaPrimary}
               </Link>
               <button className="rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-white/80 transition hover:border-white/30 hover:text-white">
-                See examples
+                {t.hero.ctaSecondary}
               </button>
-            </div>
-            <div className="mt-8 flex flex-wrap gap-6 text-sm text-white/30">
-              <span>Spotify</span>
-              <span>SoundCloud</span>
-              <span>YouTube</span>
-              <span>Shopify</span>
-              <span>TikTok</span>
             </div>
           </div>
 
@@ -128,16 +68,14 @@ export function LandingPage() {
                   <p className="mt-1 text-sm text-white/50">DJ · Producer · Creator</p>
                 </div>
                 <div className="mt-6 grid gap-3">
-                  {['Listen on Spotify', 'Watch on YouTube', 'Buy merch', 'Join my fan list'].map(
-                    (item) => (
-                      <div
-                        key={item}
-                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80"
-                      >
-                        {item}
-                      </div>
-                    ),
-                  )}
+                  {t.hero.mockLinks.map((item) => (
+                    <div
+                      key={item}
+                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80"
+                    >
+                      {item}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -145,17 +83,48 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── Features ─────────────────────────────────────────────────── */}
+      {/* ── Social proof strip ────────────────────────────────────────────── */}
+      <div className="border-y border-white/5 bg-white/[0.02] px-6 py-5">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-3 md:justify-between">
+          <p className="text-xs font-medium uppercase tracking-widest text-white/30">
+            {t.strip.label}
+          </p>
+          <div className="flex flex-wrap justify-center gap-6">
+            {t.strip.platforms.map((platform) => (
+              <span key={platform} className="text-sm font-medium text-white/40">
+                {platform}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Problem / Solution ────────────────────────────────────────────── */}
+      <section className="px-6 py-20">
+        <div className="mx-auto max-w-7xl rounded-[2rem] border border-white/10 bg-white/5 p-8 md:p-14">
+          <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">
+            {t.problem.eyebrow}
+          </p>
+          <h2 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight md:text-5xl">
+            {t.problem.headline}
+          </h2>
+          <p className="mt-6 max-w-2xl text-base leading-8 text-white/60">{t.problem.body}</p>
+        </div>
+      </section>
+
+      {/* ── Features ──────────────────────────────────────────────────────── */}
       <section id="features" className="px-6 py-20">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-2xl">
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">Features</p>
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">
+              {t.features.eyebrow}
+            </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
-              Everything artists need in one page.
+              {t.features.headline}
             </h2>
           </div>
           <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {features.map((feature) => (
+            {t.features.items.map((feature) => (
               <div
                 key={feature.title}
                 className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur transition-colors hover:border-primary/30 hover:bg-primary/5"
@@ -168,34 +137,18 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── How it works ─────────────────────────────────────────────── */}
+      {/* ── How it works ──────────────────────────────────────────────────── */}
       <section id="how-it-works" className="px-6 py-20">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/50">
-              How it works
+              {t.howItWorks.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
-              Launch your page in under 5 minutes.
+              {t.howItWorks.headline}
             </h2>
             <div className="mt-8 grid gap-6 md:grid-cols-3">
-              {[
-                {
-                  step: '01',
-                  title: 'Create your profile',
-                  text: 'Choose your artist type, upload your image, add your bio and claim your username.',
-                },
-                {
-                  step: '02',
-                  title: 'Connect your platforms',
-                  text: 'Paste your Spotify, SoundCloud, YouTube, TikTok, Instagram and Shopify links.',
-                },
-                {
-                  step: '03',
-                  title: 'Publish and share',
-                  text: 'Go live instantly and use your StageLink page everywhere fans discover you.',
-                },
-              ].map((item) => (
+              {t.howItWorks.steps.map((item) => (
                 <div
                   key={item.step}
                   className="rounded-3xl border border-white/10 bg-sidebar/80 p-5"
@@ -210,13 +163,13 @@ export function LandingPage() {
 
           <div className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-8">
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/50">
-              Content blocks
+              {t.howItWorks.blocksLabel}
             </p>
             <h3 className="mt-3 text-2xl font-semibold tracking-tight">
-              Mix and match your stage.
+              {t.howItWorks.blocksHeadline}
             </h3>
             <div className="mt-6 flex flex-wrap gap-3">
-              {blocks.map((block) => (
+              {t.howItWorks.blocks.map((block) => (
                 <span
                   key={block}
                   className="rounded-full border border-white/10 bg-sidebar/70 px-4 py-2 text-sm text-white/70"
@@ -229,29 +182,49 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── Why it wins ──────────────────────────────────────────────── */}
+      {/* ── Who it's for ──────────────────────────────────────────────────── */}
+      <section id="for-artists" className="px-6 py-20">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-2xl">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">
+              {t.forArtists.eyebrow}
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
+              {t.forArtists.headline}
+            </h2>
+            <p className="mt-5 text-base leading-8 text-white/60">{t.forArtists.body}</p>
+          </div>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {t.forArtists.segments.map((segment) => (
+              <div
+                key={segment.label}
+                className="rounded-3xl border border-white/10 bg-white/5 p-6 transition-colors hover:border-primary/30 hover:bg-primary/5"
+              >
+                <h3 className="text-xl font-semibold">{segment.label}</h3>
+                <p className="mt-2 text-sm text-white/50">{segment.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Differentiation ───────────────────────────────────────────────── */}
       <section className="px-6 py-20">
         <div className="mx-auto max-w-7xl rounded-[2rem] border border-white/10 bg-white/5 p-8 md:p-12">
           <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
             <div>
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/50">
-                Why it wins
+                {t.differentiation.eyebrow}
               </p>
               <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
-                Generic bio tools were not built for artists.
+                {t.differentiation.headline}
               </h2>
               <p className="mt-5 max-w-xl text-base leading-8 text-white/60">
-                StageLink focuses on the workflows that matter most to creative professionals:
-                releases, shows, visual portfolio, merch, fan relationships and press materials.
+                {t.differentiation.body}
               </p>
             </div>
             <div className="grid gap-4">
-              {[
-                'Smart links route fans to their preferred platform.',
-                'Artist-friendly templates feel premium from day one.',
-                'EPK support helps creators pitch themselves professionally.',
-                'Shopify unlocks direct monetization without complexity.',
-              ].map((point) => (
+              {t.differentiation.points.map((point) => (
                 <div
                   key={point}
                   className="rounded-2xl border border-white/10 bg-sidebar/70 px-5 py-4 text-sm text-white/80"
@@ -264,17 +237,19 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── Pricing ──────────────────────────────────────────────────── */}
+      {/* ── Pricing ───────────────────────────────────────────────────────── */}
       <section id="pricing" className="px-6 py-20">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-2xl">
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/50">Pricing</p>
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/50">
+              {t.pricing.eyebrow}
+            </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
-              Affordable plans for every stage of growth.
+              {t.pricing.headline}
             </h2>
           </div>
           <div className="mt-12 grid gap-6 lg:grid-cols-3">
-            {plans.map((plan) => (
+            {t.pricing.plans.map((plan) => (
               <div
                 key={plan.name}
                 className={`rounded-[2rem] border p-8 ${
@@ -290,7 +265,7 @@ export function LandingPage() {
                   </div>
                   {plan.featured && (
                     <span className="rounded-full bg-primary/20 px-3 py-1 text-xs font-medium text-primary">
-                      Most popular
+                      {t.pricing.popular}
                     </span>
                   )}
                 </div>
@@ -321,26 +296,112 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── CTA final ────────────────────────────────────────────────── */}
-      <section className="px-6 pb-24 pt-8">
+      {/* ── CTA ───────────────────────────────────────────────────────────── */}
+      <section className="px-6 pb-8 pt-8">
         <div className="mx-auto max-w-5xl rounded-[2rem] border border-primary/20 bg-primary/5 p-10 text-center md:p-14">
-          <h2 className="text-3xl font-semibold tracking-tight md:text-5xl">
-            Stop using generic link pages.
-          </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/60">
-            Build a beautiful home for your music, art, events and products. Launch free and grow
-            into the platform designed for creators.
-          </p>
+          <h2 className="text-3xl font-semibold tracking-tight md:text-5xl">{t.cta.headline}</h2>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/60">{t.cta.body}</p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
               href="/api/auth/signin"
               className="rounded-full bg-brand-gradient px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
             >
-              Start free
+              {t.cta.primary}
             </Link>
             <button className="rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-white/80 transition hover:border-white/30 hover:text-white">
-              Book a demo
+              {t.cta.secondary}
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Contact ───────────────────────────────────────────────────────── */}
+      <section id="contact" className="px-6 py-20">
+        <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-2xl">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-primary">
+              {t.contact.eyebrow}
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
+              {t.contact.headline}
+            </h2>
+            <p className="mt-4 text-base leading-8 text-white/60">{t.contact.body}</p>
+
+            {contactState === 'success' ? (
+              <div className="mt-10 rounded-[2rem] border border-primary/30 bg-primary/10 p-10 text-center">
+                <div className="text-4xl">✓</div>
+                <p className="mt-4 text-lg font-semibold text-white">{t.contact.success}</p>
+              </div>
+            ) : (
+              <form onSubmit={handleContactSubmit} className="mt-10 grid gap-5">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-white/70">
+                      {t.contact.name}
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      required
+                      value={form.name}
+                      onChange={handleFormChange}
+                      placeholder={t.contact.namePlaceholder}
+                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-white/70">
+                      {t.contact.email}
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      required
+                      value={form.email}
+                      onChange={handleFormChange}
+                      placeholder={t.contact.emailPlaceholder}
+                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/70">
+                    {t.contact.artistType}
+                  </label>
+                  <input
+                    type="text"
+                    name="artistType"
+                    value={form.artistType}
+                    onChange={handleFormChange}
+                    placeholder={t.contact.artistTypePlaceholder}
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-white/70">
+                    {t.contact.message}
+                  </label>
+                  <textarea
+                    name="message"
+                    required
+                    rows={5}
+                    value={form.message}
+                    onChange={handleFormChange}
+                    placeholder={t.contact.messagePlaceholder}
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
+                  />
+                </div>
+                <div>
+                  <button
+                    type="submit"
+                    disabled={contactState === 'submitting'}
+                    className="rounded-full bg-brand-gradient px-8 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {contactState === 'submitting' ? '...' : t.contact.submit}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </section>

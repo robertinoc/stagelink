@@ -1,44 +1,137 @@
-import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+'use client';
 
-export function Navbar({ locale }: { locale: string }) {
-  const t = useTranslations('nav');
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useState } from 'react';
+import { getLandingT } from '@/lib/landing-translations';
+
+interface NavbarProps {
+  locale: string;
+}
+
+export function Navbar({ locale }: NavbarProps) {
+  const t = getLandingT(locale);
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const otherLocale = locale === 'en' ? 'es' : 'en';
+  const switchPath = pathname.replace(`/${locale}`, `/${otherLocale}`);
+
+  const navLinks = [
+    { label: t.nav.product, href: '#product' },
+    { label: t.nav.features, href: '#features' },
+    { label: t.nav.howItWorks, href: '#how-it-works' },
+    { label: t.nav.forArtists, href: '#for-artists' },
+    { label: t.nav.contact, href: '#contact' },
+  ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 md:px-6">
+        {/* Logo */}
         <Link
           href={`/${locale}`}
-          className="flex items-center gap-2 text-lg font-bold font-[family-name:var(--font-heading)] tracking-tight"
+          className="flex shrink-0 items-center gap-1 text-lg font-bold tracking-tight font-[family-name:var(--font-heading)]"
         >
           <span className="text-white">Stage</span>
           <span className="text-gradient-brand">Link</span>
         </Link>
 
+        {/* Desktop nav */}
         <nav className="hidden items-center gap-6 text-sm md:flex">
-          <Link
-            href={`/${locale}/pricing`}
-            className="text-white/60 transition-colors hover:text-white"
-          >
-            {t('pricing')}
-          </Link>
+          {navLinks.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className="text-white/60 transition-colors hover:text-white"
+            >
+              {link.label}
+            </a>
+          ))}
         </nav>
 
+        {/* Right side */}
         <div className="flex items-center gap-2">
+          {/* Language switcher */}
+          <Link
+            href={switchPath}
+            className="hidden rounded-full border border-white/10 px-3 py-1.5 text-xs font-medium text-white/50 transition-colors hover:border-white/20 hover:text-white/80 sm:flex"
+          >
+            {otherLocale.toUpperCase()}
+          </Link>
+
           <Link
             href={`/${locale}/login`}
-            className="rounded-full px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:text-white"
+            className="hidden rounded-full px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:text-white sm:block"
           >
-            {t('login')}
+            {t.nav.login}
           </Link>
+
           <Link
-            href={`/${locale}/signup`}
+            href="/api/auth/signin"
             className="rounded-full bg-brand-gradient px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
           >
-            {t('signup')}
+            <span className="hidden sm:inline">{t.nav.cta}</span>
+            <span className="sm:hidden">Get started</span>
           </Link>
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Toggle menu"
+            className="ml-1 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/60 hover:text-white md:hidden"
+          >
+            {mobileOpen ? (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path
+                  d="M2 2L14 14M14 2L2 14"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path
+                  d="M2 4H14M2 8H14M2 12H14"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Mobile menu */}
+      {mobileOpen && (
+        <div className="border-t border-white/10 bg-background/95 px-4 py-4 md:hidden">
+          <nav className="flex flex-col gap-1">
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className="rounded-xl px-3 py-2.5 text-sm text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+              >
+                {link.label}
+              </a>
+            ))}
+            <div className="mt-3 flex items-center gap-3 border-t border-white/10 pt-3">
+              <Link href={`/${locale}/login`} className="text-sm text-white/60 hover:text-white">
+                {t.nav.login}
+              </Link>
+              <Link
+                href={switchPath}
+                className="ml-auto rounded-full border border-white/10 px-3 py-1 text-xs font-medium text-white/50 hover:text-white/80"
+              >
+                {otherLocale.toUpperCase()}
+              </Link>
+            </div>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
