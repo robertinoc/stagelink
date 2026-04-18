@@ -57,6 +57,7 @@ export function MerchProviderSettingsCard({
   const upgradeHref = `/${locale}/dashboard/billing`;
   const requiredPlanLabel = resolvePlanLabel(getMinimumPlanForFeature('smart_merch'));
   const previewProducts = connection?.previewProducts ?? [];
+  const canSubmitToken = apiToken.trim().length > 0 || connection?.hasApiToken;
 
   async function handleValidate() {
     setValidating(true);
@@ -169,10 +170,15 @@ export function MerchProviderSettingsCard({
         ) : null}
 
         <div className="flex flex-wrap gap-3">
-          <Button type="button" variant="outline" onClick={handleValidate} disabled={validating}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleValidate}
+            disabled={validating || apiToken.trim().length === 0}
+          >
             {validating ? t('actions_card.validating') : t('actions_card.validate')}
           </Button>
-          <Button type="button" onClick={handleSave} disabled={saving}>
+          <Button type="button" onClick={handleSave} disabled={saving || !canSubmitToken}>
             {saving ? t('actions_card.saving') : t('actions_card.save')}
           </Button>
         </div>

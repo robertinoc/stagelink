@@ -13,6 +13,8 @@ import type {
   MerchProviderStoreSummary,
 } from './merch-provider.interface';
 
+const PRINTFUL_REQUEST_TIMEOUT_MS = 5_000;
+
 interface PrintfulResponse<T> {
   code: number;
   result: T;
@@ -179,14 +181,22 @@ export class PrintfulProviderService implements MerchProviderAdapter {
     }
 
     let response: Response;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), PRINTFUL_REQUEST_TIMEOUT_MS);
     try {
       response = await fetch(`${PRINTFUL_API_BASE_URL}${path}`, {
         method: 'GET',
         headers,
+        signal: controller.signal,
       });
     } catch (error) {
+      if (controller.signal.aborted) {
+        throw new ServiceUnavailableException('Printful timed out');
+      }
       console.error('[merch/printful] Provider request failed', error);
       throw new ServiceUnavailableException('Could not reach Printful right now');
+    } finally {
+      clearTimeout(timeout);
     }
 
     let payload: PrintfulResponse<T> | null = null;
