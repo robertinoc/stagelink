@@ -245,7 +245,7 @@ function localizeBlock(
     const merchConfig = baseConfig as Partial<SmartMerchBlockConfig>;
     const translated = localizedContent.smartMerch ?? {};
     const maxItems = normalizeMerchPreviewLimit(
-      merchConfig.maxItems ?? SHOPIFY_DEFAULT_PREVIEW_LIMIT,
+      merchConfig.maxItems ?? SMART_MERCH_DEFAULT_PREVIEW_LIMIT,
     );
 
     return {
