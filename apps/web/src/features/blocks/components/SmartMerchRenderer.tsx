@@ -58,6 +58,7 @@ export function SmartMerchRenderer({ title, config }: SmartMerchRendererProps) {
       <div className={`mt-5 ${isList ? 'space-y-3' : 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3'}`}>
         {products.map((product) => {
           const price = formatPrice(product.priceAmount, product.currencyCode);
+          const canPurchase = product.availableForSale && Boolean(product.productUrl);
           return (
             <article
               key={product.id}
@@ -101,9 +102,9 @@ export function SmartMerchRenderer({ title, config }: SmartMerchRendererProps) {
                     {product.availableForSale ? t('available') : t('sold_out')}
                   </span>
 
-                  {product.productUrl ? (
+                  {canPurchase ? (
                     <a
-                      href={product.productUrl}
+                      href={product.productUrl!}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/15 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-violet-500/25"

@@ -19,6 +19,7 @@ import {
   type ShopifyStoreBlockConfig,
   type ShopifyStoreProduct,
   type SupportedLocale,
+  type SmartMerchProvider,
 } from '@stagelink/types';
 import { resolveTrafficFlags } from '../../common/utils/analytics-flags';
 import {
@@ -30,7 +31,10 @@ import {
 import { ShopifyService } from '../shopify/shopify.service';
 import { resolvePreviewLimit, SHOPIFY_DEFAULT_PREVIEW_LIMIT } from '../shopify/shopify.helpers';
 import { MerchService } from '../merch/merch.service';
-import { normalizeMerchPreviewLimit } from '../merch/merch.helpers';
+import {
+  normalizeMerchPreviewLimit,
+  SMART_MERCH_DEFAULT_PREVIEW_LIMIT,
+} from '../merch/merch.helpers';
 
 /**
  * Hashes an IP address with SHA-256 for privacy-preserving storage.
@@ -278,6 +282,11 @@ function localizeBlock(
     position: block.position,
     config: baseConfig,
   };
+}
+
+interface SmartMerchBlockResolution {
+  blockId: string;
+  products: SmartMerchProduct[];
 }
 
 /** T4-4 quality header context for link-click / smart-link events. */
@@ -549,24 +558,95 @@ export class PublicPagesService {
             maxItems: maxShopifyItems,
           })
         : null;
+    const smartMerchBlocks = page.blocks
+      .filter((block) => block.type === 'smart_merch')
+      .map((block) => ({
+        blockId: block.id,
+        config: (block.config as Partial<SmartMerchBlockConfig>) ?? {},
+      }));
+    const smartMerchProductsByBlock = new Map<string, SmartMerchProduct[]>();
+
+    if (hasFeature(entitlements.effectivePlan, 'smart_merch') && smartMerchBlocks.length > 0) {
+      const resolutionsByProvider = new Map<
+        SmartMerchProvider,
+        Array<{
+          blockId: string;
+          maxItems: number;
+          selections: SmartMerchProductSelection[];
+        }>
+      >();
+
+      for (const block of smartMerchBlocks) {
+        const provider = block.config.provider ?? 'printful';
+        const selections = Array.isArray(block.config.selectedProducts)
+          ? (block.config.selectedProducts as SmartMerchProductSelection[])
+          : [];
+        const maxItems = normalizeMerchPreviewLimit(
+          block.config.maxItems ?? SMART_MERCH_DEFAULT_PREVIEW_LIMIT,
+        );
+
+        if (selections.length === 0) {
+          smartMerchProductsByBlock.set(block.blockId, []);
+          continue;
+        }
+
+        const providerBlocks = resolutionsByProvider.get(provider) ?? [];
+        providerBlocks.push({
+          blockId: block.blockId,
+          maxItems,
+          selections,
+        });
+        resolutionsByProvider.set(provider, providerBlocks);
+      }
+
+      const resolvedBlocks = await Promise.all(
+        Array.from(resolutionsByProvider.entries()).map(async ([provider, blocks]) => {
+          const uniqueSelections = Array.from(
+            new Map(
+              blocks
+                .flatMap((block) => block.selections)
+                .map((selection) => [selection.productId, selection]),
+            ).values(),
+          );
+
+          const products = await this.merchService.getPublicProducts(
+            artistId,
+            provider,
+            uniqueSelections,
+            {
+              maxItems: uniqueSelections.length,
+            },
+          );
+          const productsById = new Map(products.map((product) => [product.id, product]));
+
+          return blocks.map<SmartMerchBlockResolution>((block) => ({
+            blockId: block.blockId,
+            products: block.selections
+              .slice(0, block.maxItems)
+              .reduce<SmartMerchProduct[]>((acc, selection) => {
+                const product = productsById.get(selection.productId);
+                if (product) {
+                  acc.push({
+                    ...product,
+                    productUrl: selection.purchaseUrl,
+                  });
+                }
+                return acc;
+              }, []),
+          }));
+        }),
+      );
+
+      resolvedBlocks.flat().forEach((block) => {
+        smartMerchProductsByBlock.set(block.blockId, block.products);
+      });
+    }
+
     const localizedBlocks = (
       await Promise.all(
         page.blocks.map(async (block) => {
-          const smartMerchConfig =
-            block.type === 'smart_merch'
-              ? ((block.config as unknown as Partial<SmartMerchBlockConfig>) ?? null)
-              : null;
           const smartMerchProducts =
-            smartMerchConfig && hasFeature(entitlements.effectivePlan, 'smart_merch')
-              ? await this.merchService.getPublicProducts(
-                  artistId,
-                  smartMerchConfig.provider ?? 'printful',
-                  (smartMerchConfig.selectedProducts ?? []) as SmartMerchProductSelection[],
-                  {
-                    maxItems: smartMerchConfig.maxItems,
-                  },
-                )
-              : undefined;
+            block.type === 'smart_merch' ? smartMerchProductsByBlock.get(block.id) : undefined;
 
           return localizeBlock(block, locale, shopifySelection ?? undefined, smartMerchProducts);
         }),

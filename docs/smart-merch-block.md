@@ -219,3 +219,10 @@ No hace falta rehacer:
 - preview más rico en el editor
 - soporte real para `Printify`
 - analytics de clics de compra por producto
+
+### Nota de seguridad pendiente
+
+Antes de sumar `Printify` u otros providers, `apiToken` debería pasar a cifrado en reposo
+con una key de aplicación y desencriptarse solo en el backend al momento de invocar al provider.
+La v1 ya evita exponer el secreto al frontend, pero todavía no reduce el blast radius de un dump
+de base o acceso operativo a la tabla `merch_provider_connections`.

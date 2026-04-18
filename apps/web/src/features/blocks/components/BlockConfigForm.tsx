@@ -814,6 +814,10 @@ function SmartMerchBlockForm({
       return;
     }
 
+    if (selectedProducts.length >= 12) {
+      return;
+    }
+
     onChange({
       ...config,
       selectedProducts: [...selectedProducts, { productId, purchaseUrl: '' }],
@@ -943,6 +947,7 @@ function SmartMerchBlockForm({
                     <input
                       type="checkbox"
                       checked={Boolean(selectedProduct)}
+                      disabled={!selectedProduct && selectedProducts.length >= 12}
                       onChange={() => toggleProduct(product.id)}
                       className="mt-1 h-4 w-4 rounded border-input"
                     />
