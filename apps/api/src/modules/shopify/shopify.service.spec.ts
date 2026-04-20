@@ -1,7 +1,10 @@
 import { ShopifySelectionMode } from '@prisma/client';
+import { encryptSecret } from '../../common/utils/secret-encryption';
 import { ShopifyService } from './shopify.service';
 
 describe('ShopifyService', () => {
+  const previousKey = process.env['SECRETS_ENCRYPTION_KEY'];
+
   interface PrismaMock {
     shopifyConnection: {
       findUnique: jest.Mock;
@@ -54,6 +57,7 @@ describe('ShopifyService', () => {
   }
 
   beforeEach(() => {
+    process.env['SECRETS_ENCRYPTION_KEY'] = 'test-encryption-key-for-stagelink';
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-04-16T15:00:00.000Z'));
     jest.restoreAllMocks();
@@ -61,6 +65,14 @@ describe('ShopifyService', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  afterAll(() => {
+    if (previousKey === undefined) {
+      delete process.env['SECRETS_ENCRYPTION_KEY'];
+    } else {
+      process.env['SECRETS_ENCRYPTION_KEY'] = previousKey;
+    }
   });
 
   it('returns an empty selection when the artist lacks the Shopify feature', async () => {
@@ -80,7 +92,7 @@ describe('ShopifyService', () => {
       artistId: 'artist_123',
       isConnected: true,
       storeDomain: 'artist-store.myshopify.com',
-      storefrontToken: 'shpst_test',
+      storefrontToken: encryptSecret('shpst_test'),
       selectionMode: ShopifySelectionMode.collection,
       collectionHandle: 'merch',
       productHandles: [],

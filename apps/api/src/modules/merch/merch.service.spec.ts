@@ -1,7 +1,10 @@
 import { MerchProvider } from '@prisma/client';
+import { encryptSecret } from '../../common/utils/secret-encryption';
 import { MerchService } from './merch.service';
 
 describe('MerchService', () => {
+  const previousKey = process.env['SECRETS_ENCRYPTION_KEY'];
+
   interface PrismaMock {
     merchProviderConnection: {
       findUnique: jest.Mock;
@@ -56,6 +59,7 @@ describe('MerchService', () => {
   }
 
   beforeEach(() => {
+    process.env['SECRETS_ENCRYPTION_KEY'] = 'test-encryption-key-for-stagelink';
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-04-17T15:00:00.000Z'));
     jest.restoreAllMocks();
@@ -63,6 +67,14 @@ describe('MerchService', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+  });
+
+  afterAll(() => {
+    if (previousKey === undefined) {
+      delete process.env['SECRETS_ENCRYPTION_KEY'];
+    } else {
+      process.env['SECRETS_ENCRYPTION_KEY'] = previousKey;
+    }
   });
 
   it('returns an empty public selection when the artist lacks the smart_merch feature', async () => {
@@ -84,7 +96,7 @@ describe('MerchService', () => {
     prisma.merchProviderConnection.findUnique.mockResolvedValue({
       artistId: 'artist_123',
       provider: MerchProvider.printful,
-      apiToken: 'pf_test',
+      apiToken: encryptSecret('pf_test'),
       storeId: 'store_1',
       isConnected: true,
     });
@@ -145,7 +157,7 @@ describe('MerchService', () => {
     prisma.merchProviderConnection.findUnique.mockResolvedValue({
       artistId: 'artist_123',
       provider: MerchProvider.printful,
-      apiToken: 'pf_test',
+      apiToken: encryptSecret('pf_test'),
       storeId: 'store_1',
       isConnected: true,
     });

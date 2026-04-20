@@ -64,7 +64,6 @@ NEXT_PUBLIC_API_URL=http://localhost:4001
 # WorkOS
 WORKOS_CLIENT_ID=client_XXXXXXXX      # Para construir la URL del JWKS
 WORKOS_API_KEY=sk-XXXXXXXXXXXXXXXX    # Para fetchear perfil en el primer login
-WORKOS_REDIRECT_URI=http://localhost:4000/api/auth/callback
 
 # Database
 DATABASE_URL=postgresql://...

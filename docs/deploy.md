@@ -7,7 +7,7 @@
                            │
             ┌──────────────┼──────────────┐
             │              │              │
-    app.stagelink.io  api.stagelink.io  stagelink.io
+    app.<your-domain> api.<your-domain> <your-domain>
             │              │              │
           Vercel        Railway         Vercel
          (Next.js)     (NestJS)       (marketing)
@@ -16,19 +16,19 @@
 | Servicio              | Plataforma | URL de producción           |
 | --------------------- | ---------- | --------------------------- |
 | Frontend (`apps/web`) | Vercel     | `https://app.stagelink.io`  |
-| Backend (`apps/api`)  | Railway    | `https://api.stagelink.io`  |
+| Backend (`apps/api`)  | Railway    | `https://<your-api-domain>` |
 | DNS / CDN / SSL       | Cloudflare | gestiona todos los dominios |
 
 ---
 
 ## Entornos
 
-| Entorno        | Frontend                               | Backend                 |
-| -------------- | -------------------------------------- | ----------------------- |
-| **Production** | `app.stagelink.io`                     | `api.stagelink.io`      |
-| **Staging**    | `staging.stagelink.io` (Vercel branch) | Railway staging service |
-| **Preview**    | `stagelink-git-{branch}.vercel.app`    | — (usa API de staging)  |
-| **Local**      | `localhost:4000`                       | `localhost:4001`        |
+| Entorno        | Frontend                               | Backend                           |
+| -------------- | -------------------------------------- | --------------------------------- |
+| **Production** | `app.stagelink.io`                     | `api.<your-domain>` o Railway URL |
+| **Staging**    | `staging.stagelink.io` (Vercel branch) | Railway staging service           |
+| **Preview**    | `stagelink-git-{branch}.vercel.app`    | — (usa API de staging)            |
+| **Local**      | `localhost:4000`                       | `localhost:4001`                  |
 
 ---
 
@@ -47,15 +47,15 @@
 
 Configurar en Vercel Dashboard → Settings → Environment Variables:
 
-| Variable                   | Production                                   | Preview                    | Development             |
-| -------------------------- | -------------------------------------------- | -------------------------- | ----------------------- |
-| `NEXT_PUBLIC_APP_URL`      | `https://app.stagelink.io`                   | URL de preview             | `http://localhost:4000` |
-| `NEXT_PUBLIC_API_URL`      | `https://api.stagelink.io`                   | `https://api.stagelink.io` | `http://localhost:4001` |
-| `NEXT_PUBLIC_POSTHOG_KEY`  | tu key                                       | —                          | —                       |
-| `NEXT_PUBLIC_POSTHOG_HOST` | `https://app.posthog.com`                    | —                          | —                       |
-| `WORKOS_CLIENT_ID`         | tu client ID                                 | —                          | —                       |
-| `WORKOS_API_KEY`           | tu API key                                   | —                          | —                       |
-| `WORKOS_REDIRECT_URI`      | `https://app.stagelink.io/api/auth/callback` | —                          | —                       |
+| Variable                   | Production                                   | Preview                                   | Development             |
+| -------------------------- | -------------------------------------------- | ----------------------------------------- | ----------------------- |
+| `NEXT_PUBLIC_APP_URL`      | `https://app.stagelink.io`                   | URL de preview                            | `http://localhost:4000` |
+| `NEXT_PUBLIC_API_URL`      | `https://api.<your-domain>` o Railway URL    | `https://api.<your-domain>` o Railway URL | `http://localhost:4001` |
+| `NEXT_PUBLIC_POSTHOG_KEY`  | tu key                                       | —                                         | —                       |
+| `NEXT_PUBLIC_POSTHOG_HOST` | `https://app.posthog.com`                    | —                                         | —                       |
+| `WORKOS_CLIENT_ID`         | tu client ID                                 | —                                         | —                       |
+| `WORKOS_API_KEY`           | tu API key                                   | —                                         | —                       |
+| `WORKOS_REDIRECT_URI`      | `https://app.stagelink.io/api/auth/callback` | —                                         | —                       |
 
 ### Preview deployments automáticos
 
@@ -86,7 +86,7 @@ Configurar en Railway Dashboard → Variables:
 
 ```bash
 NODE_ENV=production
-APP_URL=https://api.stagelink.io
+APP_URL=https://api.<your-domain>
 FRONTEND_URL=https://app.stagelink.io
 CORS_ALLOWED_ORIGINS=https://app.stagelink.io,https://staging.stagelink.io
 
@@ -94,10 +94,10 @@ CORS_ALLOWED_ORIGINS=https://app.stagelink.io,https://staging.stagelink.io
 DATABASE_URL=postgresql://...      # Pooler / runtime
 DIRECT_URL=postgresql://...        # Conexión directa para migraciones Prisma
 
-# WorkOS (cuando se implemente auth — T2)
+# WorkOS
 WORKOS_CLIENT_ID=
 WORKOS_API_KEY=
-WORKOS_REDIRECT_URI=https://api.stagelink.io/api/auth/callback
+SECRETS_ENCRYPTION_KEY=replace-with-32-plus-char-secret
 
 # Stripe (T5)
 STRIPE_SECRET_KEY=
@@ -224,7 +224,7 @@ Esto evita que Cloudflare cachee respuestas del API (importante para CORS y auth
 
 **Railway**:
 
-- Dashboard → Settings → Networking → Custom Domain → Add `api.stagelink.io`
+- Dashboard → Settings → Networking → Custom Domain → Add `api.<your-domain>`
 - Railway te dará el CNAME a apuntar (normalmente `{service}.up.railway.app`)
 
 ---
@@ -233,11 +233,11 @@ Esto evita que Cloudflare cachee respuestas del API (importante para CORS y auth
 
 ### Regla general
 
-| Variable              | Local                   | Preview                    | Production                 |
-| --------------------- | ----------------------- | -------------------------- | -------------------------- |
-| `NODE_ENV`            | `development`           | `preview`                  | `production`               |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:4001` | `https://api.stagelink.io` | `https://api.stagelink.io` |
-| `DATABASE_URL`        | docker local            | Railway staging DB         | Railway prod DB            |
+| Variable              | Local                   | Preview                                   | Production                                |
+| --------------------- | ----------------------- | ----------------------------------------- | ----------------------------------------- |
+| `NODE_ENV`            | `development`           | `preview`                                 | `production`                              |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:4001` | `https://api.<your-domain>` o Railway URL | `https://api.<your-domain>` o Railway URL |
+| `DATABASE_URL`        | docker local            | Railway staging DB                        | Railway prod DB                           |
 
 ### Nunca commitear
 
@@ -262,6 +262,16 @@ El endpoint `/api/health` es público y retorna:
 ```
 
 Railway lo usa como healthcheck (`healthcheckPath: "/api/health"` en `railway.json`).
+
+## WorkOS callback
+
+El callback de autenticación vive en el frontend Next.js, no en NestJS:
+
+```env
+WORKOS_REDIRECT_URI=https://app.stagelink.io/api/auth/callback
+```
+
+Si todavía no tenés un dominio custom listo para la API, `NEXT_PUBLIC_API_URL` puede apuntar al dominio público de Railway. Lo importante es que `WORKOS_REDIRECT_URI` siempre apunte al frontend.
 También sirve para monitoring externo (UptimeRobot, BetterStack, etc.).
 
 ---
@@ -319,8 +329,8 @@ Vercel auto-deploys preview
 URL: https://stagelink-git-{branch}.vercel.app
        │
        ▼
-Frontend preview usa NEXT_PUBLIC_API_URL=https://api.stagelink.io
-(staging Railway si está configurado, o producción)
+Frontend preview usa NEXT_PUBLIC_API_URL apuntando al dominio real del API
+(staging Railway si está configurado, o al dominio público de Railway)
        │
        ▼
 PR mergeado → deploy automático a producción

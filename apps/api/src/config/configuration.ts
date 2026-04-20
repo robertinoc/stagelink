@@ -13,7 +13,6 @@ export default (): Record<string, unknown> => ({
   workos: {
     clientId: process.env.WORKOS_CLIENT_ID,
     apiKey: process.env.WORKOS_API_KEY,
-    redirectUri: process.env.WORKOS_REDIRECT_URI,
   },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,
@@ -32,6 +31,9 @@ export default (): Record<string, unknown> => ({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     endpoint: process.env.AWS_S3_ENDPOINT,
     publicBaseUrl: process.env.AWS_S3_PUBLIC_BASE_URL,
+  },
+  secrets: {
+    encryptionKey: process.env.SECRETS_ENCRYPTION_KEY,
   },
   shopify: {
     storefrontToken: process.env.SHOPIFY_STOREFRONT_TOKEN,

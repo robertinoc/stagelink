@@ -26,6 +26,15 @@ describe('AnalyticsService', () => {
     return { service, prisma, billingEntitlementsService };
   }
 
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-04-08T12:00:00.000Z'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('requires analytics_pro for the 365d overview range', async () => {
     const { service, billingEntitlementsService } = createService();
 
@@ -92,10 +101,11 @@ describe('AnalyticsService', () => {
 
   it('fills missing days in the trends response', async () => {
     const { service, prisma } = createService();
+    const activeDay = new Date('2026-04-06T00:00:00.000Z');
 
     prisma.$queryRaw.mockResolvedValueOnce([
       {
-        day: new Date('2026-04-01T00:00:00.000Z'),
+        day: activeDay,
         pageViews: 12,
         linkClicks: 4,
         smartLinkResolutions: 2,

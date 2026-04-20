@@ -8,6 +8,7 @@ import type {
   SmartMerchProvider,
 } from '@stagelink/types';
 import { PrismaService } from '../../lib/prisma.service';
+import { decryptSecretOrLegacy, encryptSecret } from '../../common/utils/secret-encryption';
 import { AuditService } from '../audit/audit.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { MembershipService } from '../membership/membership.service';
@@ -95,14 +96,14 @@ export class MerchService {
     });
 
     const provider = this.resolveProvider(dto.provider);
-    const apiToken = assertNonEmptyToken(dto.apiToken ?? existing?.apiToken ?? '');
+    const apiToken = assertNonEmptyToken(dto.apiToken ?? decryptSecretOrLegacy(existing?.apiToken));
     const summary = await provider.validateConnection(apiToken);
 
     const saved = await this.prisma.merchProviderConnection.upsert({
       where: { artistId },
       update: {
         provider: provider.provider as MerchProvider,
-        apiToken,
+        apiToken: encryptSecret(apiToken),
         storeId: dto.storeId?.trim() || summary.storeId,
         storeName: summary.storeName,
         isConnected: true,
@@ -110,7 +111,7 @@ export class MerchService {
       create: {
         artistId,
         provider: provider.provider as MerchProvider,
-        apiToken,
+        apiToken: encryptSecret(apiToken),
         storeId: dto.storeId?.trim() || summary.storeId,
         storeName: summary.storeName,
         isConnected: true,
@@ -376,7 +377,7 @@ export class MerchService {
     storeId: string | null;
   }): MerchProviderConnectionContext {
     return {
-      apiToken: connection.apiToken,
+      apiToken: decryptSecretOrLegacy(connection.apiToken),
       storeId: connection.storeId,
     };
   }
