@@ -8,6 +8,7 @@
     "my_page": "My Page",
     "epk": "EPK",
     "analytics": "Analytics",
+    "insights": "Insights",
     "profile": "Profile",
     "billing": "Billing",
     "settings": "Settings",
@@ -177,6 +178,88 @@
       "notes": {
         "basic_quality": "Basic analytics · Bot filtering applied at ingestion · Unique visitor deduplication coming soon",
         "standard_quality": "Bot & QA traffic excluded · Production events only · Unique visitor deduplication coming soon"
+      }
+    },
+    "insights": {
+      "title": "StageLink Insights",
+      "description": "A unified analytics workspace for your connected artist platforms. This foundation already models connections, snapshots, and per-platform capabilities without faking data we cannot support yet.",
+      "beta_badge": "Foundation",
+      "last_updated_label": "Last updated",
+      "never_synced": "No sync yet",
+      "requires_owner_account": "Owner account required",
+      "summary": {
+        "connected_platforms": "Connected platforms",
+        "synced_platforms": "Platforms with synced data",
+        "stored_snapshots": "Stored snapshots",
+        "supported_platforms": "Supported platforms"
+      },
+      "empty": {
+        "title": "Your unified artist insights start here",
+        "description": "This first slice sets up platform connections, normalized snapshots, and dashboard structure. Connection flows and scheduled syncs land in the next Epic.",
+        "cta": "Open settings"
+      },
+      "locked": {
+        "title": "Unlock StageLink Insights",
+        "description": "Your current plan is {currentPlan}. Upgrade to {requiredPlan} to access the unified analytics dashboard for connected artist platforms.",
+        "cta": "Upgrade to Pro+"
+      },
+      "error": {
+        "title": "Could not load StageLink Insights",
+        "description": "Try again in a moment. If the problem persists, refresh the dashboard."
+      },
+      "connection_methods": {
+        "oauth": "OAuth connection",
+        "reference": "Profile reference"
+      },
+      "support": {
+        "full": "Full",
+        "partial": "Partial",
+        "none": "Not available"
+      },
+      "status": {
+        "disconnected": "Not connected",
+        "pending": "Pending",
+        "connected": "Connected",
+        "needs_reauth": "Needs re-auth",
+        "error": "Connection issue"
+      },
+      "capabilities": {
+        "title": "Platform support",
+        "profileBasics": "Profile basics",
+        "audienceMetrics": "Audience metrics",
+        "topContent": "Top content",
+        "historicalSnapshots": "Historical snapshots",
+        "scheduledSync": "Scheduled sync readiness"
+      },
+      "platform_card": {
+        "connection_title": "Connection status",
+        "ready_for_connection": "Connection flow is already modeled for this platform.",
+        "connection_flow_coming_soon": "Connection flow lands in the next Epic. The data model and sync status are already prepared.",
+        "last_synced": "Last synced: {value}",
+        "latest_snapshot": "Latest stored snapshot",
+        "no_snapshot": "No snapshots stored yet for this platform."
+      },
+      "platforms": {
+        "spotify": {
+          "title": "Spotify",
+          "description": "Best fit for artist profile basics, public popularity signals, and top tracks.",
+          "limitations": "Spotify does not expose a public Spotify for Artists analytics API. Foundation support assumes public artist data and future snapshot syncs, not private artist dashboards."
+        },
+        "youtube": {
+          "title": "YouTube",
+          "description": "Best fit for owned-channel metrics, top videos, and historical snapshots.",
+          "limitations": "Subscriber and video analytics become most reliable with owner-authorized access. This foundation is ready for that flow, but OAuth and scheduled sync still ship next."
+        },
+        "soundcloud": {
+          "title": "SoundCloud",
+          "description": "Best fit for profile basics and carefully scoped public-summary data.",
+          "limitations": "SoundCloud analytics access is more limited. The MVP should only promise safe public summary data unless a documented owner flow becomes available."
+        }
+      },
+      "foundation_scope": {
+        "title": "What this foundation adds",
+        "description": "StageLink now has a dedicated insights schema, provider abstraction, feature gate, and a dashboard contract ready for real platform sync.",
+        "current_plan": "You are viewing the foundation surface with the current effective plan: {plan}."
       }
     },
     "profile": {
@@ -550,6 +633,11 @@
           "title": "Smart Merch",
           "description": "Show real merch products from an external provider without building checkout yourself.",
           "note": "Connect Printful in Settings, choose products inside the block editor, and send fans to an external purchase URL."
+        },
+        "stage_link_insights": {
+          "title": "StageLink Insights",
+          "description": "Access the unified dashboard for connected platform analytics inside StageLink.",
+          "note": "This first foundation models connections, snapshots, and platform capabilities. Real OAuth flows and scheduled sync land in the next Epic."
         },
         "epk_builder": {
           "title": "EPK builder",

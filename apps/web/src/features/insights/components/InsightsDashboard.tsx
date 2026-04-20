@@ -1,0 +1,336 @@
+'use client';
+
+import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
+import {
+  AlertCircle,
+  BarChart3,
+  Clock3,
+  Globe2,
+  RefreshCw,
+  Sparkles,
+  TrendingUp,
+} from 'lucide-react';
+import { FeatureLockCta } from '@/components/billing/FeatureLockCta';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { BillingEntitlementsResponse } from '@/lib/api/billing';
+import type { StageLinkInsightsLockPayload } from '@/lib/api/insights';
+import type { StageLinkInsightsDashboard as StageLinkInsightsDashboardData } from '@stagelink/types';
+
+interface InsightsDashboardProps {
+  data: StageLinkInsightsDashboardData | null;
+  entitlements: BillingEntitlementsResponse | null;
+  lockedPayload?: StageLinkInsightsLockPayload | null;
+  errorMessage?: string | null;
+}
+
+function resolvePlanLabel(plan: BillingEntitlementsResponse['effectivePlan'] | 'free') {
+  switch (plan) {
+    case 'pro':
+      return 'Pro';
+    case 'pro_plus':
+      return 'Pro+';
+    default:
+      return 'Free';
+  }
+}
+
+function resolveStatusTone(status: string) {
+  switch (status) {
+    case 'connected':
+      return 'secondary' as const;
+    case 'error':
+    case 'needs_reauth':
+      return 'destructive' as const;
+    default:
+      return 'outline' as const;
+  }
+}
+
+function formatDate(value: string | null, locale: string): string | null {
+  if (!value) return null;
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
+}
+
+function LockedState({ payload }: { payload: StageLinkInsightsLockPayload }) {
+  const t = useTranslations('dashboard.insights.locked');
+  const locale = useLocale();
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t('title')}</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          {t('description', {
+            currentPlan: resolvePlanLabel(payload.effectivePlan),
+            requiredPlan: resolvePlanLabel(payload.requiredPlan),
+          })}
+        </p>
+      </CardHeader>
+      <CardContent>
+        <FeatureLockCta
+          title={t('title')}
+          description={t('description', {
+            currentPlan: resolvePlanLabel(payload.effectivePlan),
+            requiredPlan: resolvePlanLabel(payload.requiredPlan),
+          })}
+          currentPlanLabel={resolvePlanLabel(payload.effectivePlan)}
+          requiredPlanLabel={resolvePlanLabel(payload.requiredPlan)}
+          href={`/${locale}/dashboard/billing`}
+          ctaLabel={t('cta')}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+function ErrorState({ message }: { message?: string | null }) {
+  const t = useTranslations('dashboard.insights.error');
+
+  return (
+    <Card className="border-destructive/20 bg-destructive/5">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-5 w-5 text-destructive" />
+          <CardTitle>{t('title')}</CardTitle>
+        </div>
+        <p className="text-sm text-muted-foreground">{t('description')}</p>
+      </CardHeader>
+      {message ? (
+        <CardContent>
+          <p className="text-sm text-destructive">{message}</p>
+        </CardContent>
+      ) : null}
+    </Card>
+  );
+}
+
+function SummaryCards({ data }: { data: StageLinkInsightsDashboardData }) {
+  const t = useTranslations('dashboard.insights.summary');
+
+  const iconMap = {
+    connected_platforms: Globe2,
+    synced_platforms: RefreshCw,
+    stored_snapshots: BarChart3,
+    supported_platforms: Sparkles,
+  } as const;
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {data.summaryCards.map((card) => {
+        const Icon = iconMap[card.id];
+        return (
+          <Card key={card.id}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {t(card.id)}
+              </CardTitle>
+              <Icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tabular-nums">{card.value}</div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+function EmptyState() {
+  const t = useTranslations('dashboard.insights.empty');
+  const locale = useLocale();
+
+  return (
+    <Card className="border-dashed">
+      <CardContent className="flex min-h-[220px] flex-col items-center justify-center gap-3 py-10 text-center">
+        <TrendingUp className="h-10 w-10 text-muted-foreground/40" />
+        <h3 className="text-base font-semibold">{t('title')}</h3>
+        <p className="max-w-lg text-sm text-muted-foreground">{t('description')}</p>
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/${locale}/dashboard/settings`}>{t('cta')}</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function InsightsDashboard({
+  data,
+  entitlements,
+  lockedPayload,
+  errorMessage,
+}: InsightsDashboardProps) {
+  const t = useTranslations('dashboard.insights');
+  const locale = useLocale();
+
+  if (lockedPayload) {
+    return <LockedState payload={lockedPayload} />;
+  }
+
+  if (errorMessage) {
+    return <ErrorState message={errorMessage} />;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Badge variant="outline">Pro+</Badge>
+            <Badge variant="secondary">{t('beta_badge')}</Badge>
+          </div>
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <p className="max-w-3xl text-sm text-muted-foreground">{t('description')}</p>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Clock3 className="h-4 w-4" />
+            <span>{t('last_updated_label')}</span>
+          </div>
+          <p className="mt-1 font-medium text-foreground">
+            {formatDate(data.lastUpdatedAt, locale) ?? t('never_synced')}
+          </p>
+        </div>
+      </div>
+
+      <SummaryCards data={data} />
+
+      {!data.hasAnyConnectedPlatforms ? <EmptyState /> : null}
+
+      <div className="grid gap-4 xl:grid-cols-3">
+        {data.platforms.map((platform) => {
+          const effectiveStatus = platform.connection?.status ?? 'disconnected';
+          const formattedLastSynced = formatDate(platform.connection?.lastSyncedAt ?? null, locale);
+
+          return (
+            <Card key={platform.platform} className="h-full">
+              <CardHeader className="space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <CardTitle>{t(`platforms.${platform.platform}.title`)}</CardTitle>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {t(`platforms.${platform.platform}.description`)}
+                    </p>
+                  </div>
+                  <Badge variant={resolveStatusTone(effectiveStatus)}>
+                    {t(`status.${effectiveStatus}`)}
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline">
+                    {t(`connection_methods.${platform.capabilities.connectionMethod}`)}
+                  </Badge>
+                  {platform.capabilities.requiresArtistOwnedAccount ? (
+                    <Badge variant="outline">{t('requires_owner_account')}</Badge>
+                  ) : null}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2 text-sm">
+                  <p className="font-medium text-foreground">{t('capabilities.title')}</p>
+                  <div className="grid gap-2">
+                    {(
+                      [
+                        'profileBasics',
+                        'audienceMetrics',
+                        'topContent',
+                        'historicalSnapshots',
+                        'scheduledSync',
+                      ] as const
+                    ).map((key) => (
+                      <div
+                        key={key}
+                        className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2"
+                      >
+                        <span className="text-muted-foreground">{t(`capabilities.${key}`)}</span>
+                        <Badge variant="outline">
+                          {t(`support.${platform.capabilities[key]}`)}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm">
+                  <p className="font-medium text-foreground">
+                    {t('platform_card.connection_title')}
+                  </p>
+                  <p className="mt-1 text-muted-foreground">
+                    {platform.connection?.displayName ??
+                      t(
+                        platform.capabilities.connectionFlowReady
+                          ? 'platform_card.ready_for_connection'
+                          : 'platform_card.connection_flow_coming_soon',
+                      )}
+                  </p>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {t('platform_card.last_synced', {
+                      value: formattedLastSynced ?? t('never_synced'),
+                    })}
+                  </p>
+                </div>
+
+                {platform.latestSnapshot ? (
+                  <div className="rounded-xl border border-primary/20 bg-primary/10 p-4">
+                    <p className="text-sm font-medium text-foreground">
+                      {t('platform_card.latest_snapshot')}
+                    </p>
+                    <div className="mt-3 grid gap-2">
+                      {Object.entries(platform.latestSnapshot.metrics)
+                        .slice(0, 3)
+                        .map(([key, value]) => (
+                          <div
+                            key={key}
+                            className="flex items-center justify-between gap-3 text-sm"
+                          >
+                            <span className="text-muted-foreground">{key}</span>
+                            <span className="font-medium text-foreground">{String(value)}</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
+                    {t('platform_card.no_snapshot')}
+                  </div>
+                )}
+
+                <p className="text-xs leading-5 text-muted-foreground">
+                  {t(`platforms.${platform.platform}.limitations`)}
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('foundation_scope.title')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>{t('foundation_scope.description')}</p>
+          <p>
+            {t('foundation_scope.current_plan', {
+              plan: resolvePlanLabel(entitlements?.effectivePlan ?? 'free'),
+            })}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

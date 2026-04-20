@@ -7,6 +7,7 @@ export * from './asset';
 export * from './epk';
 export * from './smart-link';
 export * from './analytics';
+export * from './insights';
 export * from './billing';
 export * from './shopify';
 export * from './merch';
