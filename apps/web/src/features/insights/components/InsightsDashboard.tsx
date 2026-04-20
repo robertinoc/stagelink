@@ -18,8 +18,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { BillingEntitlementsResponse } from '@/lib/api/billing';
 import type { StageLinkInsightsLockPayload } from '@/lib/api/insights';
 import type { StageLinkInsightsDashboard as StageLinkInsightsDashboardData } from '@stagelink/types';
+import { SpotifyInsightsCard } from './SpotifyInsightsCard';
 
 interface InsightsDashboardProps {
+  artistId: string;
   data: StageLinkInsightsDashboardData | null;
   entitlements: BillingEntitlementsResponse | null;
   lockedPayload?: StageLinkInsightsLockPayload | null;
@@ -148,7 +150,6 @@ function SummaryCards({ data }: { data: StageLinkInsightsDashboardData }) {
 
 function EmptyState() {
   const t = useTranslations('dashboard.insights.empty');
-  const locale = useLocale();
 
   return (
     <Card className="border-dashed">
@@ -157,7 +158,7 @@ function EmptyState() {
         <h3 className="text-base font-semibold">{t('title')}</h3>
         <p className="max-w-lg text-sm text-muted-foreground">{t('description')}</p>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/${locale}/dashboard/settings`}>{t('cta')}</Link>
+          <Link href="#spotify-insights">{t('cta')}</Link>
         </Button>
       </CardContent>
     </Card>
@@ -165,6 +166,7 @@ function EmptyState() {
 }
 
 export function InsightsDashboard({
+  artistId,
   data,
   entitlements,
   lockedPayload,
@@ -213,6 +215,42 @@ export function InsightsDashboard({
 
       <div className="grid gap-4 xl:grid-cols-3">
         {data.platforms.map((platform) => {
+          if (platform.platform === 'spotify') {
+            return (
+              <Card key={platform.platform} id="spotify-insights" className="xl:col-span-3">
+                <CardHeader className="space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <CardTitle>{t(`platforms.${platform.platform}.title`)}</CardTitle>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {t(`platforms.${platform.platform}.description`)}
+                      </p>
+                    </div>
+                    <Badge
+                      variant={resolveStatusTone(platform.connection?.status ?? 'disconnected')}
+                    >
+                      {t(`status.${platform.connection?.status ?? 'disconnected'}`)}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">
+                      {t(`connection_methods.${platform.capabilities.connectionMethod}`)}
+                    </Badge>
+                    <Badge variant="outline">
+                      {t(`support.${platform.capabilities.profileBasics}`)}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <SpotifyInsightsCard artistId={artistId} summary={platform} />
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    {t(`platforms.${platform.platform}.limitations`)}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          }
+
           const effectiveStatus = platform.connection?.status ?? 'disconnected';
           const formattedLastSynced = formatDate(platform.connection?.lastSyncedAt ?? null, locale);
 

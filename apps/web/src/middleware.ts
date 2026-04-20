@@ -51,6 +51,7 @@ export default async function middleware(request: NextRequest) {
     pathname === '/api/onboarding/complete' ||
     pathname === '/api/assets/upload-intent' ||
     (pathname.startsWith('/api/assets/') && pathname.endsWith('/confirm')) ||
+    pathname.startsWith('/api/insights/') ||
     pathname.startsWith('/api/artists/') ||
     pathname.startsWith('/api/pages/') ||
     pathname.startsWith('/api/blocks/')
@@ -126,6 +127,7 @@ export const config = {
     '/api/onboarding/complete',
     '/api/assets/upload-intent',
     '/api/assets/:path*',
+    '/api/insights/:path*',
     '/api/artists/:path*',
     '/api/pages/:path*',
     '/api/blocks/:path*',

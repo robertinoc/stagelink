@@ -182,8 +182,8 @@
     },
     "insights": {
       "title": "StageLink Insights",
-      "description": "Un workspace unificado de analytics para tus plataformas conectadas. Esta fundación ya modela conexiones, snapshots y capacidades por plataforma sin inventar datos que todavía no podamos sostener.",
-      "beta_badge": "Foundation",
+      "description": "Un workspace unificado de analytics para tus plataformas conectadas. Spotify ya está activo para básicos del perfil de artista, señales públicas de audiencia y top tracks, mientras las próximas plataformas siguen claramente marcadas hasta que estén listas.",
+      "beta_badge": "Beta",
       "last_updated_label": "Última actualización",
       "never_synced": "Todavía sin sync",
       "requires_owner_account": "Requiere cuenta del owner",
@@ -195,8 +195,8 @@
       },
       "empty": {
         "title": "Tus insights unificados arrancan acá",
-        "description": "Este primer slice deja lista la base de conexiones, snapshots normalizados y estructura del dashboard. Los flujos de conexión y el sync programado llegan en el próximo Epic.",
-        "cta": "Abrir settings"
+        "description": "Conectá Spotify para traer los básicos de tu perfil de artista, seguidores públicos, popularidad y top tracks a un solo dashboard dentro de StageLink.",
+        "cta": "Conectar Spotify"
       },
       "locked": {
         "title": "Desbloqueá StageLink Insights",
@@ -223,6 +223,13 @@
         "needs_reauth": "Requiere re-auth",
         "error": "Problema de conexión"
       },
+      "sync_status": {
+        "never": "Sin sync todavía",
+        "pending": "Sincronizando",
+        "success": "Sync exitoso",
+        "partial": "Sync parcial",
+        "error": "Sync fallido"
+      },
       "capabilities": {
         "title": "Soporte por plataforma",
         "profileBasics": "Datos básicos del perfil",
@@ -239,11 +246,51 @@
         "latest_snapshot": "Último snapshot guardado",
         "no_snapshot": "Todavía no hay snapshots guardados para esta plataforma."
       },
+      "spotify": {
+        "setup_required": "Spotify Insights necesita `SPOTIFY_CLIENT_ID` y `SPOTIFY_CLIENT_SECRET` configurados en este deployment antes de que los artistas puedan conectarse.",
+        "fields": {
+          "artist_input": "URL o ID del artista en Spotify",
+          "artist_input_placeholder": "https://open.spotify.com/artist/...",
+          "artist_input_hint": "Pegá una URL de artista de Spotify, un URI de Spotify o el ID crudo de 22 caracteres."
+        },
+        "actions": {
+          "validate": "Validar artista",
+          "validating": "Validando...",
+          "connect": "Conectar Spotify",
+          "connecting": "Conectando...",
+          "update": "Actualizar conexión",
+          "sync": "Sincronizar ahora",
+          "syncing": "Sincronizando...",
+          "open_spotify": "Abrir en Spotify"
+        },
+        "messages": {
+          "connected": "Artista de Spotify conectado. Corré un sync para traer el primer snapshot.",
+          "validate_error": "No se pudo validar este artista de Spotify ahora mismo.",
+          "connect_error": "No se pudo guardar este artista de Spotify ahora mismo.",
+          "sync_error": "No se pudieron sincronizar los insights de Spotify ahora mismo."
+        },
+        "connected": {
+          "unknown_artist": "Artista de Spotify conectado",
+          "last_sync": "Último sync: {value}"
+        },
+        "metrics": {
+          "followers_total": "Seguidores",
+          "popularity": "Popularidad",
+          "top_tracks_count": "Top tracks",
+          "genres_count": "Géneros"
+        },
+        "top_tracks": {
+          "title": "Top tracks",
+          "empty": "Spotify no devolvió top tracks para este artista en el mercado configurado.",
+          "open_track": "Abrir track en Spotify"
+        },
+        "empty_synced": "Spotify está conectado, pero todavía no hay snapshots guardados. Corré un sync para traer la primera tanda de métricas."
+      },
       "platforms": {
         "spotify": {
           "title": "Spotify",
-          "description": "Encaja mejor para datos básicos del artista, señales públicas de popularidad y top tracks.",
-          "limitations": "Spotify no expone una API pública tipo Spotify for Artists. La base asume data pública del artista y futuros snapshot syncs, no dashboards privados del artista."
+          "description": "Básicos del perfil del artista, conteo público de seguidores, popularidad y top tracks usando la Spotify Web API oficial.",
+          "limitations": "Spotify no expone una API pública equivalente a Spotify for Artists. StageLink Insights usa solo data pública a nivel artista, y los top tracks dependen del mercado configurado."
         },
         "youtube": {
           "title": "YouTube",
@@ -257,9 +304,9 @@
         }
       },
       "foundation_scope": {
-        "title": "Qué agrega esta fundación",
-        "description": "StageLink ahora tiene schema dedicado para insights, provider abstraction, feature gate y contrato de dashboard listo para sync real de plataformas.",
-        "current_plan": "Estás viendo esta base con el plan efectivo actual: {plan}."
+        "title": "Qué está activo en esta fase",
+        "description": "Spotify ya está conectado a la base real de Insights: capa de providers, snapshots normalizados, estado de sync y un dashboard PRO+ protegido listo para crecer plataforma por plataforma.",
+        "current_plan": "Estás viendo StageLink Insights con el plan efectivo actual: {plan}."
       }
     },
     "profile": {
