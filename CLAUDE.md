@@ -25,7 +25,7 @@ La página pública actual se apoya en una composición más rica que un simple 
 - **ORM**: Prisma (con migraciones en `apps/api/prisma/migrations/`)
 - **Storage**: Cloudflare R2 / AWS S3-compatible (avatars, covers, assets de EPK)
 - **Pagos**: Stripe (suscripciones Free / Pro / Pro+)
-- **Analytics**: PostHog + eventos propios en DB
+- **Analytics**: PostHog + eventos propios en DB + base de `StageLink Insights` para analytics unificadas por plataforma
 - **EPK**: Builder propio con share page SSR + print/export-friendly view
 - **i18n**: next-intl
 - **Deploy**: Vercel (frontend) + Railway (backend, us-west2) + Cloudflare (DNS/CDN/proxy)
@@ -55,6 +55,7 @@ apps/
 │       │       │   └── signup/
 │       │       ├── (app)/              # Dashboard layout (Sidebar + Topbar)
 │       │       │   ├── dashboard/
+│       │       │   │   └── analytics/insights/ # StageLink Insights (foundation route)
 │       │       │   └── settings/        # Settings incluye integraciones como Shopify Storefront y Smart Merch (Printful)
 │       │       └── [username]/         # Página pública del artista localizada (multi-tenant)
 │       ├── components/
@@ -65,6 +66,7 @@ apps/
 │       │   ├── marketing/              # LandingPage, hero, pricing
 │       │   ├── auth/                   # LoginForm, SignupForm
 │       │   ├── dashboard/              # DashboardWelcome, stats, Shopify / Smart Merch settings cards
+│       │   ├── insights/               # StageLink Insights dashboard skeleton + platform capability UI
 │       │   ├── epk/                    # EPK builder + shareable/public rendering
 │       │   └── public-page/            # ArtistPageView SSR + composición pública localizada
 │       ├── i18n/
@@ -121,6 +123,7 @@ apps/
             ├── pages/      # CRUD páginas públicas (stub)
             ├── blocks/     # CRUD bloques (stub)
             ├── analytics/  # Dashboard analytics básico + Analytics Pro / fan insights con gates por plan
+            ├── insights/   # StageLink Insights foundation: conexiones por plataforma, snapshots y dashboard privado skeleton
             ├── billing/    # Stripe billing + entitlements + billing summary para dashboard/upgrade flows
             ├── merch/      # Smart Merch: conexión Printful por artista, provider layer y selección pública saneada
             └── shopify/    # Conexión Storefront por artista, validación y selección pública de merch
@@ -135,6 +138,7 @@ docs/
 ├── basic-analytics-dashboard.md # Fuente de verdad, métricas, API shape, limitaciones T4-2
 ├── fan-email-capture-block.md   # Schema, modelo subscribers, anti-abuse, export, privacidad T4-3
 ├── analytics-pro-and-fan-insights.md # Analytics Pro, fan insights agregados, gates y limitaciones T6-4
+├── stagelink-insights.md            # StageLink Insights, plataformas soportadas, límites y arquitectura base
 ├── epk-builder-and-shareable-page.md # Modelo EPK, herencia, publicación, share route y export print-friendly T6-3
 ├── stripe-billing-foundation.md   # Checkout, portal, webhooks, billing por artist (T5-1)
 ├── billing-state-policy.md        # Política base de billing states y recovery

@@ -123,6 +123,8 @@ model Artist {
   epk             Epk?
   shopifyConnection ShopifyConnection?
   merchProviderConnection MerchProviderConnection?
+  insightsConnections ArtistPlatformInsightsConnection[]
+  insightsSnapshots ArtistPlatformInsightsSnapshot[]
 
   @@map("artists")
 }
@@ -473,6 +475,40 @@ enum MerchProvider {
   @@map("merch_provider")
 }
 
+enum InsightsPlatform {
+  spotify
+  youtube
+  soundcloud
+
+  @@map("insights_platform")
+}
+
+enum InsightsConnectionMethod {
+  oauth
+  reference
+
+  @@map("insights_connection_method")
+}
+
+enum InsightsConnectionStatus {
+  pending
+  connected
+  needs_reauth
+  error
+
+  @@map("insights_connection_status")
+}
+
+enum InsightsSyncStatus {
+  never
+  pending
+  success
+  partial
+  error
+
+  @@map("insights_sync_status")
+}
+
 model MerchProviderConnection {
   id         String        @id @default(cuid())
   artistId   String        @unique @map("artist_id")
@@ -488,6 +524,57 @@ model MerchProviderConnection {
 
   @@index([provider])
   @@map("merch_provider_connections")
+}
+
+model ArtistPlatformInsightsConnection {
+  id                String                   @id @default(cuid())
+  artistId          String                   @map("artist_id")
+  platform          InsightsPlatform
+  connectionMethod  InsightsConnectionMethod @default(reference) @map("connection_method")
+  status            InsightsConnectionStatus @default(pending)
+  externalAccountId String?                  @map("external_account_id")
+  externalHandle    String?                  @map("external_handle")
+  externalUrl       String?                  @map("external_url")
+  displayName       String?                  @map("display_name")
+  accessToken       String?                  @map("access_token")
+  refreshToken      String?                  @map("refresh_token")
+  tokenExpiresAt    DateTime?                @map("token_expires_at")
+  scopes            Json                     @default("[]")
+  metadata          Json                     @default("{}")
+  lastSyncStartedAt DateTime?                @map("last_sync_started_at")
+  lastSyncedAt      DateTime?                @map("last_synced_at")
+  lastSyncStatus    InsightsSyncStatus       @default(never) @map("last_sync_status")
+  lastSyncError     String?                  @map("last_sync_error")
+  createdAt         DateTime                 @default(now()) @map("created_at")
+  updatedAt         DateTime                 @updatedAt @map("updated_at")
+
+  artist    Artist                         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  snapshots ArtistPlatformInsightsSnapshot[]
+
+  @@unique([artistId, platform])
+  @@index([platform, status])
+  @@index([artistId, lastSyncedAt])
+  @@map("artist_platform_insights_connections")
+}
+
+model ArtistPlatformInsightsSnapshot {
+  id          String           @id @default(cuid())
+  artistId    String           @map("artist_id")
+  connectionId String          @map("connection_id")
+  platform    InsightsPlatform
+  capturedAt  DateTime         @map("captured_at")
+  profile     Json             @default("{}")
+  metrics     Json             @default("{}")
+  topContent  Json             @default("[]") @map("top_content")
+  notes       Json             @default("[]")
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  artist     Artist                         @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  connection ArtistPlatformInsightsConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([artistId, platform, capturedAt(sort: Desc)])
+  @@index([connectionId, capturedAt(sort: Desc)])
+  @@map("artist_platform_insights_snapshots")
 }
 
 // =============================================================
