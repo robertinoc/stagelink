@@ -214,15 +214,15 @@ No hace falta rehacer:
 
 ## Próximos pasos recomendados
 
-- cifrado en reposo del token del provider
 - selector de productos con búsqueda y paginación
 - preview más rico en el editor
 - soporte real para `Printify`
 - analytics de clics de compra por producto
 
-### Nota de seguridad pendiente
+### Seguridad de credenciales
 
-El `apiToken` del provider se cifra en reposo a nivel de aplicación antes de persistirse en la base de datos
-con una key de aplicación y desencriptarse solo en el backend al momento de invocar al provider.
-La v1 ya evita exponer el secreto al frontend, pero todavía no reduce el blast radius de un dump
-de base o acceso operativo a la tabla `merch_provider_connections`.
+El `apiToken` del provider ahora se cifra en reposo a nivel de aplicación antes de persistirse en la base de datos,
+usando `SECRETS_ENCRYPTION_KEY`, y solo se desencripta en el backend al momento de invocar al provider.
+
+La v1 evita exponer el secreto al frontend público y ya reduce el blast radius de un dump de base respecto a texto plano.
+Como siguiente hardening, todavía conviene evaluar rotación de claves y/o backing con KMS si el módulo de merch crece.
