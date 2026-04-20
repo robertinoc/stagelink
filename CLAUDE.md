@@ -345,7 +345,7 @@ NEXT_PUBLIC_APP_URL=                    # http://localhost:4000 en dev
 NEXT_PUBLIC_API_URL=                    # http://localhost:4001 en dev
 WORKOS_CLIENT_ID=                       # WorkOS Dashboard → API Keys
 WORKOS_API_KEY=                         # WorkOS Dashboard → API Keys (server-side)
-WORKOS_REDIRECT_URI=                    # http://localhost:4000/api/auth/callback
+WORKOS_REDIRECT_URI=                    # http://localhost:4000/api/auth/callback (frontend Next.js)
 WORKOS_COOKIE_PASSWORD=                 # openssl rand -base64 32 (mín 32 chars)
 
 # Backend (apps/api/.env)
@@ -353,13 +353,13 @@ DATABASE_URL=                           # PostgreSQL (requerida en producción)
 PORT=                                   # Inyectado por Railway automáticamente
 WORKOS_CLIENT_ID=                       # Para construir URL JWKS
 WORKOS_API_KEY=                         # Para fetchear perfil en 1er login
-WORKOS_REDIRECT_URI=                    # http://localhost:4000/api/auth/callback
 AWS_S3_BUCKET=                          # Nombre del bucket (ej: stagelink-assets)
 AWS_S3_REGION=                          # auto (R2) o us-east-1 (AWS)
 AWS_ACCESS_KEY_ID=                      # R2 o IAM access key
 AWS_SECRET_ACCESS_KEY=                  # R2 o IAM secret key
 AWS_S3_ENDPOINT=                        # Solo para R2/MinIO: https://<account>.r2.cloudflarestorage.com
 AWS_S3_PUBLIC_BASE_URL=                 # URL pública base para delivery de assets
+SECRETS_ENCRYPTION_KEY=                 # openssl rand -hex 32 (cifra tokens Shopify/Printful en reposo)
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 POSTHOG_KEY=

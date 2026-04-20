@@ -12,6 +12,7 @@ import type {
   ShopifyStoreProduct,
 } from '@stagelink/types';
 import { PrismaService } from '../../lib/prisma.service';
+import { decryptSecretOrLegacy, encryptSecret } from '../../common/utils/secret-encryption';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
@@ -123,7 +124,8 @@ export class ShopifyService {
 
     const storeDomain = normalizeShopifyStoreDomain(dto.storeDomain);
     const selectionMode = dto.selectionMode as ShopifySelectionMode;
-    const storefrontToken = dto.storefrontToken?.trim() || existing?.storefrontToken;
+    const storefrontToken =
+      dto.storefrontToken?.trim() || decryptSecretOrLegacy(existing?.storefrontToken);
 
     if (!storefrontToken) {
       throw new BadRequestException('Storefront token is required');
@@ -158,7 +160,7 @@ export class ShopifyService {
       where: { artistId },
       update: {
         storeDomain,
-        storefrontToken,
+        storefrontToken: encryptSecret(storefrontToken),
         storeName: shop.name,
         isConnected: true,
         selectionMode,
@@ -168,7 +170,7 @@ export class ShopifyService {
       create: {
         artistId,
         storeDomain,
-        storefrontToken,
+        storefrontToken: encryptSecret(storefrontToken),
         storeName: shop.name,
         isConnected: true,
         selectionMode,
@@ -291,7 +293,7 @@ export class ShopifyService {
     try {
       const preview = await this.fetchSelectionPreview({
         storeDomain: connection.storeDomain,
-        storefrontToken: connection.storefrontToken,
+        storefrontToken: decryptSecretOrLegacy(connection.storefrontToken),
         selectionMode: connection.selectionMode,
         collectionHandle: connection.collectionHandle,
         productHandles: this.readProductHandles(connection.productHandles),

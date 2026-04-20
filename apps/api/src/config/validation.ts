@@ -37,11 +37,6 @@ export const validationSchema = Joi.object({
     then: Joi.string().required(),
     otherwise: optionalString,
   }),
-  WORKOS_REDIRECT_URI: Joi.when('NODE_ENV', {
-    is: 'production',
-    then: Joi.string().uri().required(),
-    otherwise: optionalString,
-  }),
 
   // Payments — required when Stripe is integrated (T5)
   STRIPE_SECRET_KEY: optionalString,
@@ -80,6 +75,13 @@ export const validationSchema = Joi.object({
   AWS_S3_PUBLIC_BASE_URL: Joi.when('NODE_ENV', {
     is: 'production',
     then: Joi.string().uri().required(),
+    otherwise: optionalString,
+  }),
+
+  // Secrets encryption — required in production for provider/store tokens
+  SECRETS_ENCRYPTION_KEY: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().min(32).required(),
     otherwise: optionalString,
   }),
 

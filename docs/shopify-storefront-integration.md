@@ -248,7 +248,7 @@ La integración sigue estas reglas:
 
 ### Limitación actual
 
-En esta v1, el `storefrontToken` se guarda en la base de datos sin cifrado en reposo.
+El `storefrontToken` se cifra en reposo a nivel de aplicación antes de persistirse en la base de datos.
 No se expone al frontend público y no se devuelve en la UI privada, pero sigue siendo una mejora recomendada para una siguiente iteración de seguridad. 6. no se loggea el token
 
 ### Nota sobre secretos
