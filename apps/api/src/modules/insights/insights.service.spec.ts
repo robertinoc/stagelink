@@ -220,6 +220,75 @@ describe('InsightsService', () => {
     expect(result.displayName).toBe('Robertino');
   });
 
+  it('clears stale sync errors when spotify connection is updated successfully', async () => {
+    prisma.artistPlatformInsightsConnection.findFirst.mockResolvedValue({
+      id: 'conn_spotify',
+      artistId: 'artist_123',
+      platform: 'spotify',
+      connectionMethod: 'reference',
+      status: 'connected',
+      displayName: 'Robertino',
+      externalAccountId: 'spotify-artist-id',
+      externalHandle: null,
+      externalUrl: 'https://open.spotify.com/artist/spotify-artist-id',
+      scopes: [],
+      metadata: {},
+      accessToken: null,
+      refreshToken: null,
+      tokenExpiresAt: null,
+      lastSyncStartedAt: null,
+      lastSyncedAt: null,
+      lastSyncStatus: 'error',
+      lastSyncError: 'Spotify API request failed (403)',
+      createdAt: new Date('2026-04-19T10:00:00.000Z'),
+      updatedAt: new Date('2026-04-20T10:00:00.000Z'),
+    });
+
+    prisma.artistPlatformInsightsConnection.update.mockImplementation(async ({ data }) => ({
+      id: 'conn_spotify',
+      artistId: 'artist_123',
+      platform: 'spotify',
+      connectionMethod: 'reference',
+      status: data.status ?? 'connected',
+      displayName: data.displayName ?? 'Robertino',
+      externalAccountId: data.externalAccountId ?? 'spotify-artist-id',
+      externalHandle: null,
+      externalUrl: data.externalUrl ?? 'https://open.spotify.com/artist/spotify-artist-id',
+      scopes: [],
+      metadata: data.metadata ?? {},
+      accessToken: null,
+      refreshToken: null,
+      tokenExpiresAt: null,
+      lastSyncStartedAt: data.lastSyncStartedAt ?? null,
+      lastSyncedAt: data.lastSyncedAt ?? null,
+      lastSyncStatus: data.lastSyncStatus ?? 'never',
+      lastSyncError: data.lastSyncError ?? null,
+      createdAt: new Date('2026-04-19T10:00:00.000Z'),
+      updatedAt: new Date('2026-04-20T10:00:00.000Z'),
+    }));
+
+    spotifyProvider.validateArtistReference.mockResolvedValue({
+      ok: true,
+      platform: 'spotify',
+      externalAccountId: 'spotify-artist-id',
+      displayName: 'Robertino',
+      externalUrl: 'https://open.spotify.com/artist/spotify-artist-id',
+      imageUrl: null,
+      followersTotal: 1234,
+      popularity: 44,
+      message: 'Connected to Robertino on Spotify',
+    });
+
+    const result = await service.updateSpotifyConnection(
+      'artist_123',
+      { artistInput: 'https://open.spotify.com/artist/spotify-artist-id' },
+      'user_123',
+    );
+
+    expect(result.lastSyncStatus).toBe('never');
+    expect(result.lastSyncError).toBeNull();
+  });
+
   it('syncs spotify snapshots and updates connection sync metadata', async () => {
     prisma.artistPlatformInsightsConnection.findFirst.mockResolvedValue({
       id: 'conn_spotify',
@@ -370,6 +439,7 @@ describe('InsightsService', () => {
       expect.objectContaining({
         where: { id: 'conn_spotify' },
         data: expect.objectContaining({
+          status: 'connected',
           lastSyncStatus: 'error',
           lastSyncError: 'Could not sync Spotify insights right now',
         }),

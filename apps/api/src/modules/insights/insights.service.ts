@@ -189,6 +189,13 @@ export class InsightsService {
       }
 
       if (existing) {
+        const recoveredSyncStatus =
+          accountChanged || !existing.lastSyncedAt
+            ? 'never'
+            : existing.lastSyncStatus === 'error'
+              ? 'success'
+              : existing.lastSyncStatus;
+
         return tx.artistPlatformInsightsConnection.update({
           where: { id: existing.id },
           data: {
@@ -205,8 +212,8 @@ export class InsightsService {
             metadata: metadata as Prisma.InputJsonValue,
             lastSyncStartedAt: null,
             lastSyncedAt: accountChanged ? null : existing.lastSyncedAt,
-            lastSyncStatus: accountChanged ? 'never' : existing.lastSyncStatus,
-            lastSyncError: accountChanged ? null : existing.lastSyncError,
+            lastSyncStatus: recoveredSyncStatus,
+            lastSyncError: null,
           },
         });
       }
@@ -363,7 +370,7 @@ export class InsightsService {
       await this.prisma.artistPlatformInsightsConnection.update({
         where: { id: connection.id },
         data: {
-          status: 'error',
+          status: 'connected',
           lastSyncStartedAt: startedAt,
           lastSyncStatus: 'error',
           lastSyncError: message,
