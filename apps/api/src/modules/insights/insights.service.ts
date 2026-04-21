@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import type {
   SpotifyInsightsConnectionValidationResult,
@@ -346,8 +351,14 @@ export class InsightsService {
         snapshot: this.mapSnapshot(result.snapshot)!,
       };
     } catch (error) {
+      const normalizedError =
+        error instanceof HttpException
+          ? error
+          : new ServiceUnavailableException('Could not sync Spotify insights right now');
       const message =
-        error instanceof Error ? error.message : 'Could not sync Spotify insights right now';
+        normalizedError instanceof Error
+          ? normalizedError.message
+          : 'Could not sync Spotify insights right now';
 
       await this.prisma.artistPlatformInsightsConnection.update({
         where: { id: connection.id },
@@ -372,7 +383,7 @@ export class InsightsService {
         ipAddress,
       });
 
-      throw error;
+      throw normalizedError;
     }
   }
 
