@@ -121,7 +121,7 @@ export class SpotifyInsightsProvider implements PlatformInsightsProvider {
 
     const [artist, topTracks] = await Promise.all([
       this.fetchArtist(artistId),
-      this.fetchTopTracks(artistId),
+      this.fetchTopTracksSafe(artistId),
     ]);
     const summary = this.buildArtistSummary(artist);
     const genres = summary.genres;
@@ -177,6 +177,21 @@ export class SpotifyInsightsProvider implements PlatformInsightsProvider {
     return this.spotifyRequest<SpotifyTopTracksResponse>(
       `/artists/${artistId}/top-tracks?market=${market}`,
     );
+  }
+
+  private async fetchTopTracksSafe(artistId: string): Promise<SpotifyTopTracksResponse> {
+    try {
+      return await this.fetchTopTracks(artistId);
+    } catch (error) {
+      if (
+        error instanceof ServiceUnavailableException &&
+        error.message.includes('Spotify API request failed (403)')
+      ) {
+        return { tracks: [] };
+      }
+
+      throw error;
+    }
   }
 
   private async spotifyRequest<T>(path: string): Promise<T> {
