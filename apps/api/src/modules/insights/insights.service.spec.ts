@@ -313,7 +313,6 @@ describe('InsightsService', () => {
     expect(result.snapshot.metrics.followers_total).toBe(6400);
     expect(auditService.log).toHaveBeenCalled();
   });
-
   it('normalizes unexpected sync failures into a service error', async () => {
     prisma.artistPlatformInsightsConnection.findFirst.mockResolvedValue({
       id: 'conn_spotify',

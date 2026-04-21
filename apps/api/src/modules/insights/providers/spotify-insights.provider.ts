@@ -222,7 +222,6 @@ export class SpotifyInsightsProvider implements PlatformInsightsProvider {
     if (this.pendingAppTokenRequest) {
       return this.pendingAppTokenRequest;
     }
-
     const clientId = process.env['SPOTIFY_CLIENT_ID']?.trim();
     const clientSecret = process.env['SPOTIFY_CLIENT_SECRET']?.trim();
     if (!clientId || !clientSecret) {
