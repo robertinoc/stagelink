@@ -125,4 +125,70 @@ describe('SpotifyInsightsProvider', () => {
       topContent: [],
     });
   });
+
+  it('degrades gracefully when spotify forbids top tracks during sync', async () => {
+    const provider = new SpotifyInsightsProvider();
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: 'spotify-access-token',
+            token_type: 'Bearer',
+            expires_in: 3600,
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: '2jkuh1rhF7xhWCjUvBBbGr',
+            name: 'Robertino',
+            followers: { total: 1200 },
+            popularity: 42,
+            genres: ['techno'],
+          }),
+          {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            error: {
+              status: 403,
+              message: 'Forbidden',
+            },
+          }),
+          {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
+      ) as typeof fetch;
+
+    await expect(
+      provider.syncLatestSnapshot({
+        externalAccountId: '2jkuh1rhF7xhWCjUvBBbGr',
+        externalHandle: null,
+        externalUrl: null,
+        metadata: null,
+      }),
+    ).resolves.toMatchObject({
+      platform: 'spotify',
+      metrics: {
+        followers_total: 1200,
+        popularity: 42,
+        genres_count: 1,
+        top_tracks_count: 0,
+      },
+      topContent: [],
+    });
+  });
 });

@@ -64,6 +64,10 @@ export function SpotifyInsightsCard({ artistId, summary }: SpotifyInsightsCardPr
   const [syncing, setSyncing] = useState(false);
 
   const latestSnapshot = summary.latestSnapshot;
+  const persistedSyncError =
+    !statusMessage && summary.connection?.lastSyncStatus === 'error'
+      ? summary.connection.lastSyncError
+      : null;
   const followersTotal = formatNumber(latestSnapshot?.metrics['followers_total'], locale);
   const popularity =
     typeof latestSnapshot?.metrics['popularity'] === 'number'
@@ -268,10 +272,10 @@ export function SpotifyInsightsCard({ artistId, summary }: SpotifyInsightsCardPr
             ) : null}
           </div>
 
-          {summary.connection.lastSyncError ? (
+          {persistedSyncError ? (
             <div className="mt-4 flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <p>{summary.connection.lastSyncError}</p>
+              <p>{persistedSyncError}</p>
             </div>
           ) : null}
         </div>
