@@ -3,7 +3,12 @@ import type {
   BillingSubscriptionStatus,
   FeatureKey,
   PlanCode,
+  SpotifyInsightsConnectionValidationResult,
+  SpotifyInsightsSyncResult,
+  StageLinkInsightsConnection,
   StageLinkInsightsDashboard,
+  UpdateSpotifyInsightsConnectionPayload,
+  ValidateSpotifyInsightsConnectionPayload,
 } from '@stagelink/types';
 
 export interface StageLinkInsightsLockPayload {
@@ -70,4 +75,58 @@ export function getStageLinkInsightsDashboard(
   accessToken: string,
 ): Promise<StageLinkInsightsResult> {
   return fetchInsightsResource(`/api/insights/${artistId}/dashboard`, accessToken);
+}
+
+async function readJsonOrThrow<T>(res: Response, fallback: string): Promise<T> {
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { message?: string | string[] };
+    const message = !err.message
+      ? fallback
+      : Array.isArray(err.message)
+        ? err.message.join(', ')
+        : err.message;
+    throw new Error(message);
+  }
+
+  return res.json() as Promise<T>;
+}
+
+export async function validateSpotifyInsightsConnection(
+  artistId: string,
+  payload: ValidateSpotifyInsightsConnectionPayload,
+): Promise<SpotifyInsightsConnectionValidationResult> {
+  const res = await fetch(`/api/insights/${artistId}/spotify/validate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  return readJsonOrThrow<SpotifyInsightsConnectionValidationResult>(
+    res,
+    'Could not validate Spotify connection',
+  );
+}
+
+export async function saveSpotifyInsightsConnection(
+  artistId: string,
+  payload: UpdateSpotifyInsightsConnectionPayload,
+): Promise<StageLinkInsightsConnection> {
+  const res = await fetch(`/api/insights/${artistId}/spotify`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  return readJsonOrThrow<StageLinkInsightsConnection>(res, 'Could not save Spotify connection');
+}
+
+export async function syncSpotifyInsightsConnection(
+  artistId: string,
+): Promise<SpotifyInsightsSyncResult> {
+  const res = await fetch(`/api/insights/${artistId}/spotify/sync`, {
+    method: 'POST',
+    cache: 'no-store',
+  });
+
+  return readJsonOrThrow<SpotifyInsightsSyncResult>(res, 'Could not sync Spotify insights');
 }

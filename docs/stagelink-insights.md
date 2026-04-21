@@ -2,7 +2,7 @@
 
 ## Propósito
 
-`StageLink Insights` es la futura capa PRO+ de analytics unificadas para artistas dentro de StageLink.
+`StageLink Insights` es la capa PRO+ de analytics unificadas para artistas dentro de StageLink.
 
 No busca clonar Songstats. La meta del módulo es:
 
@@ -17,9 +17,9 @@ No busca clonar Songstats. La meta del módulo es:
 - YouTube
 - SoundCloud
 
-## Qué entra en esta fundación
+## Qué está activo hoy
 
-Esta primera etapa implementa solo la base arquitectónica:
+La base arquitectónica ya existe y Epic 1 suma el primer provider real:
 
 - feature gate nuevo: `stage_link_insights`
 - modelos de conexión por artista
@@ -27,15 +27,18 @@ Esta primera etapa implementa solo la base arquitectónica:
 - provider layer mínima y extensible
 - endpoint privado para dashboard skeleton
 - ruta privada en dashboard: `/{locale}/dashboard/analytics/insights`
-- UI inicial con estados vacíos, lock state y capacidades por plataforma
+- UI privada con estados vacíos, lock state y capacidades por plataforma
+- conexión real de Spotify por referencia de artista
+- sync manual real para Spotify
+- snapshots reales de Spotify con profile basics, followers, popularity y top tracks
 
 Todavía **no** implementa:
 
-- OAuth real
-- scheduled sync real
-- fetch de métricas contra APIs externas
-- charts con datos reales
-- flujos de “connect account” productivos
+- OAuth owner-authorized para YouTube
+- scheduled sync automático
+- alertas o reportes
+- charts históricos avanzados
+- flows productivos para YouTube o SoundCloud
 
 ## Modelo de datos
 
@@ -109,7 +112,51 @@ Cada provider declara:
 - `getCapabilities()`
 - `syncLatestSnapshot()`
 
-En esta fundación, `syncLatestSnapshot()` queda como contrato preparado para el próximo Epic.
+### Spotify (Epic 1)
+
+Spotify usa:
+
+- `connectionMethod = reference`
+- input del usuario: URL / URI / ID del artista
+- validación contra Spotify Web API
+- client credentials flow del lado backend para obtener el app access token
+- sync manual que escribe un snapshot normalizado
+
+No se guarda ningún token del usuario/artista para Spotify en esta etapa.
+
+El access token de Spotify:
+
+- se obtiene server-side con `client_credentials`
+- se cachea en memoria hasta su expiración
+- se renueva automáticamente cuando expira
+
+## Spotify: métricas soportadas ahora
+
+Epic 1 soporta únicamente datos realistas accesibles vía Spotify Web API:
+
+- datos básicos del perfil del artista
+- followers públicos (`followers.total`)
+- popularity del artista
+- top tracks por mercado
+
+El snapshot de Spotify guarda:
+
+- `profile.displayName`
+- `profile.imageUrl`
+- `profile.externalUrl`
+- `metrics.followers_total`
+- `metrics.popularity`
+- `metrics.genres_count`
+- `metrics.top_tracks_count`
+- `topContent[]` con top tracks ligeros
+
+## Spotify: limitaciones reales
+
+- Spotify **no** expone una API pública equivalente a Spotify for Artists
+- no hay “monthly listeners” oficiales por API pública
+- no hay analytics profundas de audiencia por artista
+- top tracks dependen del mercado elegido
+- por eso StageLink Insights no intenta fingir una capa tipo Songstats con datos que Spotify no publica
 
 ## Soporte y limitaciones por plataforma
 
@@ -130,6 +177,8 @@ Referencias:
 
 - [Spotify Web API](https://developer.spotify.com/documentation/web-api)
 - [Get Artist](https://developer.spotify.com/documentation/web-api/reference/get-an-artist)
+- [Get Artist's Top Tracks](https://developer.spotify.com/documentation/web-api/reference/get-an-artists-top-tracks)
+- [Client Credentials Flow](https://developer.spotify.com/documentation/web-api/tutorials/client-credentials-flow)
 
 ### YouTube
 
@@ -171,9 +220,12 @@ Referencia:
 
 El dashboard de insights es **privado**. No se expone nada de este módulo en la página pública del artista.
 
-Endpoint actual:
+Endpoints actuales:
 
 - `GET /api/insights/:artistId/dashboard`
+- `POST /api/insights/:artistId/spotify/validate`
+- `PATCH /api/insights/:artistId/spotify`
+- `POST /api/insights/:artistId/spotify/sync`
 
 Protecciones:
 
@@ -208,22 +260,39 @@ Se aplica en:
 
 ## Setup / env vars
 
-Esta fundación **no agrega nuevas env vars obligatorias**.
+Spotify sí agrega env vars reales en Epic 1:
 
-Todavía no se activaron credenciales externas porque:
+- `SPOTIFY_CLIENT_ID`
+- `SPOTIFY_CLIENT_SECRET`
+- `SPOTIFY_TOP_TRACKS_MARKET`
 
-- no hay OAuth productivo en esta etapa
-- no hay sync jobs reales en esta etapa
+Notas:
 
-Cuando se avance el próximo Epic, probablemente hagan falta:
+- `SPOTIFY_TOP_TRACKS_MARKET` acepta un código de mercado de 2 letras
+- si no se define, StageLink usa `US`
+- no hay callback URL de Spotify todavía porque esta etapa no usa OAuth de usuario
 
-- credenciales OAuth de Spotify / YouTube / SoundCloud
+Los providers futuros probablemente agreguen:
+
+- credenciales OAuth de YouTube / SoundCloud
 - callback URLs
-- tal vez API key de YouTube Data API según el flujo elegido
+- scheduler config cuando exista infraestructura de sync automático
 
 ## Sync behavior actual
 
-No hay scheduler real todavía.
+Spotify ya tiene sync manual real.
+
+Hoy el comportamiento es:
+
+- el artista conecta Spotify por referencia de artista
+- StageLink valida el artista usando la Web API oficial
+- el artista puede disparar `Sync now`
+- el backend obtiene o reutiliza un app access token
+- el backend consulta el artista y sus top tracks
+- se escribe un snapshot nuevo en `ArtistPlatformInsightsSnapshot`
+- se actualiza el estado de sync en `ArtistPlatformInsightsConnection`
+
+Todavía no hay scheduler real ni cron automático.
 
 El modelo ya soporta:
 
@@ -244,20 +313,20 @@ Eso deja la base lista para sumar:
 
 ### Próximo Epic recomendado
 
-1. elegir el primer provider “real” a conectar
-2. implementar flow de conexión por plataforma
-3. persistir tokens/metadata mínimos
-4. crear primer sync real de snapshots
-5. mostrar métricas reales en cards y top content
+1. YouTube owner-authorized connection flow
+2. scheduler / periodic sync infra
+3. historical trends sobre snapshots reales
+4. SoundCloud public-summary integration
+5. UI comparativa más rica por plataforma
 
 ### Orden sugerido
 
-1. Spotify reference/public-data flow
-2. YouTube owner OAuth
+1. YouTube owner OAuth
+2. scheduler / sync jobs
 3. SoundCloud public-summary support
 
 ### Por qué ese orden
 
-- Spotify es buen candidato para empezar con reference/public data
+- Spotify ya cubre el primer caso realista con public artist data
 - YouTube entrega mucho valor, pero con más complejidad de auth
 - SoundCloud conviene tratarlo con más cuidado por limitaciones de acceso
