@@ -52,7 +52,7 @@ interface SpotifyTrackResponse {
 }
 
 interface SpotifyTopTracksResponse {
-  tracks: SpotifyTrackResponse[];
+  tracks?: SpotifyTrackResponse[];
 }
 
 interface SpotifyConnectionSummary {
@@ -71,6 +71,7 @@ export class SpotifyInsightsProvider implements PlatformInsightsProvider {
   readonly connectionMethod = 'reference' as const;
 
   private appTokenCache: { accessToken: string; expiresAt: number } | null = null;
+  private pendingAppTokenRequest: Promise<string> | null = null;
 
   getCapabilities(): StageLinkInsightsPlatformCapabilities {
     const configured = this.isConfigured();
@@ -124,6 +125,7 @@ export class SpotifyInsightsProvider implements PlatformInsightsProvider {
     ]);
     const summary = this.buildArtistSummary(artist);
     const genres = summary.genres;
+    const tracks = this.readTracks(topTracks);
 
     return {
       platform: this.platform,
@@ -137,9 +139,9 @@ export class SpotifyInsightsProvider implements PlatformInsightsProvider {
         followers_total: summary.followersTotal,
         popularity: summary.popularity,
         genres_count: genres.length,
-        top_tracks_count: topTracks.tracks.length,
+        top_tracks_count: tracks.length,
       },
-      topContent: topTracks.tracks.slice(0, SPOTIFY_INSIGHTS_TOP_TRACKS_LIMIT).map((track) => ({
+      topContent: tracks.slice(0, SPOTIFY_INSIGHTS_TOP_TRACKS_LIMIT).map((track) => ({
         platform: this.platform,
         externalId: track.id,
         title: track.name,
@@ -217,6 +219,9 @@ export class SpotifyInsightsProvider implements PlatformInsightsProvider {
       return cachedToken.accessToken;
     }
 
+    if (this.pendingAppTokenRequest) {
+      return this.pendingAppTokenRequest;
+    }
     const clientId = process.env['SPOTIFY_CLIENT_ID']?.trim();
     const clientSecret = process.env['SPOTIFY_CLIENT_SECRET']?.trim();
     if (!clientId || !clientSecret) {
@@ -225,45 +230,53 @@ export class SpotifyInsightsProvider implements PlatformInsightsProvider {
       );
     }
 
-    const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-    let response: Response;
+    this.pendingAppTokenRequest = (async () => {
+      const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+      let response: Response;
+      try {
+        response = await fetch('https://accounts.spotify.com/api/token', {
+          method: 'POST',
+          headers: {
+            Authorization: `Basic ${basicAuth}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({ grant_type: 'client_credentials' }).toString(),
+        });
+      } catch {
+        throw new ServiceUnavailableException('Could not reach Spotify auth right now');
+      }
+
+      if (!response.ok) {
+        const body = await response.text().catch(() => '');
+        throw new ServiceUnavailableException(
+          `Spotify auth token request failed (${response.status})${body ? `: ${body}` : ''}`,
+        );
+      }
+
+      let payload: SpotifyAuthResponse;
+      try {
+        payload = (await response.json()) as SpotifyAuthResponse;
+      } catch {
+        throw new ServiceUnavailableException('Spotify auth token response was unreadable');
+      }
+
+      if (!payload.access_token) {
+        throw new ServiceUnavailableException('Spotify auth token response was incomplete');
+      }
+
+      this.appTokenCache = {
+        accessToken: payload.access_token,
+        expiresAt: Date.now() + Math.max(payload.expires_in - 60, 60) * 1000,
+      };
+
+      return payload.access_token;
+    })();
+
     try {
-      response = await fetch('https://accounts.spotify.com/api/token', {
-        method: 'POST',
-        headers: {
-          Authorization: `Basic ${basicAuth}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({ grant_type: 'client_credentials' }).toString(),
-      });
-    } catch {
-      throw new ServiceUnavailableException('Could not reach Spotify auth right now');
+      return await this.pendingAppTokenRequest;
+    } finally {
+      this.pendingAppTokenRequest = null;
     }
-
-    if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      throw new ServiceUnavailableException(
-        `Spotify auth token request failed (${response.status})${body ? `: ${body}` : ''}`,
-      );
-    }
-
-    let payload: SpotifyAuthResponse;
-    try {
-      payload = (await response.json()) as SpotifyAuthResponse;
-    } catch {
-      throw new ServiceUnavailableException('Spotify auth token response was unreadable');
-    }
-
-    if (!payload.access_token) {
-      throw new ServiceUnavailableException('Spotify auth token response was incomplete');
-    }
-
-    this.appTokenCache = {
-      accessToken: payload.access_token,
-      expiresAt: Date.now() + Math.max(payload.expires_in - 60, 60) * 1000,
-    };
-
-    return payload.access_token;
   }
 
   private buildArtistSummary(artist: SpotifyArtistResponse): SpotifyConnectionSummary {
@@ -280,5 +293,19 @@ export class SpotifyInsightsProvider implements PlatformInsightsProvider {
 
   private readPopularity(value: unknown): number | null {
     return typeof value === 'number' ? value : null;
+  }
+
+  private readTracks(payload: SpotifyTopTracksResponse): SpotifyTrackResponse[] {
+    if (!Array.isArray(payload.tracks)) {
+      return [];
+    }
+
+    return payload.tracks.filter(
+      (track): track is SpotifyTrackResponse =>
+        typeof track === 'object' &&
+        track !== null &&
+        typeof track.id === 'string' &&
+        typeof track.name === 'string',
+    );
   }
 }

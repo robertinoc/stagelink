@@ -1,4 +1,5 @@
 import { InsightsService } from './insights.service';
+import { ServiceUnavailableException } from '@nestjs/common';
 
 describe('InsightsService', () => {
   const prisma = {
@@ -311,5 +312,68 @@ describe('InsightsService', () => {
     expect(result.connection.lastSyncStatus).toBe('success');
     expect(result.snapshot.metrics.followers_total).toBe(6400);
     expect(auditService.log).toHaveBeenCalled();
+  });
+  it('normalizes unexpected sync failures into a service error', async () => {
+    prisma.artistPlatformInsightsConnection.findFirst.mockResolvedValue({
+      id: 'conn_spotify',
+      artistId: 'artist_123',
+      platform: 'spotify',
+      connectionMethod: 'reference',
+      status: 'connected',
+      displayName: 'Robertino',
+      externalAccountId: 'spotify-artist-id',
+      externalHandle: null,
+      externalUrl: 'https://open.spotify.com/artist/spotify-artist-id',
+      scopes: [],
+      metadata: {},
+      accessToken: null,
+      refreshToken: null,
+      tokenExpiresAt: null,
+      lastSyncStartedAt: null,
+      lastSyncedAt: null,
+      lastSyncStatus: 'never',
+      lastSyncError: null,
+      createdAt: new Date('2026-04-19T10:00:00.000Z'),
+      updatedAt: new Date('2026-04-20T10:00:00.000Z'),
+    });
+
+    prisma.artistPlatformInsightsConnection.update.mockImplementation(async ({ data }) => ({
+      id: 'conn_spotify',
+      artistId: 'artist_123',
+      platform: 'spotify',
+      connectionMethod: 'reference',
+      status: data.status ?? 'connected',
+      displayName: 'Robertino',
+      externalAccountId: 'spotify-artist-id',
+      externalHandle: null,
+      externalUrl: 'https://open.spotify.com/artist/spotify-artist-id',
+      scopes: [],
+      metadata: data.metadata ?? {},
+      accessToken: null,
+      refreshToken: null,
+      tokenExpiresAt: null,
+      lastSyncStartedAt: data.lastSyncStartedAt ?? null,
+      lastSyncedAt: data.lastSyncedAt ?? null,
+      lastSyncStatus: data.lastSyncStatus ?? 'error',
+      lastSyncError: data.lastSyncError ?? null,
+      createdAt: new Date('2026-04-19T10:00:00.000Z'),
+      updatedAt: new Date('2026-04-20T10:00:00.000Z'),
+    }));
+
+    spotifyProvider.syncLatestSnapshot.mockRejectedValue(new Error('unexpected boom'));
+
+    await expect(service.syncSpotifyConnection('artist_123', 'user_123')).rejects.toThrow(
+      new ServiceUnavailableException('Could not sync Spotify insights right now'),
+    );
+
+    expect(prisma.artistPlatformInsightsConnection.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'conn_spotify' },
+        data: expect.objectContaining({
+          lastSyncStatus: 'error',
+          lastSyncError: 'Could not sync Spotify insights right now',
+        }),
+      }),
+    );
   });
 });
