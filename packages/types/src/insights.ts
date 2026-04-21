@@ -103,3 +103,31 @@ export interface StageLinkInsightsDashboard {
   summaryCards: StageLinkInsightsSummaryCard[];
   platforms: StageLinkInsightsPlatformSummary[];
 }
+
+export interface ValidateSpotifyInsightsConnectionPayload {
+  artistInput: string;
+}
+
+export interface UpdateSpotifyInsightsConnectionPayload {
+  artistInput: string;
+}
+
+export interface SpotifyInsightsConnectionValidationResult {
+  ok: true;
+  platform: 'spotify';
+  externalAccountId: string;
+  displayName: string;
+  externalUrl: string;
+  imageUrl: string | null;
+  followersTotal: number | null;
+  popularity: number | null;
+  message: string;
+}
+
+export interface SpotifyInsightsSyncResult {
+  ok: true;
+  platform: 'spotify';
+  message: string;
+  connection: StageLinkInsightsConnection;
+  snapshot: StageLinkInsightsSnapshot;
+}

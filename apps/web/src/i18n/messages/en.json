@@ -182,8 +182,8 @@
     },
     "insights": {
       "title": "StageLink Insights",
-      "description": "A unified analytics workspace for your connected artist platforms. This foundation already models connections, snapshots, and per-platform capabilities without faking data we cannot support yet.",
-      "beta_badge": "Foundation",
+      "description": "A unified analytics workspace for your connected artist platforms. Spotify is now live for artist profile basics, public audience signals, and top tracks, while the next platforms stay clearly marked as they come online.",
+      "beta_badge": "Beta",
       "last_updated_label": "Last updated",
       "never_synced": "No sync yet",
       "requires_owner_account": "Owner account required",
@@ -195,8 +195,8 @@
       },
       "empty": {
         "title": "Your unified artist insights start here",
-        "description": "This first slice sets up platform connections, normalized snapshots, and dashboard structure. Connection flows and scheduled syncs land in the next Epic.",
-        "cta": "Open settings"
+        "description": "Connect Spotify to pull your artist profile basics, public follower count, popularity, and top tracks into one StageLink dashboard.",
+        "cta": "Connect Spotify"
       },
       "locked": {
         "title": "Unlock StageLink Insights",
@@ -223,6 +223,13 @@
         "needs_reauth": "Needs re-auth",
         "error": "Connection issue"
       },
+      "sync_status": {
+        "never": "Never synced",
+        "pending": "Syncing",
+        "success": "Sync successful",
+        "partial": "Partial sync",
+        "error": "Sync failed"
+      },
       "capabilities": {
         "title": "Platform support",
         "profileBasics": "Profile basics",
@@ -239,11 +246,51 @@
         "latest_snapshot": "Latest stored snapshot",
         "no_snapshot": "No snapshots stored yet for this platform."
       },
+      "spotify": {
+        "setup_required": "Spotify Insights needs `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` configured on this deployment before artists can connect.",
+        "fields": {
+          "artist_input": "Spotify artist URL or ID",
+          "artist_input_placeholder": "https://open.spotify.com/artist/...",
+          "artist_input_hint": "Paste a Spotify artist URL, Spotify artist URI, or the raw 22-character artist ID."
+        },
+        "actions": {
+          "validate": "Validate artist",
+          "validating": "Validating...",
+          "connect": "Connect Spotify",
+          "connecting": "Connecting...",
+          "update": "Update connection",
+          "sync": "Sync now",
+          "syncing": "Syncing...",
+          "open_spotify": "Open on Spotify"
+        },
+        "messages": {
+          "connected": "Spotify artist connected. Run a sync to pull the first snapshot.",
+          "validate_error": "Could not validate this Spotify artist right now.",
+          "connect_error": "Could not save this Spotify artist right now.",
+          "sync_error": "Could not sync Spotify insights right now."
+        },
+        "connected": {
+          "unknown_artist": "Connected Spotify artist",
+          "last_sync": "Last sync: {value}"
+        },
+        "metrics": {
+          "followers_total": "Followers",
+          "popularity": "Popularity",
+          "top_tracks_count": "Top tracks",
+          "genres_count": "Genres"
+        },
+        "top_tracks": {
+          "title": "Top tracks",
+          "empty": "Spotify did not return top tracks for this artist in the configured market.",
+          "open_track": "Open track on Spotify"
+        },
+        "empty_synced": "Spotify is connected, but no snapshot has been stored yet. Run a sync to pull your first set of metrics."
+      },
       "platforms": {
         "spotify": {
           "title": "Spotify",
-          "description": "Best fit for artist profile basics, public popularity signals, and top tracks.",
-          "limitations": "Spotify does not expose a public Spotify for Artists analytics API. Foundation support assumes public artist data and future snapshot syncs, not private artist dashboards."
+          "description": "Artist profile basics, public follower count, popularity, and top tracks powered by the official Spotify Web API.",
+          "limitations": "Spotify does not expose a public Spotify for Artists analytics API. StageLink Insights uses public artist-level data only, and top tracks are market-dependent."
         },
         "youtube": {
           "title": "YouTube",
@@ -257,9 +304,9 @@
         }
       },
       "foundation_scope": {
-        "title": "What this foundation adds",
-        "description": "StageLink now has a dedicated insights schema, provider abstraction, feature gate, and a dashboard contract ready for real platform sync.",
-        "current_plan": "You are viewing the foundation surface with the current effective plan: {plan}."
+        "title": "What is live in this phase",
+        "description": "Spotify is now connected to the real Insights foundation: provider abstraction, normalized snapshots, sync state, and a protected PRO+ dashboard ready to grow platform by platform.",
+        "current_plan": "You are viewing StageLink Insights with the current effective plan: {plan}."
       }
     },
     "profile": {

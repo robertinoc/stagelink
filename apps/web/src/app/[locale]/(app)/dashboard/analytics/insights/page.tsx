@@ -38,6 +38,7 @@ export default async function DashboardInsightsPage({
 
   return (
     <InsightsDashboard
+      artistId={artistId}
       data={result.kind === 'ok' ? result.data : null}
       entitlements={entitlements}
       lockedPayload={result.kind === 'locked' ? result.payload : null}
