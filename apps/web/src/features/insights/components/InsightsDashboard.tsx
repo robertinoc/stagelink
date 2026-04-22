@@ -25,11 +25,15 @@ import { YouTubeInsightsCard } from './YouTubeInsightsCard';
 
 interface InsightsDashboardProps {
   artistId: string;
+  artistSpotifyUrl: string | null;
   artistYouTubeUrl: string | null;
   data: StageLinkInsightsDashboardData | null;
   entitlements: BillingEntitlementsResponse | null;
   lockedPayload?: StageLinkInsightsLockPayload | null;
   errorMessage?: string | null;
+  mode?: 'standalone' | 'embedded';
+  rangeParamName?: string;
+  settingsHref?: string;
 }
 
 function resolvePlanLabel(plan: BillingEntitlementsResponse['effectivePlan'] | 'free') {
@@ -152,7 +156,13 @@ function SummaryCards({ data }: { data: StageLinkInsightsDashboardData }) {
   );
 }
 
-function EmptyState() {
+function EmptyState({
+  mode,
+  settingsHref,
+}: {
+  mode: 'standalone' | 'embedded';
+  settingsHref: string;
+}) {
   const t = useTranslations('dashboard.insights.empty');
 
   return (
@@ -162,7 +172,9 @@ function EmptyState() {
         <h3 className="text-base font-semibold">{t('title')}</h3>
         <p className="max-w-lg text-sm text-muted-foreground">{t('description')}</p>
         <Button asChild variant="outline" size="sm">
-          <Link href="#platform-insights">{t('cta')}</Link>
+          <Link href={mode === 'embedded' ? settingsHref : '#platform-insights'}>
+            {mode === 'embedded' ? t('cta_settings') : t('cta')}
+          </Link>
         </Button>
       </CardContent>
     </Card>
@@ -171,8 +183,10 @@ function EmptyState() {
 
 function RangeFilters({
   selectedRange,
+  rangeParamName,
 }: {
   selectedRange: StageLinkInsightsDashboardData['selectedRange'];
+  rangeParamName: string;
 }) {
   const t = useTranslations('dashboard.insights.range');
   const pathname = usePathname();
@@ -180,7 +194,7 @@ function RangeFilters({
 
   function buildHref(range: string) {
     const params = new URLSearchParams(searchParams.toString());
-    params.set('range', range);
+    params.set(rangeParamName, range);
     const query = params.toString();
     return query ? `${pathname}?${query}` : pathname;
   }
@@ -215,14 +229,20 @@ function RangeFilters({
 
 export function InsightsDashboard({
   artistId,
+  artistSpotifyUrl,
   artistYouTubeUrl,
   data,
   entitlements,
   lockedPayload,
   errorMessage,
+  mode = 'standalone',
+  rangeParamName = 'range',
+  settingsHref,
 }: InsightsDashboardProps) {
   const t = useTranslations('dashboard.insights');
   const locale = useLocale();
+  const resolvedSettingsHref = settingsHref ?? `/${locale}/dashboard/settings#insights-connections`;
+  const embedded = mode === 'embedded';
 
   if (lockedPayload) {
     return <LockedState payload={lockedPayload} />;
@@ -238,31 +258,35 @@ export function InsightsDashboard({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline">Pro+</Badge>
-            <Badge variant="secondary">{t('beta_badge')}</Badge>
+      {!embedded ? (
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline">Pro+</Badge>
+              <Badge variant="secondary">{t('beta_badge')}</Badge>
+            </div>
+            <h1 className="text-2xl font-bold">{t('title')}</h1>
+            <p className="max-w-3xl text-sm text-muted-foreground">{t('description')}</p>
           </div>
-          <h1 className="text-2xl font-bold">{t('title')}</h1>
-          <p className="max-w-3xl text-sm text-muted-foreground">{t('description')}</p>
-        </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Clock3 className="h-4 w-4" />
-            <span>{t('last_updated_label')}</span>
+          <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Clock3 className="h-4 w-4" />
+              <span>{t('last_updated_label')}</span>
+            </div>
+            <p className="mt-1 font-medium text-foreground">
+              {formatDate(data.lastUpdatedAt, locale) ?? t('never_synced')}
+            </p>
           </div>
-          <p className="mt-1 font-medium text-foreground">
-            {formatDate(data.lastUpdatedAt, locale) ?? t('never_synced')}
-          </p>
         </div>
-      </div>
+      ) : null}
 
       <SummaryCards data={data} />
 
-      <RangeFilters selectedRange={data.selectedRange} />
+      <RangeFilters selectedRange={data.selectedRange} rangeParamName={rangeParamName} />
 
-      {!data.hasAnyConnectedPlatforms ? <EmptyState /> : null}
+      {!data.hasAnyConnectedPlatforms ? (
+        <EmptyState mode={mode} settingsHref={resolvedSettingsHref} />
+      ) : null}
 
       <div id="platform-insights" className="grid gap-4 xl:grid-cols-3">
         {data.platforms.map((platform) => {
@@ -293,7 +317,13 @@ export function InsightsDashboard({
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <SpotifyInsightsCard artistId={artistId} summary={platform} />
+                  <SpotifyInsightsCard
+                    artistId={artistId}
+                    artistSpotifyUrl={artistSpotifyUrl}
+                    summary={platform}
+                    mode="analytics"
+                    settingsHref={resolvedSettingsHref}
+                  />
                   <p className="text-xs leading-5 text-muted-foreground">
                     {t(`platforms.${platform.platform}.limitations`)}
                   </p>
@@ -333,6 +363,8 @@ export function InsightsDashboard({
                     artistId={artistId}
                     artistYouTubeUrl={artistYouTubeUrl}
                     summary={platform}
+                    mode="analytics"
+                    settingsHref={resolvedSettingsHref}
                   />
                   <p className="text-xs leading-5 text-muted-foreground">
                     {t(`platforms.${platform.platform}.limitations`)}

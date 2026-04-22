@@ -7,10 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getBillingSummary } from '@/lib/api/billing';
+import { getArtist } from '@/lib/api/artists';
+import { getStageLinkInsightsDashboard } from '@/lib/api/insights';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import { getMerchConnection } from '@/lib/api/merch';
 import { getShopifyConnection } from '@/lib/api/shopify';
 import { getSession } from '@/lib/auth';
+import { InsightsConnectionsSettingsCard } from '@/features/dashboard/components/InsightsConnectionsSettingsCard';
 import { FEATURE_KEYS, getMinimumPlanForFeature, type FeatureKey } from '@stagelink/types';
 import { MerchProviderSettingsCard } from '@/features/dashboard/components/MerchProviderSettingsCard';
 import { ShopifySettingsCard } from '@/features/dashboard/components/ShopifySettingsCard';
@@ -53,13 +56,26 @@ export default async function DashboardSettingsPage({
     redirect(`/${locale}/onboarding`);
   }
 
-  const summary = await getBillingSummary(artistId, session.accessToken);
-  const shopifyConnection = summary.entitlements.shopify_integration
-    ? await getShopifyConnection(artistId, session.accessToken).catch(() => null)
-    : null;
-  const merchConnection = summary.entitlements.smart_merch
-    ? await getMerchConnection(artistId, session.accessToken).catch(() => null)
-    : null;
+  const [summary, artist] = await Promise.all([
+    getBillingSummary(artistId, session.accessToken),
+    getArtist(artistId, session.accessToken).catch(() => null),
+  ]);
+
+  const [shopifyConnection, merchConnection, insightsResult] = await Promise.all([
+    summary.entitlements.shopify_integration
+      ? getShopifyConnection(artistId, session.accessToken).catch(() => null)
+      : Promise.resolve(null),
+    summary.entitlements.smart_merch
+      ? getMerchConnection(artistId, session.accessToken).catch(() => null)
+      : Promise.resolve(null),
+    summary.entitlements.stage_link_insights
+      ? getStageLinkInsightsDashboard(artistId, session.accessToken, '30d').catch(() => ({
+          kind: 'error' as const,
+          message: 'Failed to load StageLink Insights connections',
+        }))
+      : Promise.resolve(null),
+  ]);
+
   const lockedCount = summary.featureHighlights.filter((feature) => !feature.included).length;
   const syncing = summary.billingState === 'syncing';
 
@@ -108,6 +124,15 @@ export default async function DashboardSettingsPage({
         currentPlanLabel={resolvePlanLabel(summary.effectivePlan)}
         hasFeatureAccess={summary.entitlements.shopify_integration}
         initialConnection={shopifyConnection}
+      />
+
+      <InsightsConnectionsSettingsCard
+        artistId={artistId}
+        artist={artist}
+        currentPlanLabel={resolvePlanLabel(summary.effectivePlan)}
+        hasFeatureAccess={summary.entitlements.stage_link_insights}
+        data={insightsResult?.kind === 'ok' ? insightsResult.data : null}
+        errorMessage={insightsResult?.kind === 'error' ? insightsResult.message : null}
       />
 
       <div className="grid gap-4 lg:grid-cols-2">

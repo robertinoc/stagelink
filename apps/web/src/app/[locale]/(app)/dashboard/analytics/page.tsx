@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import type { StageLinkInsightsDateRange } from '@stagelink/types';
+import { getArtist } from '@/lib/api/artists';
 import { getSession } from '@/lib/auth';
 import { getBillingEntitlements } from '@/lib/api/billing';
+import { getStageLinkInsightsDashboard } from '@/lib/api/insights';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import {
   getAnalyticsFanInsights,
@@ -19,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 interface PageProps {
-  searchParams: Promise<{ range?: string }>;
+  searchParams: Promise<{ range?: string; insightsRange?: StageLinkInsightsDateRange }>;
 }
 
 const VALID_RANGES: AnalyticsRange[] = ['7d', '30d', '90d', '365d'];
@@ -42,7 +45,7 @@ function parseRange(raw: string | undefined): AnalyticsRange {
  * artistId is resolved from the session via getAuthMe.
  */
 export default async function DashboardAnalyticsPage({ searchParams }: PageProps) {
-  const { range: rawRange } = await searchParams;
+  const { range: rawRange, insightsRange } = await searchParams;
   const range = parseRange(rawRange);
 
   const session = await getSession();
@@ -59,9 +62,14 @@ export default async function DashboardAnalyticsPage({ searchParams }: PageProps
     return null;
   }
 
-  const entitlements = await getBillingEntitlements(artistId, session.accessToken).catch(
-    () => null,
-  );
+  const [entitlements, artist, insightsResult] = await Promise.all([
+    getBillingEntitlements(artistId, session.accessToken).catch(() => null),
+    getArtist(artistId, session.accessToken).catch(() => null),
+    getStageLinkInsightsDashboard(artistId, session.accessToken, insightsRange).catch(() => ({
+      kind: 'error' as const,
+      message: 'Failed to load StageLink Insights',
+    })),
+  ]);
   const analyticsProEnabled = entitlements?.features.analytics_pro;
   const advancedFanInsightsEnabled = entitlements?.features.advanced_fan_insights;
   let rangeLockedPayload: AnalyticsFeatureLockPayload | null = null;
@@ -159,6 +167,11 @@ export default async function DashboardAnalyticsPage({ searchParams }: PageProps
       errorMessage={errorMessage}
       analyticsProErrorMessage={analyticsProErrorMessage}
       fanInsightsErrorMessage={fanInsightsErrorMessage}
+      artistId={artistId}
+      artistYouTubeUrl={artist?.youtubeUrl ?? null}
+      insightsData={insightsResult.kind === 'ok' ? insightsResult.data : null}
+      insightsLockPayload={insightsResult.kind === 'locked' ? insightsResult.payload : null}
+      insightsErrorMessage={insightsResult.kind === 'error' ? insightsResult.message : null}
     />
   );
 }
