@@ -1,8 +1,11 @@
 import { InsightsService } from './insights.service';
-import { ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, ServiceUnavailableException } from '@nestjs/common';
 
 describe('InsightsService', () => {
   const prisma = {
+    artist: {
+      findUniqueOrThrow: jest.fn(),
+    },
     artistPlatformInsightsConnection: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
@@ -81,6 +84,9 @@ describe('InsightsService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    prisma.artist.findUniqueOrThrow.mockResolvedValue({
+      youtubeUrl: 'https://www.youtube.com/@googledevelopers',
+    });
     prisma.$transaction.mockImplementation(async (callback: (tx: typeof prisma) => unknown) =>
       callback(prisma as never),
     );
@@ -519,10 +525,61 @@ describe('InsightsService', () => {
       'artist_123',
       'stage_link_insights',
     );
+    expect(prisma.artist.findUniqueOrThrow).toHaveBeenCalledWith({
+      where: { id: 'artist_123' },
+      select: { youtubeUrl: true },
+    });
+    expect(youTubeProvider.validateChannelReference).toHaveBeenCalledWith(
+      'https://www.youtube.com/@googledevelopers',
+    );
     expect(youTubeProvider.validateChannelReference).toHaveBeenCalledWith(
       'https://www.youtube.com/@googledevelopers',
     );
     expect(result.displayName).toBe('Google for Developers');
+  });
+
+  it('rejects youtube validation when the requested channel does not match the artist profile', async () => {
+    youTubeProvider.validateChannelReference
+      .mockResolvedValueOnce({
+        ok: true,
+        platform: 'youtube',
+        externalAccountId: 'UC_profile',
+        externalHandle: 'robertinoc',
+        displayName: 'RobertinoC',
+        externalUrl: 'https://www.youtube.com/@robertinoc',
+        imageUrl: null,
+        subscriberCount: null,
+        totalViews: null,
+        videoCount: null,
+        subscribersHidden: false,
+        message: 'Connected to RobertinoC on YouTube',
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        platform: 'youtube',
+        externalAccountId: 'UC_other',
+        externalHandle: 'martincirio',
+        displayName: 'Martin Cirio',
+        externalUrl: 'https://www.youtube.com/@martincirio',
+        imageUrl: null,
+        subscriberCount: null,
+        totalViews: null,
+        videoCount: null,
+        subscribersHidden: false,
+        message: 'Connected to Martin Cirio on YouTube',
+      });
+
+    await expect(
+      service.validateYouTubeConnection(
+        'artist_123',
+        { channelInput: 'https://www.youtube.com/@martincirio' },
+        'user_123',
+      ),
+    ).rejects.toThrow(
+      new BadRequestException(
+        'YouTube Insights can only connect the same channel saved in your artist profile',
+      ),
+    );
   });
 
   it('updates youtube connections and resets stale sync errors', async () => {
@@ -691,5 +748,51 @@ describe('InsightsService', () => {
     expect(result.connection.lastSyncStatus).toBe('success');
     expect(result.snapshot.metrics.subscriber_count).toBe(2890000);
     expect(auditService.log).toHaveBeenCalled();
+  });
+
+  it('rejects youtube sync when the saved connection no longer matches the artist profile', async () => {
+    prisma.artistPlatformInsightsConnection.findFirst.mockResolvedValue({
+      id: 'conn_youtube',
+      artistId: 'artist_123',
+      platform: 'youtube',
+      connectionMethod: 'reference',
+      status: 'connected',
+      displayName: 'Martin Cirio',
+      externalAccountId: 'UC_other',
+      externalHandle: 'martincirio',
+      externalUrl: 'https://www.youtube.com/@martincirio',
+      scopes: [],
+      metadata: {},
+      accessToken: null,
+      refreshToken: null,
+      tokenExpiresAt: null,
+      lastSyncStartedAt: null,
+      lastSyncedAt: null,
+      lastSyncStatus: 'never',
+      lastSyncError: null,
+      createdAt: new Date('2026-04-19T10:00:00.000Z'),
+      updatedAt: new Date('2026-04-20T10:00:00.000Z'),
+    });
+
+    youTubeProvider.validateChannelReference.mockResolvedValue({
+      ok: true,
+      platform: 'youtube',
+      externalAccountId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+      externalHandle: 'googledevelopers',
+      displayName: 'Google for Developers',
+      externalUrl: 'https://www.youtube.com/@googledevelopers',
+      imageUrl: null,
+      subscriberCount: 2890000,
+      totalViews: 218000000,
+      videoCount: 6200,
+      subscribersHidden: false,
+      message: 'Connected to Google for Developers on YouTube',
+    });
+
+    await expect(service.syncYouTubeConnection('artist_123', 'user_123')).rejects.toThrow(
+      new BadRequestException(
+        'Your connected YouTube channel no longer matches the one saved in your artist profile. Update the connection from your profile link and try again.',
+      ),
+    );
   });
 });

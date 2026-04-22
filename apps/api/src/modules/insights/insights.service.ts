@@ -427,7 +427,11 @@ export class InsightsService {
     await this.membershipService.validateAccess(userId, artistId, 'write');
     await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
 
-    return this.youTubeProvider.validateChannelReference(dto.channelInput);
+    const expectedChannel = await this.resolveProfileYouTubeChannel(artistId);
+    const validation = await this.youTubeProvider.validateChannelReference(dto.channelInput);
+    this.assertMatchingYouTubeChannel(expectedChannel, validation);
+
+    return validation;
   }
 
   async updateYouTubeConnection(
@@ -439,7 +443,9 @@ export class InsightsService {
     await this.membershipService.validateAccess(userId, artistId, 'write');
     await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
 
+    const expectedChannel = await this.resolveProfileYouTubeChannel(artistId);
     const validation = await this.youTubeProvider.validateChannelReference(dto.channelInput);
+    this.assertMatchingYouTubeChannel(expectedChannel, validation);
     const existing = await this.prisma.artistPlatformInsightsConnection.findFirst({
       where: {
         artistId,
@@ -553,6 +559,9 @@ export class InsightsService {
     if (!connection || !connection.externalAccountId) {
       throw new BadRequestException('Connect a YouTube channel before syncing insights');
     }
+
+    const expectedChannel = await this.resolveProfileYouTubeChannel(artistId);
+    this.assertMatchingConnectedYouTubeChannel(connection, expectedChannel);
 
     const startedAt = new Date();
     await this.prisma.artistPlatformInsightsConnection.update({
@@ -668,6 +677,55 @@ export class InsightsService {
       });
 
       throw normalizedError;
+    }
+  }
+
+  private async resolveProfileYouTubeChannel(
+    artistId: string,
+  ): Promise<YouTubeInsightsConnectionValidationResult> {
+    const artist = await this.prisma.artist.findUniqueOrThrow({
+      where: { id: artistId },
+      select: { youtubeUrl: true },
+    });
+
+    if (!artist.youtubeUrl) {
+      throw new BadRequestException(
+        'Add your YouTube channel to your artist profile before using YouTube Insights',
+      );
+    }
+
+    try {
+      return await this.youTubeProvider.validateChannelReference(artist.youtubeUrl);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw new BadRequestException(
+          'Update the YouTube URL in your artist profile before using YouTube Insights',
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  private assertMatchingYouTubeChannel(
+    expected: YouTubeInsightsConnectionValidationResult,
+    actual: YouTubeInsightsConnectionValidationResult,
+  ) {
+    if (expected.externalAccountId !== actual.externalAccountId) {
+      throw new BadRequestException(
+        'YouTube Insights can only connect the same channel saved in your artist profile',
+      );
+    }
+  }
+
+  private assertMatchingConnectedYouTubeChannel(
+    connection: InsightsConnectionRecord,
+    expected: YouTubeInsightsConnectionValidationResult,
+  ) {
+    if (connection.externalAccountId !== expected.externalAccountId) {
+      throw new BadRequestException(
+        'Your connected YouTube channel no longer matches the one saved in your artist profile. Update the connection from your profile link and try again.',
+      );
     }
   }
 

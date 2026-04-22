@@ -25,6 +25,7 @@ import { YouTubeInsightsCard } from './YouTubeInsightsCard';
 
 interface InsightsDashboardProps {
   artistId: string;
+  artistYouTubeUrl: string | null;
   data: StageLinkInsightsDashboardData | null;
   entitlements: BillingEntitlementsResponse | null;
   lockedPayload?: StageLinkInsightsLockPayload | null;
@@ -214,6 +215,7 @@ function RangeFilters({
 
 export function InsightsDashboard({
   artistId,
+  artistYouTubeUrl,
   data,
   entitlements,
   lockedPayload,
@@ -327,7 +329,11 @@ export function InsightsDashboard({
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <YouTubeInsightsCard artistId={artistId} summary={platform} />
+                  <YouTubeInsightsCard
+                    artistId={artistId}
+                    artistYouTubeUrl={artistYouTubeUrl}
+                    summary={platform}
+                  />
                   <p className="text-xs leading-5 text-muted-foreground">
                     {t(`platforms.${platform.platform}.limitations`)}
                   </p>

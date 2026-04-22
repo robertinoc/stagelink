@@ -326,7 +326,8 @@
         "fields": {
           "channel_input": "URL del canal de YouTube, @handle o channel ID",
           "channel_input_placeholder": "https://www.youtube.com/@tucanal o UC...",
-          "channel_input_hint": "Pegá una URL de canal de YouTube con /@handle o /channel/<id>, un @handle crudo o un channel ID crudo."
+          "channel_input_hint_locked": "StageLink usa el canal de YouTube guardado en tu perfil de artista. Si querés cambiarlo, actualizá primero tu perfil.",
+          "channel_input_hint_profile_required": "Primero agregá tu canal de YouTube en tu perfil de artista. Insights solo va a conectar ese mismo canal."
         },
         "actions": {
           "validate": "Validar canal",
@@ -336,13 +337,15 @@
           "update": "Actualizar conexión",
           "sync": "Sincronizar ahora",
           "syncing": "Sincronizando…",
-          "open_youtube": "Abrir en YouTube"
+          "open_youtube": "Abrir en YouTube",
+          "open_profile": "Abrir perfil"
         },
         "messages": {
           "connected": "Canal de YouTube conectado correctamente.",
           "validate_error": "No se pudo validar el canal de YouTube ahora mismo.",
           "connect_error": "No se pudo guardar el canal de YouTube ahora mismo.",
           "sync_error": "No se pudo sincronizar YouTube Insights ahora mismo.",
+          "profile_required": "Antes de usar YouTube Insights, guardá tu propio canal de YouTube en Perfil para que StageLink pueda verificar que la conexión pertenece a tu cuenta de artista.",
           "subscribers_hidden": "Este canal oculta el conteo público de suscriptores, así que StageLink muestra vistas del canal y actividad de videos en su lugar."
         },
         "connected": {
