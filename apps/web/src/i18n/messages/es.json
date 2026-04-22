@@ -321,6 +321,72 @@
         },
         "empty_synced": "Spotify está conectado, pero todavía no hay snapshots guardados. Corré un sync para traer la primera tanda de métricas."
       },
+      "youtube": {
+        "setup_required": "YouTube Insights necesita `YOUTUBE_DATA_API_KEY` configurado en este deployment antes de que los artistas puedan conectar sus canales.",
+        "fields": {
+          "channel_input": "URL del canal de YouTube, @handle o channel ID",
+          "channel_input_placeholder": "https://www.youtube.com/@tucanal o UC...",
+          "channel_input_hint": "Pegá una URL de canal de YouTube con /@handle o /channel/<id>, un @handle crudo o un channel ID crudo."
+        },
+        "actions": {
+          "validate": "Validar canal",
+          "validating": "Validando…",
+          "connect": "Conectar YouTube",
+          "connecting": "Conectando…",
+          "update": "Actualizar conexión",
+          "sync": "Sincronizar ahora",
+          "syncing": "Sincronizando…",
+          "open_youtube": "Abrir en YouTube"
+        },
+        "messages": {
+          "connected": "Canal de YouTube conectado correctamente.",
+          "validate_error": "No se pudo validar el canal de YouTube ahora mismo.",
+          "connect_error": "No se pudo guardar el canal de YouTube ahora mismo.",
+          "sync_error": "No se pudo sincronizar YouTube Insights ahora mismo.",
+          "subscribers_hidden": "Este canal oculta el conteo público de suscriptores, así que StageLink muestra vistas del canal y actividad de videos en su lugar."
+        },
+        "connected": {
+          "unknown_channel": "Canal de YouTube conectado",
+          "last_sync": "Último sync: {value}"
+        },
+        "metrics": {
+          "subscriber_count": "Suscriptores",
+          "total_views": "Vistas totales",
+          "video_count": "Cantidad de videos",
+          "recent_videos_count": "Videos recientes"
+        },
+        "recent_videos": {
+          "title": "Videos recientes",
+          "empty": "YouTube no devolvió uploads públicos recientes para este canal en este momento.",
+          "open_video": "Abrir video en YouTube"
+        },
+        "history": {
+          "title": "Historial de snapshots",
+          "description": "StageLink guarda cada sync como un snapshot liviano para que puedas comparar cambios públicos del canal a lo largo del tiempo.",
+          "empty": "Necesitás al menos dos snapshots en este rango para que StageLink pueda mostrar cambios en el tiempo.",
+          "subscribers_change": "Cambio de suscriptores en el rango",
+          "views_change": "Cambio de vistas en el rango"
+        },
+        "scope": {
+          "title": "Qué te da hoy conectar YouTube",
+          "description": "StageLink hoy lee data pública y segura a nivel canal desde YouTube y la guarda como snapshots a lo largo del tiempo.",
+          "includes_title": "Disponible ahora",
+          "includes": {
+            "channel": "Título del canal, imagen y URL pública del canal",
+            "subscribers": "Conteo de suscriptores cuando el canal lo mantiene público",
+            "views": "Vistas públicas totales del canal y cantidad de videos",
+            "recent_videos": "Uploads públicos recientes con conteos livianos de vistas"
+          },
+          "not_included_title": "Todavía no incluido",
+          "not_included": {
+            "watch_time": "Watch time, retención y analytics avanzadas de videos",
+            "geography": "Geografía de la audiencia o desglose por fuentes de tráfico",
+            "revenue": "Datos de monetización / revenue",
+            "youtube_analytics": "Reportes privados de YouTube Analytics solo para owners"
+          }
+        },
+        "empty_synced": "YouTube está conectado, pero todavía no hay snapshots guardados. Corré un sync para traer la primera tanda de métricas."
+      },
       "platforms": {
         "spotify": {
           "title": "Spotify",
@@ -329,8 +395,8 @@
         },
         "youtube": {
           "title": "YouTube",
-          "description": "Encaja mejor para métricas del canal propio, top videos y snapshots históricos.",
-          "limitations": "Subscribers y video analytics son más confiables con acceso autorizado del owner. Esta base ya queda lista para ese flujo, pero OAuth y sync programado llegan después."
+          "description": "Métricas públicas del canal de YouTube y uploads recientes, guardados como snapshots dentro de StageLink para seguir el impulso del canal en el tiempo.",
+          "limitations": "StageLink hoy usa solo señales públicas de YouTube Data API. Métricas privadas de YouTube Analytics como watch time, revenue, fuentes de tráfico y geografía de audiencia no están incluidas en esta fase."
         },
         "soundcloud": {
           "title": "SoundCloud",
@@ -340,7 +406,7 @@
       },
       "foundation_scope": {
         "title": "Qué está activo en esta fase",
-        "description": "Spotify ya está conectado a la base real de Insights: capa de providers, snapshots normalizados, filtros por rango temporal, estado de sync y un dashboard PRO+ protegido listo para crecer plataforma por plataforma.",
+        "description": "Spotify y YouTube ya están conectados a la base real de Insights: capa de providers, snapshots normalizados, filtros por rango temporal, estado de sync y un dashboard PRO+ protegido listo para crecer plataforma por plataforma.",
         "current_plan": "Estás viendo StageLink Insights con el plan efectivo actual: {plan}."
       }
     },

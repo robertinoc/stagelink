@@ -141,3 +141,34 @@ export interface SpotifyInsightsSyncResult {
   connection: StageLinkInsightsConnection;
   snapshot: StageLinkInsightsSnapshot;
 }
+
+export interface ValidateYouTubeInsightsConnectionPayload {
+  channelInput: string;
+}
+
+export interface UpdateYouTubeInsightsConnectionPayload {
+  channelInput: string;
+}
+
+export interface YouTubeInsightsConnectionValidationResult {
+  ok: true;
+  platform: 'youtube';
+  externalAccountId: string;
+  externalHandle: string | null;
+  displayName: string;
+  externalUrl: string;
+  imageUrl: string | null;
+  subscriberCount: number | null;
+  totalViews: number | null;
+  videoCount: number | null;
+  subscribersHidden: boolean;
+  message: string;
+}
+
+export interface YouTubeInsightsSyncResult {
+  ok: true;
+  platform: 'youtube';
+  message: string;
+  connection: StageLinkInsightsConnection;
+  snapshot: StageLinkInsightsSnapshot;
+}

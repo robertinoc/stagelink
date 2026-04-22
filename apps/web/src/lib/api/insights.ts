@@ -8,8 +8,12 @@ import type {
   StageLinkInsightsDateRange,
   StageLinkInsightsConnection,
   StageLinkInsightsDashboard,
+  UpdateYouTubeInsightsConnectionPayload,
+  ValidateYouTubeInsightsConnectionPayload,
   UpdateSpotifyInsightsConnectionPayload,
   ValidateSpotifyInsightsConnectionPayload,
+  YouTubeInsightsConnectionValidationResult,
+  YouTubeInsightsSyncResult,
 } from '@stagelink/types';
 
 export interface StageLinkInsightsLockPayload {
@@ -132,4 +136,44 @@ export async function syncSpotifyInsightsConnection(
   });
 
   return readJsonOrThrow<SpotifyInsightsSyncResult>(res, 'Could not sync Spotify insights');
+}
+
+export async function validateYouTubeInsightsConnection(
+  artistId: string,
+  payload: ValidateYouTubeInsightsConnectionPayload,
+): Promise<YouTubeInsightsConnectionValidationResult> {
+  const res = await fetch(`/api/insights/${artistId}/youtube/validate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  return readJsonOrThrow<YouTubeInsightsConnectionValidationResult>(
+    res,
+    'Could not validate YouTube connection',
+  );
+}
+
+export async function saveYouTubeInsightsConnection(
+  artistId: string,
+  payload: UpdateYouTubeInsightsConnectionPayload,
+): Promise<StageLinkInsightsConnection> {
+  const res = await fetch(`/api/insights/${artistId}/youtube`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  return readJsonOrThrow<StageLinkInsightsConnection>(res, 'Could not save YouTube connection');
+}
+
+export async function syncYouTubeInsightsConnection(
+  artistId: string,
+): Promise<YouTubeInsightsSyncResult> {
+  const res = await fetch(`/api/insights/${artistId}/youtube/sync`, {
+    method: 'POST',
+    cache: 'no-store',
+  });
+
+  return readJsonOrThrow<YouTubeInsightsSyncResult>(res, 'Could not sync YouTube insights');
 }

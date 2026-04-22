@@ -21,6 +21,7 @@ import type { BillingEntitlementsResponse } from '@/lib/api/billing';
 import type { StageLinkInsightsLockPayload } from '@/lib/api/insights';
 import type { StageLinkInsightsDashboard as StageLinkInsightsDashboardData } from '@stagelink/types';
 import { SpotifyInsightsCard } from './SpotifyInsightsCard';
+import { YouTubeInsightsCard } from './YouTubeInsightsCard';
 
 interface InsightsDashboardProps {
   artistId: string;
@@ -160,7 +161,7 @@ function EmptyState() {
         <h3 className="text-base font-semibold">{t('title')}</h3>
         <p className="max-w-lg text-sm text-muted-foreground">{t('description')}</p>
         <Button asChild variant="outline" size="sm">
-          <Link href="#spotify-insights">{t('cta')}</Link>
+          <Link href="#platform-insights">{t('cta')}</Link>
         </Button>
       </CardContent>
     </Card>
@@ -261,7 +262,7 @@ export function InsightsDashboard({
 
       {!data.hasAnyConnectedPlatforms ? <EmptyState /> : null}
 
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div id="platform-insights" className="grid gap-4 xl:grid-cols-3">
         {data.platforms.map((platform) => {
           if (platform.platform === 'spotify') {
             return (
@@ -291,6 +292,42 @@ export function InsightsDashboard({
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <SpotifyInsightsCard artistId={artistId} summary={platform} />
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    {t(`platforms.${platform.platform}.limitations`)}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          }
+
+          if (platform.platform === 'youtube') {
+            return (
+              <Card key={platform.platform} id="youtube-insights" className="xl:col-span-3">
+                <CardHeader className="space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <CardTitle>{t(`platforms.${platform.platform}.title`)}</CardTitle>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {t(`platforms.${platform.platform}.description`)}
+                      </p>
+                    </div>
+                    <Badge
+                      variant={resolveStatusTone(platform.connection?.status ?? 'disconnected')}
+                    >
+                      {t(`status.${platform.connection?.status ?? 'disconnected'}`)}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">
+                      {t(`connection_methods.${platform.capabilities.connectionMethod}`)}
+                    </Badge>
+                    <Badge variant="outline">
+                      {t(`support.${platform.capabilities.audienceMetrics}`)}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <YouTubeInsightsCard artistId={artistId} summary={platform} />
                   <p className="text-xs leading-5 text-muted-foreground">
                     {t(`platforms.${platform.platform}.limitations`)}
                   </p>

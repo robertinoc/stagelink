@@ -16,13 +16,15 @@ import type {
   StageLinkInsightsPlatformSummary,
   StageLinkInsightsSnapshot,
   StageLinkInsightsTopContentItem,
+  YouTubeInsightsConnectionValidationResult,
+  YouTubeInsightsSyncResult,
 } from '@stagelink/types';
 import { STAGELINK_INSIGHTS_DATE_RANGES, STAGELINK_INSIGHTS_PLATFORMS } from '@stagelink/types';
 import { PrismaService } from '../../lib/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { MembershipService } from '../membership/membership.service';
-import { SpotifyInsightsConnectionDto } from './dto';
+import { SpotifyInsightsConnectionDto, YouTubeInsightsConnectionDto } from './dto';
 import { SoundCloudInsightsProvider } from './providers/soundcloud-insights.provider';
 import type { PlatformInsightsProvider } from './providers/insights-provider.interface';
 import { SpotifyInsightsProvider } from './providers/spotify-insights.provider';
@@ -72,12 +74,12 @@ export class InsightsService {
     private readonly auditService: AuditService,
     private readonly billingEntitlementsService: BillingEntitlementsService,
     private readonly spotifyProvider: SpotifyInsightsProvider,
-    youTubeProvider: YouTubeInsightsProvider,
+    private readonly youTubeProvider: YouTubeInsightsProvider,
     soundCloudProvider: SoundCloudInsightsProvider,
   ) {
     this.providers = {
       spotify: this.spotifyProvider,
-      youtube: youTubeProvider,
+      youtube: this.youTubeProvider,
       soundcloud: soundCloudProvider,
     };
   }
@@ -408,6 +410,258 @@ export class InsightsService {
         metadata: {
           artistId,
           platform: 'spotify',
+          message,
+        },
+        ipAddress,
+      });
+
+      throw normalizedError;
+    }
+  }
+
+  async validateYouTubeConnection(
+    artistId: string,
+    dto: YouTubeInsightsConnectionDto,
+    userId: string,
+  ): Promise<YouTubeInsightsConnectionValidationResult> {
+    await this.membershipService.validateAccess(userId, artistId, 'write');
+    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
+
+    return this.youTubeProvider.validateChannelReference(dto.channelInput);
+  }
+
+  async updateYouTubeConnection(
+    artistId: string,
+    dto: YouTubeInsightsConnectionDto,
+    userId: string,
+    ipAddress?: string,
+  ): Promise<StageLinkInsightsConnection> {
+    await this.membershipService.validateAccess(userId, artistId, 'write');
+    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
+
+    const validation = await this.youTubeProvider.validateChannelReference(dto.channelInput);
+    const existing = await this.prisma.artistPlatformInsightsConnection.findFirst({
+      where: {
+        artistId,
+        platform: 'youtube',
+      },
+    });
+
+    const accountChanged = existing?.externalAccountId !== validation.externalAccountId;
+    const metadata = {
+      imageUrl: validation.imageUrl,
+      subscriberCount: validation.subscriberCount,
+      totalViews: validation.totalViews,
+      videoCount: validation.videoCount,
+      subscribersHidden: validation.subscribersHidden,
+      source: 'youtube-data-api',
+    } satisfies Record<string, unknown>;
+
+    const savedConnection = await this.prisma.$transaction(async (tx) => {
+      if (existing && accountChanged) {
+        await tx.artistPlatformInsightsSnapshot.deleteMany({
+          where: { connectionId: existing.id },
+        });
+      }
+
+      if (existing) {
+        const recoveredSyncStatus =
+          accountChanged || !existing.lastSyncedAt
+            ? 'never'
+            : existing.lastSyncStatus === 'error'
+              ? 'success'
+              : existing.lastSyncStatus;
+
+        return tx.artistPlatformInsightsConnection.update({
+          where: { id: existing.id },
+          data: {
+            connectionMethod: 'reference',
+            status: 'connected',
+            displayName: validation.displayName,
+            externalAccountId: validation.externalAccountId,
+            externalHandle: validation.externalHandle,
+            externalUrl: validation.externalUrl,
+            accessToken: null,
+            refreshToken: null,
+            tokenExpiresAt: null,
+            scopes: [],
+            metadata: metadata as Prisma.InputJsonValue,
+            lastSyncStartedAt: null,
+            lastSyncedAt: accountChanged ? null : existing.lastSyncedAt,
+            lastSyncStatus: recoveredSyncStatus,
+            lastSyncError: null,
+          },
+        });
+      }
+
+      return tx.artistPlatformInsightsConnection.create({
+        data: {
+          artistId,
+          platform: 'youtube',
+          connectionMethod: 'reference',
+          status: 'connected',
+          displayName: validation.displayName,
+          externalAccountId: validation.externalAccountId,
+          externalHandle: validation.externalHandle,
+          externalUrl: validation.externalUrl,
+          accessToken: null,
+          refreshToken: null,
+          tokenExpiresAt: null,
+          scopes: [],
+          metadata: metadata as Prisma.InputJsonValue,
+          lastSyncStatus: 'never',
+        },
+      });
+    });
+
+    this.auditService.log({
+      actorId: userId,
+      action: existing
+        ? 'insights.youtube_connection.update'
+        : 'insights.youtube_connection.create',
+      entityType: 'artist_platform_insights_connection',
+      entityId: savedConnection.id,
+      metadata: {
+        artistId,
+        platform: 'youtube',
+        externalAccountId: validation.externalAccountId,
+        externalHandle: validation.externalHandle,
+        externalUrl: validation.externalUrl,
+        accountChanged,
+      },
+      ipAddress,
+    });
+
+    return this.mapConnection(savedConnection as InsightsConnectionRecord)!;
+  }
+
+  async syncYouTubeConnection(
+    artistId: string,
+    userId: string,
+    ipAddress?: string,
+  ): Promise<YouTubeInsightsSyncResult> {
+    await this.membershipService.validateAccess(userId, artistId, 'write');
+    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
+
+    const connection = await this.prisma.artistPlatformInsightsConnection.findFirst({
+      where: {
+        artistId,
+        platform: 'youtube',
+      },
+    });
+
+    if (!connection || !connection.externalAccountId) {
+      throw new BadRequestException('Connect a YouTube channel before syncing insights');
+    }
+
+    const startedAt = new Date();
+    await this.prisma.artistPlatformInsightsConnection.update({
+      where: { id: connection.id },
+      data: {
+        lastSyncStartedAt: startedAt,
+        lastSyncStatus: 'pending',
+        lastSyncError: null,
+      },
+    });
+
+    try {
+      const snapshot = await this.youTubeProvider.syncLatestSnapshot({
+        externalAccountId: connection.externalAccountId,
+        externalHandle: connection.externalHandle,
+        externalUrl: connection.externalUrl,
+        metadata: this.readJsonObject(connection.metadata),
+      });
+
+      const capturedAt = new Date(snapshot.capturedAt);
+      if (Number.isNaN(capturedAt.getTime())) {
+        throw new ServiceUnavailableException('YouTube returned an invalid snapshot timestamp');
+      }
+
+      const result = await this.prisma.$transaction(async (tx) => {
+        const savedSnapshot = await tx.artistPlatformInsightsSnapshot.create({
+          data: {
+            artistId,
+            connectionId: connection.id,
+            platform: 'youtube',
+            capturedAt,
+            profile: snapshot.profile as Prisma.InputJsonValue,
+            metrics: snapshot.metrics as Prisma.InputJsonValue,
+            topContent: snapshot.topContent as unknown as Prisma.InputJsonValue,
+            notes: [],
+          },
+        });
+
+        const updatedConnection = await tx.artistPlatformInsightsConnection.update({
+          where: { id: connection.id },
+          data: {
+            status: 'connected',
+            displayName: snapshot.profile.displayName,
+            externalUrl: snapshot.profile.externalUrl,
+            lastSyncStartedAt: startedAt,
+            lastSyncedAt: capturedAt,
+            lastSyncStatus: 'success',
+            lastSyncError: null,
+            metadata: {
+              ...(this.readJsonObject(connection.metadata) ?? {}),
+              imageUrl: snapshot.profile.imageUrl,
+            } as Prisma.InputJsonValue,
+          },
+        });
+
+        return {
+          connection: updatedConnection as InsightsConnectionRecord,
+          snapshot: savedSnapshot as InsightsSnapshotRecord,
+        };
+      });
+
+      this.auditService.log({
+        actorId: userId,
+        action: 'insights.youtube_connection.sync',
+        entityType: 'artist_platform_insights_connection',
+        entityId: connection.id,
+        metadata: {
+          artistId,
+          platform: 'youtube',
+          capturedAt: snapshot.capturedAt,
+        },
+        ipAddress,
+      });
+
+      return {
+        ok: true,
+        platform: 'youtube',
+        message: 'YouTube Insights synced successfully',
+        connection: this.mapConnection(result.connection)!,
+        snapshot: this.mapSnapshot(result.snapshot)!,
+      };
+    } catch (error) {
+      const normalizedError =
+        error instanceof HttpException
+          ? error
+          : new ServiceUnavailableException('Could not sync YouTube insights right now');
+      const message =
+        normalizedError instanceof Error
+          ? normalizedError.message
+          : 'Could not sync YouTube insights right now';
+
+      await this.prisma.artistPlatformInsightsConnection.update({
+        where: { id: connection.id },
+        data: {
+          status: 'connected',
+          lastSyncStartedAt: startedAt,
+          lastSyncStatus: 'error',
+          lastSyncError: message,
+        },
+      });
+
+      this.auditService.log({
+        actorId: userId,
+        action: 'insights.youtube_connection.sync_failed',
+        entityType: 'artist_platform_insights_connection',
+        entityId: connection.id,
+        metadata: {
+          artistId,
+          platform: 'youtube',
           message,
         },
         ipAddress,

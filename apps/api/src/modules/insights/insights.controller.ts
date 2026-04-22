@@ -6,11 +6,13 @@ import type {
   SpotifyInsightsSyncResult,
   StageLinkInsightsConnection,
   StageLinkInsightsDashboard,
+  YouTubeInsightsConnectionValidationResult,
+  YouTubeInsightsSyncResult,
 } from '@stagelink/types';
 import { CurrentUser, CheckOwnership } from '../../common/decorators';
 import { OwnershipGuard } from '../../common/guards';
 import { extractClientIp } from '../../common/utils/request.utils';
-import { SpotifyInsightsConnectionDto } from './dto';
+import { SpotifyInsightsConnectionDto, YouTubeInsightsConnectionDto } from './dto';
 import { InsightsService } from './insights.service';
 
 @Controller('insights')
@@ -58,5 +60,38 @@ export class InsightsController {
     @Req() req: Request,
   ): Promise<SpotifyInsightsSyncResult> {
     return this.insightsService.syncSpotifyConnection(artistId, user.id, extractClientIp(req));
+  }
+
+  @Post(':artistId/youtube/validate')
+  validateYouTubeConnection(
+    @Param('artistId') artistId: string,
+    @Body() dto: YouTubeInsightsConnectionDto,
+    @CurrentUser() user: User,
+  ): Promise<YouTubeInsightsConnectionValidationResult> {
+    return this.insightsService.validateYouTubeConnection(artistId, dto, user.id);
+  }
+
+  @Patch(':artistId/youtube')
+  updateYouTubeConnection(
+    @Param('artistId') artistId: string,
+    @Body() dto: YouTubeInsightsConnectionDto,
+    @CurrentUser() user: User,
+    @Req() req: Request,
+  ): Promise<StageLinkInsightsConnection> {
+    return this.insightsService.updateYouTubeConnection(
+      artistId,
+      dto,
+      user.id,
+      extractClientIp(req),
+    );
+  }
+
+  @Post(':artistId/youtube/sync')
+  syncYouTubeConnection(
+    @Param('artistId') artistId: string,
+    @CurrentUser() user: User,
+    @Req() req: Request,
+  ): Promise<YouTubeInsightsSyncResult> {
+    return this.insightsService.syncYouTubeConnection(artistId, user.id, extractClientIp(req));
   }
 }
