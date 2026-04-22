@@ -9,7 +9,6 @@ import {
   BarChart2,
   User,
   FileText,
-  CreditCard,
   Settings,
   ExternalLink,
 } from 'lucide-react';
@@ -33,7 +32,6 @@ const NAV_ITEMS: NavItem[] = [
   { icon: FileText, labelKey: 'nav.epk', href: 'dashboard/epk' },
   { icon: BarChart2, labelKey: 'nav.analytics', href: 'dashboard/analytics', exact: true },
   { icon: User, labelKey: 'nav.profile', href: 'dashboard/profile' },
-  { icon: CreditCard, labelKey: 'nav.billing', href: 'dashboard/billing' },
   { icon: Settings, labelKey: 'nav.settings', href: 'dashboard/settings' },
 ];
 

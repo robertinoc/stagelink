@@ -94,14 +94,9 @@
       "upgrade_required": "Upgrade required",
       "upgrade_cta": "Upgrade to unlock",
       "cards": {
-        "page": {
-          "title": "Customize my page",
-          "description": "Build your public artist page with blocks, embeds, merch, and localized content.",
-          "cta": "Open My Page"
-        },
         "epk": {
           "title": "Create my Presskit",
-          "description": "Publish an EPK with highlighted media, contact details, and artist-ready share pages.",
+          "description": "Turn your profile into a shareable press kit, then add the extra booking and rider details that only belong in an EPK.",
           "cta": "Open EPK"
         },
         "analytics": {
@@ -113,23 +108,18 @@
         },
         "profile": {
           "title": "Edit my profile",
-          "description": "Update your artist bio, social links, SEO, and the channels StageLink uses as trusted profile references.",
+          "description": "Update your core artist identity, social links, SEO, and the platform references StageLink reuses across your public page, EPK, and Insights.",
           "cta": "Open Profile"
         },
         "public_profile": {
-          "title": "View my public profile",
-          "description": "Open your live artist page in a new tab and check exactly what fans see.",
+          "title": "View my public page",
+          "description": "Open your live StageLink page in a new tab and check exactly what fans see right now.",
           "cta": "Open public page"
         },
         "settings": {
           "title": "Settings",
-          "description": "Manage plan-gated connections like Shopify, Smart Merch, and StageLink Insights platform setup.",
+          "description": "Manage plans, billing, and product connections like Shopify, Smart Merch, and StageLink Insights setup from one place.",
           "cta": "Open Settings"
-        },
-        "billing": {
-          "title": "Billing",
-          "description": "Review your current plan, upgrade paths, and locked capabilities across StageLink.",
-          "cta": "Open Billing"
         }
       }
     },
@@ -495,7 +485,7 @@
     },
     "profile": {
       "title": "Profile",
-      "description": "Manage your artist profile, images, social links and SEO.",
+      "description": "Manage the core artist identity StageLink reuses across your public page, EPK, platform references, and SEO.",
       "sections": {
         "images": "Images",
         "images_hint": "Changes are saved immediately after uploading.",
@@ -738,7 +728,7 @@
     },
     "settings": {
       "title": "Settings",
-      "description": "Review plan-based capabilities for your artist workspace.",
+      "description": "Manage your plan, billing, and external product connections for this artist workspace.",
       "summary": {
         "title": "Plan capabilities",
         "description": "StageLink currently resolves this tenant as {plan}. Backend gating uses this effective plan, not only the billing UI.",
@@ -746,7 +736,25 @@
         "webhook_note": "Plan changes take effect after Stripe webhooks synchronize the tenant subscription.",
         "syncing_note": "Stripe billing is still syncing. Product gating stays conservative until the latest billing state is confirmed.",
         "cta": "Open billing",
-        "locked_count": "{count, plural, one {# locked feature} other {# locked features}}"
+        "portal_cta": "Open billing portal"
+      },
+      "plans": {
+        "title": "Plans and billing",
+        "description": "Pick the plan that fits your artist project, then use Settings as the home for upgrades, billing, and connected features.",
+        "badges": {
+          "current": "Current plan",
+          "access": "Current access"
+        },
+        "current_description": "This is the plan currently attached to your billing.",
+        "access_description": "This plan is currently granting product access while billing finishes syncing.",
+        "available_description": "Upgrade here when you want to unlock more of StageLink.",
+        "upgrade_cta": "Upgrade to {plan}",
+        "current_cta": "Current plan",
+        "included_cta": "Managed from billing",
+        "manage_title": "Need to downgrade, cancel, or return to Free?",
+        "manage_description": "Use the billing portal for plan changes that are better handled directly in Stripe. You can still open the full billing screen anytime.",
+        "manage_cta": "Manage billing",
+        "legacy_cta": "Open detailed billing"
       },
       "badges": {
         "included": "Included"
@@ -1034,6 +1042,8 @@
       "smart_merch_display_list": "List",
       "smart_merch_max_items": "Max products to show",
       "smart_merch_settings_hint": "Select up to 12 products. Each product needs its own external purchase URL.",
+      "smart_merch_purchase_url_required_title": "Every selected product needs a purchase link",
+      "smart_merch_purchase_url_required_hint": "StageLink shows the merch card, but checkout stays external. We prefill the provider URL when one is available, and you can replace it with Shopify, Etsy, or any valid purchase page.",
       "smart_merch_products_title": "Products to show",
       "smart_merch_products_hint": "Choose the Printful products you want to feature and add the external link where fans can buy each one.",
       "smart_merch_products_loading": "Loading merch products…",
@@ -1041,6 +1051,10 @@
       "smart_merch_products_error": "Could not load Printful products right now.",
       "smart_merch_products_missing_artist": "Select an artist page before configuring Smart Merch.",
       "smart_merch_purchase_url": "External purchase URL",
+      "smart_merch_purchase_url_prefill": "Prefilled from the provider product URL. Replace it if you want fans to buy somewhere else.",
+      "smart_merch_purchase_url_missing_provider": "Add the external checkout or product page where fans should buy this item.",
+      "smart_merch_product_available": "Available",
+      "smart_merch_product_unavailable": "Unavailable",
       "smart_merch_localized_section": "Localized merch copy",
       "smart_merch_localized_hint": "These fields are optional per locale. Base Smart Merch copy above remains the fallback when a locale is empty.",
       "smart_merch_locale_en": "English",

@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { FeatureLockCta } from '@/components/billing/FeatureLockCta';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,12 +12,10 @@ import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import { getMerchConnection } from '@/lib/api/merch';
 import { getShopifyConnection } from '@/lib/api/shopify';
 import { getSession } from '@/lib/auth';
+import { startCheckoutAction, startPortalAction } from '../billing/actions';
 import { InsightsConnectionsSettingsCard } from '@/features/dashboard/components/InsightsConnectionsSettingsCard';
-import { FEATURE_KEYS, getMinimumPlanForFeature, type FeatureKey } from '@stagelink/types';
 import { MerchProviderSettingsCard } from '@/features/dashboard/components/MerchProviderSettingsCard';
 import { ShopifySettingsCard } from '@/features/dashboard/components/ShopifySettingsCard';
-
-const FEATURE_ORDER: FeatureKey[] = [...FEATURE_KEYS];
 
 function resolvePlanLabel(plan: 'free' | 'pro' | 'pro_plus') {
   switch (plan) {
@@ -29,6 +26,14 @@ function resolvePlanLabel(plan: 'free' | 'pro' | 'pro_plus') {
     default:
       return 'Free';
   }
+}
+
+function canUpgradeToPlan(
+  currentPlan: 'free' | 'pro' | 'pro_plus',
+  nextPlan: 'free' | 'pro' | 'pro_plus',
+) {
+  const rank = { free: 0, pro: 1, pro_plus: 2 };
+  return rank[nextPlan] > rank[currentPlan];
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -76,8 +81,14 @@ export default async function DashboardSettingsPage({
       : Promise.resolve(null),
   ]);
 
-  const lockedCount = summary.featureHighlights.filter((feature) => !feature.included).length;
   const syncing = summary.billingState === 'syncing';
+  const plans = summary.availablePlans.filter(
+    (
+      plan,
+    ): plan is (typeof summary.availablePlans)[number] & {
+      planCode: 'free' | 'pro' | 'pro_plus';
+    } => plan.planCode !== 'enterprise',
+  );
 
   return (
     <div className="space-y-6">
@@ -88,7 +99,6 @@ export default async function DashboardSettingsPage({
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="secondary">{resolvePlanLabel(summary.effectivePlan)}</Badge>
-          <Badge variant="outline">{t('summary.locked_count', { count: lockedCount })}</Badge>
         </div>
       </div>
 
@@ -106,11 +116,124 @@ export default async function DashboardSettingsPage({
             <p>{t('summary.backend_source')}</p>
             <p>{syncing ? t('summary.syncing_note') : t('summary.webhook_note')}</p>
           </div>
-          <Button asChild>
-            <Link href={`/${locale}/dashboard/billing`}>{t('summary.cta')}</Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {summary.portalAvailable ? (
+              <form action={startPortalAction}>
+                <input type="hidden" name="artistId" value={artistId} />
+                <input type="hidden" name="locale" value={locale} />
+                <Button type="submit" variant="outline">
+                  {t('summary.portal_cta')}
+                </Button>
+              </form>
+            ) : null}
+            <Button asChild>
+              <Link href={`/${locale}/dashboard/billing`}>{t('summary.cta')}</Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">{t('plans.title')}</h2>
+          <p className="text-sm text-muted-foreground">{t('plans.description')}</p>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-3">
+          {plans.map((plan) => {
+            const isCurrent = plan.planCode === summary.billingPlan;
+            const isEffective = plan.planCode === summary.effectivePlan;
+            const canUpgrade = canUpgradeToPlan(summary.billingPlan, plan.planCode);
+
+            return (
+              <Card
+                key={plan.planCode}
+                className={isCurrent ? 'border-primary shadow-sm shadow-primary/10' : undefined}
+              >
+                <CardHeader className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <CardTitle>{plan.displayName}</CardTitle>
+                    <div className="flex flex-wrap gap-2">
+                      {isCurrent ? (
+                        <Badge variant="secondary">{t('plans.badges.current')}</Badge>
+                      ) : null}
+                      {isEffective && !isCurrent ? (
+                        <Badge variant="outline">{t('plans.badges.access')}</Badge>
+                      ) : null}
+                    </div>
+                  </div>
+                  <CardDescription>
+                    {isCurrent
+                      ? t('plans.current_description')
+                      : isEffective
+                        ? t('plans.access_description')
+                        : t('plans.available_description')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-2xl font-semibold">
+                      {plan.priceDisplay}
+                      {plan.interval ? (
+                        <span className="ml-1 text-sm font-normal text-muted-foreground">
+                          /{plan.interval}
+                        </span>
+                      ) : null}
+                    </p>
+                  </div>
+
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    {plan.features.slice(0, 5).map((feature) => (
+                      <li key={feature} className="flex items-start gap-2">
+                        <span className="mt-0.5 text-foreground">•</span>
+                        <span>{t(`features.${feature}.title`)}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {canUpgrade ? (
+                      <form action={startCheckoutAction}>
+                        <input type="hidden" name="artistId" value={artistId} />
+                        <input type="hidden" name="plan" value={plan.planCode} />
+                        <input type="hidden" name="locale" value={locale} />
+                        <Button type="submit">
+                          {t('plans.upgrade_cta', {
+                            plan: resolvePlanLabel(plan.planCode),
+                          })}
+                        </Button>
+                      </form>
+                    ) : (
+                      <Button type="button" variant="outline" disabled>
+                        {isCurrent ? t('plans.current_cta') : t('plans.included_cta')}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('plans.manage_title')}</CardTitle>
+            <CardDescription>{t('plans.manage_description')}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            {summary.portalAvailable ? (
+              <form action={startPortalAction}>
+                <input type="hidden" name="artistId" value={artistId} />
+                <input type="hidden" name="locale" value={locale} />
+                <Button type="submit">{t('plans.manage_cta')}</Button>
+              </form>
+            ) : null}
+            <Button asChild variant="outline">
+              <Link href={`/${locale}/dashboard/billing`}>{t('plans.legacy_cta')}</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
 
       <MerchProviderSettingsCard
         artistId={artistId}
@@ -134,52 +257,6 @@ export default async function DashboardSettingsPage({
         data={insightsResult?.kind === 'ok' ? insightsResult.data : null}
         errorMessage={insightsResult?.kind === 'error' ? insightsResult.message : null}
       />
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        {FEATURE_ORDER.map((feature) => {
-          const enabled = summary.entitlements[feature];
-          const requiredPlan = getMinimumPlanForFeature(feature);
-
-          return (
-            <Card key={feature} className={enabled ? 'border-emerald-200' : 'border-muted'}>
-              <CardHeader className="space-y-3">
-                <div className="flex items-center justify-between gap-3">
-                  <CardTitle className="text-base">{t(`features.${feature}.title`)}</CardTitle>
-                  <Badge variant={enabled ? 'secondary' : 'outline'}>
-                    {enabled ? t('badges.included') : resolvePlanLabel(requiredPlan)}
-                  </Badge>
-                </div>
-                <CardDescription>{t(`features.${feature}.description`)}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  {enabled
-                    ? t('feature_state.included')
-                    : t('feature_state.locked', { plan: resolvePlanLabel(requiredPlan) })}
-                </p>
-                <p className="text-xs text-muted-foreground">{t(`features.${feature}.note`)}</p>
-                {enabled ? (
-                  <Button asChild variant="outline">
-                    <Link href={`/${locale}/dashboard/billing`}>{t('actions.manage_plan')}</Link>
-                  </Button>
-                ) : (
-                  <FeatureLockCta
-                    compact
-                    title={t('actions.upgrade')}
-                    description={t('feature_state.locked', {
-                      plan: resolvePlanLabel(requiredPlan),
-                    })}
-                    currentPlanLabel={resolvePlanLabel(summary.effectivePlan)}
-                    requiredPlanLabel={resolvePlanLabel(requiredPlan)}
-                    href={`/${locale}/dashboard/billing`}
-                    ctaLabel={t('actions.upgrade')}
-                  />
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
     </div>
   );
 }

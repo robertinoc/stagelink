@@ -88,8 +88,8 @@ export default async function DashboardEpkPage({
         <div>
           <h1 className="text-2xl font-bold">EPK Builder</h1>
           <p className="text-sm text-muted-foreground">
-            Build a professional press kit from your StageLink profile, then share it publicly or
-            export it from the print view.
+            Build a professional press kit from your StageLink profile, then layer on only the extra
+            press-specific details you need for sharing, booking, and export.
           </p>
         </div>
 
@@ -105,14 +105,21 @@ export default async function DashboardEpkPage({
         <CardHeader>
           <CardTitle>How this EPK works</CardTitle>
           <CardDescription>
-            Profile data is used as the default identity layer. Public contacts, bio overrides and
-            featured content are controlled explicitly here.
+            Your profile is the source of truth for identity, links, and core artist story. The EPK
+            editor is where you add the extra press-kit pieces like overrides, riders, hospitality
+            notes, and share-ready presentation.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 text-sm text-muted-foreground md:grid-cols-3">
-          <p>Draft and publication are independent from your main public page.</p>
-          <p>Only published EPK fields appear on the public shareable route.</p>
-          <p>The print view is designed so you can Save as PDF directly from the browser.</p>
+          <p>
+            Your public page and your EPK can share the same artist foundation without becoming the
+            same experience.
+          </p>
+          <p>Only the published EPK fields and overrides appear on the public press-kit route.</p>
+          <p>
+            The print view stays ready for browser-based Save as PDF when you need a portable
+            version.
+          </p>
         </CardContent>
       </Card>
 
