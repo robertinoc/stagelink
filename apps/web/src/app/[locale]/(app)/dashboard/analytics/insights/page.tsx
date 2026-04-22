@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { StageLinkInsightsDateRange } from '@stagelink/types';
 import { InsightsDashboard } from '@/features/insights/components/InsightsDashboard';
+import { getArtist } from '@/lib/api/artists';
 import { getBillingEntitlements } from '@/lib/api/billing';
 import { getStageLinkInsightsDashboard } from '@/lib/api/insights';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
@@ -35,14 +36,16 @@ export default async function DashboardInsightsPage({
     redirect(`/${locale}/onboarding`);
   }
 
-  const [entitlements, result] = await Promise.all([
+  const [entitlements, result, artist] = await Promise.all([
     getBillingEntitlements(artistId, session.accessToken).catch(() => null),
     getStageLinkInsightsDashboard(artistId, session.accessToken, range),
+    getArtist(artistId, session.accessToken).catch(() => null),
   ]);
 
   return (
     <InsightsDashboard
       artistId={artistId}
+      artistYouTubeUrl={artist?.youtubeUrl ?? null}
       data={result.kind === 'ok' ? result.data : null}
       entitlements={entitlements}
       lockedPayload={result.kind === 'locked' ? result.payload : null}

@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
@@ -22,6 +22,7 @@ import {
 
 interface YouTubeInsightsCardProps {
   artistId: string;
+  artistYouTubeUrl: string | null;
   summary: StageLinkInsightsPlatformSummary;
 }
 
@@ -60,18 +61,26 @@ function formatDelta(current: unknown, previous: unknown, locale: string): strin
   return `${sign}${new Intl.NumberFormat(locale).format(delta)}`;
 }
 
-export function YouTubeInsightsCard({ artistId, summary }: YouTubeInsightsCardProps) {
+export function YouTubeInsightsCard({
+  artistId,
+  artistYouTubeUrl,
+  summary,
+}: YouTubeInsightsCardProps) {
   const t = useTranslations('dashboard.insights.youtube');
   const commonT = useTranslations('dashboard.insights');
   const locale = useLocale();
   const router = useRouter();
 
-  const [channelInput, setChannelInput] = useState(
-    summary.connection?.externalUrl ??
-      (summary.connection?.externalHandle
-        ? `@${summary.connection.externalHandle}`
-        : (summary.connection?.externalAccountId ?? '')),
-  );
+  const profileLinkedChannelInput = artistYouTubeUrl?.trim() ?? '';
+  const hasProfileLinkedChannel = profileLinkedChannelInput.length > 0;
+  const resolvedChannelInput =
+    profileLinkedChannelInput ||
+    summary.connection?.externalUrl ||
+    (summary.connection?.externalHandle
+      ? `@${summary.connection.externalHandle}`
+      : (summary.connection?.externalAccountId ?? ''));
+
+  const [channelInput, setChannelInput] = useState(resolvedChannelInput);
   const [validation, setValidation] = useState<YouTubeInsightsConnectionValidationResult | null>(
     null,
   );
@@ -109,6 +118,10 @@ export function YouTubeInsightsCard({ artistId, summary }: YouTubeInsightsCardPr
     () => formatDate(summary.connection?.lastSyncedAt ?? null, locale),
     [locale, summary.connection?.lastSyncedAt],
   );
+
+  useEffect(() => {
+    setChannelInput(resolvedChannelInput);
+  }, [resolvedChannelInput]);
 
   async function handleValidate() {
     setValidating(true);
@@ -179,9 +192,14 @@ export function YouTubeInsightsCard({ artistId, summary }: YouTubeInsightsCardPr
             <Input
               value={channelInput}
               onChange={(event) => setChannelInput(event.target.value)}
+              readOnly={hasProfileLinkedChannel}
               placeholder={t('fields.channel_input_placeholder')}
             />
-            <p className="text-xs text-muted-foreground">{t('fields.channel_input_hint')}</p>
+            <p className="text-xs text-muted-foreground">
+              {hasProfileLinkedChannel
+                ? t('fields.channel_input_hint_locked')
+                : t('fields.channel_input_hint_profile_required')}
+            </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -189,14 +207,14 @@ export function YouTubeInsightsCard({ artistId, summary }: YouTubeInsightsCardPr
               type="button"
               variant="outline"
               onClick={handleValidate}
-              disabled={validating || channelInput.trim().length === 0}
+              disabled={!hasProfileLinkedChannel || validating || channelInput.trim().length === 0}
             >
               {validating ? t('actions.validating') : t('actions.validate')}
             </Button>
             <Button
               type="button"
               onClick={handleConnect}
-              disabled={saving || channelInput.trim().length === 0}
+              disabled={!hasProfileLinkedChannel || saving || channelInput.trim().length === 0}
             >
               {saving
                 ? t('actions.connecting')
@@ -205,13 +223,27 @@ export function YouTubeInsightsCard({ artistId, summary }: YouTubeInsightsCardPr
                   : t('actions.connect')}
             </Button>
             {summary.connection ? (
-              <Button type="button" variant="secondary" onClick={handleSync} disabled={syncing}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleSync}
+                disabled={!hasProfileLinkedChannel || syncing}
+              >
                 {syncing ? t('actions.syncing') : t('actions.sync')}
               </Button>
             ) : null}
           </div>
         </div>
       </div>
+
+      {!hasProfileLinkedChannel ? (
+        <div className="flex flex-col gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-50 lg:flex-row lg:items-center lg:justify-between">
+          <p>{t('messages.profile_required')}</p>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/${locale}/dashboard/profile`}>{t('actions.open_profile')}</Link>
+          </Button>
+        </div>
+      ) : null}
 
       {validation ? (
         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">

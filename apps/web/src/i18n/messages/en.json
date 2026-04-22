@@ -326,7 +326,8 @@
         "fields": {
           "channel_input": "YouTube channel URL, @handle, or channel ID",
           "channel_input_placeholder": "https://www.youtube.com/@yourchannel or UC...",
-          "channel_input_hint": "Paste a YouTube channel URL with /@handle or /channel/<id>, a raw @handle, or a raw channel ID."
+          "channel_input_hint_locked": "StageLink uses the YouTube channel saved in your artist profile. To change it, update your profile first.",
+          "channel_input_hint_profile_required": "Add your YouTube channel in your artist profile first. Insights will only connect the same channel saved there."
         },
         "actions": {
           "validate": "Validate channel",
@@ -336,13 +337,15 @@
           "update": "Update connection",
           "sync": "Sync now",
           "syncing": "Syncing…",
-          "open_youtube": "Open on YouTube"
+          "open_youtube": "Open on YouTube",
+          "open_profile": "Open profile"
         },
         "messages": {
           "connected": "YouTube channel connected successfully.",
           "validate_error": "Could not validate the YouTube channel right now.",
           "connect_error": "Could not save the YouTube channel right now.",
           "sync_error": "Could not sync YouTube insights right now.",
+          "profile_required": "Before using YouTube Insights, save your own YouTube channel in Profile so StageLink can verify the connection belongs to your artist account.",
           "subscribers_hidden": "This channel hides its public subscriber count, so StageLink shows channel views and video activity instead."
         },
         "connected": {
