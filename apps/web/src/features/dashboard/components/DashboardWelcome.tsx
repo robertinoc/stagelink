@@ -3,10 +3,8 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import {
   ArrowUpRight,
   BarChart3,
-  CreditCard,
   ExternalLink,
   FileText,
-  Globe,
   LayoutDashboard,
   Lock,
   Settings,
@@ -71,13 +69,23 @@ export async function DashboardWelcome({ artist, billingSummary }: DashboardWelc
 
   const cards: ActionCardConfig[] = [
     {
-      key: 'page',
-      href: `/${locale}/dashboard/page`,
-      title: t('cards.page.title'),
-      description: t('cards.page.description'),
-      cta: t('cards.page.cta'),
-      icon: Globe,
-      tone: 'from-fuchsia-500/20 via-violet-500/10 to-transparent',
+      key: 'public_profile',
+      href: publicProfileHref,
+      title: t('cards.public_profile.title'),
+      description: t('cards.public_profile.description'),
+      cta: t('cards.public_profile.cta'),
+      icon: ExternalLink,
+      tone: 'from-violet-500/20 via-fuchsia-500/10 to-transparent',
+      target: '_blank',
+    },
+    {
+      key: 'profile',
+      href: `/${locale}/dashboard/profile`,
+      title: t('cards.profile.title'),
+      description: t('cards.profile.description'),
+      cta: t('cards.profile.cta'),
+      icon: UserRound,
+      tone: 'from-amber-500/20 via-orange-500/10 to-transparent',
     },
     {
       key: 'epk',
@@ -102,25 +110,6 @@ export async function DashboardWelcome({ artist, billingSummary }: DashboardWelc
         : t('cards.analytics.pro_plus_off'),
     },
     {
-      key: 'profile',
-      href: `/${locale}/dashboard/profile`,
-      title: t('cards.profile.title'),
-      description: t('cards.profile.description'),
-      cta: t('cards.profile.cta'),
-      icon: UserRound,
-      tone: 'from-amber-500/20 via-orange-500/10 to-transparent',
-    },
-    {
-      key: 'public_profile',
-      href: publicProfileHref,
-      title: t('cards.public_profile.title'),
-      description: t('cards.public_profile.description'),
-      cta: t('cards.public_profile.cta'),
-      icon: ExternalLink,
-      tone: 'from-violet-500/20 via-fuchsia-500/10 to-transparent',
-      target: '_blank',
-    },
-    {
       key: 'settings',
       href: `/${locale}/dashboard/settings`,
       title: t('cards.settings.title'),
@@ -128,15 +117,6 @@ export async function DashboardWelcome({ artist, billingSummary }: DashboardWelc
       cta: t('cards.settings.cta'),
       icon: Settings,
       tone: 'from-white/10 via-white/5 to-transparent',
-    },
-    {
-      key: 'billing',
-      href: `/${locale}/dashboard/billing`,
-      title: t('cards.billing.title'),
-      description: t('cards.billing.description'),
-      cta: t('cards.billing.cta'),
-      icon: CreditCard,
-      tone: 'from-rose-500/20 via-pink-500/10 to-transparent',
     },
   ];
 

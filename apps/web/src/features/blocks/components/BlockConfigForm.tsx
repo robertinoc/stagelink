@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import type {
   BlockType,
@@ -730,7 +730,7 @@ function SmartMerchBlockForm({
   const [productsError, setProductsError] = useState<string | null>(null);
 
   const smartMerchTranslations = localizedContent?.smartMerch ?? {};
-  const selectedProducts = config.selectedProducts ?? [];
+  const selectedProducts = useMemo(() => config.selectedProducts ?? [], [config.selectedProducts]);
 
   useEffect(() => {
     let cancelled = false;
@@ -769,6 +769,29 @@ function SmartMerchBlockForm({
       cancelled = true;
     };
   }, [artistId, t]);
+
+  useEffect(() => {
+    if (availableProducts.length === 0) return;
+
+    let changed = false;
+    const nextSelectedProducts = selectedProducts.map((selection) => {
+      if (selection.purchaseUrl.trim()) {
+        return selection;
+      }
+
+      const product = availableProducts.find((entry) => entry.id === selection.productId);
+      if (!product?.productUrl) {
+        return selection;
+      }
+
+      changed = true;
+      return { ...selection, purchaseUrl: product.productUrl };
+    });
+
+    if (changed) {
+      onChange({ ...config, selectedProducts: nextSelectedProducts });
+    }
+  }, [availableProducts, config, onChange, selectedProducts]);
 
   function updateLocalizedField(field: 'headline' | 'subtitle' | 'ctaLabel', value: string) {
     if (!onLocalizedContentChange) return;
@@ -820,7 +843,14 @@ function SmartMerchBlockForm({
 
     onChange({
       ...config,
-      selectedProducts: [...selectedProducts, { productId, purchaseUrl: '' }],
+      selectedProducts: [
+        ...selectedProducts,
+        {
+          productId,
+          purchaseUrl:
+            availableProducts.find((product) => product.id === productId)?.productUrl ?? '',
+        },
+      ],
     });
   }
 
@@ -922,6 +952,15 @@ function SmartMerchBlockForm({
         </div>
       </div>
 
+      <div className="rounded-md border border-input bg-muted/20 p-3">
+        <div className="space-y-1">
+          <p className="text-sm font-medium">{t('smart_merch_purchase_url_required_title')}</p>
+          <p className="text-xs text-muted-foreground">
+            {t('smart_merch_purchase_url_required_hint')}
+          </p>
+        </div>
+      </div>
+
       <div className="space-y-3 rounded-md border border-input bg-muted/20 p-3">
         <div>
           <p className="text-sm font-medium">{t('smart_merch_products_title')}</p>
@@ -935,7 +974,7 @@ function SmartMerchBlockForm({
         ) : availableProducts.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('smart_merch_products_empty')}</p>
         ) : (
-          <div className="space-y-3">
+          <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
             {availableProducts.map((product) => {
               const selectedProduct = selectedProducts.find(
                 (entry) => entry.productId === product.id,
@@ -952,9 +991,36 @@ function SmartMerchBlockForm({
                       className="mt-1 h-4 w-4 rounded border-input"
                     />
                     <div className="flex-1 space-y-2">
-                      <div>
-                        <p className="text-sm font-medium">{product.title}</p>
-                        <p className="text-xs text-muted-foreground">{product.id}</p>
+                      <div className="flex gap-3">
+                        {product.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={product.imageUrl}
+                            alt={product.title}
+                            className="h-14 w-14 rounded-md object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-14 w-14 items-center justify-center rounded-md border border-dashed border-input text-[10px] uppercase tracking-wide text-muted-foreground">
+                            Merch
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium">{product.title}</p>
+                          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                            <span>{product.id}</span>
+                            {product.priceAmount ? (
+                              <span>
+                                {product.priceAmount}
+                                {product.currencyCode ? ` ${product.currencyCode}` : ''}
+                              </span>
+                            ) : null}
+                            <span>
+                              {product.availableForSale
+                                ? t('smart_merch_product_available')
+                                : t('smart_merch_product_unavailable')}
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
                       {selectedProduct ? (
@@ -969,6 +1035,11 @@ function SmartMerchBlockForm({
                             placeholder="https://..."
                             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                           />
+                          <p className="mt-1 text-[11px] text-muted-foreground">
+                            {product.productUrl
+                              ? t('smart_merch_purchase_url_prefill')
+                              : t('smart_merch_purchase_url_missing_provider')}
+                          </p>
                         </div>
                       ) : null}
                     </div>

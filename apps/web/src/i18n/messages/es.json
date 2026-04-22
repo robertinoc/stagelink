@@ -94,14 +94,9 @@
       "upgrade_required": "Requiere upgrade",
       "upgrade_cta": "Actualizar para desbloquear",
       "cards": {
-        "page": {
-          "title": "Personalizar mi página",
-          "description": "Construí tu página pública con bloques, embeds, merch y contenido localizado.",
-          "cta": "Abrir Mi Página"
-        },
         "epk": {
           "title": "Crear mi Presskit",
-          "description": "Publicá un EPK con media destacada, datos de contacto y páginas listas para compartir.",
+          "description": "Convertí tu perfil en un press kit compartible y sumale solo los detalles de booking, rider y hospitalidad que realmente pertenecen al EPK.",
           "cta": "Abrir EPK"
         },
         "analytics": {
@@ -113,23 +108,18 @@
         },
         "profile": {
           "title": "Editar mi perfil",
-          "description": "Actualizá tu bio, links sociales, SEO y los canales que StageLink usa como referencias confiables.",
+          "description": "Actualizá tu identidad base de artista, links sociales, SEO y las referencias de plataforma que StageLink reutiliza en tu página pública, EPK e Insights.",
           "cta": "Abrir Perfil"
         },
         "public_profile": {
-          "title": "Ver mi perfil público",
-          "description": "Abrí tu página de artista en una nueva pestaña y mirá exactamente lo que ven tus fans.",
+          "title": "Ver mi página pública",
+          "description": "Abrí tu StageLink en una nueva pestaña y mirá exactamente lo que están viendo tus fans ahora mismo.",
           "cta": "Abrir página pública"
         },
         "settings": {
           "title": "Configuración",
-          "description": "Gestioná conexiones con gating por plan como Shopify, Smart Merch y el setup de StageLink Insights.",
+          "description": "Gestioná planes, billing y conexiones de producto como Shopify, Smart Merch y StageLink Insights desde un solo lugar.",
           "cta": "Abrir Configuración"
-        },
-        "billing": {
-          "title": "Billing",
-          "description": "Revisá tu plan actual, caminos de upgrade y capacidades bloqueadas dentro de StageLink.",
-          "cta": "Abrir Billing"
         }
       }
     },
@@ -495,7 +485,7 @@
     },
     "profile": {
       "title": "Perfil",
-      "description": "Administrá tu perfil, imágenes, redes sociales y SEO.",
+      "description": "Gestioná la identidad base de artista que StageLink reutiliza en tu página pública, tu EPK, las referencias de plataforma y el SEO.",
       "sections": {
         "images": "Imágenes",
         "images_hint": "Los cambios se guardan inmediatamente al subir.",
@@ -738,7 +728,7 @@
     },
     "settings": {
       "title": "Configuración",
-      "description": "Revisá las capacidades de tu workspace según el plan del artista.",
+      "description": "Gestioná tu plan, billing y conexiones externas para este workspace de artista.",
       "summary": {
         "title": "Capacidades por plan",
         "description": "StageLink resuelve actualmente este tenant como {plan}. El gating backend usa este plan efectivo, no solo la UI de billing.",
@@ -746,7 +736,25 @@
         "webhook_note": "Los cambios de plan se aplican cuando los webhooks de Stripe sincronizan la suscripción del tenant.",
         "syncing_note": "Stripe todavía está sincronizando billing. El gating de producto se mantiene conservador hasta confirmar el último estado.",
         "cta": "Abrir billing",
-        "locked_count": "{count, plural, one {# feature bloqueada} other {# features bloqueadas}}"
+        "portal_cta": "Abrir portal de billing"
+      },
+      "plans": {
+        "title": "Planes y billing",
+        "description": "Elegí el plan que mejor le calza a tu proyecto artístico y usá Settings como casa de upgrades, billing y features conectadas.",
+        "badges": {
+          "current": "Plan actual",
+          "access": "Acceso actual"
+        },
+        "current_description": "Este es el plan actualmente asociado a tu billing.",
+        "access_description": "Este plan es el que hoy está otorgando acceso al producto mientras billing termina de sincronizar.",
+        "available_description": "Actualizá acá cuando quieras desbloquear más de StageLink.",
+        "upgrade_cta": "Actualizar a {plan}",
+        "current_cta": "Plan actual",
+        "included_cta": "Se gestiona desde billing",
+        "manage_title": "¿Querés bajar de plan, cancelar o volver a Free?",
+        "manage_description": "Usá el portal de billing para los cambios de plan que conviene manejar directo en Stripe. Igual podés abrir la pantalla completa de billing cuando quieras.",
+        "manage_cta": "Gestionar billing",
+        "legacy_cta": "Abrir billing detallado"
       },
       "badges": {
         "included": "Incluida"
@@ -1034,6 +1042,8 @@
       "smart_merch_display_list": "Lista",
       "smart_merch_max_items": "Máximo de productos a mostrar",
       "smart_merch_settings_hint": "Podés seleccionar hasta 12 productos. Cada uno necesita su propia URL externa de compra.",
+      "smart_merch_purchase_url_required_title": "Cada producto seleccionado necesita un link de compra",
+      "smart_merch_purchase_url_required_hint": "StageLink muestra la card de merch, pero el checkout sigue siendo externo. Completamos la URL del proveedor cuando existe, y podés reemplazarla por Shopify, Etsy o cualquier página válida de compra.",
       "smart_merch_products_title": "Productos a mostrar",
       "smart_merch_products_hint": "Elegí los productos de Printful que querés destacar y agregá el link externo donde tus fans pueden comprar cada uno.",
       "smart_merch_products_loading": "Cargando productos de merch…",
@@ -1041,6 +1051,10 @@
       "smart_merch_products_error": "No se pudieron cargar los productos de Printful en este momento.",
       "smart_merch_products_missing_artist": "Seleccioná una página de artista antes de configurar Smart Merch.",
       "smart_merch_purchase_url": "URL externa de compra",
+      "smart_merch_purchase_url_prefill": "La completamos desde la URL del producto en el proveedor. Reemplazala si querés que tus fans compren en otro lugar.",
+      "smart_merch_purchase_url_missing_provider": "Agregá la página externa de checkout o producto donde tus fans deberían comprar este item.",
+      "smart_merch_product_available": "Disponible",
+      "smart_merch_product_unavailable": "No disponible",
       "smart_merch_localized_section": "Copy localizado de merch",
       "smart_merch_localized_hint": "Estos campos son opcionales por idioma. El copy base de Smart Merch de arriba sigue funcionando como fallback cuando un idioma está vacío.",
       "smart_merch_locale_en": "Inglés",

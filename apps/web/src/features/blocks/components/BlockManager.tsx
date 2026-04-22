@@ -63,6 +63,24 @@ function hasLocalizedContent(content: BlockLocalizedContent | null | undefined):
   });
 }
 
+function getBlockConfigValidationMessage(config: BlockConfig | null): string | null {
+  if (!config || !('provider' in config)) return null;
+
+  if (config.provider === 'printful' || config.provider === 'printify') {
+    if ('selectedProducts' in config && Array.isArray(config.selectedProducts)) {
+      const missingPurchaseUrl = config.selectedProducts.some(
+        (product) => !product.purchaseUrl || product.purchaseUrl.trim().length === 0,
+      );
+
+      if (missingPurchaseUrl) {
+        return 'Every selected Smart Merch product needs an external purchase URL before you can save this block.';
+      }
+    }
+  }
+
+  return null;
+}
+
 // ─── Create Block Dialog ──────────────────────────────────────────────────────
 
 function CreateBlockDialog({
@@ -114,6 +132,11 @@ function CreateBlockDialog({
 
   async function handleCreate() {
     if (!selectedType || !config) return;
+    const validationMessage = getBlockConfigValidationMessage(config);
+    if (validationMessage) {
+      setError(validationMessage);
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -141,7 +164,7 @@ function CreateBlockDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t('create_dialog.title')}</DialogTitle>
           <DialogDescription>{t('create_dialog.subtitle')}</DialogDescription>
@@ -250,6 +273,11 @@ function EditBlockSheet({
 
   async function handleSave() {
     if (!block || !config) return;
+    const validationMessage = getBlockConfigValidationMessage(config);
+    if (validationMessage) {
+      setError(validationMessage);
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -273,7 +301,7 @@ function EditBlockSheet({
 
   return (
     <Sheet open={!!block} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
+      <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
         {block && config && (
           <>
             <SheetHeader className="mb-6">
