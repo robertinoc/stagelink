@@ -49,15 +49,16 @@ describe('InsightsService', () => {
   const youTubeProvider = {
     getCapabilities: jest.fn(() => ({
       platform: 'youtube',
-      connectionMethod: 'oauth',
-      connectionFlowReady: false,
-      requiresArtistOwnedAccount: true,
+      connectionMethod: 'reference',
+      connectionFlowReady: true,
+      requiresArtistOwnedAccount: false,
       profileBasics: 'full',
-      audienceMetrics: 'full',
-      topContent: 'full',
-      historicalSnapshots: 'full',
-      scheduledSync: 'full',
+      audienceMetrics: 'partial',
+      topContent: 'partial',
+      historicalSnapshots: 'partial',
+      scheduledSync: 'partial',
     })),
+    validateChannelReference: jest.fn(),
     syncLatestSnapshot: jest.fn(),
   };
 
@@ -485,5 +486,210 @@ describe('InsightsService', () => {
         }),
       }),
     );
+  });
+
+  it('validates youtube references through membership, billing, and provider validation', async () => {
+    youTubeProvider.validateChannelReference.mockResolvedValue({
+      ok: true,
+      platform: 'youtube',
+      externalAccountId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+      externalHandle: 'googledevelopers',
+      displayName: 'Google for Developers',
+      externalUrl: 'https://www.youtube.com/@googledevelopers',
+      imageUrl: null,
+      subscriberCount: 2890000,
+      totalViews: 218000000,
+      videoCount: 6200,
+      subscribersHidden: false,
+      message: 'Connected to Google for Developers on YouTube',
+    });
+
+    const result = await service.validateYouTubeConnection(
+      'artist_123',
+      { channelInput: 'https://www.youtube.com/@googledevelopers' },
+      'user_123',
+    );
+
+    expect(membershipService.validateAccess).toHaveBeenCalledWith(
+      'user_123',
+      'artist_123',
+      'write',
+    );
+    expect(billingEntitlementsService.assertFeatureAccess).toHaveBeenCalledWith(
+      'artist_123',
+      'stage_link_insights',
+    );
+    expect(youTubeProvider.validateChannelReference).toHaveBeenCalledWith(
+      'https://www.youtube.com/@googledevelopers',
+    );
+    expect(result.displayName).toBe('Google for Developers');
+  });
+
+  it('updates youtube connections and resets stale sync errors', async () => {
+    prisma.artistPlatformInsightsConnection.findFirst.mockResolvedValue({
+      id: 'conn_youtube',
+      artistId: 'artist_123',
+      platform: 'youtube',
+      connectionMethod: 'reference',
+      status: 'connected',
+      displayName: 'Google for Developers',
+      externalAccountId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+      externalHandle: 'googledevelopers',
+      externalUrl: 'https://www.youtube.com/@googledevelopers',
+      scopes: [],
+      metadata: {},
+      accessToken: null,
+      refreshToken: null,
+      tokenExpiresAt: null,
+      lastSyncStartedAt: null,
+      lastSyncedAt: null,
+      lastSyncStatus: 'error',
+      lastSyncError: 'YouTube API request failed (403)',
+      createdAt: new Date('2026-04-19T10:00:00.000Z'),
+      updatedAt: new Date('2026-04-20T10:00:00.000Z'),
+    });
+
+    prisma.artistPlatformInsightsConnection.update.mockImplementation(async ({ data }) => ({
+      id: 'conn_youtube',
+      artistId: 'artist_123',
+      platform: 'youtube',
+      connectionMethod: 'reference',
+      status: data.status ?? 'connected',
+      displayName: data.displayName ?? 'Google for Developers',
+      externalAccountId: data.externalAccountId ?? 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+      externalHandle: data.externalHandle ?? 'googledevelopers',
+      externalUrl: data.externalUrl ?? 'https://www.youtube.com/@googledevelopers',
+      scopes: [],
+      metadata: data.metadata ?? {},
+      accessToken: null,
+      refreshToken: null,
+      tokenExpiresAt: null,
+      lastSyncStartedAt: data.lastSyncStartedAt ?? null,
+      lastSyncedAt: data.lastSyncedAt ?? null,
+      lastSyncStatus: data.lastSyncStatus ?? 'never',
+      lastSyncError: data.lastSyncError ?? null,
+      createdAt: new Date('2026-04-19T10:00:00.000Z'),
+      updatedAt: new Date('2026-04-20T10:00:00.000Z'),
+    }));
+
+    youTubeProvider.validateChannelReference.mockResolvedValue({
+      ok: true,
+      platform: 'youtube',
+      externalAccountId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+      externalHandle: 'googledevelopers',
+      displayName: 'Google for Developers',
+      externalUrl: 'https://www.youtube.com/@googledevelopers',
+      imageUrl: null,
+      subscriberCount: 2890000,
+      totalViews: 218000000,
+      videoCount: 6200,
+      subscribersHidden: false,
+      message: 'Connected to Google for Developers on YouTube',
+    });
+
+    const result = await service.updateYouTubeConnection(
+      'artist_123',
+      { channelInput: 'https://www.youtube.com/@googledevelopers' },
+      'user_123',
+    );
+
+    expect(result.lastSyncStatus).toBe('never');
+    expect(result.lastSyncError).toBeNull();
+  });
+
+  it('syncs youtube snapshots and updates connection sync metadata', async () => {
+    prisma.artistPlatformInsightsConnection.findFirst.mockResolvedValue({
+      id: 'conn_youtube',
+      artistId: 'artist_123',
+      platform: 'youtube',
+      connectionMethod: 'reference',
+      status: 'connected',
+      displayName: 'Google for Developers',
+      externalAccountId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+      externalHandle: 'googledevelopers',
+      externalUrl: 'https://www.youtube.com/@googledevelopers',
+      scopes: [],
+      metadata: {},
+      accessToken: null,
+      refreshToken: null,
+      tokenExpiresAt: null,
+      lastSyncStartedAt: null,
+      lastSyncedAt: null,
+      lastSyncStatus: 'never',
+      lastSyncError: null,
+      createdAt: new Date('2026-04-19T10:00:00.000Z'),
+      updatedAt: new Date('2026-04-20T10:00:00.000Z'),
+    });
+
+    prisma.artistPlatformInsightsConnection.update.mockImplementation(async ({ data }) => ({
+      id: 'conn_youtube',
+      artistId: 'artist_123',
+      platform: 'youtube',
+      connectionMethod: 'reference',
+      status: data.status ?? 'connected',
+      displayName: data.displayName ?? 'Google for Developers',
+      externalAccountId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+      externalHandle: 'googledevelopers',
+      externalUrl: data.externalUrl ?? 'https://www.youtube.com/@googledevelopers',
+      scopes: [],
+      metadata: data.metadata ?? {},
+      accessToken: null,
+      refreshToken: null,
+      tokenExpiresAt: null,
+      lastSyncStartedAt: data.lastSyncStartedAt ?? null,
+      lastSyncedAt: data.lastSyncedAt ?? null,
+      lastSyncStatus: data.lastSyncStatus ?? 'success',
+      lastSyncError: data.lastSyncError ?? null,
+      createdAt: new Date('2026-04-19T10:00:00.000Z'),
+      updatedAt: new Date('2026-04-20T10:00:00.000Z'),
+    }));
+
+    prisma.artistPlatformInsightsSnapshot.create.mockImplementation(async ({ data }) => ({
+      platform: data.platform,
+      capturedAt: data.capturedAt,
+      profile: data.profile,
+      metrics: data.metrics,
+      topContent: data.topContent,
+    }));
+
+    youTubeProvider.syncLatestSnapshot.mockResolvedValue({
+      platform: 'youtube',
+      capturedAt: '2026-04-22T12:00:00.000Z',
+      profile: {
+        displayName: 'Google for Developers',
+        imageUrl: 'https://img.youtube.com/channel.jpg',
+        externalUrl: 'https://www.youtube.com/@googledevelopers',
+      },
+      metrics: {
+        subscriber_count: 2890000,
+        total_views: 218000000,
+        video_count: 6200,
+        recent_videos_count: 2,
+      },
+      topContent: [
+        {
+          platform: 'youtube',
+          externalId: 'video-1',
+          title: 'Recent upload 1',
+          subtitle: '2026-04-22T12:00:00.000Z',
+          metricLabel: 'Views',
+          metricValue: '12000',
+          imageUrl: null,
+          externalUrl: 'https://www.youtube.com/watch?v=video-1',
+        },
+      ],
+    });
+
+    const result = await service.syncYouTubeConnection('artist_123', 'user_123');
+
+    expect(membershipService.validateAccess).toHaveBeenCalledWith(
+      'user_123',
+      'artist_123',
+      'write',
+    );
+    expect(result.ok).toBe(true);
+    expect(result.connection.lastSyncStatus).toBe('success');
+    expect(result.snapshot.metrics.subscriber_count).toBe(2890000);
+    expect(auditService.log).toHaveBeenCalled();
   });
 });

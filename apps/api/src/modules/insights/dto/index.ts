@@ -11,3 +11,10 @@ export class SpotifyInsightsConnectionDto {
   @MaxLength(255)
   artistInput!: string;
 }
+
+export class YouTubeInsightsConnectionDto {
+  @Transform(({ value }) => trimString(value))
+  @IsString()
+  @MaxLength(255)
+  channelInput!: string;
+}

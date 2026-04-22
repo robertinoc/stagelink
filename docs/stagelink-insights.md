@@ -19,7 +19,7 @@ No busca clonar Songstats. La meta del módulo es:
 
 ## Qué está activo hoy
 
-La base arquitectónica ya existe y Epic 1 suma el primer provider real:
+La base arquitectónica ya existe y Epic 2 ya deja dos providers reales:
 
 - feature gate nuevo: `stage_link_insights`
 - modelos de conexión por artista
@@ -31,17 +31,19 @@ La base arquitectónica ya existe y Epic 1 suma el primer provider real:
 - conexión real de Spotify por referencia de artista
 - sync manual real para Spotify
 - snapshots reales de Spotify con profile basics, followers, popularity y top tracks
+- conexión real de YouTube por referencia pública de canal
+- sync manual real para YouTube
+- snapshots reales de YouTube con channel basics, subscribers, total views, video count y recent videos
 - filtros por rango sobre snapshots históricos guardados (`7d`, `30d`, `90d`, `all`)
-- lectura histórica simple para Spotify basada en snapshots ya almacenados
-- copy explícito en dashboard sobre qué datos de Spotify están disponibles y cuáles no
+- lectura histórica simple para Spotify y YouTube basada en snapshots ya almacenados
+- copy explícito en dashboard sobre qué datos de Spotify / YouTube están disponibles y cuáles no
 
 Todavía **no** implementa:
 
-- OAuth owner-authorized para YouTube
 - scheduled sync automático
 - alertas o reportes
 - charts históricos avanzados
-- flows productivos para YouTube o SoundCloud
+- integración productiva para SoundCloud
 
 ## Modelo de datos
 
@@ -198,17 +200,20 @@ Realista para:
 - channel basics
 - subscribers
 - views
-- top videos
+- video count
+- recent videos / uploads públicos
 
 Limitación importante:
 
-- las métricas más confiables y profundas dependen de acceso owner-authorized
-- YouTube Analytics API requiere scopes y flujo OAuth del propietario del canal
+- esta fase usa YouTube Data API pública por referencia de canal
+- no expone métricas privadas de YouTube Analytics como watch time, revenue o audience geography
 
 Referencias:
 
 - [YouTube Data API](https://developers.google.com/youtube/v3)
 - [channels.list](https://developers.google.com/youtube/v3/docs/channels/list)
+- [playlistItems.list](https://developers.google.com/youtube/v3/docs/playlistItems/list)
+- [videos.list](https://developers.google.com/youtube/v3/docs/videos/list)
 - [YouTube Analytics API](https://developers.google.com/youtube/analytics)
 
 ### SoundCloud
@@ -237,6 +242,9 @@ Endpoints actuales:
 - `POST /api/insights/:artistId/spotify/validate`
 - `PATCH /api/insights/:artistId/spotify`
 - `POST /api/insights/:artistId/spotify/sync`
+- `POST /api/insights/:artistId/youtube/validate`
+- `PATCH /api/insights/:artistId/youtube`
+- `POST /api/insights/:artistId/youtube/sync`
 
 Protecciones:
 
@@ -273,27 +281,24 @@ Se aplica en:
 
 ## Setup / env vars
 
-Spotify sí agrega env vars reales en Epic 1:
+Env vars reales hoy:
 
 - `SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
 - `SPOTIFY_TOP_TRACKS_MARKET`
+- `YOUTUBE_DATA_API_KEY`
 
 Notas:
 
 - `SPOTIFY_TOP_TRACKS_MARKET` acepta un código de mercado de 2 letras
 - si no se define, StageLink usa `US`
 - no hay callback URL de Spotify todavía porque esta etapa no usa OAuth de usuario
-
-Los providers futuros probablemente agreguen:
-
-- credenciales OAuth de YouTube / SoundCloud
-- callback URLs
-- scheduler config cuando exista infraestructura de sync automático
+- YouTube en esta etapa no usa OAuth; StageLink valida y sincroniza un canal público por URL / @handle / channel ID
+- los providers futuros probablemente agreguen callback URLs y scheduler config cuando exista infraestructura de sync automático
 
 ## Sync behavior actual
 
-Spotify ya tiene sync manual real.
+Spotify y YouTube ya tienen sync manual real.
 
 Hoy el comportamiento es:
 
@@ -303,6 +308,11 @@ Hoy el comportamiento es:
 - el backend obtiene o reutiliza un app access token
 - el backend consulta el artista y sus top tracks
 - si Spotify bloquea `top-tracks` para ese artista/mercado, StageLink degrada a lista vacía en vez de romper el sync
+- el artista conecta YouTube por URL / @handle / channel ID
+- StageLink valida el canal usando YouTube Data API
+- el artista puede disparar `Sync now`
+- el backend consulta datos públicos del canal y videos recientes desde el uploads playlist
+- si YouTube no devuelve recent videos utilizables, StageLink degrada a lista vacía en vez de romper el sync
 - se escribe un snapshot nuevo en `ArtistPlatformInsightsSnapshot`
 - se actualiza el estado de sync en `ArtistPlatformInsightsConnection`
 
@@ -335,12 +345,12 @@ Eso deja la base lista para sumar:
 
 ### Orden sugerido
 
-1. YouTube owner OAuth
-2. scheduler / sync jobs
-3. SoundCloud public-summary support
+1. scheduler / sync jobs
+2. SoundCloud public-summary support
+3. YouTube owner OAuth solo si más adelante vale la pena sumar YouTube Analytics privadas
 
 ### Por qué ese orden
 
-- Spotify ya cubre el primer caso realista con public artist data
-- YouTube entrega mucho valor, pero con más complejidad de auth
+- Spotify y YouTube ya cubren dos casos realistas con data pública útil
+- el siguiente salto de valor viene de históricos más ricos y sync automático
 - SoundCloud conviene tratarlo con más cuidado por limitaciones de acceso
