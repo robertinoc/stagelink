@@ -10,12 +10,14 @@ import type {
   SpotifyInsightsSyncResult,
   StageLinkInsightsConnection,
   StageLinkInsightsDashboard,
+  StageLinkInsightsDateRange,
+  StageLinkInsightsHistoryPoint,
   StageLinkInsightsPlatform,
   StageLinkInsightsPlatformSummary,
   StageLinkInsightsSnapshot,
   StageLinkInsightsTopContentItem,
 } from '@stagelink/types';
-import { STAGELINK_INSIGHTS_PLATFORMS } from '@stagelink/types';
+import { STAGELINK_INSIGHTS_DATE_RANGES, STAGELINK_INSIGHTS_PLATFORMS } from '@stagelink/types';
 import { PrismaService } from '../../lib/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
@@ -57,6 +59,9 @@ type InsightsSnapshotRecord = {
   topContent: Prisma.JsonValue;
 };
 
+const DEFAULT_INSIGHTS_RANGE: StageLinkInsightsDateRange = '30d';
+const MAX_INSIGHTS_HISTORY_POINTS = 180;
+
 @Injectable()
 export class InsightsService {
   private readonly providers: Record<StageLinkInsightsPlatform, PlatformInsightsProvider>;
@@ -77,8 +82,16 @@ export class InsightsService {
     };
   }
 
-  async getDashboard(artistId: string): Promise<StageLinkInsightsDashboard> {
+  async getDashboard(artistId: string, rangeInput?: string): Promise<StageLinkInsightsDashboard> {
     await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
+    const selectedRange = this.resolveDateRange(rangeInput);
+    const rangeStart = this.resolveRangeStart(selectedRange);
+    const snapshotWhere: Prisma.ArtistPlatformInsightsSnapshotWhereInput = rangeStart
+      ? {
+          artistId,
+          capturedAt: { gte: rangeStart },
+        }
+      : { artistId };
 
     const [connections, snapshots, snapshotCount] = await Promise.all([
       this.prisma.artistPlatformInsightsConnection.findMany({
@@ -86,12 +99,12 @@ export class InsightsService {
         orderBy: [{ createdAt: 'asc' }],
       }),
       this.prisma.artistPlatformInsightsSnapshot.findMany({
-        where: { artistId },
+        where: snapshotWhere,
         orderBy: [{ capturedAt: 'desc' }],
-        take: 30,
+        take: MAX_INSIGHTS_HISTORY_POINTS,
       }),
       this.prisma.artistPlatformInsightsSnapshot.count({
-        where: { artistId },
+        where: snapshotWhere,
       }),
     ]);
 
@@ -111,12 +124,21 @@ export class InsightsService {
       }
     });
 
+    const historyByPlatform = new Map<StageLinkInsightsPlatform, StageLinkInsightsHistoryPoint[]>();
+    [...snapshots].reverse().forEach((snapshot) => {
+      const platform = snapshot.platform as StageLinkInsightsPlatform;
+      const current = historyByPlatform.get(platform) ?? [];
+      current.push(this.mapHistoryPoint(snapshot as InsightsSnapshotRecord));
+      historyByPlatform.set(platform, current);
+    });
+
     const platformSummaries: StageLinkInsightsPlatformSummary[] = STAGELINK_INSIGHTS_PLATFORMS.map(
       (platform) => ({
         platform,
         capabilities: this.providers[platform].getCapabilities(),
         connection: this.mapConnection(connectionsByPlatform.get(platform) ?? null),
         latestSnapshot: this.mapSnapshot(latestSnapshots.get(platform) ?? null),
+        history: historyByPlatform.get(platform) ?? [],
       }),
     );
 
@@ -133,6 +155,7 @@ export class InsightsService {
     return {
       artistId,
       feature: 'stage_link_insights',
+      selectedRange,
       hasAnyConnectedPlatforms: connectedPlatforms > 0,
       lastUpdatedAt,
       summaryCards: [
@@ -437,6 +460,13 @@ export class InsightsService {
     };
   }
 
+  private mapHistoryPoint(snapshot: InsightsSnapshotRecord): StageLinkInsightsHistoryPoint {
+    return {
+      capturedAt: snapshot.capturedAt.toISOString(),
+      metrics: this.readMetrics(snapshot.metrics),
+    };
+  }
+
   private readStringArray(value: Prisma.JsonValue): string[] {
     if (!Array.isArray(value)) {
       return [];
@@ -524,5 +554,40 @@ export class InsightsService {
       });
       return acc;
     }, []);
+  }
+
+  private resolveDateRange(raw?: string): StageLinkInsightsDateRange {
+    if (
+      raw &&
+      (STAGELINK_INSIGHTS_DATE_RANGES as readonly string[]).includes(
+        raw as StageLinkInsightsDateRange,
+      )
+    ) {
+      return raw as StageLinkInsightsDateRange;
+    }
+
+    return DEFAULT_INSIGHTS_RANGE;
+  }
+
+  private resolveRangeStart(range: StageLinkInsightsDateRange): Date | null {
+    if (range === 'all') {
+      return null;
+    }
+
+    const now = new Date();
+    const start = new Date(now);
+
+    if (range === '7d') {
+      start.setDate(start.getDate() - 7);
+      return start;
+    }
+
+    if (range === '30d') {
+      start.setDate(start.getDate() - 30);
+      return start;
+    }
+
+    start.setDate(start.getDate() - 90);
+    return start;
   }
 }

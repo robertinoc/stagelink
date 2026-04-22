@@ -193,6 +193,16 @@
         "stored_snapshots": "Snapshots guardados",
         "supported_platforms": "Plataformas soportadas"
       },
+      "range": {
+        "label": "Rango de snapshots",
+        "description": "Mostrando snapshots guardados para {range}. Esto filtra el historial que StageLink ya capturó.",
+        "options": {
+          "7d": "Últimos 7 días",
+          "30d": "Últimos 30 días",
+          "90d": "Últimos 90 días",
+          "all": "Todo el tiempo"
+        }
+      },
       "empty": {
         "title": "Tus insights unificados arrancan acá",
         "description": "Conectá Spotify para traer los básicos de tu perfil de artista, seguidores públicos, popularidad y top tracks a un solo dashboard dentro de StageLink.",
@@ -284,13 +294,38 @@
           "empty": "Spotify no devolvió top tracks para este artista en el mercado configurado.",
           "open_track": "Abrir track en Spotify"
         },
+        "history": {
+          "title": "Historial de snapshots",
+          "description": "Esta vista compara los snapshots que StageLink ya guardó dentro del rango seleccionado.",
+          "empty": "Necesitás al menos dos snapshots en este rango para que StageLink pueda mostrar cambios en el tiempo.",
+          "followers_change": "Cambio de seguidores en el rango",
+          "popularity_change": "Cambio de popularidad en el rango"
+        },
+        "scope": {
+          "title": "Qué te da hoy conectar Spotify",
+          "description": "StageLink hoy lee data pública y segura a nivel artista desde Spotify y la convierte en snapshots a lo largo del tiempo.",
+          "includes_title": "Disponible ahora",
+          "includes": {
+            "profile": "Datos básicos del perfil del artista desde el endpoint público de Spotify",
+            "followers": "Conteo público de seguidores cuando Spotify lo devuelve",
+            "popularity": "Score de popularidad de Spotify cuando está disponible",
+            "top_tracks": "Top tracks para el mercado configurado cuando Spotify los habilita"
+          },
+          "not_included_title": "Todavía no incluido",
+          "not_included": {
+            "streams": "Plays / streams por track",
+            "locations": "Ubicación de oyentes por país o ciudad",
+            "monthly_listeners": "Monthly listeners de Spotify for Artists",
+            "spotify_for_artists": "Analytics privadas exclusivas de Spotify for Artists"
+          }
+        },
         "empty_synced": "Spotify está conectado, pero todavía no hay snapshots guardados. Corré un sync para traer la primera tanda de métricas."
       },
       "platforms": {
         "spotify": {
           "title": "Spotify",
-          "description": "Básicos del perfil del artista, conteo público de seguidores, popularidad y top tracks usando la Spotify Web API oficial.",
-          "limitations": "Spotify no expone una API pública equivalente a Spotify for Artists. StageLink Insights usa solo data pública a nivel artista, y los top tracks dependen del mercado configurado."
+          "description": "Señales públicas del artista en Spotify, guardadas como snapshots dentro de StageLink para seguir cambios en el tiempo.",
+          "limitations": "Spotify no expone acá una API pública equivalente a Spotify for Artists. StageLink muestra solo data pública a nivel artista, y los top tracks siguen dependiendo del mercado configurado."
         },
         "youtube": {
           "title": "YouTube",
@@ -305,7 +340,7 @@
       },
       "foundation_scope": {
         "title": "Qué está activo en esta fase",
-        "description": "Spotify ya está conectado a la base real de Insights: capa de providers, snapshots normalizados, estado de sync y un dashboard PRO+ protegido listo para crecer plataforma por plataforma.",
+        "description": "Spotify ya está conectado a la base real de Insights: capa de providers, snapshots normalizados, filtros por rango temporal, estado de sync y un dashboard PRO+ protegido listo para crecer plataforma por plataforma.",
         "current_plan": "Estás viendo StageLink Insights con el plan efectivo actual: {plan}."
       }
     },

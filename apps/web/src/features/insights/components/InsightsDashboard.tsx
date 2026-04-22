@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
+import { STAGELINK_INSIGHTS_DATE_RANGES } from '@stagelink/types';
 import {
   AlertCircle,
   BarChart3,
@@ -165,6 +167,50 @@ function EmptyState() {
   );
 }
 
+function RangeFilters({
+  selectedRange,
+}: {
+  selectedRange: StageLinkInsightsDashboardData['selectedRange'];
+}) {
+  const t = useTranslations('dashboard.insights.range');
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  function buildHref(range: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('range', range);
+    const query = params.toString();
+    return query ? `${pathname}?${query}` : pathname;
+  }
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-foreground">{t('label')}</p>
+          <p className="text-xs text-muted-foreground">
+            {t('description', { range: t(`options.${selectedRange}`) })}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {STAGELINK_INSIGHTS_DATE_RANGES.map((range) => (
+            <Button
+              key={range}
+              asChild
+              size="sm"
+              variant={selectedRange === range ? 'default' : 'outline'}
+            >
+              <Link href={buildHref(range)} scroll={false}>
+                {t(`options.${range}`)}
+              </Link>
+            </Button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function InsightsDashboard({
   artistId,
   data,
@@ -210,6 +256,8 @@ export function InsightsDashboard({
       </div>
 
       <SummaryCards data={data} />
+
+      <RangeFilters selectedRange={data.selectedRange} />
 
       {!data.hasAnyConnectedPlatforms ? <EmptyState /> : null}
 
