@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import type { StageLinkInsightsDateRange } from '@stagelink/types';
 import { InsightsDashboard } from '@/features/insights/components/InsightsDashboard';
 import { getBillingEntitlements } from '@/lib/api/billing';
 import { getStageLinkInsightsDashboard } from '@/lib/api/insights';
@@ -14,10 +15,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function DashboardInsightsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ range?: StageLinkInsightsDateRange }>;
 }) {
   const { locale } = await params;
+  const { range } = await searchParams;
   const session = await getSession();
 
   if (!session) {
@@ -33,7 +37,7 @@ export default async function DashboardInsightsPage({
 
   const [entitlements, result] = await Promise.all([
     getBillingEntitlements(artistId, session.accessToken).catch(() => null),
-    getStageLinkInsightsDashboard(artistId, session.accessToken),
+    getStageLinkInsightsDashboard(artistId, session.accessToken, range),
   ]);
 
   return (

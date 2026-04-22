@@ -112,8 +112,10 @@ describe('InsightsService', () => {
       { id: 'stored_snapshots', value: '0' },
       { id: 'supported_platforms', value: '3' },
     ]);
+    expect(result.selectedRange).toBe('30d');
     expect(result.platforms).toHaveLength(3);
     expect(result.platforms.every((platform) => platform.connection === null)).toBe(true);
+    expect(result.platforms.every((platform) => platform.history.length === 0)).toBe(true);
     expect(result.lastUpdatedAt).toBeNull();
   });
 
@@ -184,6 +186,44 @@ describe('InsightsService', () => {
       popularity: 47,
     });
     expect(spotify?.latestSnapshot?.topContent).toHaveLength(1);
+    expect(spotify?.history).toEqual([
+      {
+        capturedAt: '2026-04-20T10:05:00.000Z',
+        metrics: {
+          followers_total: 1200,
+          popularity: 47,
+        },
+      },
+    ]);
+  });
+
+  it('filters snapshots by selected range', async () => {
+    prisma.artistPlatformInsightsConnection.findMany.mockResolvedValue([]);
+    prisma.artistPlatformInsightsSnapshot.findMany.mockResolvedValue([]);
+    prisma.artistPlatformInsightsSnapshot.count.mockResolvedValue(0);
+
+    await service.getDashboard('artist_123', '7d');
+
+    expect(prisma.artistPlatformInsightsSnapshot.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          artistId: 'artist_123',
+          capturedAt: expect.objectContaining({
+            gte: expect.any(Date),
+          }),
+        }),
+      }),
+    );
+    expect(prisma.artistPlatformInsightsSnapshot.count).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          artistId: 'artist_123',
+          capturedAt: expect.objectContaining({
+            gte: expect.any(Date),
+          }),
+        }),
+      }),
+    );
   });
 
   it('validates spotify references through membership, billing, and provider validation', async () => {

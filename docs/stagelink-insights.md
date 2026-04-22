@@ -31,6 +31,9 @@ La base arquitectónica ya existe y Epic 1 suma el primer provider real:
 - conexión real de Spotify por referencia de artista
 - sync manual real para Spotify
 - snapshots reales de Spotify con profile basics, followers, popularity y top tracks
+- filtros por rango sobre snapshots históricos guardados (`7d`, `30d`, `90d`, `all`)
+- lectura histórica simple para Spotify basada en snapshots ya almacenados
+- copy explícito en dashboard sobre qué datos de Spotify están disponibles y cuáles no
 
 Todavía **no** implementa:
 
@@ -150,11 +153,19 @@ El snapshot de Spotify guarda:
 - `metrics.top_tracks_count`
 - `topContent[]` con top tracks ligeros
 
+La UI ahora también usa el historial guardado para:
+
+- filtrar snapshots por rango temporal
+- comparar el snapshot más reciente vs. el más antiguo del rango
+- mostrar cambios simples en followers y popularity cuando ya existen múltiples snapshots
+
 ## Spotify: limitaciones reales
 
 - Spotify **no** expone una API pública equivalente a Spotify for Artists
 - no hay “monthly listeners” oficiales por API pública
 - no hay analytics profundas de audiencia por artista
+- no hay “plays per track” públicos para el artista
+- no hay listener geography / country-city breakdowns
 - top tracks dependen del mercado elegido
 - por eso StageLink Insights no intenta fingir una capa tipo Songstats con datos que Spotify no publica
 
@@ -236,9 +247,11 @@ Protecciones:
 Respuesta actual:
 
 - cards de resumen del módulo
+- filtro de rango temporal para snapshots
 - lista de plataformas soportadas
 - estado de conexión por plataforma
 - último snapshot por plataforma cuando exista
+- historial ligero por plataforma dentro del rango seleccionado
 - capacidades declaradas por provider
 
 ## Feature gating
@@ -289,6 +302,7 @@ Hoy el comportamiento es:
 - el artista puede disparar `Sync now`
 - el backend obtiene o reutiliza un app access token
 - el backend consulta el artista y sus top tracks
+- si Spotify bloquea `top-tracks` para ese artista/mercado, StageLink degrada a lista vacía en vez de romper el sync
 - se escribe un snapshot nuevo en `ArtistPlatformInsightsSnapshot`
 - se actualiza el estado de sync en `ArtistPlatformInsightsConnection`
 
@@ -315,7 +329,7 @@ Eso deja la base lista para sumar:
 
 1. YouTube owner-authorized connection flow
 2. scheduler / periodic sync infra
-3. historical trends sobre snapshots reales
+3. gráficos históricos más ricos sobre snapshots reales
 4. SoundCloud public-summary integration
 5. UI comparativa más rica por plataforma
 

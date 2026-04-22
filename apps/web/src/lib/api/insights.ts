@@ -5,6 +5,7 @@ import type {
   PlanCode,
   SpotifyInsightsConnectionValidationResult,
   SpotifyInsightsSyncResult,
+  StageLinkInsightsDateRange,
   StageLinkInsightsConnection,
   StageLinkInsightsDashboard,
   UpdateSpotifyInsightsConnectionPayload,
@@ -73,8 +74,10 @@ async function fetchInsightsResource(
 export function getStageLinkInsightsDashboard(
   artistId: string,
   accessToken: string,
+  range?: StageLinkInsightsDateRange,
 ): Promise<StageLinkInsightsResult> {
-  return fetchInsightsResource(`/api/insights/${artistId}/dashboard`, accessToken);
+  const query = range ? `?range=${encodeURIComponent(range)}` : '';
+  return fetchInsightsResource(`/api/insights/${artistId}/dashboard${query}`, accessToken);
 }
 
 async function readJsonOrThrow<T>(res: Response, fallback: string): Promise<T> {

@@ -27,6 +27,9 @@ export type StageLinkInsightsSyncStatus = (typeof STAGELINK_INSIGHTS_SYNC_STATUS
 export const STAGELINK_INSIGHTS_SUPPORT_LEVELS = ['full', 'partial', 'none'] as const;
 export type StageLinkInsightsSupportLevel = (typeof STAGELINK_INSIGHTS_SUPPORT_LEVELS)[number];
 
+export const STAGELINK_INSIGHTS_DATE_RANGES = ['7d', '30d', '90d', 'all'] as const;
+export type StageLinkInsightsDateRange = (typeof STAGELINK_INSIGHTS_DATE_RANGES)[number];
+
 export interface StageLinkInsightsPlatformCapabilities {
   platform: StageLinkInsightsPlatform;
   connectionMethod: StageLinkInsightsConnectionMethod;
@@ -83,6 +86,11 @@ export interface StageLinkInsightsSnapshot {
   topContent: StageLinkInsightsTopContentItem[];
 }
 
+export interface StageLinkInsightsHistoryPoint {
+  capturedAt: string;
+  metrics: Record<string, string | number | boolean | null>;
+}
+
 export interface StageLinkInsightsSummaryCard {
   id: 'connected_platforms' | 'synced_platforms' | 'stored_snapshots' | 'supported_platforms';
   value: string;
@@ -93,11 +101,13 @@ export interface StageLinkInsightsPlatformSummary {
   capabilities: StageLinkInsightsPlatformCapabilities;
   connection: StageLinkInsightsConnection | null;
   latestSnapshot: StageLinkInsightsSnapshot | null;
+  history: StageLinkInsightsHistoryPoint[];
 }
 
 export interface StageLinkInsightsDashboard {
   artistId: string;
   feature: 'stage_link_insights';
+  selectedRange: StageLinkInsightsDateRange;
   hasAnyConnectedPlatforms: boolean;
   lastUpdatedAt: string | null;
   summaryCards: StageLinkInsightsSummaryCard[];

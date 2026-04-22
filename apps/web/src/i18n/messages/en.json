@@ -193,6 +193,16 @@
         "stored_snapshots": "Stored snapshots",
         "supported_platforms": "Supported platforms"
       },
+      "range": {
+        "label": "Snapshot range",
+        "description": "Showing stored snapshots for {range}. This filters the history StageLink has already captured.",
+        "options": {
+          "7d": "Last 7 days",
+          "30d": "Last 30 days",
+          "90d": "Last 90 days",
+          "all": "All time"
+        }
+      },
       "empty": {
         "title": "Your unified artist insights start here",
         "description": "Connect Spotify to pull your artist profile basics, public follower count, popularity, and top tracks into one StageLink dashboard.",
@@ -284,13 +294,38 @@
           "empty": "Spotify did not return top tracks for this artist in the configured market.",
           "open_track": "Open track on Spotify"
         },
+        "history": {
+          "title": "Snapshot history",
+          "description": "This view compares the snapshots StageLink has already stored in the selected range.",
+          "empty": "You need at least two snapshots in this range before StageLink can show changes over time.",
+          "followers_change": "Followers change in range",
+          "popularity_change": "Popularity change in range"
+        },
+        "scope": {
+          "title": "What linking Spotify gives you right now",
+          "description": "StageLink currently reads safe public artist-level data from Spotify and turns it into snapshots over time.",
+          "includes_title": "Available now",
+          "includes": {
+            "profile": "Artist profile basics from Spotify's public artist endpoint",
+            "followers": "Public follower count when Spotify returns it",
+            "popularity": "Spotify popularity score when available",
+            "top_tracks": "Top tracks for the configured market when Spotify allows them"
+          },
+          "not_included_title": "Not included yet",
+          "not_included": {
+            "streams": "Track-level play / stream counts",
+            "locations": "Listener locations by country or city",
+            "monthly_listeners": "Monthly listeners from Spotify for Artists",
+            "spotify_for_artists": "Private Spotify for Artists-only analytics"
+          }
+        },
         "empty_synced": "Spotify is connected, but no snapshot has been stored yet. Run a sync to pull your first set of metrics."
       },
       "platforms": {
         "spotify": {
           "title": "Spotify",
-          "description": "Artist profile basics, public follower count, popularity, and top tracks powered by the official Spotify Web API.",
-          "limitations": "Spotify does not expose a public Spotify for Artists analytics API. StageLink Insights uses public artist-level data only, and top tracks are market-dependent."
+          "description": "Public Spotify artist signals stored as snapshots inside StageLink, so you can follow changes over time.",
+          "limitations": "Spotify does not expose a public Spotify for Artists analytics API here. StageLink shows public artist-level data only, and top tracks remain market-dependent."
         },
         "youtube": {
           "title": "YouTube",
@@ -305,7 +340,7 @@
       },
       "foundation_scope": {
         "title": "What is live in this phase",
-        "description": "Spotify is now connected to the real Insights foundation: provider abstraction, normalized snapshots, sync state, and a protected PRO+ dashboard ready to grow platform by platform.",
+        "description": "Spotify is now connected to the real Insights foundation: provider abstraction, normalized snapshots, date-range filters, sync state, and a protected PRO+ dashboard ready to grow platform by platform.",
         "current_plan": "You are viewing StageLink Insights with the current effective plan: {plan}."
       }
     },

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import type { User } from '@prisma/client';
 import type {
@@ -20,8 +20,11 @@ export class InsightsController {
   @Get(':artistId/dashboard')
   @CheckOwnership('artist', 'artistId', 'read')
   @UseGuards(OwnershipGuard)
-  getDashboard(@Param('artistId') artistId: string): Promise<StageLinkInsightsDashboard> {
-    return this.insightsService.getDashboard(artistId);
+  getDashboard(
+    @Param('artistId') artistId: string,
+    @Query('range') range?: string,
+  ): Promise<StageLinkInsightsDashboard> {
+    return this.insightsService.getDashboard(artistId, range);
   }
 
   @Post(':artistId/spotify/validate')
