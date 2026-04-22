@@ -80,6 +80,59 @@
       "description": "Start adding blocks to build your artist page.",
       "cta": "Add first block"
     },
+    "home": {
+      "intro": {
+        "badge": "Workspace map",
+        "title": "Everything you can manage in StageLink, in one place",
+        "description": "Use this dashboard as your action hub: build your page, connect platform insights, publish your EPK, tune settings, and upgrade features as your artist project grows.",
+        "workspace_label": "Current workspace",
+        "workspace_fallback": "Your artist workspace"
+      },
+      "ready_badge": "Ready",
+      "locked_badge": "{plan} feature",
+      "available_now": "Available now",
+      "upgrade_required": "Upgrade required",
+      "upgrade_cta": "Upgrade to unlock",
+      "cards": {
+        "page": {
+          "title": "Customize my page",
+          "description": "Build your public artist page with blocks, embeds, merch, and localized content.",
+          "cta": "Open My Page"
+        },
+        "epk": {
+          "title": "Create my Presskit",
+          "description": "Publish an EPK with highlighted media, contact details, and artist-ready share pages.",
+          "cta": "Open EPK"
+        },
+        "analytics": {
+          "title": "View analytics",
+          "description": "Check StageLink traffic, advanced fan signals, and connected platform insights from one analytics workspace.",
+          "cta": "Open Analytics",
+          "pro_plus_off": "Platform Insights, advanced trends, and fan insights unlock on Pro+.",
+          "pro_plus_on": "Your Pro+ workspace can already use connected platform insights here."
+        },
+        "profile": {
+          "title": "Edit my profile",
+          "description": "Update your artist bio, social links, SEO, and the channels StageLink uses as trusted profile references.",
+          "cta": "Open Profile"
+        },
+        "public_profile": {
+          "title": "View my public profile",
+          "description": "Open your live artist page in a new tab and check exactly what fans see.",
+          "cta": "Open public page"
+        },
+        "settings": {
+          "title": "Settings",
+          "description": "Manage plan-gated connections like Shopify, Smart Merch, and StageLink Insights platform setup.",
+          "cta": "Open Settings"
+        },
+        "billing": {
+          "title": "Billing",
+          "description": "Review your current plan, upgrade paths, and locked capabilities across StageLink.",
+          "cta": "Open Billing"
+        }
+      }
+    },
     "page": {
       "title": "My Page",
       "description": "Build and customize your artist page.",
@@ -178,6 +231,10 @@
       "notes": {
         "basic_quality": "Basic analytics · Bot filtering applied at ingestion · Unique visitor deduplication coming soon",
         "standard_quality": "Bot & QA traffic excluded · Production events only · Unique visitor deduplication coming soon"
+      },
+      "insights_section": {
+        "title": "StageLink Insights",
+        "description": "Read your connected platform metrics here. Platform setup and account validation now live in Settings."
       }
     },
     "insights": {
@@ -206,7 +263,8 @@
       "empty": {
         "title": "Your unified artist insights start here",
         "description": "Connect Spotify to pull your artist profile basics, public follower count, popularity, and top tracks into one StageLink dashboard.",
-        "cta": "Connect Spotify"
+        "cta": "Connect Spotify",
+        "cta_settings": "Open Settings to connect platforms"
       },
       "locked": {
         "title": "Unlock StageLink Insights",
@@ -271,7 +329,10 @@
           "update": "Update connection",
           "sync": "Sync now",
           "syncing": "Syncing...",
-          "open_spotify": "Open on Spotify"
+          "open_spotify": "Open on Spotify",
+          "view_analytics": "View analytics",
+          "manage_connection": "Manage connection",
+          "open_settings": "Open settings"
         },
         "messages": {
           "connected": "Spotify artist connected. Run a sync to pull the first snapshot.",
@@ -319,6 +380,14 @@
             "spotify_for_artists": "Private Spotify for Artists-only analytics"
           }
         },
+        "settings": {
+          "helper_title": "Configure here, read metrics in Analytics",
+          "helper_description": "Use Settings to validate or update the Spotify artist StageLink should track. Then switch to Analytics to sync snapshots and review history."
+        },
+        "analytics": {
+          "no_connection_title": "Spotify is not connected yet",
+          "no_connection_description": "Open Settings to validate a Spotify artist and save the connection before you expect analytics here."
+        },
         "empty_synced": "Spotify is connected, but no snapshot has been stored yet. Run a sync to pull your first set of metrics."
       },
       "youtube": {
@@ -338,7 +407,10 @@
           "sync": "Sync now",
           "syncing": "Syncing…",
           "open_youtube": "Open on YouTube",
-          "open_profile": "Open profile"
+          "open_profile": "Open profile",
+          "view_analytics": "View analytics",
+          "manage_connection": "Manage connection",
+          "open_settings": "Open settings"
         },
         "messages": {
           "connected": "YouTube channel connected successfully.",
@@ -387,6 +459,14 @@
             "revenue": "Monetization / revenue data",
             "youtube_analytics": "Private YouTube Analytics owner-only reports"
           }
+        },
+        "settings": {
+          "helper_title": "Configure here, read metrics in Analytics",
+          "helper_description": "Use Settings to align the trusted YouTube channel from your profile. Then open Analytics to sync snapshots and review channel changes over time."
+        },
+        "analytics": {
+          "no_connection_title": "YouTube is not connected yet",
+          "no_connection_description": "Open Settings to validate the YouTube channel from your profile before you expect channel metrics here."
         },
         "empty_synced": "YouTube is connected, but no snapshot has been stored yet. Run a sync to pull your first set of metrics."
       },
@@ -678,6 +758,46 @@
       "actions": {
         "upgrade": "Upgrade plan",
         "manage_plan": "Manage plan"
+      },
+      "insights": {
+        "title": "StageLink Insights connections",
+        "description": "Connect the external artist platforms StageLink uses for Insights. Configuration lives here; metrics and snapshot history live in Analytics.",
+        "status": {
+          "enabled": "Enabled",
+          "locked": "Locked"
+        },
+        "lock": {
+          "description": "StageLink Insights is available on Pro+.",
+          "copy": "Your current plan is {currentPlan}. Upgrade to Pro+ to connect Spotify, YouTube, and future platform insights inside StageLink.",
+          "cta": "Upgrade to Pro+"
+        },
+        "helper": {
+          "title": "Connections first, numbers second",
+          "description": "Use this section to validate and save platform references. Then open Analytics to sync snapshots, compare ranges, and read your connected metrics."
+        },
+        "actions": {
+          "view_analytics": "Open Analytics",
+          "open_profile": "Open Profile"
+        },
+        "spotify": {
+          "title": "Spotify connection",
+          "description": "Choose which Spotify artist StageLink should validate and sync for public profile signals."
+        },
+        "youtube": {
+          "title": "YouTube connection",
+          "description": "YouTube Insights uses the channel saved in your artist profile as the trusted source of truth."
+        },
+        "soundcloud": {
+          "title": "SoundCloud",
+          "description": "SoundCloud support is planned next. We keep the connection slot here so setup stays in Settings when that flow lands.",
+          "copy": "For now, keep your public SoundCloud URL updated in Profile. That gives StageLink the right identity reference for the future SoundCloud sync flow.",
+          "profile_detected": "Profile link detected: {url}",
+          "profile_missing": "No SoundCloud URL is saved in your artist profile yet.",
+          "badges": {
+            "coming_soon": "Coming soon",
+            "public_profile": "Profile reference"
+          }
+        }
       },
       "shopify": {
         "title": "Shopify storefront",

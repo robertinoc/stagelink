@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { DashboardWelcome } from '@/features/dashboard/components/DashboardWelcome';
-import { getAuthMe } from '@/lib/api/me';
+import { getArtist } from '@/lib/api/artists';
+import { getBillingSummary } from '@/lib/api/billing';
+import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import { getSession } from '@/lib/auth';
 
 interface DashboardPageProps {
@@ -18,12 +20,21 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
   const { locale } = await params;
   const session = await getSession();
 
-  if (session) {
-    const me = await getAuthMe(session.accessToken);
-    if (me && me.artistIds.length === 0) {
-      redirect(`/${locale}/onboarding`);
-    }
+  if (!session) {
+    return null;
   }
 
-  return <DashboardWelcome />;
+  const me = await getAuthMe(session.accessToken);
+  const artistId = getCurrentArtistId(me);
+
+  if (!artistId) {
+    redirect(`/${locale}/onboarding`);
+  }
+
+  const [artist, billingSummary] = await Promise.all([
+    getArtist(artistId, session.accessToken).catch(() => null),
+    getBillingSummary(artistId, session.accessToken).catch(() => null),
+  ]);
+
+  return <DashboardWelcome artist={artist} billingSummary={billingSummary} />;
 }

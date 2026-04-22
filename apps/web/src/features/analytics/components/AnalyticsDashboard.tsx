@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
+import type { StageLinkInsightsDashboard as StageLinkInsightsDashboardData } from '@stagelink/types';
 import { AlertCircle, Eye, Info, Link2, RefreshCw, TrendingUp, UserPlus, Zap } from 'lucide-react';
 import { FeatureLockCta } from '@/components/billing/FeatureLockCta';
 import { Badge } from '@/components/ui/badge';
@@ -18,14 +19,21 @@ import type {
   AnalyticsTrendPoint,
 } from '@/lib/api/analytics';
 import type { BillingEntitlementsResponse } from '@/lib/api/billing';
+import type { StageLinkInsightsLockPayload } from '@/lib/api/insights';
+import { InsightsDashboard } from '@/features/insights/components/InsightsDashboard';
 
 interface AnalyticsDashboardProps {
+  artistId: string;
+  artistYouTubeUrl: string | null;
   data: AnalyticsOverview | null;
   proTrends: AnalyticsProTrends | null;
   smartLinkPerformance: AnalyticsSmartLinkPerformance | null;
   fanInsights: AnalyticsFanInsights | null;
   range: AnalyticsRange;
   entitlements: BillingEntitlementsResponse | null;
+  insightsData: StageLinkInsightsDashboardData | null;
+  insightsLockPayload?: StageLinkInsightsLockPayload | null;
+  insightsErrorMessage?: string | null;
   rangeLocked: boolean;
   rangeLockedPayload?: AnalyticsFeatureLockPayload | null;
   analyticsProLockPayload?: AnalyticsFeatureLockPayload | null;
@@ -65,6 +73,7 @@ function RangeSelector({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const t = useTranslations('dashboard.analytics.range');
 
   function selectRange(range: AnalyticsRange) {
@@ -72,7 +81,7 @@ function RangeSelector({
       return;
     }
 
-    const params = new URLSearchParams();
+    const params = new URLSearchParams(searchParams.toString());
     params.set('range', range);
     router.push(`${pathname}?${params.toString()}`);
   }
@@ -575,12 +584,17 @@ function hasActivity(data: AnalyticsOverview): boolean {
 }
 
 export function AnalyticsDashboard({
+  artistId,
+  artistYouTubeUrl,
   data,
   proTrends,
   smartLinkPerformance,
   fanInsights,
   range,
   entitlements,
+  insightsData,
+  insightsLockPayload,
+  insightsErrorMessage,
   rangeLocked,
   rangeLockedPayload,
   analyticsProLockPayload,
@@ -590,6 +604,7 @@ export function AnalyticsDashboard({
   fanInsightsErrorMessage,
 }: AnalyticsDashboardProps) {
   const t = useTranslations('dashboard.analytics');
+  const locale = useLocale();
   const analyticsProEnabled = entitlements?.features.analytics_pro ?? false;
   const effectivePlan = entitlements?.effectivePlan ?? 'free';
 
@@ -680,6 +695,26 @@ export function AnalyticsDashboard({
           </section>
         </>
       ) : null}
+
+      <section id="stage-link-insights" className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">{t('insights_section.title')}</h2>
+          <p className="text-sm text-muted-foreground">{t('insights_section.description')}</p>
+        </div>
+
+        <InsightsDashboard
+          artistId={artistId}
+          artistSpotifyUrl={null}
+          artistYouTubeUrl={artistYouTubeUrl}
+          data={insightsData}
+          entitlements={entitlements}
+          lockedPayload={insightsLockPayload}
+          errorMessage={insightsErrorMessage}
+          mode="embedded"
+          rangeParamName="insightsRange"
+          settingsHref={`/${locale}/dashboard/settings#insights-connections`}
+        />
+      </section>
     </div>
   );
 }
