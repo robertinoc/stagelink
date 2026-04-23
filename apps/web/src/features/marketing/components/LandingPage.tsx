@@ -241,29 +241,36 @@ export function LandingPage({ locale }: LandingPageProps) {
 
   return (
     <div className="min-h-screen bg-background text-white">
-      <section id="product" className="relative overflow-hidden px-6 pb-16 pt-14 md:pb-24 md:pt-20">
+      <section
+        id="product"
+        className="relative overflow-hidden px-5 pb-12 pt-10 sm:px-6 sm:pb-16 sm:pt-14 md:pb-24 md:pt-20"
+      >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(155,48,208,0.22),transparent_34%),radial-gradient(circle_at_78%_18%,rgba(232,121,249,0.14),transparent_28%)]" />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-8 sm:gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
           <div>
-            <div className="mb-5 inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-primary">
+            <div className="mb-4 inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-primary sm:mb-5 sm:text-xs">
               {t.badge}
             </div>
-            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight md:text-6xl xl:text-7xl">
+            <h1 className="max-w-3xl text-[2.55rem] leading-[0.96] font-semibold tracking-tight sm:text-5xl md:text-6xl xl:text-7xl">
               {t.hero.headline}
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-white/70">{t.hero.subheadline}</p>
-            <p className="mt-4 max-w-xl text-sm leading-7 text-white/45">{t.hero.supportingText}</p>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-white/70 sm:mt-6 sm:text-lg sm:leading-8">
+              {t.hero.subheadline}
+            </p>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-white/45 sm:leading-7">
+              {t.hero.supportingText}
+            </p>
 
-            <div className="mt-9 flex flex-wrap gap-4">
+            <div className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:gap-4">
               <Link
                 href="/api/auth/signin"
-                className="rounded-full bg-brand-gradient px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                className="rounded-full bg-brand-gradient px-6 py-3 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90 sm:w-auto"
               >
                 {t.hero.ctaPrimary}
               </Link>
               <a
                 href="#preview"
-                className="rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-white/80 transition hover:border-white/30 hover:text-white"
+                className="rounded-full border border-white/15 px-6 py-3 text-center text-sm font-medium text-white/80 transition hover:border-white/30 hover:text-white sm:w-auto"
               >
                 {t.hero.ctaSecondary}
               </a>
@@ -271,31 +278,31 @@ export function LandingPage({ locale }: LandingPageProps) {
           </div>
 
           <div id="preview" className="relative">
-            <div className="mx-auto max-w-xl rounded-[2rem] border border-white/10 bg-white/5 p-4 shadow-[0_30px_80px_rgba(155,48,208,0.18)] backdrop-blur">
-              <div className="rounded-[1.6rem] border border-white/10 bg-sidebar p-4">
-                <div className="max-h-[40rem] overflow-y-auto rounded-[1.35rem] border border-white/10 bg-[#140a22] p-3 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
-                  <div className="relative h-40 overflow-hidden rounded-[1.2rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(155,48,208,0.55),rgba(64,18,108,0.92)_58%,rgba(18,11,28,1)_100%)]">
+            <div className="mx-auto max-w-[22rem] rounded-[1.65rem] border border-white/10 bg-white/5 p-3 shadow-[0_30px_80px_rgba(155,48,208,0.18)] backdrop-blur sm:max-w-xl sm:rounded-[2rem] sm:p-4">
+              <div className="rounded-[1.35rem] border border-white/10 bg-sidebar p-3 sm:rounded-[1.6rem] sm:p-4">
+                <div className="max-h-[31rem] overflow-y-auto rounded-[1.15rem] border border-white/10 bg-[#140a22] p-2.5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 sm:max-h-[40rem] sm:rounded-[1.35rem] sm:p-3">
+                  <div className="relative h-32 overflow-hidden rounded-[1rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(155,48,208,0.55),rgba(64,18,108,0.92)_58%,rgba(18,11,28,1)_100%)] sm:h-40 sm:rounded-[1.2rem]">
                     <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),transparent_35%,rgba(255,255,255,0.02)_65%,transparent)]" />
-                    <div className="absolute bottom-0 left-4 h-28 w-16 rounded-t-full bg-white/10 blur-[1px]" />
-                    <div className="absolute bottom-0 left-1/2 h-32 w-20 -translate-x-1/2 rounded-t-full bg-white/20 blur-[1px]" />
-                    <div className="absolute bottom-0 right-4 h-28 w-16 rounded-t-full bg-white/10 blur-[1px]" />
-                    <div className="absolute bottom-6 left-1/2 h-10 w-10 -translate-x-1/2 rounded-full bg-white/8" />
+                    <div className="absolute bottom-0 left-3 h-20 w-12 rounded-t-full bg-white/10 blur-[1px] sm:left-4 sm:h-28 sm:w-16" />
+                    <div className="absolute bottom-0 left-1/2 h-24 w-16 -translate-x-1/2 rounded-t-full bg-white/20 blur-[1px] sm:h-32 sm:w-20" />
+                    <div className="absolute bottom-0 right-3 h-20 w-12 rounded-t-full bg-white/10 blur-[1px] sm:right-4 sm:h-28 sm:w-16" />
+                    <div className="absolute bottom-5 left-1/2 h-8 w-8 -translate-x-1/2 rounded-full bg-white/8 sm:bottom-6 sm:h-10 sm:w-10" />
                   </div>
 
-                  <div className="relative z-10 mx-auto -mt-12 flex h-24 w-24 items-center justify-center rounded-full border-4 border-[#140a22] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.92),rgba(187,132,255,0.95)_28%,rgba(55,22,92,0.98)_74%,rgba(17,9,31,1)_100%)] shadow-[0_18px_35px_rgba(0,0,0,0.45)]">
-                    <div className="h-16 w-16 rounded-full bg-[radial-gradient(circle_at_40%_20%,rgba(255,255,255,0.95),rgba(255,215,188,0.92)_34%,rgba(55,29,18,0.65)_36%,rgba(18,10,31,0.92)_68%)]" />
+                  <div className="relative z-10 mx-auto -mt-10 flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-[#140a22] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.92),rgba(187,132,255,0.95)_28%,rgba(55,22,92,0.98)_74%,rgba(17,9,31,1)_100%)] shadow-[0_18px_35px_rgba(0,0,0,0.45)] sm:-mt-12 sm:h-24 sm:w-24 sm:border-4">
+                    <div className="h-14 w-14 rounded-full bg-[radial-gradient(circle_at_40%_20%,rgba(255,255,255,0.95),rgba(255,215,188,0.92)_34%,rgba(55,29,18,0.65)_36%,rgba(18,10,31,0.92)_68%)] sm:h-16 sm:w-16" />
                   </div>
 
-                  <div className="mt-4 text-center">
+                  <div className="mt-3 text-center sm:mt-4">
                     <div className="text-xs font-medium uppercase tracking-[0.22em] text-primary/80">
                       {t.hero.previewLabel}
                     </div>
-                    <h2 className="mt-3 text-2xl font-semibold">Robertino</h2>
+                    <h2 className="mt-2 text-xl font-semibold sm:mt-3 sm:text-2xl">Robertino</h2>
                     <p className="mt-1 text-sm text-white/45">{t.hero.previewHandle}</p>
                     <p className="mt-2 text-sm text-white/55">{t.hero.previewRoles}</p>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                  <div className="mt-3 flex flex-wrap justify-center gap-2 sm:mt-4">
                     {t.hero.previewTags.map((tag) => (
                       <span
                         key={tag}
@@ -306,31 +313,31 @@ export function LandingPage({ locale }: LandingPageProps) {
                     ))}
                   </div>
 
-                  <div className="mt-4 flex items-center justify-center gap-2">
+                  <div className="mt-3 flex items-center justify-center gap-2 sm:mt-4">
                     {socialIcons.map((Icon, index) => (
                       <span
                         key={index}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/65"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/65 sm:h-9 sm:w-9"
                       >
                         <Icon />
                       </span>
                     ))}
                   </div>
 
-                  <div className="mt-5 rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
-                    <h3 className="text-lg font-semibold">{t.hero.previewTitle}</h3>
-                    <p className="mt-3 text-sm leading-7 text-white/60">
+                  <div className="mt-4 rounded-[1.25rem] border border-white/10 bg-white/5 p-4 sm:mt-5 sm:rounded-[1.5rem] sm:p-5">
+                    <h3 className="text-base font-semibold sm:text-lg">{t.hero.previewTitle}</h3>
+                    <p className="mt-3 text-sm leading-6 text-white/60 sm:leading-7">
                       {t.hero.previewDescription}
                     </p>
 
-                    <div className="mt-5 grid gap-3">
+                    <div className="mt-4 grid gap-2.5 sm:mt-5 sm:gap-3">
                       {t.hero.mockLinks.map((item, index) => {
                         const Icon = mockActionIcons[index] ?? PlayIcon;
 
                         return (
                           <div
                             key={item}
-                            className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80"
+                            className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3.5 py-3 text-sm text-white/80 sm:px-4"
                           >
                             <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-primary">
                               <Icon />
@@ -342,7 +349,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-[1.45rem] border border-white/10 bg-white/5 p-4">
+                  <div className="mt-4 rounded-[1.25rem] border border-white/10 bg-white/5 p-4 sm:rounded-[1.45rem]">
                     <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.22em] text-white/40">
                       <span>{t.hero.previewMediaLabel}</span>
                       <span className="text-primary/80">{t.hero.previewMediaBadge}</span>
@@ -354,7 +361,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                           className="overflow-hidden rounded-[1.2rem] border border-white/10 bg-sidebar/75"
                         >
                           <div
-                            className={`h-24 ${
+                            className={`h-20 sm:h-24 ${
                               index === 0
                                 ? 'bg-[linear-gradient(135deg,rgba(240,98,146,0.38),rgba(70,19,122,0.95))]'
                                 : 'bg-[linear-gradient(135deg,rgba(83,204,255,0.28),rgba(76,24,129,0.95))]'
@@ -371,21 +378,21 @@ export function LandingPage({ locale }: LandingPageProps) {
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-[1.45rem] border border-white/10 bg-white/5 p-4">
+                  <div className="mt-4 rounded-[1.25rem] border border-white/10 bg-white/5 p-4 sm:rounded-[1.45rem]">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/40">
                       {t.hero.previewAboutLabel}
                     </div>
-                    <p className="mt-3 text-sm leading-7 text-white/65">
+                    <p className="mt-3 text-sm leading-6 text-white/65 sm:leading-7">
                       {t.hero.previewAboutText}
                     </p>
                   </div>
 
-                  <div className="mt-4 rounded-[1.45rem] border border-white/10 bg-white/5 p-4">
+                  <div className="mt-4 rounded-[1.25rem] border border-white/10 bg-white/5 p-4 sm:rounded-[1.45rem]">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/40">
                       {t.hero.previewMerchLabel}
                     </div>
-                    <div className="mt-3 flex items-center gap-4 rounded-[1.2rem] border border-white/10 bg-sidebar/75 p-3">
-                      <div className="h-20 w-20 rounded-[1rem] bg-[linear-gradient(135deg,rgba(94,214,255,0.22),rgba(89,35,156,0.9))]" />
+                    <div className="mt-3 flex items-center gap-3 rounded-[1.05rem] border border-white/10 bg-sidebar/75 p-3 sm:gap-4 sm:rounded-[1.2rem]">
+                      <div className="h-16 w-16 rounded-[0.85rem] bg-[linear-gradient(135deg,rgba(94,214,255,0.22),rgba(89,35,156,0.9))] sm:h-20 sm:w-20 sm:rounded-[1rem]" />
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-semibold text-white/90">
                           {t.hero.previewMerchName}
@@ -395,17 +402,17 @@ export function LandingPage({ locale }: LandingPageProps) {
                           {t.hero.previewMerchStatus}
                         </div>
                       </div>
-                      <span className="rounded-full border border-white/10 px-3 py-2 text-xs font-medium text-white/75">
+                      <span className="shrink-0 rounded-full border border-white/10 px-3 py-2 text-xs font-medium text-white/75">
                         {t.hero.mockLinks[2]}
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-[1.45rem] border border-primary/20 bg-primary/5 p-4">
+                  <div className="mt-4 rounded-[1.25rem] border border-primary/20 bg-primary/5 p-4 sm:rounded-[1.45rem]">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary/85">
                       {t.hero.previewAudienceLabel}
                     </div>
-                    <div className="mt-3 flex items-center justify-between gap-4 rounded-[1.2rem] border border-primary/20 bg-white/5 px-4 py-3">
+                    <div className="mt-3 flex items-center justify-between gap-3 rounded-[1.05rem] border border-primary/20 bg-white/5 px-3.5 py-3 sm:gap-4 sm:rounded-[1.2rem] sm:px-4">
                       <div>
                         <div className="text-sm font-semibold text-white">
                           {t.hero.previewFanLabel}
@@ -414,7 +421,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                           {t.hero.previewAudienceText}
                         </div>
                       </div>
-                      <span className="rounded-full bg-brand-gradient px-3 py-2 text-xs font-semibold text-white">
+                      <span className="shrink-0 rounded-full bg-brand-gradient px-3 py-2 text-xs font-semibold text-white">
                         {t.hero.previewAudienceCta}
                       </span>
                     </div>
