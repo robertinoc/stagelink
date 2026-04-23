@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { InsightsDetailDialog } from '@/features/insights/components/InsightsDetailDialog';
 import {
   saveYouTubeInsightsConnection,
   syncYouTubeInsightsConnection,
@@ -346,9 +347,97 @@ export function YouTubeInsightsCard({
           </div>
         ) : null}
 
-        <div className="rounded-xl border border-white/10 bg-black/10 p-4 text-sm text-muted-foreground">
-          <p className="font-medium text-foreground">{t('settings.helper_title')}</p>
-          <p className="mt-1">{t('settings.helper_description')}</p>
+        <div className="flex flex-wrap gap-2">
+          <InsightsDetailDialog title={t('scope.title')} triggerLabel={t('actions.view_scope')}>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">{t('scope.description')}</p>
+
+              <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-4">
+                <p className="text-sm font-medium text-foreground">{t('scope.includes_title')}</p>
+                <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                  <li>{t('scope.includes.channel')}</li>
+                  <li>{t('scope.includes.subscribers')}</li>
+                  <li>{t('scope.includes.views')}</li>
+                  <li>{t('scope.includes.recent_videos')}</li>
+                </ul>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-black/10 p-4">
+                <p className="text-sm font-medium text-foreground">
+                  {t('scope.not_included_title')}
+                </p>
+                <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                  <li>{t('scope.not_included.watch_time')}</li>
+                  <li>{t('scope.not_included.geography')}</li>
+                  <li>{t('scope.not_included.revenue')}</li>
+                  <li>{t('scope.not_included.youtube_analytics')}</li>
+                </ul>
+              </div>
+            </div>
+          </InsightsDetailDialog>
+
+          <InsightsDetailDialog title={t('history.title')} triggerLabel={t('actions.view_history')}>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">{t('history.description')}</p>
+              {history.length <= 1 ? (
+                <p className="text-sm text-muted-foreground">{t('history.empty')}</p>
+              ) : (
+                <>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-xl border border-white/10 bg-black/10 p-3">
+                      <p className="text-xs text-muted-foreground">
+                        {t('history.subscribers_change')}
+                      </p>
+                      <p className="mt-1 text-lg font-semibold text-foreground">
+                        {subscribersDelta ?? '—'}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-black/10 p-3">
+                      <p className="text-xs text-muted-foreground">{t('history.views_change')}</p>
+                      <p className="mt-1 text-lg font-semibold text-foreground">
+                        {totalViewsDelta ?? '—'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {history
+                      .slice(-6)
+                      .reverse()
+                      .map((point) => (
+                        <div
+                          key={point.capturedAt}
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/10 px-3 py-2 text-sm"
+                        >
+                          <span className="text-muted-foreground">
+                            {formatDate(point.capturedAt, locale) ?? point.capturedAt}
+                          </span>
+                          <div className="flex flex-wrap items-center gap-4">
+                            <span className="text-muted-foreground">
+                              {t('metrics.subscriber_count')}:{' '}
+                              {formatNumber(point.metrics['subscriber_count'], locale) ?? '—'}
+                            </span>
+                            <span className="text-muted-foreground">
+                              {t('metrics.total_views')}:{' '}
+                              {formatNumber(point.metrics['total_views'], locale) ?? '—'}
+                            </span>
+                            <span className="text-muted-foreground">
+                              {t('metrics.video_count')}:{' '}
+                              {formatNumber(point.metrics['video_count'], locale) ?? '—'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </InsightsDetailDialog>
+
+          <div className="rounded-xl border border-white/10 bg-black/10 px-4 py-3 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">{t('settings.helper_title')}</p>
+            <p className="mt-1">{t('settings.helper_description')}</p>
+          </div>
         </div>
       </div>
     );
@@ -446,6 +535,92 @@ export function YouTubeInsightsCard({
             <p>{persistedSyncError}</p>
           </div>
         ) : null}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <InsightsDetailDialog title={t('history.title')} triggerLabel={t('actions.view_history')}>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{t('history.description')}</p>
+            {history.length <= 1 ? (
+              <p className="text-sm text-muted-foreground">{t('history.empty')}</p>
+            ) : (
+              <>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-white/10 bg-black/10 p-3">
+                    <p className="text-xs text-muted-foreground">
+                      {t('history.subscribers_change')}
+                    </p>
+                    <p className="mt-1 text-lg font-semibold text-foreground">
+                      {subscribersDelta ?? '—'}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-black/10 p-3">
+                    <p className="text-xs text-muted-foreground">{t('history.views_change')}</p>
+                    <p className="mt-1 text-lg font-semibold text-foreground">
+                      {totalViewsDelta ?? '—'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {history
+                    .slice(-6)
+                    .reverse()
+                    .map((point) => (
+                      <div
+                        key={point.capturedAt}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/10 px-3 py-2 text-sm"
+                      >
+                        <span className="text-muted-foreground">
+                          {formatDate(point.capturedAt, locale) ?? point.capturedAt}
+                        </span>
+                        <div className="flex flex-wrap items-center gap-4">
+                          <span className="text-muted-foreground">
+                            {t('metrics.subscriber_count')}:{' '}
+                            {formatNumber(point.metrics['subscriber_count'], locale) ?? '—'}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {t('metrics.total_views')}:{' '}
+                            {formatNumber(point.metrics['total_views'], locale) ?? '—'}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {t('metrics.video_count')}:{' '}
+                            {formatNumber(point.metrics['video_count'], locale) ?? '—'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </>
+            )}
+          </div>
+        </InsightsDetailDialog>
+
+        <InsightsDetailDialog title={t('scope.title')} triggerLabel={t('actions.view_scope')}>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">{t('scope.description')}</p>
+
+            <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-4">
+              <p className="text-sm font-medium text-foreground">{t('scope.includes_title')}</p>
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                <li>{t('scope.includes.channel')}</li>
+                <li>{t('scope.includes.subscribers')}</li>
+                <li>{t('scope.includes.views')}</li>
+                <li>{t('scope.includes.recent_videos')}</li>
+              </ul>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-black/10 p-4">
+              <p className="text-sm font-medium text-foreground">{t('scope.not_included_title')}</p>
+              <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                <li>{t('scope.not_included.watch_time')}</li>
+                <li>{t('scope.not_included.geography')}</li>
+                <li>{t('scope.not_included.revenue')}</li>
+                <li>{t('scope.not_included.youtube_analytics')}</li>
+              </ul>
+            </div>
+          </div>
+        </InsightsDetailDialog>
       </div>
 
       {latestSnapshot ? (
@@ -563,67 +738,6 @@ export function YouTubeInsightsCard({
               {t('messages.subscribers_hidden')}
             </div>
           ) : null}
-
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('history.title')}</CardTitle>
-              <p className="text-sm text-muted-foreground">{t('history.description')}</p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {history.length <= 1 ? (
-                <p className="text-sm text-muted-foreground">{t('history.empty')}</p>
-              ) : (
-                <>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-xl border border-white/10 bg-black/10 p-3">
-                      <p className="text-xs text-muted-foreground">
-                        {t('history.subscribers_change')}
-                      </p>
-                      <p className="mt-1 text-lg font-semibold text-foreground">
-                        {subscribersDelta ?? '—'}
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-white/10 bg-black/10 p-3">
-                      <p className="text-xs text-muted-foreground">{t('history.views_change')}</p>
-                      <p className="mt-1 text-lg font-semibold text-foreground">
-                        {totalViewsDelta ?? '—'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    {history
-                      .slice(-6)
-                      .reverse()
-                      .map((point) => (
-                        <div
-                          key={point.capturedAt}
-                          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/10 px-3 py-2 text-sm"
-                        >
-                          <span className="text-muted-foreground">
-                            {formatDate(point.capturedAt, locale) ?? point.capturedAt}
-                          </span>
-                          <div className="flex flex-wrap items-center gap-4">
-                            <span className="text-muted-foreground">
-                              {t('metrics.subscriber_count')}:{' '}
-                              {formatNumber(point.metrics['subscriber_count'], locale) ?? '—'}
-                            </span>
-                            <span className="text-muted-foreground">
-                              {t('metrics.total_views')}:{' '}
-                              {formatNumber(point.metrics['total_views'], locale) ?? '—'}
-                            </span>
-                            <span className="text-muted-foreground">
-                              {t('metrics.video_count')}:{' '}
-                              {formatNumber(point.metrics['video_count'], locale) ?? '—'}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
         </>
       ) : (
         <div className="rounded-xl border border-dashed border-border px-4 py-4 text-sm text-muted-foreground">
@@ -633,34 +747,6 @@ export function YouTubeInsightsCard({
           </div>
         </div>
       )}
-
-      <Card className="border-white/10 bg-white/5">
-        <CardHeader>
-          <CardTitle>{t('scope.title')}</CardTitle>
-          <p className="text-sm text-muted-foreground">{t('scope.description')}</p>
-        </CardHeader>
-        <CardContent className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-4">
-            <p className="text-sm font-medium text-foreground">{t('scope.includes_title')}</p>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li>{t('scope.includes.channel')}</li>
-              <li>{t('scope.includes.subscribers')}</li>
-              <li>{t('scope.includes.views')}</li>
-              <li>{t('scope.includes.recent_videos')}</li>
-            </ul>
-          </div>
-
-          <div className="rounded-xl border border-white/10 bg-black/10 p-4">
-            <p className="text-sm font-medium text-foreground">{t('scope.not_included_title')}</p>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li>{t('scope.not_included.watch_time')}</li>
-              <li>{t('scope.not_included.geography')}</li>
-              <li>{t('scope.not_included.revenue')}</li>
-              <li>{t('scope.not_included.youtube_analytics')}</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -28,10 +28,10 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { icon: LayoutDashboard, labelKey: 'nav.dashboard', href: 'dashboard', exact: true },
-  { icon: Globe, labelKey: 'nav.my_page', href: 'dashboard/page' },
-  { icon: FileText, labelKey: 'nav.epk', href: 'dashboard/epk' },
-  { icon: BarChart2, labelKey: 'nav.analytics', href: 'dashboard/analytics', exact: true },
   { icon: User, labelKey: 'nav.profile', href: 'dashboard/profile' },
+  { icon: Globe, labelKey: 'nav.my_page', href: 'dashboard/page' },
+  { icon: BarChart2, labelKey: 'nav.analytics', href: 'dashboard/analytics', exact: true },
+  { icon: FileText, labelKey: 'nav.epk', href: 'dashboard/epk' },
   { icon: Settings, labelKey: 'nav.settings', href: 'dashboard/settings' },
 ];
 
@@ -115,6 +115,7 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
         {NAV_ITEMS.map((item) => {
           const href = `/${locale}/${item.href}`;
           const active = isActive(item);
+          const isDashboard = item.href === 'dashboard';
           return (
             <Link
               key={item.href}
@@ -122,9 +123,14 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
               onClick={onNavigate}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
-                active
-                  ? 'bg-white/10 text-white font-medium'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white',
+                isDashboard &&
+                  'mb-2 border border-primary/30 bg-primary/12 text-white shadow-[0_0_18px_rgba(168,85,247,0.12)]',
+                isDashboard && active && 'bg-primary/20 text-white font-medium',
+                isDashboard && !active && 'text-white hover:bg-primary/15',
+                !isDashboard &&
+                  (active
+                    ? 'bg-white/10 text-white font-medium'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'),
               )}
             >
               <item.icon className="h-4 w-4 flex-shrink-0" />
