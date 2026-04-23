@@ -21,6 +21,7 @@ export const BLOCK_TYPES = [
   'email_capture',
   'text',
   'shopify_store',
+  'smart_merch',
 ] as const;
 export type BlockTypeValue = (typeof BLOCK_TYPES)[number];
 

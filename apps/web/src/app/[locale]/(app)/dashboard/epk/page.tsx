@@ -14,7 +14,7 @@ import { getSession } from '@/lib/auth';
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'EPK Builder',
+    title: 'Press Kit (EPK)',
   };
 }
 
@@ -43,9 +43,9 @@ export default async function DashboardEpkPage({
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">EPK Builder</h1>
+            <h1 className="text-2xl font-bold">Press Kit (EPK)</h1>
             <p className="text-sm text-muted-foreground">
-              Build a shareable press kit with a public URL and a print-friendly export.
+              Build a shareable Press Kit (EPK) with a public URL and a print-friendly export.
             </p>
           </div>
           <Badge variant="outline">
@@ -59,8 +59,8 @@ export default async function DashboardEpkPage({
         </div>
 
         <FeatureLockCta
-          title="Unlock the EPK builder"
-          description="EPK pages, public sharing and print export are available starting in Pro."
+          title="Unlock the Press Kit (EPK) builder"
+          description="Press Kit (EPK) pages, public sharing, and print export are available starting in Pro."
           currentPlanLabel={
             billingSummary.effectivePlan === 'pro_plus'
               ? 'Pro+'
@@ -86,10 +86,10 @@ export default async function DashboardEpkPage({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">EPK Builder</h1>
+          <h1 className="text-2xl font-bold">Press Kit (EPK)</h1>
           <p className="text-sm text-muted-foreground">
-            Build a professional press kit from your StageLink profile, then layer on only the extra
-            press-specific details you need for sharing, booking, and export.
+            Build a professional Press Kit (EPK) from your StageLink profile, then layer on only the
+            extra press-specific details you need for sharing, booking, and export.
           </p>
         </div>
 
@@ -103,11 +103,11 @@ export default async function DashboardEpkPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>How this EPK works</CardTitle>
+          <CardTitle>How this Press Kit (EPK) works</CardTitle>
           <CardDescription>
-            Your profile is the source of truth for identity, links, and core artist story. The EPK
-            editor is where you add the extra press-kit pieces like overrides, riders, hospitality
-            notes, and share-ready presentation.
+            Your profile is the source of truth for identity, links, and core artist story. The
+            Press Kit (EPK) editor is where you add the extra press-kit pieces like overrides,
+            riders, hospitality notes, and share-ready presentation.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 text-sm text-muted-foreground md:grid-cols-3">

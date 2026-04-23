@@ -164,7 +164,7 @@ function CreateBlockDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl xl:max-w-4xl">
         <DialogHeader>
           <DialogTitle>{t('create_dialog.title')}</DialogTitle>
           <DialogDescription>{t('create_dialog.subtitle')}</DialogDescription>
@@ -301,7 +301,7 @@ function EditBlockSheet({
 
   return (
     <Sheet open={!!block} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
+      <SheetContent className="w-full overflow-y-auto sm:max-w-3xl xl:max-w-4xl">
         {block && config && (
           <>
             <SheetHeader className="mb-6">
