@@ -181,6 +181,11 @@ Los próximos pasos naturales serían:
 2. agregar breakdowns por país/plataforma
 3. introducir comparativas contra período anterior
 4. agregar exports o vistas más profundas si el uso real lo justifica
+5. sumar una capa de eventos V2 para entender mejor qué contenido funciona dentro de StageLink:
+   - clicks por bloque y tipo de bloque
+   - interacciones sobre links heredados del perfil
+   - eventos de merch / Shopify / compra externa cuando la integración lo permita
+   - señales más claras para que el artista entienda qué conviene destacar, mover o reemplazar
 
 No conviene adelantar esas capas antes de tener la señal base completa.
 

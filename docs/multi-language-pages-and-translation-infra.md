@@ -258,6 +258,35 @@ Metadata:
 
 El editor mantiene:
 
+- contenido base editable por locale principal
+- tabs para `en` / `es`
+- fallback claro cuando falta traducción
+- autocompletado de traducción opcional desde el contenido base
+
+## Traducción automática opcional
+
+Profile y EPK ahora pueden rellenar el locale secundario con una traducción automática
+del contenido base.
+
+Comportamiento:
+
+- el resultado se inserta en el formulario
+- el artista puede editar cualquier campo antes de guardar
+- si la traducción automática no está configurada, el botón muestra error claro
+
+Configuración:
+
+- `OPENAI_API_KEY` en el frontend (`apps/web/.env.local` o entorno equivalente en Vercel)
+- opcional: `OPENAI_TRANSLATION_MODEL`
+
+La traducción automática está acotada a:
+
+- `en -> es`
+- `es -> en`
+
+No reemplaza el fallback ni el guardado manual. Solo acelera el primer borrador del
+contenido localizado.
+
 - contenido base legacy
 - `baseLocale`
 - nueva sección `Localized content`

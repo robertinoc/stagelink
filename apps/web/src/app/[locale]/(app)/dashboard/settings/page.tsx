@@ -89,6 +89,12 @@ export default async function DashboardSettingsPage({
       planCode: 'free' | 'pro' | 'pro_plus';
     } => plan.planCode !== 'enterprise',
   );
+  const settingsSections = [
+    { id: 'plans-billing', label: t('navigation.plans_billing') },
+    { id: 'insights-connections', label: t('navigation.insights_connections') },
+    { id: 'shopify-store', label: t('navigation.shopify_store') },
+    { id: 'smart-merch', label: t('navigation.smart_merch') },
+  ];
 
   return (
     <div className="space-y-6">
@@ -133,7 +139,27 @@ export default async function DashboardSettingsPage({
         </CardContent>
       </Card>
 
-      <section className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('navigation.title')}</CardTitle>
+          <CardDescription>{t('navigation.description')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {settingsSections.map((section) => (
+              <a
+                key={section.id}
+                href={`#${section.id}`}
+                className="rounded-2xl border border-border/70 bg-muted/20 px-4 py-3 text-sm font-medium transition hover:border-primary/40 hover:bg-primary/5"
+              >
+                {section.label}
+              </a>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <section id="plans-billing" className="space-y-4 scroll-mt-24">
         <div>
           <h2 className="text-lg font-semibold">{t('plans.title')}</h2>
           <p className="text-sm text-muted-foreground">{t('plans.description')}</p>
@@ -235,28 +261,34 @@ export default async function DashboardSettingsPage({
         </Card>
       </section>
 
-      <MerchProviderSettingsCard
-        artistId={artistId}
-        currentPlanLabel={resolvePlanLabel(summary.effectivePlan)}
-        hasFeatureAccess={summary.entitlements.smart_merch}
-        initialConnection={merchConnection}
-      />
+      <section id="insights-connections" className="scroll-mt-24">
+        <InsightsConnectionsSettingsCard
+          artistId={artistId}
+          artist={artist}
+          currentPlanLabel={resolvePlanLabel(summary.effectivePlan)}
+          hasFeatureAccess={summary.entitlements.stage_link_insights}
+          data={insightsResult?.kind === 'ok' ? insightsResult.data : null}
+          errorMessage={insightsResult?.kind === 'error' ? insightsResult.message : null}
+        />
+      </section>
 
-      <ShopifySettingsCard
-        artistId={artistId}
-        currentPlanLabel={resolvePlanLabel(summary.effectivePlan)}
-        hasFeatureAccess={summary.entitlements.shopify_integration}
-        initialConnection={shopifyConnection}
-      />
+      <section id="shopify-store" className="scroll-mt-24">
+        <ShopifySettingsCard
+          artistId={artistId}
+          currentPlanLabel={resolvePlanLabel(summary.effectivePlan)}
+          hasFeatureAccess={summary.entitlements.shopify_integration}
+          initialConnection={shopifyConnection}
+        />
+      </section>
 
-      <InsightsConnectionsSettingsCard
-        artistId={artistId}
-        artist={artist}
-        currentPlanLabel={resolvePlanLabel(summary.effectivePlan)}
-        hasFeatureAccess={summary.entitlements.stage_link_insights}
-        data={insightsResult?.kind === 'ok' ? insightsResult.data : null}
-        errorMessage={insightsResult?.kind === 'error' ? insightsResult.message : null}
-      />
+      <section id="smart-merch" className="scroll-mt-24">
+        <MerchProviderSettingsCard
+          artistId={artistId}
+          currentPlanLabel={resolvePlanLabel(summary.effectivePlan)}
+          hasFeatureAccess={summary.entitlements.smart_merch}
+          initialConnection={merchConnection}
+        />
+      </section>
     </div>
   );
 }

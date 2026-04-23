@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { Globe2, Lock } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { autoTranslateLocalizedFields } from '@/lib/api/localization';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -56,15 +57,25 @@ export function LocalizedEpkContentSection({
     () => t(`translations.locales.${activeLocale}`),
     [activeLocale, t],
   );
+  const baseLocaleLabel = useMemo(() => t(`translations.locales.${baseLocale}`), [baseLocale, t]);
   const fieldsDisabled = disabled || !hasMultiLanguageAccess || activeLocale === baseLocale;
   const translatedValues = watch(`translations.${activeLocale}`) ?? {};
   const translatedErrors = errors.translations?.[activeLocale];
+  const [translationStatus, setTranslationStatus] = useState<'idle' | 'loading' | 'success'>(
+    'idle',
+  );
+  const [translationError, setTranslationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeLocale === baseLocale) {
       setActiveLocale(defaultTranslatedLocale);
     }
   }, [activeLocale, baseLocale, defaultTranslatedLocale]);
+
+  useEffect(() => {
+    setTranslationStatus('idle');
+    setTranslationError(null);
+  }, [activeLocale, baseLocale]);
 
   const localeStatus = useMemo(() => {
     return LOCALE_TABS.reduce<Record<LocaleTab, 'base' | 'complete' | 'incomplete'>>(
@@ -92,16 +103,51 @@ export function LocalizedEpkContentSection({
     );
   }, [baseLocale, baseValues, translationsValues]);
 
-  function copyBaseContentToLocale(locale: LocaleTab) {
-    setValue(`translations.${locale}.headline`, baseValues[0] ?? '', { shouldDirty: true });
-    setValue(`translations.${locale}.shortBio`, baseValues[1] ?? '', { shouldDirty: true });
-    setValue(`translations.${locale}.fullBio`, baseValues[2] ?? '', { shouldDirty: true });
-    setValue(`translations.${locale}.pressQuote`, baseValues[3] ?? '', { shouldDirty: true });
-    setValue(`translations.${locale}.riderInfo`, baseValues[4] ?? '', { shouldDirty: true });
-    setValue(`translations.${locale}.techRequirements`, baseValues[5] ?? '', { shouldDirty: true });
-    setValue(`translations.${locale}.availabilityNotes`, baseValues[6] ?? '', {
-      shouldDirty: true,
-    });
+  async function autoTranslateBaseContentToLocale(locale: LocaleTab) {
+    setTranslationStatus('loading');
+    setTranslationError(null);
+
+    try {
+      const translations = await autoTranslateLocalizedFields({
+        sourceLocale: baseLocale,
+        targetLocale: locale,
+        values: {
+          headline: baseValues[0] ?? '',
+          shortBio: baseValues[1] ?? '',
+          fullBio: baseValues[2] ?? '',
+          pressQuote: baseValues[3] ?? '',
+          riderInfo: baseValues[4] ?? '',
+          techRequirements: baseValues[5] ?? '',
+          availabilityNotes: baseValues[6] ?? '',
+        },
+      });
+
+      setValue(`translations.${locale}.headline`, translations.headline ?? '', {
+        shouldDirty: true,
+      });
+      setValue(`translations.${locale}.shortBio`, translations.shortBio ?? '', {
+        shouldDirty: true,
+      });
+      setValue(`translations.${locale}.fullBio`, translations.fullBio ?? '', { shouldDirty: true });
+      setValue(`translations.${locale}.pressQuote`, translations.pressQuote ?? '', {
+        shouldDirty: true,
+      });
+      setValue(`translations.${locale}.riderInfo`, translations.riderInfo ?? '', {
+        shouldDirty: true,
+      });
+      setValue(`translations.${locale}.techRequirements`, translations.techRequirements ?? '', {
+        shouldDirty: true,
+      });
+      setValue(`translations.${locale}.availabilityNotes`, translations.availabilityNotes ?? '', {
+        shouldDirty: true,
+      });
+      setTranslationStatus('success');
+    } catch (error) {
+      setTranslationStatus('idle');
+      setTranslationError(
+        error instanceof Error ? error.message : t('translations.auto_translate_error'),
+      );
+    }
   }
 
   return (
@@ -204,19 +250,32 @@ export function LocalizedEpkContentSection({
         )}
 
         {activeLocale !== baseLocale && hasMultiLanguageAccess && (
-          <div className="flex items-center justify-between rounded-xl border border-border bg-muted/20 p-3">
-            <p className="text-sm text-muted-foreground">
-              {t('translations.copy_from_base_description', { locale: activeLocaleLabel })}
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => copyBaseContentToLocale(activeLocale)}
-              disabled={disabled}
-            >
-              {t('translations.copy_from_base')}
-            </Button>
+          <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground">
+                {t('translations.copy_from_base_description', {
+                  locale: activeLocaleLabel,
+                  sourceLocale: baseLocaleLabel,
+                })}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => autoTranslateBaseContentToLocale(activeLocale)}
+                disabled={disabled || translationStatus === 'loading'}
+              >
+                {translationStatus === 'loading'
+                  ? t('translations.auto_translate_loading')
+                  : t('translations.copy_from_base')}
+              </Button>
+            </div>
+            {translationStatus === 'success' ? (
+              <p className="text-xs text-emerald-500">{t('translations.auto_translate_success')}</p>
+            ) : null}
+            {translationError ? (
+              <p className="text-xs text-destructive">{translationError}</p>
+            ) : null}
           </div>
         )}
 

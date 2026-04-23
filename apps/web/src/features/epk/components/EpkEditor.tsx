@@ -128,6 +128,14 @@ export function EpkEditor({
   const watchedFormValues = watch();
   const inherited = editorData.inherited;
   const publishReadiness = getEpkPublishReadiness(watchedFormValues);
+  const profileLinkShortcuts = [
+    inherited.spotifyUrl && { label: 'Spotify', url: inherited.spotifyUrl },
+    inherited.youtubeUrl && { label: 'YouTube', url: inherited.youtubeUrl },
+    inherited.soundcloudUrl && { label: 'SoundCloud', url: inherited.soundcloudUrl },
+    inherited.websiteUrl && { label: 'Website', url: inherited.websiteUrl },
+    inherited.instagramUrl && { label: 'Instagram', url: inherited.instagramUrl },
+    inherited.tiktokUrl && { label: 'TikTok', url: inherited.tiktokUrl },
+  ].filter((item): item is { label: string; url: string } => Boolean(item));
 
   function buildLocalizedFieldMap(
     values: Record<'en' | 'es', string | null | undefined>,
@@ -562,12 +570,20 @@ export function EpkEditor({
         <CardHeader>
           <CardTitle>Featured media and gallery *</CardTitle>
           <CardDescription>
-            Highlight the most relevant embeds and images. Add at least one media item or one
-            gallery image before publishing.
+            Reuse the media and links you already loaded in your profile, then choose what you want
+            to highlight in this Press Kit (EPK). Add at least one media item or one gallery image
+            before publishing.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Choose from profile platforms</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                You do not need to retype these links. Pick the profile platforms you want to show
+                in the featured media section.
+              </p>
+            </div>
             <div className="flex flex-wrap gap-2">
               {inherited.spotifyUrl ? (
                 <Button
@@ -660,10 +676,14 @@ export function EpkEditor({
               <div>
                 <h3 className="text-sm font-semibold text-white">Gallery images</h3>
                 <p className="text-xs text-muted-foreground">
-                  Select up to 6 uploaded assets for the press kit gallery.
+                  Select up to 6 uploaded assets for the press kit gallery. Your profile cover and
+                  avatar are already available here when they exist.
                 </p>
               </div>
-              <Badge variant="outline">{watchedGallery.length}/6</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{watchedGallery.length}/6 selected</Badge>
+                <Badge variant="secondary">{availableImageAssets.length} available</Badge>
+              </div>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
               {availableImageAssets.map((asset) => {
@@ -699,13 +719,36 @@ export function EpkEditor({
         <CardHeader>
           <CardTitle>Highlights and links</CardTitle>
           <CardDescription>
-            Keep this concise: notable releases, press mentions, appearances and the links you want
-            bookers to open first.
+            Start from links you already keep in Profile, then decide which ones deserve extra
+            attention inside your Press Kit (EPK).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Choose from existing links</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Reuse your profile links and smart links here, instead of loading the same
+                destinations twice.
+              </p>
+            </div>
             <div className="flex flex-wrap gap-2">
+              {profileLinkShortcuts.map((link) => (
+                <Button
+                  key={link.url}
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    appendFeaturedLink({
+                      id: crypto.randomUUID(),
+                      label: link.label,
+                      url: link.url,
+                    })
+                  }
+                >
+                  Add {link.label}
+                </Button>
+              ))}
               {smartLinks.map((smartLink) => (
                 <Button
                   key={smartLink.id}
@@ -722,21 +765,6 @@ export function EpkEditor({
                   Add smart link: {smartLink.label}
                 </Button>
               ))}
-              {inherited.websiteUrl ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() =>
-                    appendFeaturedLink({
-                      id: crypto.randomUUID(),
-                      label: 'Website',
-                      url: inherited.websiteUrl!,
-                    })
-                  }
-                >
-                  Add website
-                </Button>
-              ) : null}
             </div>
 
             {featuredLinks.fields.map((field, index) => (
@@ -812,8 +840,8 @@ export function EpkEditor({
         <CardHeader>
           <CardTitle>Contacts and practical info *</CardTitle>
           <CardDescription>
-            These fields are public in the EPK. Add at least one contact before publishing, and only
-            put contacts you explicitly want to expose.
+            These fields are public in the Press Kit (EPK). Add at least one contact before
+            publishing, and only expose the information you want bookers and press contacts to see.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
@@ -839,27 +867,51 @@ export function EpkEditor({
             <label className="text-sm font-medium text-white">Location / base</label>
             <Input placeholder="Buenos Aires, AR" {...register('location')} />
           </div>
-          <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium text-white">Availability notes</label>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Availability and logistics</CardTitle>
+          <CardDescription>
+            Use this for timing, travel, in/out logistics, and any practical notes promoters should
+            read before booking.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Availability and logistics</label>
             <Textarea
-              rows={3}
-              placeholder="Touring, festival-ready, available for private events…"
+              rows={4}
+              placeholder="Touring windows, airport transfers, hotel needs, in/out logistics, or event timing notes…"
               {...register('availabilityNotes')}
             />
           </div>
-          <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium text-white">Rider summary</label>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Artist requirements and technical rider</CardTitle>
+          <CardDescription>
+            Split what the artist needs from what the technical production needs. This keeps the EPK
+            clearer for promoters, production, and hospitality teams.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Artist requirements</label>
             <Textarea
               rows={4}
-              placeholder="Optional hospitality or stage notes."
+              placeholder="Hospitality, staff, guest list, catering, dressing room notes, or other artist-side requirements…"
               {...register('riderInfo')}
             />
           </div>
-          <div className="space-y-2 md:col-span-2">
-            <label className="text-sm font-medium text-white">Tech requirements</label>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Technical rider</label>
             <Textarea
-              rows={4}
-              placeholder="Optional technical requirements or production notes."
+              rows={5}
+              placeholder="DJ setup, mixers, CDJs, sound system, monitors, lights, screens, stage plot, or production notes…"
               {...register('techRequirements')}
             />
           </div>
