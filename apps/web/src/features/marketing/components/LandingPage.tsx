@@ -275,6 +275,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                 {t.hero.ctaSecondary}
               </a>
             </div>
+            <p className="mt-3 text-sm text-white/45">{t.hero.ctaNote}</p>
           </div>
 
           <div id="preview" className="relative">
@@ -676,6 +677,7 @@ export function LandingPage({ locale }: LandingPageProps) {
               {t.cta.secondary}
             </a>
           </div>
+          <p className="mt-3 text-sm text-white/45">{t.cta.note}</p>
         </div>
       </section>
 
