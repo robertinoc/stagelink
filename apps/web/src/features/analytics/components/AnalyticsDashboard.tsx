@@ -53,6 +53,17 @@ function formatCtr(ctr: number): string {
   return `${(ctr * 100).toFixed(1)}%`;
 }
 
+function resolveTopLinkSourceLabel(
+  link: AnalyticsOverview['topLinks'][number],
+  t: ReturnType<typeof useTranslations>,
+) {
+  if (link.isSmartLink) {
+    return t('smart_link_source');
+  }
+
+  return link.blockId ? t('page_block_source') : t('profile_link_source');
+}
+
 function resolvePlanLabel(plan: BillingEntitlementsResponse['effectivePlan'] | 'free') {
   switch (plan) {
     case 'pro':
@@ -182,7 +193,10 @@ function TopLinksTable({ data }: { data: AnalyticsOverview }) {
     <Card>
       <CardHeader>
         <CardTitle className="text-base">{t('title')}</CardTitle>
-        <p className="text-sm text-muted-foreground">{t('description')}</p>
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">{t('description')}</p>
+          <p className="text-xs text-muted-foreground">{t('scope_note')}</p>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
@@ -194,6 +208,9 @@ function TopLinksTable({ data }: { data: AnalyticsOverview }) {
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
                   {t('label')}
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
+                  {t('source')}
                 </th>
                 <th className="w-24 px-4 py-3 text-right text-xs font-medium text-muted-foreground">
                   {t('clicks')}
@@ -213,6 +230,9 @@ function TopLinksTable({ data }: { data: AnalyticsOverview }) {
                         </Badge>
                       ) : null}
                     </div>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {resolveTopLinkSourceLabel(link, t)}
                   </td>
                   <td className="px-4 py-3 text-right font-medium tabular-nums">
                     {formatNumber(link.clicks)}

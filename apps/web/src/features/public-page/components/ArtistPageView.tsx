@@ -10,6 +10,10 @@ interface ArtistPageViewProps {
   page: PublicPageResponse;
 }
 
+function normalizeTextForComparison(value: string | null | undefined): string {
+  return value?.toLowerCase().replace(/\s+/g, ' ').trim() ?? '';
+}
+
 function isFeaturedMediaBlock(block: PublicPageResponse['blocks'][number]) {
   return block.type === 'music_embed' || block.type === 'video_embed';
 }
@@ -89,8 +93,22 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       block.type !== 'email_capture',
   );
   const additionalInfoBlocks = [...textBlocks, ...remainingBlocks];
+  const normalizedArtistBio = normalizeTextForComparison(artist.bio);
+  const hasCustomAboutBlock = textBlocks.some((block) => {
+    const title = normalizeTextForComparison(block.title);
+    const body =
+      'body' in block.config && typeof block.config.body === 'string'
+        ? normalizeTextForComparison(block.config.body)
+        : '';
 
-  const hasAboutSection = Boolean(artist.bio);
+    return (
+      title.includes('about') ||
+      title.includes(artist.displayName.toLowerCase()) ||
+      (normalizedArtistBio.length > 0 && body === normalizedArtistBio)
+    );
+  });
+
+  const hasAboutSection = Boolean(artist.bio) && !hasCustomAboutBlock;
   const hasAdditionalInfo = additionalInfoBlocks.length > 0;
   const hasAnyPublicContent =
     linkBlocks.length > 0 ||
@@ -244,6 +262,21 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                   </section>
                 )}
 
+                {additionalInfoBlocks.length > 0 && (
+                  <section className="space-y-4">
+                    <div className="space-y-2 text-center">
+                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+                        {t('sections.additional_info')}
+                      </p>
+                    </div>
+                    <PublicPageClient
+                      page={page}
+                      blocks={additionalInfoBlocks}
+                      className="space-y-4"
+                    />
+                  </section>
+                )}
+
                 {(hasAboutSection || page.publicEpkAvailable || artist.contactEmail) && (
                   <section className="space-y-4">
                     {hasAboutSection && (
@@ -321,21 +354,6 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                         className="space-y-4"
                       />
                     </div>
-                  </section>
-                )}
-
-                {additionalInfoBlocks.length > 0 && (
-                  <section className="space-y-4">
-                    <div className="space-y-2 text-center">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                        {t('sections.additional_info')}
-                      </p>
-                    </div>
-                    <PublicPageClient
-                      page={page}
-                      blocks={additionalInfoBlocks}
-                      className="space-y-4"
-                    />
                   </section>
                 )}
 
