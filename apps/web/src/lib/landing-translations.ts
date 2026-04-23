@@ -148,12 +148,12 @@ export interface LandingTranslation {
 
 const en: LandingTranslation = {
   seo: {
-    title: 'Artist landing page and link in bio for artists',
+    title: 'StageLink | Artist platform, Press Kit, analytics, and merch hub',
     description:
-      'StageLink is the modern artist landing page and link in bio for artists, musicians, DJs, producers, bands, creators, and visual artists. Bring your music, content, merch, and audience into one polished page.',
-    ogTitle: 'StageLink | Artist landing page and link in bio for artists',
+      'StageLink is an artist platform for musicians, DJs, producers, bands, creators, and visual artists. Build your public page, Press Kit (EPK), analytics, merch hub, and audience experience in one place.',
+    ogTitle: 'StageLink | The artist platform for page, Press Kit, analytics, and merch',
     ogDescription:
-      'Build a modern artist page in minutes. Centralize your music, videos, merch, smart links, and fan touchpoints in one place.',
+      'Build your artist platform in one place: public page, Press Kit (EPK), analytics, merch, smart links, and fan capture.',
   },
   nav: {
     product: 'Product',
@@ -165,35 +165,35 @@ const en: LandingTranslation = {
     cta: 'Create your StageLink',
     languageLabel: 'Language',
   },
-  badge: 'Artist-first page platform',
+  badge: 'Artist-first platform',
   hero: {
-    headline: 'Build your artist landing page in minutes',
+    headline: 'Build your artist platform, not just another link page',
     subheadline:
-      'StageLink is a modern link in bio for artists who need more than a list of links. Bring your music, videos, merch, smart links, and audience touchpoints into one polished page.',
+      'StageLink gives artists one home for their public page, Press Kit (EPK), merch, audience capture, and connected platform insights. It is the layer that ties your project together.',
     supportingText:
-      'Made for DJs, musicians, producers, bands, creators, and visual artists who want one link that actually feels like their brand.',
+      'Made for DJs, musicians, producers, bands, creators, and visual artists who need more than a generic link-in-bio and want one system that actually supports how they work.',
     ctaPrimary: 'Create your StageLink',
     ctaSecondary: 'View preview',
     previewLabel: 'Artist page preview',
     previewHandle: '@robertino',
     previewRoles: 'DJ · Producer · Creator',
     previewTags: ['Techno', 'Hard Techno', 'Bounce', 'Psytrance'],
-    previewTitle: 'One link for your music, content, merch, and audience',
+    previewTitle: 'One place for your music, content, merch, and audience',
     previewDescription:
-      'A modern artist bio link built to look sharp, load fast, and help fans know exactly where to go next.',
+      'A modern artist experience built to look sharp, load fast, and guide fans, bookers, and collaborators toward the next right action.',
     previewMediaLabel: 'Featured media',
     previewMediaBadge: 'Live preview',
     previewMediaItems: ['Last video', 'Latest set'],
     previewMediaMeta: ['YouTube / Live set', 'SoundCloud / Mix preview'],
     previewAboutLabel: 'About',
     previewAboutText:
-      'A strong artist page can also show your bio, current focus, press-ready details, and the sections fans actually need.',
+      'A strong artist platform can also show your bio, current focus, press-ready details, and the sections different audiences actually need.',
     previewMerchLabel: 'Merch',
     previewMerchName: 'Limited gear drop',
     previewMerchPrice: '$149',
     previewMerchStatus: 'Available now',
     previewAudienceLabel: 'Audience',
-    previewAudienceText: 'Capture fans and keep your next release one click away.',
+    previewAudienceText: 'Capture fans, launch smarter, and keep your next move one click away.',
     previewAudienceCta: 'Join',
     previewFanLabel: 'Join the fan list',
     mockLinks: ['Listen on Spotify', 'Watch the latest video', 'Shop merch', 'Join the fan list'],
@@ -213,95 +213,98 @@ const en: LandingTranslation = {
   },
   problem: {
     eyebrow: 'Problem / solution',
-    headline: 'Most artists are sending fans into a maze',
+    headline:
+      'Most artists are stitching their project together across too many disconnected tools',
     intro:
-      'Your latest release is on Spotify. Your mixes live on SoundCloud. Videos are on YouTube. Merch is in another store. Your artist bio link ends up sending people everywhere except into one coherent experience.',
+      'Your music lives on Spotify. Your videos live on YouTube. Merch lives somewhere else. Your Press Kit is separate. Your analytics are fragmented. The result is not just a messy fan journey, but a messy artist workflow too.',
     painLabel: 'What fans see now',
     painPoints: [
-      'Too many links across too many platforms',
-      'No single page for music, merch, videos, and contact',
-      "A generic link page that doesn't feel like your artist brand",
+      'Too many disconnected links and tools across too many platforms',
+      'No single place for public page, Press Kit (EPK), merch, and platform references',
+      "A generic link page that doesn't feel like your artist brand or your real workflow",
     ],
     solutionLabel: 'What StageLink changes',
     solutionPoints: [
-      'One modern page for your music, content, merch, and audience touchpoints',
-      'A cleaner way to share your artist landing page across social media, releases, and campaigns',
-      'A presentation that feels built for artists, not for everyone and everything at once',
+      'One artist platform for your page, Press Kit (EPK), merch, audience flows, and connected insights',
+      'A cleaner way to share your project across releases, social media, outreach, and campaigns',
+      'A system that feels built for artists, not a generic link tool stretched beyond its purpose',
     ],
   },
   features: {
     eyebrow: 'Features',
-    headline: 'Everything artists need. Clear, modern, and ready to share.',
+    headline: 'A modern artist toolkit, unified in one platform.',
     intro:
-      'StageLink helps you build a landing page for musicians, DJs, producers, and creators without turning your page into a cluttered stack of buttons.',
+      'StageLink starts with your public page, but it goes further: profile, Press Kit (EPK), analytics, merch, smart links, fan capture, and platform connections all live in one artist workspace.',
     items: [
       {
-        title: 'Music and social links in one place',
+        title: 'Public page and links in one place',
         description:
-          'Bring Spotify, SoundCloud, YouTube, TikTok, Instagram, and your own links into one clean artist page.',
+          'Bring Spotify, SoundCloud, YouTube, TikTok, Instagram, and your core destinations into one clean artist-facing experience.',
       },
       {
-        title: 'Artist-first design',
+        title: 'Profile-first artist system',
         description:
-          'Present your brand with a polished mobile-first layout that feels modern from the first click.',
+          'Start from one core artist profile and reuse that identity across your public page, Press Kit (EPK), and platform references.',
+      },
+      {
+        title: 'Press kit and professional presentation',
+        description:
+          'Turn your artist profile into a shareable Press Kit (EPK), then add the booking, hospitality, and rider details that belong there.',
       },
       {
         title: 'Merch and store support',
         description:
-          'Connect Shopify, highlight products, and turn attention into actual sales without building a custom store.',
+          'Connect Shopify and Smart Merch flows so products can live inside the same artist system instead of somewhere disconnected.',
       },
       {
-        title: 'Fan capture and audience growth',
+        title: 'Connected insights and analytics',
         description:
-          'Collect fan emails and create clearer paths from discovery to action with tools made for audience growth.',
+          'Read StageLink analytics and connected platform metrics from one dashboard instead of hunting through disconnected tools.',
       },
       {
-        title: 'Fast setup',
+        title: 'Fan capture and smart distribution',
         description:
-          'Create your profile, add your links and content, and publish a strong artist page in just a few minutes.',
-      },
-      {
-        title: 'Modern presentation',
-        description:
-          'Use smart links, embeds, EPK tools, and focused sections that help fans, bookers, and collaborators find what matters.',
+          'Use smart links, audience capture, embeds, and focused sections that help fans, bookers, and collaborators find what matters fast.',
       },
     ],
   },
   howItWorks: {
     eyebrow: 'How it works',
-    headline: 'From scattered links to a polished artist page in three simple steps',
+    headline: 'From scattered tools to a clean artist platform in three simple steps',
     intro:
-      'The workflow is straightforward: set up your profile, add your content, and share one link everywhere.',
+      'The workflow is straightforward: set up your profile, shape your artist surfaces, and share one system everywhere.',
     steps: [
       {
         step: '01',
-        title: 'Create your profile',
-        text: 'Add your artist name, visuals, bio, and the essentials that make your page feel like you.',
+        title: 'Set up your artist profile',
+        text: 'Add your artist identity, visuals, links, and core platform references once so StageLink can reuse them across the product.',
       },
       {
         step: '02',
-        title: 'Add your links, music, and content',
-        text: 'Bring in music platforms, videos, merch, smart links, and fan touchpoints from the places you already use.',
+        title: 'Build your public experience',
+        text: 'Shape your page, Press Kit (EPK), merch sections, smart links, and audience touchpoints from the same artist workspace.',
       },
       {
         step: '03',
-        title: 'Share your page everywhere',
-        text: 'Use one link across Instagram, TikTok, email, bios, releases, and campaigns with a page that is ready to convert.',
+        title: 'Share, measure, and grow',
+        text: 'Use one system across Instagram, TikTok, releases, outreach, and campaigns, then read your analytics and platform snapshots in one place.',
       },
     ],
   },
   forArtists: {
     eyebrow: "Who it's for",
-    headline: 'Built for artists who need more than a generic link page',
-    body: 'StageLink was made for creative people whose work already lives across platforms and formats. It gives you a more complete artist landing page, not just a list of links.',
+    headline: 'Built for artists who need a real platform, not just a generic link page',
+    body: 'StageLink was made for creative people whose work already lives across platforms, formats, audiences, and goals. It gives you a more complete artist system, not just a prettier bio link.',
     segments: [
       {
         label: 'DJs',
-        description: 'Share mixes, bookings, videos, releases, and merch from one branded page.',
+        description:
+          'Share sets, bookings, videos, releases, merch, and platform insights from one coherent home base.',
       },
       {
         label: 'Musicians',
-        description: 'Connect releases, videos, tour info, merch, and your audience in one place.',
+        description:
+          'Connect releases, videos, tour info, merch, audience capture, and a press-ready presence in one place.',
       },
       {
         label: 'Producers',
@@ -309,51 +312,52 @@ const en: LandingTranslation = {
       },
       {
         label: 'Bands',
-        description: 'Keep songs, live content, merch, and updates together on one page.',
+        description:
+          'Keep songs, live content, merch, updates, and press materials together in one system.',
       },
       {
         label: 'Creators',
         description:
-          'Turn a creator landing page into a clean hub for content, products, and community.',
+          'Turn your creator presence into a platform for content, products, analytics, and community touchpoints.',
       },
       {
         label: 'Visual artists',
         description:
-          'Show your portfolio, social presence, commissions, and shop without losing focus.',
+          'Show your portfolio, social presence, commissions, and shop inside one focused artist platform.',
       },
     ],
   },
   monetization: {
     eyebrow: 'Why StageLink',
-    headline: 'More than a generic link-in-bio tool',
-    body: 'StageLink is built for artists and creators who need a real home for music, content, merch, and audience growth. It helps you present your work clearly without sending people through a maze.',
+    headline: 'More than a link-in-bio. More focused than a generic site builder.',
+    body: 'StageLink is for artists who need one platform to present their work, share a professional Press Kit (EPK), connect merch, read analytics, and grow without duct-taping five products together.',
     pillars: [
       {
-        title: 'Sell merch without extra friction',
+        title: 'Built around artist workflows',
         description:
-          'Connect Shopify, feature selected products, and send buyers to a real checkout flow that already works.',
+          'The product is structured around what artists actually manage: identity, public page, Press Kit, merch, platform references, and analytics.',
       },
       {
-        title: 'Turn attention into audience',
+        title: 'One profile, many outputs',
         description:
-          'Capture fan interest, guide visitors to your key releases, and create clearer next steps for the people discovering your work.',
+          'Your core artist profile powers multiple surfaces so you are not re-entering the same information in disconnected places.',
       },
       {
-        title: 'Look ready for opportunities',
+        title: 'Growth without fragmentation',
         description:
-          'If you want a more complete platform, unlock the next level with Pro and Pro+ features for a more unique experience.',
+          'Instead of stacking random tools, you get a cleaner artist hub where page, merch, fans, and insights can evolve together.',
       },
     ],
     points: [
-      'Built specifically for artist landing pages, not generic profiles',
-      'A cleaner link in bio for DJs, musicians, producers, and creators',
-      'One modern page for music, merch, videos, and fan relationships',
+      'Connect Shopify and Smart Merch where fans already discover you.',
+      'Use a Press Kit (EPK) that starts from your real profile instead of rebuilding your story from scratch.',
+      'Read StageLink analytics and platform snapshots from the same workspace.',
     ],
   },
   cta: {
     eyebrow: 'Ready to start',
-    headline: 'Build one link that actually feels like you',
-    body: 'Create a modern artist page for your music, content, merch, and audience. Start simple, publish fast, and grow from there.',
+    headline: 'Build the artist platform your project actually deserves',
+    body: 'Create the system behind your public page, Press Kit (EPK), merch, analytics, and audience flow. Start simple, then grow into a stronger artist platform from there.',
     primary: 'Create your StageLink',
     secondary: 'Explore how it works',
   },
@@ -377,7 +381,7 @@ const en: LandingTranslation = {
   },
   footer: {
     description:
-      'StageLink is a modern artist landing page and link in bio for artists, musicians, DJs, producers, bands, creators, and visual artists who want one polished place for music, content, merch, and fans.',
+      'StageLink is the artist platform for public page, Press Kit (EPK), merch, analytics, smart links, and audience flow.',
     links: {
       product: 'Product',
       features: 'Features',
@@ -391,12 +395,12 @@ const en: LandingTranslation = {
 
 const es: LandingTranslation = {
   seo: {
-    title: 'Página de artista y link in bio para artistas',
+    title: 'StageLink | Plataforma para artistas con Press Kit, analíticas y merch',
     description:
-      'StageLink es una página de artista moderna y un link in bio para artistas, músicos, DJs, productores, bandas, creadores y artistas visuales. Uní tu música, contenido, merch y audiencia en una sola página.',
-    ogTitle: 'StageLink | Página de artista y link in bio para artistas',
+      'StageLink es una plataforma para artistas, músicos, DJs, productores, bandas, creadores y artistas visuales. Unificá tu página pública, Press Kit (EPK), analíticas, merch y audiencia en un solo lugar.',
+    ogTitle: 'StageLink | La plataforma para artistas con página, Press Kit, analíticas y merch',
     ogDescription:
-      'Creá una página moderna de artista en minutos. Centralizá tu música, videos, merch, smart links y puntos de contacto con tu audiencia en un solo lugar.',
+      'Construí tu plataforma de artista en un solo lugar: página pública, Press Kit (EPK), analíticas, merch, smart links y captura de audiencia.',
   },
   nav: {
     product: 'Producto',
@@ -410,33 +414,34 @@ const es: LandingTranslation = {
   },
   badge: 'Plataforma para artistas',
   hero: {
-    headline: 'Creá tu página de artista en minutos',
+    headline: 'Construí tu plataforma de artista, no solo otra página de links',
     subheadline:
-      'StageLink es un link in bio moderno para artistas que necesitan algo más que una lista de links. Uní tu música, videos, merch, smart links y puntos de contacto con tu audiencia en una sola página prolija.',
+      'StageLink le da a los artistas un solo lugar para su página pública, Press Kit (EPK), merch, captura de audiencia y platform insights conectados. Es la capa que une todo tu proyecto.',
     supportingText:
-      'Hecho para DJs, músicos, productores, bandas, creadores y artistas visuales que quieren un solo link que realmente se sienta como su marca.',
+      'Hecho para DJs, músicos, productores, bandas, creadores y artistas visuales que necesitan más que un link-in-bio genérico y quieren un sistema que de verdad acompañe cómo trabajan.',
     ctaPrimary: 'Crear tu StageLink',
     ctaSecondary: 'Ver preview',
     previewLabel: 'Preview de página de artista',
     previewHandle: '@robertino',
     previewRoles: 'DJ · Producer · Creator',
     previewTags: ['Techno', 'Hard Techno', 'Bounce', 'Psytrance'],
-    previewTitle: 'Un solo link para tu música, contenido, merch y audiencia',
+    previewTitle: 'Un solo lugar para tu música, contenido, merch y audiencia',
     previewDescription:
-      'Un artist bio link moderno pensado para verse bien, cargar rápido y mostrarle a cada fan exactamente cuál es el próximo paso.',
+      'Una experiencia de artista pensada para verse bien, cargar rápido y guiar a fans, bookers y colaboradores hacia la acción correcta.',
     previewMediaLabel: 'Media destacada',
     previewMediaBadge: 'Preview en vivo',
     previewMediaItems: ['Último video', 'Último set'],
     previewMediaMeta: ['YouTube / Live set', 'SoundCloud / Preview del mix'],
     previewAboutLabel: 'Sobre el artista',
     previewAboutText:
-      'Una buena página de artista también puede mostrar tu bio, tu foco actual, detalles listos para prensa y las secciones que tus fans realmente necesitan.',
+      'Una buena plataforma para artistas también puede mostrar tu bio, tu foco actual, detalles listos para prensa y las secciones que distintos públicos realmente necesitan.',
     previewMerchLabel: 'Merch',
     previewMerchName: 'Drop limitado de gear',
     previewMerchPrice: '$149',
     previewMerchStatus: 'Disponible ahora',
     previewAudienceLabel: 'Audiencia',
-    previewAudienceText: 'Capturá fans y dejá tu próximo lanzamiento a un solo click.',
+    previewAudienceText:
+      'Capturá fans, activá mejor tus lanzamientos y dejá tu próximo movimiento a un click de distancia.',
     previewAudienceCta: 'Sumarme',
     previewFanLabel: 'Sumarme a la lista de fans',
     mockLinks: [
@@ -461,96 +466,99 @@ const es: LandingTranslation = {
   },
   problem: {
     eyebrow: 'Problema / solución',
-    headline: 'La mayoría de los artistas está mandando a sus fans a un laberinto',
+    headline:
+      'La mayoría de los artistas arma su proyecto con demasiadas herramientas desconectadas',
     intro:
-      'Tu último lanzamiento vive en Spotify. Tus mixes están en SoundCloud. Tus videos están en YouTube. El merch está en otra tienda. Tu link de bio termina enviando a la gente a todos lados, menos a una experiencia coherente.',
+      'Tu música vive en Spotify. Tus videos en YouTube. El merch en otro lado. Tu Press Kit por separado. Tus analíticas fragmentadas. El problema ya no es solo la experiencia del fan: también es un workflow artístico desordenado.',
     painLabel: 'Lo que los fans ven hoy',
     painPoints: [
-      'Demasiados links repartidos en demasiadas plataformas',
-      'Ninguna página única para música, merch, videos y contacto',
-      'Una página genérica de links que no se siente como tu proyecto artístico',
+      'Demasiados links y herramientas desconectadas en demasiadas plataformas',
+      'No existe un solo lugar para página pública, Press Kit (EPK), merch y referencias de plataforma',
+      'Una página genérica de links que no se siente como tu marca ni como tu workflow real',
     ],
     solutionLabel: 'Lo que cambia con StageLink',
     solutionPoints: [
-      'Una sola página moderna para tu música, contenido, merch y puntos de contacto con tu audiencia',
-      'Una forma más clara de compartir tu página de artista en redes, lanzamientos y campañas',
-      'Una presentación pensada para artistas, no para una lista interminable de botones',
+      'Una sola plataforma para tu página, Press Kit (EPK), merch, audiencia e insights conectados',
+      'Una forma más clara de compartir tu proyecto en lanzamientos, redes, outreach y campañas',
+      'Un sistema pensado para artistas, no una tool genérica estirada más allá de su propósito',
     ],
   },
   features: {
     eyebrow: 'Funciones',
-    headline: 'Todo lo que un artista necesita. Claro, moderno y listo para compartir.',
+    headline: 'Un toolkit moderno para artistas, unificado en una sola plataforma.',
     intro:
-      'StageLink te ayuda a construir una landing page para músicos, DJs, productores y creadores sin convertir tu página en un stack desordenado de botones.',
+      'StageLink empieza con tu página pública, pero va más allá: perfil, Press Kit (EPK), analíticas, merch, smart links, captura de fans y conexiones de plataforma viven en un mismo workspace.',
     items: [
       {
-        title: 'Música y redes en un solo lugar',
+        title: 'Página pública y links en un solo lugar',
         description:
-          'Uní Spotify, SoundCloud, YouTube, TikTok, Instagram y tus propios links en una página de artista limpia y enfocada.',
+          'Uní Spotify, SoundCloud, YouTube, TikTok, Instagram y tus destinos principales dentro de una experiencia clara para tu proyecto artístico.',
       },
       {
-        title: 'Diseño pensado para artistas',
+        title: 'Sistema centrado en tu perfil',
         description:
-          'Mostrá tu marca con un layout mobile-first prolijo y moderno desde el primer click.',
+          'Partí de un solo perfil de artista y reutilizá esa identidad en tu página pública, tu Press Kit (EPK) y tus referencias de plataforma.',
       },
       {
-        title: 'Merch y tienda',
+        title: 'Press Kit y presentación profesional',
         description:
-          'Conectá Shopify, destacá productos y convertí atención en ventas sin tener que armar una tienda custom.',
+          'Convertí tu perfil en un Press Kit (EPK) compartible y sumale solo los detalles de booking, hospitalidad y rider que realmente pertenecen ahí.',
       },
       {
-        title: 'Captura de fans y crecimiento de audiencia',
+        title: 'Merch y soporte de tienda',
         description:
-          'Capturá emails, generá mejores recorridos y construí una relación más directa con la gente que descubre tu trabajo.',
+          'Conectá Shopify y Smart Merch para que el merch viva dentro del mismo sistema artístico en vez de quedar desconectado.',
       },
       {
-        title: 'Configuración rápida',
+        title: 'Insights y analíticas conectadas',
         description:
-          'Creá tu perfil, agregá tus links y publicá una página sólida de artista en apenas unos minutos.',
+          'Leé las analíticas de StageLink y las métricas conectadas de plataformas desde un solo dashboard, en lugar de perseguir datos por distintos lugares.',
       },
       {
-        title: 'Presentación moderna',
+        title: 'Captura de fans y distribución inteligente',
         description:
-          'Usá smart links, embeds, herramientas de EPK y secciones enfocadas para fans, bookers y colaboradores.',
+          'Usá smart links, captura de audiencia, embeds y secciones enfocadas para que fans, bookers y colaboradores encuentren rápido lo importante.',
       },
     ],
   },
   howItWorks: {
     eyebrow: 'Cómo funciona',
-    headline: 'De links dispersos a una página de artista pulida en tres pasos',
+    headline: 'De herramientas dispersas a una plataforma de artista clara en tres pasos',
     intro:
-      'El flujo es simple: armás tu perfil, sumás tu contenido y compartís un solo link en todos lados.',
+      'El flujo es simple: armás tu perfil, construís tus superficies y compartís un solo sistema en todos lados.',
     steps: [
       {
         step: '01',
-        title: 'Creá tu perfil',
-        text: 'Sumá tu nombre artístico, visuales, bio y lo esencial para que tu página se sienta como vos.',
+        title: 'Configurá tu perfil de artista',
+        text: 'Sumá tu identidad, visuales, links y referencias principales una sola vez para que StageLink las reutilice en todo el producto.',
       },
       {
         step: '02',
-        title: 'Agregá tus links, música y contenido',
-        text: 'Integrá plataformas de música, videos, merch, smart links y puntos de contacto desde las herramientas que ya usás.',
+        title: 'Armá tu experiencia pública',
+        text: 'Dale forma a tu página, tu Press Kit (EPK), tus secciones de merch, tus smart links y tus puntos de contacto desde el mismo workspace.',
       },
       {
         step: '03',
-        title: 'Compartí tu página en todos lados',
-        text: 'Usá un solo link en Instagram, TikTok, email, bios, lanzamientos y campañas con una página lista para convertir.',
+        title: 'Compartí, medí y crecé',
+        text: 'Usá un solo sistema en Instagram, TikTok, lanzamientos, outreach y campañas, y después leé tus analíticas e insights conectados en un solo lugar.',
       },
     ],
   },
   forArtists: {
     eyebrow: 'Para artistas',
-    headline: 'Hecho para artistas que necesitan más que una página genérica de links',
-    body: 'StageLink fue creado para personas creativas cuyo trabajo ya vive en muchas plataformas y formatos. Te da una página de artista más completa, no solo una lista de links.',
+    headline:
+      'Hecho para artistas que necesitan una plataforma real, no solo una página genérica de links',
+    body: 'StageLink fue creado para personas creativas cuyo trabajo ya vive en múltiples plataformas, formatos, audiencias y objetivos. Te da un sistema de artista más completo, no solo un bio link más lindo.',
     segments: [
       {
         label: 'DJs',
         description:
-          'Compartí mixes, bookings, videos, lanzamientos y merch desde una sola página.',
+          'Compartí sets, bookings, videos, lanzamientos, merch e insights de plataforma desde una sola base coherente.',
       },
       {
         label: 'Músicos',
-        description: 'Conectá lanzamientos, videos, fechas, merch y audiencia en un solo lugar.',
+        description:
+          'Conectá lanzamientos, videos, fechas, merch, captura de audiencia y presencia de prensa en un solo lugar.',
       },
       {
         label: 'Productores',
@@ -558,50 +566,52 @@ const es: LandingTranslation = {
       },
       {
         label: 'Bandas',
-        description: 'Mantené canciones, contenido en vivo, merch y novedades en una sola página.',
+        description:
+          'Mantené canciones, contenido en vivo, merch, novedades y material de prensa dentro del mismo sistema.',
       },
       {
         label: 'Creadores',
         description:
-          'Convertí tu landing page en un hub prolijo para contenido, productos y comunidad.',
+          'Convertí tu presencia creadora en una plataforma para contenido, productos, analíticas y comunidad.',
       },
       {
         label: 'Artistas visuales',
-        description: 'Mostrá portfolio, redes, encargos y tienda sin perder foco.',
+        description:
+          'Mostrá portfolio, redes, encargos y tienda dentro de una plataforma artística más enfocada.',
       },
     ],
   },
   monetization: {
     eyebrow: 'Por qué StageLink',
-    headline: 'Mucho más que una herramienta genérica de link in bio',
-    body: 'StageLink está hecho para artistas y creadores que necesitan una base real para música, contenido, merch y crecimiento de audiencia. Te ayuda a presentar mejor tu trabajo sin mandar a la gente por un laberinto.',
+    headline: 'Más que un link-in-bio. Más enfocado que un site builder genérico.',
+    body: 'StageLink es para artistas que necesitan una sola plataforma para presentar su trabajo, compartir un Press Kit (EPK), conectar merch, leer analíticas y crecer sin pegar cinco productos distintos con cinta.',
     pillars: [
       {
-        title: 'Vendé merch sin sumar fricción',
+        title: 'Pensado alrededor del workflow artístico',
         description:
-          'Conectá Shopify, destacá productos y llevá al comprador a un checkout real que ya funciona.',
+          'El producto está estructurado alrededor de lo que los artistas realmente gestionan: identidad, página pública, Press Kit, merch, referencias de plataforma y analíticas.',
       },
       {
-        title: 'Convertí atención en audiencia',
+        title: 'Un perfil, muchos outputs',
         description:
-          'Capturá interés, guiá visitas hacia tus lanzamientos clave y marcá mejor el próximo paso para quien descubre tu trabajo.',
+          'Tu perfil de artista impulsa varias superficies, así no tenés que volver a cargar la misma información en lugares desconectados.',
       },
       {
-        title: 'Mostrate listo para oportunidades reales',
+        title: 'Crecimiento sin fragmentación',
         description:
-          'Si querés una plataforma más completa, desbloqueá tu próximo nivel con funciones de los planes Pro y Pro+ para tener una experiencia más única.',
+          'En lugar de apilar herramientas random, tenés un hub artístico más limpio donde página, merch, fans e insights pueden evolucionar juntos.',
       },
     ],
     points: [
-      'Pensado específicamente para páginas de artista, no para perfiles genéricos',
-      'Un link in bio más claro para DJs, músicos, productores y creadores',
-      'Una sola página moderna para música, merch, videos y relación con fans',
+      'Conectá Shopify y Smart Merch donde los fans ya te descubren.',
+      'Usá un Press Kit (EPK) que arranca desde tu perfil real, en vez de reconstruir tu historia desde cero.',
+      'Leé analíticas de StageLink y snapshots de plataformas desde el mismo workspace.',
     ],
   },
   cta: {
     eyebrow: 'Listo para empezar',
-    headline: 'Construí un solo link que realmente se sienta como vos',
-    body: 'Creá una página moderna para tu música, contenido, merch y audiencia. Empezá simple, publicá rápido y crecé desde ahí.',
+    headline: 'Construí la plataforma de artista que tu proyecto realmente necesita',
+    body: 'Creá el sistema detrás de tu página pública, tu Press Kit (EPK), tu merch, tus analíticas y tu flujo de audiencia. Empezá simple y crecé desde ahí.',
     primary: 'Crear tu StageLink',
     secondary: 'Explorar cómo funciona',
   },
@@ -625,7 +635,7 @@ const es: LandingTranslation = {
   },
   footer: {
     description:
-      'StageLink es una página de artista moderna y un link in bio para artistas, músicos, DJs, productores, bandas, creadores y artistas visuales que quieren un solo lugar prolijo para su música, contenido, merch y audiencia.',
+      'StageLink es la plataforma para artistas con página pública, Press Kit (EPK), merch, analíticas, smart links y flujo de audiencia.',
     links: {
       product: 'Producto',
       features: 'Funciones',
