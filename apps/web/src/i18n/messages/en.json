@@ -5,11 +5,11 @@
     "login": "Log in",
     "signup": "Get started",
     "dashboard": "Dashboard",
-    "my_page": "My Page",
-    "epk": "EPK",
-    "analytics": "Analytics",
+    "my_page": "My Page Builder",
+    "epk": "My Press Kit (EPK)",
+    "analytics": "My Analytics",
     "insights": "Insights",
-    "profile": "Profile",
+    "profile": "My Profile",
     "billing": "Billing",
     "settings": "Settings",
     "logout": "Log out",
@@ -95,12 +95,12 @@
       "upgrade_cta": "Upgrade to unlock",
       "cards": {
         "epk": {
-          "title": "Create my Presskit",
-          "description": "Turn your profile into a shareable press kit, then add the extra booking and rider details that only belong in an EPK.",
-          "cta": "Open EPK"
+          "title": "Create my Press Kit (EPK)",
+          "description": "Turn your profile into a shareable Press Kit (EPK), then add only the extra booking, hospitality, and rider details that belong there.",
+          "cta": "Open Press Kit (EPK)"
         },
         "analytics": {
-          "title": "View analytics",
+          "title": "View my analytics",
           "description": "Check StageLink traffic, advanced fan signals, and connected platform insights from one analytics workspace.",
           "cta": "Open Analytics",
           "pro_plus_off": "Platform Insights, advanced trends, and fan insights unlock on Pro+.",
@@ -108,7 +108,7 @@
         },
         "profile": {
           "title": "Edit my profile",
-          "description": "Update your core artist identity, social links, SEO, and the platform references StageLink reuses across your public page, EPK, and Insights.",
+          "description": "Update your core artist identity, social links, SEO, and the platform references StageLink reuses across your public page, Press Kit (EPK), and Insights.",
           "cta": "Open Profile"
         },
         "public_profile": {
@@ -321,6 +321,8 @@
           "syncing": "Syncing...",
           "open_spotify": "Open on Spotify",
           "view_analytics": "View analytics",
+          "view_scope": "What this includes",
+          "view_history": "View snapshot history",
           "manage_connection": "Manage connection",
           "open_settings": "Open settings"
         },
@@ -399,6 +401,8 @@
           "open_youtube": "Open on YouTube",
           "open_profile": "Open profile",
           "view_analytics": "View analytics",
+          "view_scope": "What this includes",
+          "view_history": "View snapshot history",
           "manage_connection": "Manage connection",
           "open_settings": "Open settings"
         },
@@ -485,7 +489,7 @@
     },
     "profile": {
       "title": "Profile",
-      "description": "Manage the core artist identity StageLink reuses across your public page, EPK, platform references, and SEO.",
+      "description": "Manage the core artist identity StageLink reuses across your public page, Press Kit (EPK), platform references, analytics connections, and SEO.",
       "sections": {
         "images": "Images",
         "images_hint": "Changes are saved immediately after uploading.",
