@@ -46,6 +46,7 @@ export interface LandingTranslation {
     ctaPrimary: string;
     ctaSecondary: string;
     ctaNote: string;
+    founderLine: string;
     previewLabel: string;
     previewHandle: string;
     previewRoles: string;
@@ -150,12 +151,12 @@ export interface LandingTranslation {
 
 const en: LandingTranslation = {
   seo: {
-    title: 'StageLink | The artist platform that turns attention into fans, streams, and sales',
+    title: 'StageLink | A better home for your art',
     description:
-      'StageLink helps artists turn profile traffic into streams, followers, fans, and sales with a public page, Press Kit (EPK), merch, smart links, and connected analytics.',
-    ogTitle: 'StageLink | Turn artist attention into fans, streams, and sales',
+      'StageLink helps artists share their work, grow their audience, and open the door to more bookings, collaborations, and support.',
+    ogTitle: 'StageLink | Share your art in one place',
     ogDescription:
-      'A platform for artists who need more than a bio link: page, Press Kit, merch, smart links, audience capture, and analytics in one place.',
+      'Bring your music, videos, Press Kit, merch, and artist story together in one place that feels like you.',
   },
   nav: {
     product: 'Product',
@@ -167,209 +168,194 @@ const en: LandingTranslation = {
     cta: 'Create your StageLink',
     languageLabel: 'Language',
   },
-  badge: 'For artists building real momentum',
+  badge: 'Made by an artist, for artists',
   hero: {
-    headline: 'Stop sending people everywhere. Start turning attention into fans.',
+    headline: 'Give your art a real home',
     subheadline:
-      'StageLink gives artists one place to turn profile traffic into streams, followers, fans, and sales with a public page, Press Kit (EPK), merch, smart links, and built-in analytics.',
+      'Share your music, videos, Press Kit, merch, and links in one place that helps more people find you and stay with you.',
     supportingText:
-      'Built for DJs, producers, musicians, creators, and artist teams who are tired of sending traffic into a mess of disconnected links and hoping people figure it out.',
-    ctaPrimary: 'Start building my StageLink',
-    ctaSecondary: 'See the preview',
-    ctaNote: 'Free to start. No credit card. Fast setup.',
+      'For DJs, producers, musicians, creators, bands, and visual artists who want to be easier to discover and easier to remember.',
+    ctaPrimary: 'Start my StageLink',
+    ctaSecondary: 'See a live preview',
+    ctaNote: 'Free to start. No credit card. Setup takes a few minutes.',
+    founderLine:
+      'I built StageLink because I wanted one place that felt like my project, not a pile of random links.',
     previewLabel: 'Artist page preview',
     previewHandle: '@robertino',
     previewRoles: 'DJ · Producer · Creator',
     previewTags: ['Techno', 'Hard Techno', 'Bounce', 'Psytrance'],
-    previewTitle: 'What fans see when everything finally connects',
+    previewTitle: 'One place for what matters most',
     previewDescription:
-      'Instead of hunting through random links, people get one clear path into your music, your videos, your merch, your fan list, and your next move.',
+      'Your music, your videos, your merch, your story, and the next step you want people to take.',
     previewMediaLabel: 'Featured media',
     previewMediaBadge: 'Live preview',
     previewMediaItems: ['Latest video', 'Current release'],
-    previewMediaMeta: ['YouTube / Performance clip', 'Spotify / Release push'],
+    previewMediaMeta: ['YouTube / Live clip', 'Spotify / New music'],
     previewAboutLabel: 'About',
     previewAboutText:
-      'Your profile, your story, your latest drop, your Press Kit, and your audience flow can finally live in one place that feels intentional.',
+      'A clear artist page can help fans, bookers, and collaborators understand who you are in seconds.',
     previewMerchLabel: 'Merch',
     previewMerchName: 'Limited merch drop',
     previewMerchPrice: '$149',
     previewMerchStatus: 'Available now',
     previewAudienceLabel: 'Audience',
     previewAudienceText:
-      'Capture warm traffic before it disappears and keep your next release one click away.',
+      'Keep your next release, next show, or next drop close to the people who care.',
     previewAudienceCta: 'Join',
     previewFanLabel: 'Join the fan list',
-    mockLinks: [
-      'Stream the new release',
-      'Watch the latest video',
-      'Shop merch',
-      'Join the fan list',
-    ],
+    mockLinks: ['Listen on Spotify', 'Watch the latest video', 'Shop merch', 'Join the fan list'],
   },
   strip: {
-    label: 'Join a growing wave of artists building a smarter home online',
-    items: [
-      'Artist landing page',
-      'Link in bio for artists',
-      'Landing page for musicians',
-      'Creator landing page',
-    ],
+    label: 'A growing home for independent artists',
+    items: ['Music', 'Videos', 'Press Kit', 'Merch'],
     platformsLabel: 'Works with the platforms your audience already uses',
     platformsDescription:
-      'Spotify, SoundCloud, YouTube, Shopify, TikTok, and Instagram are already part of your audience flow. StageLink helps you turn that traffic into action instead of losing it in the shuffle.',
+      'Your art already lives across different places. StageLink helps you bring it together without losing your identity.',
     platforms: ['Spotify', 'SoundCloud', 'YouTube', 'Shopify', 'TikTok', 'Instagram'],
   },
   problem: {
-    eyebrow: 'Why artists get stuck',
-    headline: "Most artists don't have a traffic problem. They have a conversion problem.",
+    eyebrow: 'Why this matters',
+    headline: 'Your art is in many places',
     intro:
-      'People click your profile, but then what? One link goes to Spotify. Another goes to YouTube. Merch lives somewhere else. Your Press Kit is separate. Your analytics are fragmented. Attention shows up, then leaks out.',
-    painLabel: 'What happens now',
+      'That is normal. Music is in one place. Videos are in another. Merch, socials, and press live somewhere else. It gets hard to show the full picture.',
+    painLabel: 'What that feels like',
     painPoints: [
-      'You send people to too many places and hope they keep following the trail',
-      'Your content feels fragmented, so your audience never gets a clear next step',
-      'You cannot easily tell what is actually driving streams, fans, or sales',
+      'People find one part of your work, but miss the rest',
+      'Your story gets split across too many platforms',
+      'Good opportunities can pass because everything feels scattered',
     ],
-    solutionLabel: 'What StageLink changes',
+    solutionLabel: 'What StageLink gives you',
     solutionPoints: [
-      'One artist platform where your page, Press Kit, merch, audience capture, and analytics work together',
-      'A cleaner path from profile visit to stream, follow, signup, or purchase',
-      'A setup that actually helps you understand what is working so you can improve it',
+      'One place to share the full shape of your project',
+      'A clearer way for people to discover your music and stay connected',
+      'A stronger home for fans, bookers, and collaborators to understand your work',
     ],
   },
   features: {
-    eyebrow: 'Outcomes first',
-    headline: 'What StageLink helps you do with the attention you already have',
+    eyebrow: 'What it helps you do',
+    headline: 'More of the right people find your work',
     intro:
-      'The features matter because of what they help you get: more streams, more fan capture, better decisions, a stronger brand, and fewer missed opportunities.',
+      'The goal is simple. Help your art reach more people and help more of those people stay close.',
     items: [
       {
-        title: 'Turn clicks into streams',
-        description:
-          'Guide visitors from one artist page into your release, your latest video, or the next action that actually matters.',
+        title: 'Be easier to discover',
+        description: 'Give people one place to find your music, videos, and latest moves.',
       },
       {
-        title: 'Stop losing warm traffic',
-        description:
-          'Use audience capture, smart links, merch, and focused sections so attention does not disappear after one click.',
+        title: 'Grow your audience',
+        description: 'Make it easy for new listeners and viewers to keep following your journey.',
       },
       {
-        title: 'Know what is working',
-        description:
-          'Read StageLink analytics and connected platform snapshots so you can see what your audience actually responds to.',
+        title: 'Get more opportunities',
+        description: 'Look ready when bookings, gigs, collaborations, and press chances show up.',
       },
       {
-        title: 'Sell merch without chaos',
+        title: 'Build a stronger identity',
         description:
-          'Bring Shopify and Smart Merch into the same experience instead of sending fans into a disconnected store flow.',
+          'Share your world in a way that feels like you, not like a generic profile page.',
       },
       {
-        title: 'Look ready when opportunities show up',
-        description:
-          'Turn your profile into a Press Kit (EPK) that is ready to share with bookers, collaborators, and press.',
+        title: 'Keep your merch close',
+        description: 'Let people support your project without sending them through a maze.',
       },
       {
-        title: 'Keep your project organized as you grow',
-        description:
-          'One profile powers your page, your Press Kit, your links, your merch, and your connected insights.',
+        title: 'Stay connected',
+        description: 'Keep your next release, next date, or next drop within easy reach.',
       },
     ],
   },
   howItWorks: {
     eyebrow: 'How it works',
-    headline: 'Set it up once. Use it everywhere.',
-    intro:
-      'The goal is not more admin. It is less chaos and better outcomes from the traffic you already earn.',
+    headline: 'Simple from day one',
+    intro: 'You do not need to rebuild your whole world. You just bring it together.',
     steps: [
       {
         step: '01',
-        title: 'Build your artist home',
-        text: 'Set up your profile, your page, and your core links once so your public presence stops feeling fragmented.',
+        title: 'Add your artist profile',
+        text: 'Bring in your name, visuals, links, and the parts of your story you want people to see.',
       },
       {
         step: '02',
-        title: 'Connect what matters',
-        text: 'Add music, videos, merch, smart links, Press Kit details, and fan capture without juggling five separate tools.',
+        title: 'Shape your page',
+        text: 'Set up your page, your Press Kit, your merch, and the links that matter most right now.',
       },
       {
         step: '03',
-        title: 'Share it and learn from it',
-        text: 'Use the same system across social media, releases, outreach, and campaigns, then check what is driving real response.',
+        title: 'Share it everywhere',
+        text: 'Use the same home across socials, releases, outreach, and new opportunities.',
       },
     ],
   },
   forArtists: {
-    eyebrow: 'Built for artists',
-    headline: 'Built for artists. Not for everyone.',
-    body: 'StageLink is for artists whose work already lives across multiple platforms, releases, audiences, and goals. It is not trying to be a generic creator page for everyone on the internet.',
+    eyebrow: 'Built for different kinds of artists',
+    headline: 'Made for artists with something to share',
+    body: 'No matter how you create, the idea is the same: help people find your work, remember it, and come back for more.',
     segments: [
       {
         label: 'DJs',
         description:
-          'Push mixes, releases, bookings, merch, and crowd-building links from one place that feels like your project.',
+          'Share sets, releases, bookings, and merch from one place that feels like your project.',
       },
       {
         label: 'Musicians',
         description:
-          'Turn profile traffic into streams, follows, ticket clicks, and fan capture instead of scattering it across random destinations.',
+          'Bring together releases, videos, press, and the places people can support you.',
       },
       {
         label: 'Producers',
         description:
-          'Share beats, collaborations, releases, and professional materials without rebuilding your story in different tools.',
-      },
-      {
-        label: 'Bands',
-        description:
-          'Keep songs, live content, merch, updates, and a usable Press Kit in one shared system.',
+          'Show your music, your collaborations, and your artist identity without it feeling scattered.',
       },
       {
         label: 'Creators',
         description:
-          'Turn your audience into an actual funnel for content, products, community, and repeat attention.',
+          'Keep your content, links, and audience in one place people can actually follow.',
+      },
+      {
+        label: 'Bands',
+        description:
+          'Share music, live content, merch, and press-ready info without repeating yourself everywhere.',
       },
       {
         label: 'Visual artists',
         description:
-          'Present portfolio, contact, store, and audience actions without looking like a generic bio page.',
+          'Show your work, your contact, and your shop in a way that feels calm and intentional.',
       },
     ],
   },
   monetization: {
     eyebrow: 'Why StageLink',
-    headline: 'Generic link tools help you list things. StageLink helps you move people.',
-    body: 'That is the difference. StageLink is built for artists who want one system for visibility, credibility, audience capture, merch, and analytics instead of a prettier list of links.',
+    headline: 'Built by an artist. Made for artists.',
+    body: 'StageLink came from a simple need: one place to share your work without making it feel small, messy, or generic.',
     pillars: [
       {
-        title: 'Made for artist workflows',
+        title: 'It starts from the artist',
         description:
-          'Page, Press Kit, merch, analytics, and audience flow are treated like parts of the same project because that is what they are.',
+          'The page is there to support your music, your story, and the people discovering you.',
       },
       {
-        title: 'Outcomes before features',
-        description:
-          'The goal is not to give you more widgets. It is to help you get more streams, more followers, more fans, and more sales.',
+        title: 'It feels personal',
+        description: 'It is not trying to look like every other link page on the internet.',
       },
       {
-        title: 'Built to grow with you',
+        title: 'It helps you look ready',
         description:
-          'You can start with a page and grow into Press Kit, merch, insights, localization, and smarter audience flows without rebuilding from scratch.',
+          'When a booking, a gig, a collaboration, or a press chance appears, you already have something strong to share.',
       },
     ],
     points: [
-      'One profile powers your public page, your Press Kit, and your platform connections.',
-      'Merch, smart links, and fan capture help you turn attention into action.',
-      'Analytics help you see what is earning clicks, streams, and interest so you can adjust with confidence.',
+      'Your music, merch, and Press Kit can live side by side.',
+      'You can keep growing without rebuilding everything every few months.',
+      'People get a clearer picture of who you are and what you are making.',
     ],
   },
   cta: {
-    eyebrow: 'Ready when you are',
-    headline: 'If your audience is already paying attention, give them somewhere better to land.',
-    body: 'Stop sending people into a dead-end link page. Build a StageLink that helps your music, your content, your merch, and your audience actually move.',
+    eyebrow: 'When you are ready',
+    headline: 'Let your art live in one place',
+    body: 'Give people a better way to find your work, stay close to it, and share it with others.',
     primary: 'Create my StageLink',
     secondary: 'See how it works',
-    note: 'Free to start. No credit card. You can publish fast.',
+    note: 'Free to start. No credit card. Easy to edit later.',
   },
   contact: {
     eyebrow: 'Contact',
@@ -405,13 +391,12 @@ const en: LandingTranslation = {
 
 const es: LandingTranslation = {
   seo: {
-    title:
-      'StageLink | La plataforma para artistas que convierte atención en fans, streams y ventas',
+    title: 'StageLink | Un mejor hogar para tu arte',
     description:
-      'StageLink ayuda a los artistas a convertir el tráfico de su perfil en streams, seguidores, fans y ventas con página pública, Press Kit (EPK), merch, smart links y analíticas conectadas.',
-    ogTitle: 'StageLink | Convertí atención en fans, streams y ventas',
+      'StageLink ayuda a los artistas a mostrar su obra, llegar a más gente y abrir la puerta a más bookings, colaboraciones y apoyo.',
+    ogTitle: 'StageLink | Compartí tu arte en un solo lugar',
     ogDescription:
-      'Una plataforma para artistas que necesitan más que un bio link: página, Press Kit, merch, smart links, captura de audiencia y analíticas en un solo lugar.',
+      'Uní tu música, tus videos, tu Press Kit, tu merch y tu historia en un lugar que se sienta tuyo.',
   },
   nav: {
     product: 'Producto',
@@ -423,216 +408,203 @@ const es: LandingTranslation = {
     cta: 'Crear tu StageLink',
     languageLabel: 'Idioma',
   },
-  badge: 'Para artistas que están construyendo algo real',
+  badge: 'Hecho por un artista, para artistas',
   hero: {
-    headline: 'Dejá de mandar gente para todos lados. Empezá a convertir atención en fans.',
+    headline: 'Dale a tu arte un lugar real',
     subheadline:
-      'StageLink le da a los artistas un solo lugar para convertir el tráfico de su perfil en streams, seguidores, fans y ventas con página pública, Press Kit (EPK), merch, smart links y analíticas integradas.',
+      'Compartí tu música, tus videos, tu Press Kit, tu merch y tus links en un solo lugar que te ayude a llegar a más gente y a que se queden con vos.',
     supportingText:
-      'Hecho para DJs, productores, músicos, creadores y equipos artísticos que están cansados de mandar tráfico a un caos de links desconectados y esperar que la gente se arregle sola.',
+      'Para DJs, productores, músicos, creadores, bandas y artistas visuales que quieren ser más fáciles de descubrir y más difíciles de olvidar.',
     ctaPrimary: 'Empezar mi StageLink',
-    ctaSecondary: 'Ver cómo se ve',
-    ctaNote: 'Gratis para empezar. Sin tarjeta. Setup rápido.',
+    ctaSecondary: 'Ver un ejemplo real',
+    ctaNote: 'Gratis para empezar. Sin tarjeta. Se arma en pocos minutos.',
+    founderLine:
+      'Creé StageLink porque necesitaba un lugar que se sintiera como mi proyecto, no como una pila de links sueltos.',
     previewLabel: 'Preview de página de artista',
     previewHandle: '@robertino',
     previewRoles: 'DJ · Producer · Creator',
     previewTags: ['Techno', 'Hard Techno', 'Bounce', 'Psytrance'],
-    previewTitle: 'Lo que ve la gente cuando por fin todo está conectado',
+    previewTitle: 'Un solo lugar para lo que más importa',
     previewDescription:
-      'En lugar de perseguir links sueltos, la gente encuentra un camino claro hacia tu música, tus videos, tu merch, tu lista de fans y tu próximo paso.',
+      'Tu música, tus videos, tu merch, tu historia y el próximo paso que querés que la gente dé.',
     previewMediaLabel: 'Media destacada',
     previewMediaBadge: 'Preview en vivo',
     previewMediaItems: ['Último video', 'Lanzamiento actual'],
-    previewMediaMeta: ['YouTube / Clip en vivo', 'Spotify / Push de lanzamiento'],
+    previewMediaMeta: ['YouTube / Clip en vivo', 'Spotify / Música nueva'],
     previewAboutLabel: 'Sobre el artista',
     previewAboutText:
-      'Tu perfil, tu historia, tu lanzamiento, tu Press Kit y tu flujo de audiencia finalmente pueden vivir en un mismo lugar con sentido.',
+      'Una página clara puede ayudar a fans, bookers y colaboradores a entender quién sos en segundos.',
     previewMerchLabel: 'Merch',
     previewMerchName: 'Drop limitado de merch',
     previewMerchPrice: '$149',
     previewMerchStatus: 'Disponible ahora',
     previewAudienceLabel: 'Audiencia',
     previewAudienceText:
-      'Capturá tráfico caliente antes de que se pierda y dejá tu próximo lanzamiento a un solo click.',
+      'Mantené tu próximo lanzamiento, tu próxima fecha o tu próximo drop cerca de la gente que de verdad conecta con vos.',
     previewAudienceCta: 'Sumarme',
     previewFanLabel: 'Sumarme a la lista de fans',
     mockLinks: [
-      'Escuchar el nuevo release',
+      'Escuchar en Spotify',
       'Ver el último video',
       'Comprar merch',
       'Sumarme a la lista de fans',
     ],
   },
   strip: {
-    label: 'Sumate a una nueva camada de artistas que arma una base online más inteligente',
-    items: [
-      'Página de artista',
-      'Link in bio para artistas',
-      'Landing page para músicos',
-      'Landing page para creadores',
-    ],
+    label: 'Un hogar que ya están usando artistas independientes',
+    items: ['Música', 'Videos', 'Press Kit', 'Merch'],
     platformsLabel: 'Se integra con las plataformas que tu audiencia ya usa',
     platformsDescription:
-      'Spotify, SoundCloud, YouTube, Shopify, TikTok e Instagram ya forman parte del recorrido de tu audiencia. StageLink te ayuda a convertir ese tráfico en acción, no a perderlo en el camino.',
+      'Tu arte ya vive en distintos lugares. StageLink te ayuda a unirlo sin perder tu identidad.',
     platforms: ['Spotify', 'SoundCloud', 'YouTube', 'Shopify', 'TikTok', 'Instagram'],
   },
   problem: {
-    eyebrow: 'Por qué cuesta tanto convertir',
-    headline:
-      'La mayoría de los artistas no tiene un problema de tráfico. Tiene un problema de conversión.',
+    eyebrow: 'Por qué importa',
+    headline: 'Tu arte vive en muchos lugares',
     intro:
-      'La gente entra a tu perfil, pero después qué. Un link va a Spotify. Otro a YouTube. El merch vive en otro lado. El Press Kit está separado. Las analíticas están fragmentadas. La atención llega, pero se escapa.',
-    painLabel: 'Lo que pasa hoy',
+      'Es normal. La música está en un lado. Los videos en otro. El merch, las redes y la prensa viven por separado. Se vuelve difícil mostrar el cuadro completo.',
+    painLabel: 'Lo que eso genera',
     painPoints: [
-      'Mandás gente a demasiados lugares y esperás que siga sola el recorrido',
-      'Tu contenido se siente fragmentado, así que tu audiencia nunca recibe un próximo paso claro',
-      'No podés ver con claridad qué está generando streams, fans o ventas de verdad',
+      'La gente encuentra una parte de tu obra, pero se pierde el resto',
+      'Tu historia queda repartida entre demasiadas plataformas',
+      'Buenas oportunidades pueden pasar de largo porque todo se ve disperso',
     ],
-    solutionLabel: 'Lo que cambia con StageLink',
+    solutionLabel: 'Lo que te da StageLink',
     solutionPoints: [
-      'Una sola plataforma donde tu página, tu Press Kit, tu merch, tu captura de audiencia y tus analíticas trabajan juntas',
-      'Un camino mucho más claro desde una visita hasta un stream, un follow, un signup o una compra',
-      'Un sistema pensado para artistas que quieren entender qué les funciona y mejorar desde ahí',
+      'Un solo lugar para mostrar la forma completa de tu proyecto',
+      'Una manera más clara de que la gente descubra tu música y siga cerca',
+      'Un espacio más fuerte para fans, bookers y colaboradores que quieren entender tu obra',
     ],
   },
   features: {
-    eyebrow: 'Resultados primero',
-    headline: 'Lo que StageLink te ayuda a conseguir con la atención que ya generás',
+    eyebrow: 'Cómo te ayuda',
+    headline: 'Más gente encuentra tu obra',
     intro:
-      'Las funciones importan por lo que te ayudan a lograr: más streams, más captura de fans, mejores decisiones, mejor presentación y menos oportunidades perdidas.',
+      'La idea es simple: ayudar a que tu arte llegue a más gente y que más de esa gente se quede con vos.',
     items: [
       {
-        title: 'Convertir clicks en streams',
+        title: 'Ser más fácil de descubrir',
         description:
-          'Guiá a la gente desde una sola página hacia tu release, tu último video o la acción que realmente te importa.',
+          'Darle a la gente un lugar donde encontrar tu música, tus videos y lo que viene después.',
       },
       {
-        title: 'Dejar de perder tráfico caliente',
-        description:
-          'Usá captura de audiencia, smart links, merch y secciones enfocadas para que la atención no se corte después del primer click.',
+        title: 'Hacer crecer tu audiencia',
+        description: 'Facilitar que nuevos oyentes y nuevas miradas sigan tu camino.',
       },
       {
-        title: 'Entender qué te funciona',
-        description:
-          'Leé las analíticas de StageLink y los snapshots conectados para ver a qué responde de verdad tu audiencia.',
+        title: 'Abrir más oportunidades',
+        description: 'Verse listo cuando aparezcan bookings, gigs, colaboraciones o prensa.',
       },
       {
-        title: 'Vender merch sin caos',
-        description:
-          'Traé Shopify y Smart Merch al mismo sistema en vez de mandar fans a una experiencia desconectada.',
+        title: 'Construir una identidad más clara',
+        description: 'Compartir tu mundo de una forma que se sienta tuya, no genérica.',
       },
       {
-        title: 'Mostrarse listo cuando aparece una oportunidad',
-        description:
-          'Convertí tu perfil en un Press Kit (EPK) compartible para bookers, prensa y colaboraciones sin rearmar tu historia cada vez.',
+        title: 'Tener el merch cerca',
+        description: 'Dejar que la gente apoye tu proyecto sin mandarla por un laberinto.',
       },
       {
-        title: 'Mantener el proyecto ordenado mientras crece',
+        title: 'Seguir conectado',
         description:
-          'Un solo perfil impulsa tu página, tu Press Kit, tus links, tu merch y tus insights conectados.',
+          'Mantener tu próximo release, tu próxima fecha o tu próximo drop al alcance de quien te sigue.',
       },
     ],
   },
   howItWorks: {
     eyebrow: 'Cómo funciona',
-    headline: 'Lo configurás una vez. Lo usás en todos lados.',
-    intro:
-      'La idea no es sumar más admin. Es bajar el caos y sacar más resultado del tráfico que ya conseguís.',
+    headline: 'Simple desde el primer día',
+    intro: 'No hace falta rehacer todo tu mundo. Solo hace falta unirlo.',
     steps: [
       {
         step: '01',
-        title: 'Armá tu base de artista',
-        text: 'Configurá tu perfil, tu página y tus links principales una sola vez para que tu presencia pública deje de sentirse fragmentada.',
+        title: 'Cargá tu perfil',
+        text: 'Sumá tu nombre, tus visuales, tus links y las partes de tu historia que querés mostrar.',
       },
       {
         step: '02',
-        title: 'Conectá lo importante',
-        text: 'Sumá música, videos, merch, smart links, datos de Press Kit y captura de audiencia sin saltar entre cinco herramientas.',
+        title: 'Armá tu página',
+        text: 'Configurá tu página, tu Press Kit, tu merch y los links que hoy más te importa compartir.',
       },
       {
         step: '03',
-        title: 'Compartilo y aprendé de eso',
-        text: 'Usá el mismo sistema para redes, lanzamientos, outreach y campañas, y después mirá qué está generando respuesta real.',
+        title: 'Compartilo en todos lados',
+        text: 'Usá el mismo hogar para redes, lanzamientos, outreach y nuevas oportunidades.',
       },
     ],
   },
   forArtists: {
-    eyebrow: 'Para artistas',
-    headline: 'Hecho para artistas. No para cualquiera.',
-    body: 'StageLink está pensado para artistas cuyo trabajo ya vive en múltiples plataformas, formatos, audiencias y objetivos. No intenta ser otra tool genérica para cualquier tipo de creador.',
+    eyebrow: 'Para distintos tipos de artistas',
+    headline: 'Hecho para artistas con algo que mostrar',
+    body: 'No importa cómo crees. La idea es la misma: ayudar a que más gente encuentre tu obra, la recuerde y vuelva.',
     segments: [
       {
         label: 'DJs',
         description:
-          'Impulsá sets, lanzamientos, bookings, merch y links de comunidad desde una sola base que sí se siente como tu proyecto.',
+          'Compartí sets, lanzamientos, bookings y merch desde un lugar que se sienta como tu proyecto.',
       },
       {
         label: 'Músicos',
-        description:
-          'Convertí visitas a tu perfil en streams, follows, clicks a tickets y captura de audiencia en vez de repartirlas por todos lados.',
+        description: 'Uní lanzamientos, videos, prensa y formas de apoyo en un solo lugar.',
       },
       {
         label: 'Productores',
         description:
-          'Compartí beats, colaboraciones, lanzamientos y materiales profesionales sin reconstruir tu historia en herramientas distintas.',
-      },
-      {
-        label: 'Bandas',
-        description:
-          'Mantené canciones, contenido en vivo, merch, novedades y un Press Kit utilizable dentro del mismo sistema.',
+          'Mostrá tu música, tus colaboraciones y tu identidad sin que todo quede disperso.',
       },
       {
         label: 'Creadores',
         description:
-          'Convertí tu audiencia en un recorrido real hacia contenido, productos, comunidad y atención repetida.',
+          'Mantené tu contenido, tus links y tu comunidad en un lugar que la gente pueda seguir de verdad.',
+      },
+      {
+        label: 'Bandas',
+        description:
+          'Compartí música, contenido en vivo, merch y Press Kit sin repetir lo mismo en todos lados.',
       },
       {
         label: 'Artistas visuales',
-        description:
-          'Mostrá portfolio, contacto, tienda y acciones clave sin parecer otra bio page genérica.',
+        description: 'Mostrá tu obra, tu contacto y tu tienda de una forma clara y cuidada.',
       },
     ],
   },
   monetization: {
     eyebrow: 'Por qué StageLink',
-    headline:
-      'Las herramientas genéricas te ayudan a listar cosas. StageLink te ayuda a mover gente.',
-    body: 'Esa es la diferencia. StageLink está hecho para artistas que quieren un solo sistema para visibilidad, credibilidad, captura de audiencia, merch y analíticas, no una lista más linda de links.',
+    headline: 'Hecho por un artista. Pensado para artistas.',
+    body: 'StageLink nació de una necesidad simple: tener un solo lugar para compartir tu obra sin que se vea chica, desordenada o genérica.',
     pillars: [
       {
-        title: 'Hecho para el workflow artístico',
+        title: 'Todo empieza en el artista',
         description:
-          'Página, Press Kit, merch, analíticas y flujo de audiencia se tratan como partes del mismo proyecto porque eso es lo que son.',
+          'La página está para acompañar tu música, tu historia y la gente que te descubre.',
       },
       {
-        title: 'Resultados antes que features',
-        description:
-          'La idea no es darte más widgets. La idea es ayudarte a conseguir más streams, más seguidores, más fans y más ventas.',
+        title: 'Se siente personal',
+        description: 'No intenta verse como otra página de links más del montón.',
       },
       {
-        title: 'Crece con vos',
+        title: 'Te ayuda a verte listo',
         description:
-          'Podés arrancar con una página y crecer hacia Press Kit, merch, insights, localización y flujos de audiencia más inteligentes sin rehacer todo desde cero.',
+          'Cuando aparece un booking, un gig, una colaboración o prensa, ya tenés algo fuerte para compartir.',
       },
     ],
     points: [
-      'Un solo perfil impulsa tu página pública, tu Press Kit y tus conexiones de plataforma.',
-      'Merch, smart links y captura de audiencia te ayudan a convertir atención en acción.',
-      'Las analíticas te muestran qué está generando clicks, streams e interés para que ajustes con criterio.',
+      'Tu música, tu merch y tu Press Kit pueden convivir lado a lado.',
+      'Podés seguir creciendo sin rehacer todo cada pocos meses.',
+      'La gente entiende mejor quién sos y qué estás creando.',
     ],
   },
   cta: {
     eyebrow: 'Cuando quieras',
-    headline: 'Si tu audiencia ya te está prestando atención, dale un lugar mejor a donde llegar.',
-    body: 'Dejá de mandar gente a una página de links sin salida. Construí un StageLink que ayude a mover tu música, tu contenido, tu merch y tu audiencia.',
+    headline: 'Dejá que tu arte viva en un solo lugar',
+    body: 'Dale a la gente una mejor forma de encontrar tu obra, quedarse cerca y compartirla con otros.',
     primary: 'Crear mi StageLink',
     secondary: 'Ver cómo funciona',
-    note: 'Gratis para empezar. Sin tarjeta. Publicás rápido.',
+    note: 'Gratis para empezar. Sin tarjeta. Después lo editás a tu ritmo.',
   },
   contact: {
     eyebrow: 'Contacto',
-    headline: 'Contanos qué querés construir',
-    body: 'Ya sea que estés lanzando tu primera página de artista o buscando una mejor casa para tu marca, queremos escucharte.',
+    headline: 'Contanos qué estás creando',
+    body: 'Si querés una mejor forma de mostrar tu proyecto, escribinos. Nos encanta hablar con artistas.',
     name: 'Nombre',
     namePlaceholder: 'Tu nombre',
     email: 'Email',
@@ -649,7 +621,7 @@ const es: LandingTranslation = {
   },
   footer: {
     description:
-      'StageLink es la plataforma para artistas con página pública, Press Kit (EPK), merch, analíticas, smart links y flujo de audiencia.',
+      'StageLink es un hogar para tu música, tu historia, tu Press Kit, tu merch y la gente que conecta con tu arte.',
     links: {
       product: 'Producto',
       features: 'Funciones',
