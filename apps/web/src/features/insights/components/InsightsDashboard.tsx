@@ -138,6 +138,13 @@ function SummaryCards({ data }: { data: StageLinkInsightsDashboardData }) {
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {data.summaryCards.map((card) => {
         const Icon = iconMap[card.id];
+        const connectedPlatformLabels =
+          card.id === 'connected_platforms'
+            ? data.platforms
+                .filter((platform) => platform.connection?.status === 'connected')
+                .map((platform) => t(`platform_labels.${platform.platform}`))
+                .join(', ')
+            : null;
         return (
           <Card key={card.id}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -148,6 +155,10 @@ function SummaryCards({ data }: { data: StageLinkInsightsDashboardData }) {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold tabular-nums">{card.value}</div>
+              <p className="mt-1 text-xs text-muted-foreground">{t(`help.${card.id}`)}</p>
+              {connectedPlatformLabels ? (
+                <p className="mt-2 text-xs text-foreground/80">{connectedPlatformLabels}</p>
+              ) : null}
             </CardContent>
           </Card>
         );

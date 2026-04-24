@@ -452,7 +452,10 @@ function SmartLinkPerformanceSection({ data }: { data: AnalyticsSmartLinkPerform
     <Card>
       <CardHeader>
         <CardTitle className="text-base">{t('title')}</CardTitle>
-        <p className="text-sm text-muted-foreground">{t('description')}</p>
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">{t('description')}</p>
+          <p className="text-xs text-muted-foreground">{t('scope_note')}</p>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {data.items.length === 0 ? (
@@ -501,7 +504,10 @@ function FanInsightsSection({ data }: { data: AnalyticsFanInsights }) {
     <section className="space-y-4">
       <div>
         <h2 className="text-lg font-semibold">{t('title')}</h2>
-        <p className="text-sm text-muted-foreground">{t('description')}</p>
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">{t('description')}</p>
+          <p className="text-xs text-muted-foreground">{t('setup_note')}</p>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
