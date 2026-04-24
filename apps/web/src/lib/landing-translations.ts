@@ -47,6 +47,7 @@ export interface LandingTranslation {
     ctaPrimary: string;
     ctaSecondary: string;
     ctaNote: string;
+    ctaSubnote: string;
     previewLabel: string;
     previewHandle: string;
     previewRoles: string;
@@ -121,6 +122,7 @@ export interface LandingTranslation {
     primary: string;
     secondary: string;
     note: string;
+    subnote: string;
   };
   contact: {
     eyebrow: string;
@@ -174,15 +176,16 @@ const en: LandingTranslation = {
   },
   badge: 'Made by an artist, for artists',
   hero: {
-    headline: 'Show the full identity behind your music',
+    headline: 'Show your music, your sets, and everything you do',
     subheadline:
-      'Bring your music, sets, visuals, links, social profiles, and content into one artist page that helps people discover you fast and keeps gigs, bookings, and collaborations closer.',
+      'Bring your music, sets, links, and content into one artist page so people can discover you fast and reach out for gigs, bookings, or collaborations.',
     supportingText:
       'StageLink is more than a link page. It gives your sound, style, and story one place that feels like you.',
     socialProof: '1,000+ independent artists are building their presence with StageLink',
     ctaPrimary: 'Create my artist profile',
     ctaSecondary: 'See how it looks',
     ctaNote: 'Free. No credit card required.',
+    ctaSubnote: 'Set it up in minutes.',
     previewLabel: 'Artist page preview',
     previewHandle: '@robertino',
     previewRoles: 'DJ · Producer · Creator',
@@ -252,7 +255,7 @@ const en: LandingTranslation = {
       },
       {
         title: 'Get more opportunities',
-        description: 'Be ready when gigs, bookings, collaborations, or press moments show up.',
+        description: 'Help people reach out for gigs.',
       },
       {
         title: 'Show a stronger identity',
@@ -360,6 +363,7 @@ const en: LandingTranslation = {
     primary: 'Show my music',
     secondary: 'See how it works',
     note: 'Free. No credit card required.',
+    subnote: 'Set it up in minutes.',
   },
   contact: {
     eyebrow: 'Contact',
@@ -414,15 +418,16 @@ const es: LandingTranslation = {
   },
   badge: 'Hecho por un artista, para artistas',
   hero: {
-    headline: 'Mostrá la identidad completa detrás de tu música',
+    headline: 'Mostrá tu música, tus sets y todo lo que hacés',
     subheadline:
-      'Uní tu música, tus sets, tus visuales, tus links, tus perfiles sociales y tu contenido en una sola página para que te descubran rápido y se acerquen más fechas, bookings y colaboraciones.',
+      'Uní tu música, tus sets, tus links y tu contenido en una sola página para que te descubran rápido y te contacten para fechas, bookings o colaboraciones.',
     supportingText:
       'StageLink es más que una página de links. Le da a tu sonido, tu estilo y tu historia un lugar que se siente tuyo.',
     socialProof: 'Más de 1.000 artistas independientes están construyendo su presencia con StageLink',
     ctaPrimary: 'Crear mi perfil artístico',
     ctaSecondary: 'Ver cómo se ve',
     ctaNote: 'Gratis. Sin tarjeta.',
+    ctaSubnote: 'Lo podés armar en minutos.',
     previewLabel: 'Preview de página de artista',
     previewHandle: '@robertino',
     previewRoles: 'DJ · Producer · Creator',
@@ -499,7 +504,7 @@ const es: LandingTranslation = {
       },
       {
         title: 'Abrir más oportunidades',
-        description: 'Estar listo cuando aparezcan bookings, gigs, colaboraciones o prensa.',
+        description: 'Facilitá que te contacten para tocar.',
       },
       {
         title: 'Construir una identidad más clara',
@@ -606,6 +611,7 @@ const es: LandingTranslation = {
     primary: 'Mostrar mi música',
     secondary: 'Ver cómo funciona',
     note: 'Gratis. Sin tarjeta.',
+    subnote: 'Lo podés armar en minutos.',
   },
   contact: {
     eyebrow: 'Contacto',
