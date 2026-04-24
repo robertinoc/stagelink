@@ -354,12 +354,13 @@ export function EpkEditor({
   }
 
   function toggleFeaturedLinkVisibility(link: { label: string; url: string }) {
-    const exists = watchedFeaturedLinks.some((item) => item.url === link.url);
+    const currentLinks = getValues('featuredLinks');
+    const exists = currentLinks.some((item) => item.url === link.url);
     if (exists) {
       setValue(
         'featuredLinks',
-        watchedFeaturedLinks.filter((item) => item.url !== link.url),
-        { shouldDirty: true },
+        currentLinks.filter((item) => item.url !== link.url),
+        { shouldDirty: true, shouldTouch: true },
       );
       return;
     }
@@ -367,30 +368,31 @@ export function EpkEditor({
     setValue(
       'featuredLinks',
       dedupeLinks([
-        ...watchedFeaturedLinks,
+        ...currentLinks,
         {
           id: crypto.randomUUID(),
           label: link.label,
           url: link.url,
         },
       ]),
-      { shouldDirty: true },
+      { shouldDirty: true, shouldTouch: true },
     );
   }
 
   function setHighlightedLink(url: string) {
-    const existing = watchedFeaturedLinks.find((item) => item.url === url);
+    const currentLinks = getValues('featuredLinks');
+    const existing = currentLinks.find((item) => item.url === url);
     const next = existing
-      ? [existing, ...watchedFeaturedLinks.filter((item) => item.url !== url)]
+      ? [existing, ...currentLinks.filter((item) => item.url !== url)]
       : [
           {
             id: crypto.randomUUID(),
             label: profileAndSmartLinks.find((item) => item.url === url)?.label ?? 'Link',
             url,
           },
-          ...watchedFeaturedLinks,
+          ...currentLinks,
         ];
-    setValue('featuredLinks', dedupeLinks(next), { shouldDirty: true });
+    setValue('featuredLinks', dedupeLinks(next), { shouldDirty: true, shouldTouch: true });
   }
 
   const sharePath = `/${locale}/${username}/epk`;
@@ -703,11 +705,18 @@ export function EpkEditor({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {editorLocked ? (
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+              This Press Kit is published right now. Click{' '}
+              <span className="font-semibold">Unpublish and edit</span> above to change what stays
+              visible here and which link gets highlighted first.
+            </div>
+          ) : null}
           <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] shadow-[0_16px_50px_rgba(10,7,20,0.18)]">
-            <div className="grid grid-cols-[1.5fr,0.8fr,0.8fr] gap-0 border-b border-white/10 bg-white/[0.04] px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/45">
+            <div className="hidden grid-cols-[minmax(0,1.4fr)_180px_180px] gap-0 border-b border-white/10 bg-white/[0.04] px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/45 md:grid">
               <span>Platform</span>
               <span className="text-center">Visible / Hidden</span>
-              <span className="text-center">Highlighted link</span>
+              <span className="text-center">Highlighted</span>
             </div>
             {profileAndSmartLinks.map((link) => {
               const visible = watchedFeaturedLinks.some((item) => item.url === link.url);
@@ -716,35 +725,46 @@ export function EpkEditor({
               return (
                 <div
                   key={link.url}
-                  className="grid grid-cols-[1.5fr,0.8fr,0.8fr] items-center gap-0 border-b border-white/10 px-5 py-4 transition hover:bg-white/[0.03] last:border-b-0"
+                  className="grid gap-4 border-b border-white/10 px-5 py-4 transition hover:bg-white/[0.03] last:border-b-0 md:grid-cols-[minmax(0,1.4fr)_180px_180px] md:items-center md:gap-0"
                 >
                   <div className="min-w-0">
+                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35 md:hidden">
+                      Platform
+                    </p>
                     <p className="font-medium text-white">{link.label}</p>
                   </div>
-                  <div className="flex justify-center">
+                  <div className="flex items-center justify-between gap-3 md:justify-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35 md:hidden">
+                      Visible / Hidden
+                    </p>
                     <button
                       type="button"
                       disabled={formDisabled}
                       onClick={() => toggleFeaturedLinkVisibility(link)}
-                      className={`inline-flex min-w-[116px] items-center justify-center rounded-full border px-3 py-2 text-xs font-medium transition ${
+                      aria-pressed={visible}
+                      className={`inline-flex min-w-[132px] items-center justify-center rounded-full border px-3 py-2 text-xs font-medium transition ${
                         visible
                           ? 'border-primary/40 bg-primary/15 text-white shadow-[0_0_18px_rgba(155,48,208,0.12)]'
                           : 'border-white/12 bg-black/10 text-white/60 hover:border-white/25 hover:text-white'
-                      }`}
+                      } ${formDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
                     >
                       {visible ? 'Visible' : 'Hidden'}
                     </button>
                   </div>
-                  <div className="flex justify-center">
+                  <div className="flex items-center justify-between gap-3 md:justify-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35 md:hidden">
+                      Highlighted
+                    </p>
                     <button
                       type="button"
                       disabled={formDisabled}
                       onClick={() => setHighlightedLink(link.url)}
-                      className={`inline-flex h-10 min-w-[116px] items-center justify-center gap-2 rounded-full border px-3 transition ${
+                      aria-pressed={highlighted}
+                      className={`inline-flex h-10 min-w-[132px] items-center justify-center gap-2 rounded-full border px-3 transition ${
                         highlighted
                           ? 'border-amber-300/40 bg-amber-400/15 text-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.14)]'
                           : 'border-white/15 bg-white/[0.03] text-muted-foreground hover:border-primary/30 hover:text-primary'
-                      }`}
+                      } ${formDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
                     >
                       <Star className={`h-4 w-4 ${highlighted ? 'fill-current' : ''}`} />
                       <span className="text-xs font-medium">

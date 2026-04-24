@@ -45,7 +45,7 @@ export function ArtistPagePlaceholder({ username }: ArtistPagePlaceholderProps) 
               <div className="flex gap-2">
                 <input
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder="myemail@gmail.com"
                   className="flex-1 rounded-md bg-zinc-900 px-3 py-2 text-sm text-white placeholder:text-zinc-500 border border-zinc-700 outline-none focus:border-zinc-500"
                 />
                 <Button size="sm">Subscribe</Button>
