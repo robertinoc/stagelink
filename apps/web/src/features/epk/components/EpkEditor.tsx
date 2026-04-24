@@ -56,7 +56,7 @@ export function EpkEditor({
   hasMultiLanguageAccess,
   billingHref,
 }: EpkEditorProps) {
-  const [assets, setAssets] = useState<AssetDto[]>(initialAssets);
+  void initialAssets;
   const [editorData, setEditorData] = useState(initialData);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -129,6 +129,9 @@ export function EpkEditor({
   const watchedFeaturedLinks = watch('featuredLinks');
   const watchedFormValues = watch();
   const inherited = editorData.inherited;
+  const displayedCoverImage =
+    watchedHeroImageUrl || inherited.coverUrl || inherited.avatarUrl || '';
+  const displayedArtistImage = watchedGallery[1] || inherited.avatarUrl || '';
   const publishReadiness = getEpkPublishReadiness(watchedFormValues);
   const profileLinkShortcuts = [
     inherited.spotifyUrl && { label: 'Spotify', url: inherited.spotifyUrl },
@@ -223,14 +226,6 @@ export function EpkEditor({
       }),
     };
   }
-
-  const availableImageAssets = useMemo(
-    () =>
-      assets.filter(
-        (asset) => asset.kind === 'epk_image' || asset.kind === 'cover' || asset.kind === 'avatar',
-      ),
-    [assets],
-  );
 
   async function onSubmit(values: EpkFormValues) {
     const readiness = getEpkPublishReadiness(values);
@@ -347,6 +342,15 @@ export function EpkEditor({
 
   function setHeroImage(url: string) {
     setValue('heroImageUrl', url, { shouldDirty: true });
+  }
+
+  function setCoverImage(url: string) {
+    setHeroImage(url);
+    setGalleryImageAt(0, url);
+  }
+
+  function setAvatarImage(url: string) {
+    setGalleryImageAt(1, url);
   }
 
   function toggleFeaturedLinkVisibility(link: { label: string; url: string }) {
@@ -499,8 +503,8 @@ export function EpkEditor({
         <CardHeader>
           <CardTitle>Header and identity</CardTitle>
           <CardDescription>
-            Reuse your profile identity, but let the press kit lead with its own headline and hero
-            image.
+            Keep this simple: one cover image and one artist image. Both can start from Profile and
+            be replaced here whenever you want.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -522,75 +526,122 @@ export function EpkEditor({
             </div>
           </div>
 
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-white">Hero image</label>
-            {watchedHeroImageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={watchedHeroImageUrl}
-                alt="EPK hero preview"
-                className="h-48 w-full rounded-2xl object-cover"
-              />
-            ) : (
-              <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/5 text-sm text-muted-foreground">
-                No hero image selected yet.
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Hero image</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Click the image to upload a new cover.
+                  </p>
+                </div>
+                {inherited.coverUrl ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={formDisabled}
+                    onClick={() => setCoverImage(inherited.coverUrl!)}
+                  >
+                    Use profile cover
+                  </Button>
+                ) : null}
               </div>
-            )}
-            <div className="flex flex-wrap gap-2">
-              {inherited.coverUrl ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={formDisabled}
-                  onClick={() => setHeroImage(inherited.coverUrl!)}
-                >
-                  Use profile cover
-                </Button>
-              ) : null}
-              {inherited.avatarUrl ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={formDisabled}
-                  onClick={() => setHeroImage(inherited.avatarUrl!)}
-                >
-                  Use profile avatar
-                </Button>
-              ) : null}
+              <EpkImageUploader
+                artistId={artistId}
+                disabled={formDisabled}
+                helperText="JPEG, PNG or WebP · max 8 MB"
+                onUploaded={(asset) => {
+                  if (asset.deliveryUrl) {
+                    setCoverImage(asset.deliveryUrl);
+                  }
+                }}
+                renderTrigger={({ open, uploading, disabled }) => (
+                  <button
+                    type="button"
+                    onClick={open}
+                    disabled={disabled}
+                    className="group relative block w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 text-left transition hover:border-primary/35"
+                  >
+                    {displayedCoverImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={displayedCoverImage}
+                        alt="EPK hero preview"
+                        className="h-44 w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-44 items-center justify-center text-sm text-muted-foreground">
+                        No hero image selected yet.
+                      </div>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/35 opacity-0 transition group-hover:opacity-100">
+                      <span className="rounded-full border border-white/20 bg-black/45 px-3 py-1.5 text-xs font-medium text-white">
+                        {uploading ? 'Uploading…' : 'Replace image'}
+                      </span>
+                    </div>
+                  </button>
+                )}
+              />
             </div>
-            <div className="grid gap-3 md:grid-cols-3">
-              {availableImageAssets.map((asset) => (
-                <button
-                  key={asset.id}
-                  type="button"
-                  disabled={formDisabled}
-                  onClick={() => setHeroImage(asset.deliveryUrl ?? '')}
-                  className={`overflow-hidden rounded-2xl border ${
-                    watchedHeroImageUrl === asset.deliveryUrl ? 'border-primary' : 'border-white/10'
-                  } bg-white/5 text-left transition hover:border-white/30`}
-                >
-                  {asset.deliveryUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={asset.deliveryUrl} alt="" className="h-28 w-full object-cover" />
-                  ) : null}
-                  <div className="px-3 py-2 text-xs text-muted-foreground">{asset.kind}</div>
-                </button>
-              ))}
+
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Artist image</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Click the image to upload a new artist photo.
+                  </p>
+                </div>
+                {inherited.avatarUrl ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={formDisabled}
+                    onClick={() => setAvatarImage(inherited.avatarUrl!)}
+                  >
+                    Use profile avatar
+                  </Button>
+                ) : null}
+              </div>
+              <EpkImageUploader
+                artistId={artistId}
+                disabled={formDisabled}
+                helperText="JPEG, PNG or WebP · max 8 MB"
+                onUploaded={(asset) => {
+                  if (asset.deliveryUrl) {
+                    setAvatarImage(asset.deliveryUrl);
+                  }
+                }}
+                renderTrigger={({ open, uploading, disabled }) => (
+                  <button
+                    type="button"
+                    onClick={open}
+                    disabled={disabled}
+                    className="group relative block w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 text-left transition hover:border-primary/35"
+                  >
+                    {displayedArtistImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={displayedArtistImage}
+                        alt="EPK artist preview"
+                        className="h-44 w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-44 items-center justify-center text-sm text-muted-foreground">
+                        No artist image selected yet.
+                      </div>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/35 opacity-0 transition group-hover:opacity-100">
+                      <span className="rounded-full border border-white/20 bg-black/45 px-3 py-1.5 text-xs font-medium text-white">
+                        {uploading ? 'Uploading…' : 'Replace image'}
+                      </span>
+                    </div>
+                  </button>
+                )}
+              />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white">Custom hero image URL</label>
-              <Input placeholder="https://..." {...register('heroImageUrl')} />
-            </div>
-            <EpkImageUploader
-              artistId={artistId}
-              disabled={formDisabled}
-              onUploaded={(asset) => {
-                setAssets((current) => [asset, ...current]);
-                if (asset.deliveryUrl) {
-                  setHeroImage(asset.deliveryUrl);
-                }
-              }}
-            />
           </div>
         </CardContent>
       </Card>
@@ -648,91 +699,6 @@ export function EpkEditor({
 
       <Card className={sectionCardClass}>
         <CardHeader>
-          <CardTitle>Gallery images</CardTitle>
-          <CardDescription>
-            Start with your profile cover and avatar. If you want, replace either one with a more
-            specific image for this Press Kit (EPK).
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-3">
-            <div className="grid gap-4 lg:grid-cols-2">
-              {[
-                {
-                  key: 'cover',
-                  title: 'Cover image',
-                  fallback: inherited.coverUrl ?? watchedHeroImageUrl,
-                  current: watchedGallery[0] ?? inherited.coverUrl ?? watchedHeroImageUrl ?? '',
-                  profileLabel: 'Use profile cover',
-                  profileValue: inherited.coverUrl,
-                  index: 0,
-                },
-                {
-                  key: 'avatar',
-                  title: 'Artist avatar',
-                  fallback: inherited.avatarUrl,
-                  current: watchedGallery[1] ?? inherited.avatarUrl ?? '',
-                  profileLabel: 'Use profile avatar',
-                  profileValue: inherited.avatarUrl,
-                  index: 1,
-                },
-              ].map((slot) => (
-                <div
-                  key={slot.key}
-                  className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
-                >
-                  <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-white">{slot.title}</h3>
-                    {slot.profileValue ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={formDisabled}
-                        onClick={() => setGalleryImageAt(slot.index, slot.profileValue!)}
-                      >
-                        {slot.profileLabel}
-                      </Button>
-                    ) : null}
-                  </div>
-                  <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
-                    {slot.current ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={slot.current} alt="" className="h-44 w-full object-cover" />
-                    ) : (
-                      <div className="flex h-44 items-center justify-center text-sm text-muted-foreground">
-                        No image selected yet.
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    <Input
-                      placeholder="https://..."
-                      disabled={formDisabled}
-                      value={slot.current}
-                      onChange={(event) => setGalleryImageAt(slot.index, event.target.value)}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <EpkImageUploader
-              artistId={artistId}
-              disabled={formDisabled}
-              onUploaded={(asset) => {
-                setAssets((current) => [asset, ...current]);
-                if (asset.deliveryUrl) {
-                  const nextIndex = watchedGallery[0] ? 1 : 0;
-                  setGalleryImageAt(nextIndex, asset.deliveryUrl);
-                }
-              }}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className={sectionCardClass}>
-        <CardHeader>
           <CardTitle>Highlights and links</CardTitle>
           <CardDescription>
             Start from the links you already keep in Profile. Decide which ones stay visible here,
@@ -740,11 +706,11 @@ export function EpkEditor({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="overflow-hidden rounded-2xl border border-white/10">
-            <div className="grid grid-cols-[1.4fr,0.8fr,0.8fr] gap-0 border-b border-white/10 bg-white/[0.03] px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] shadow-[0_16px_50px_rgba(10,7,20,0.18)]">
+            <div className="grid grid-cols-[1.7fr,0.65fr,0.7fr] gap-0 border-b border-white/10 bg-white/[0.04] px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/45">
               <span>Existing links</span>
               <span className="text-center">Visible on my EPK</span>
-              <span className="text-center">Highlighted link</span>
+              <span className="text-center">Highlighted</span>
             </div>
             {profileAndSmartLinks.map((link) => {
               const visible = watchedFeaturedLinks.some((item) => item.url === link.url);
@@ -753,29 +719,34 @@ export function EpkEditor({
               return (
                 <div
                   key={link.url}
-                  className="grid grid-cols-[1.4fr,0.8fr,0.8fr] items-center gap-0 border-b border-white/10 px-4 py-4 last:border-b-0"
+                  className="grid grid-cols-[1.7fr,0.65fr,0.7fr] items-center gap-0 border-b border-white/10 px-5 py-4 transition hover:bg-white/[0.03] last:border-b-0"
                 >
                   <div className="min-w-0">
                     <p className="font-medium text-white">{link.label}</p>
-                    <p className="truncate text-xs text-muted-foreground">{link.url}</p>
+                    <p className="mt-1 truncate text-xs text-white/45">{link.url}</p>
                   </div>
                   <div className="flex justify-center">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-white/20"
+                    <button
+                      type="button"
                       disabled={formDisabled}
-                      checked={visible}
-                      onChange={() => toggleFeaturedLinkVisibility(link)}
-                    />
+                      onClick={() => toggleFeaturedLinkVisibility(link)}
+                      className={`inline-flex min-w-[96px] items-center justify-center rounded-full border px-3 py-2 text-xs font-medium transition ${
+                        visible
+                          ? 'border-primary/40 bg-primary/15 text-white'
+                          : 'border-white/12 bg-black/10 text-white/60 hover:border-white/25 hover:text-white'
+                      }`}
+                    >
+                      {visible ? 'Visible' : 'Hidden'}
+                    </button>
                   </div>
                   <div className="flex justify-center">
                     <button
                       type="button"
                       disabled={formDisabled}
                       onClick={() => setHighlightedLink(link.url)}
-                      className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition ${
+                      className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition ${
                         highlighted
-                          ? 'border-primary bg-primary/20 text-primary'
+                          ? 'border-amber-300/40 bg-amber-400/15 text-amber-200'
                           : 'border-white/15 bg-white/[0.03] text-muted-foreground hover:border-primary/30 hover:text-primary'
                       }`}
                     >

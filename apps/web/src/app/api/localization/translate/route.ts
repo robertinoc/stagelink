@@ -68,6 +68,128 @@ function normalizeJsonText(input: string): string {
   return trimmed;
 }
 
+function buildTranslationInstruction(sourceLocale: 'en' | 'es', targetLocale: 'en' | 'es') {
+  return `Translate structured artist-facing product content from ${sourceLocale} to ${targetLocale}. Preserve artist names, usernames, URLs, emails, genres, brand names, and formatting. Keep the tone natural, human, and ready for StageLink artists. Return valid JSON only.`;
+}
+
+async function readErrorMessage(response: Response): Promise<string> {
+  const text = await response.text().catch(() => '');
+  if (!text.trim()) {
+    return `Translation request failed (${response.status}).`;
+  }
+
+  try {
+    const parsed = JSON.parse(text) as {
+      error?: { message?: string };
+      message?: string | string[];
+    };
+    const message =
+      parsed.error?.message ??
+      (Array.isArray(parsed.message) ? parsed.message.join(', ') : parsed.message);
+    return message ? `Translation request failed (${response.status}). ${message}` : text;
+  } catch {
+    return `Translation request failed (${response.status}). ${text}`.trim();
+  }
+}
+
+async function requestResponsesApi(params: {
+  apiKey: string;
+  model: string;
+  sourceLocale: 'en' | 'es';
+  targetLocale: 'en' | 'es';
+  values: Record<string, string>;
+  schema: Record<string, unknown>;
+}): Promise<Record<string, string>> {
+  const response = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${params.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: params.model,
+      input: [
+        {
+          role: 'system',
+          content: [
+            {
+              type: 'input_text',
+              text: buildTranslationInstruction(params.sourceLocale, params.targetLocale),
+            },
+          ],
+        },
+        {
+          role: 'user',
+          content: [{ type: 'input_text', text: JSON.stringify(params.values) }],
+        },
+      ],
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'localized_fields',
+          schema: params.schema,
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response));
+  }
+
+  const payload = (await response.json().catch(() => null)) as unknown;
+  const outputText = extractResponseText(payload);
+  if (!outputText) {
+    throw new Error('Translation response was empty.');
+  }
+
+  return z.record(z.string()).parse(JSON.parse(normalizeJsonText(outputText)));
+}
+
+async function requestChatCompletionsApi(params: {
+  apiKey: string;
+  model: string;
+  sourceLocale: 'en' | 'es';
+  targetLocale: 'en' | 'es';
+  values: Record<string, string>;
+}): Promise<Record<string, string>> {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${params.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: params.model,
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: buildTranslationInstruction(params.sourceLocale, params.targetLocale),
+        },
+        {
+          role: 'user',
+          content: JSON.stringify(params.values),
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response));
+  }
+
+  const payload = (await response.json().catch(() => null)) as {
+    choices?: Array<{ message?: { content?: string | null } }>;
+  } | null;
+  const content = payload?.choices?.[0]?.message?.content?.trim();
+  if (!content) {
+    throw new Error('Translation response was empty.');
+  }
+
+  return z.record(z.string()).parse(JSON.parse(normalizeJsonText(content)));
+}
+
 export async function POST(request: Request) {
   try {
     const session = await getSession();
@@ -104,74 +226,45 @@ export async function POST(request: Request) {
       required: keys,
     };
 
-    let response: Response;
     try {
-      response = await fetch('https://api.openai.com/v1/responses', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: process.env.OPENAI_TRANSLATION_MODEL ?? 'gpt-5-mini',
-          input: [
-            {
-              role: 'system',
-              content: [
-                {
-                  type: 'input_text',
-                  text: `Translate structured artist-facing product content from ${sourceLocale} to ${targetLocale}. Preserve artist names, usernames, URLs, emails, genres, brand names, and formatting. Keep the tone natural, human, and ready for StageLink artists. Output valid JSON only.`,
-                },
-              ],
-            },
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'input_text',
-                  text: JSON.stringify(values),
-                },
-              ],
-            },
-          ],
-          text: {
-            format: {
-              type: 'json_schema',
-              name: 'localized_fields',
-              schema,
-            },
-          },
-        }),
+      const model = process.env.OPENAI_TRANSLATION_MODEL ?? 'gpt-4.1-mini';
+
+      const translations = await requestResponsesApi({
+        apiKey,
+        model,
+        sourceLocale,
+        targetLocale,
+        values,
+        schema,
+      }).catch(async (responsesError) => {
+        try {
+          return await requestChatCompletionsApi({
+            apiKey,
+            model,
+            sourceLocale,
+            targetLocale,
+            values,
+          });
+        } catch (chatError) {
+          const message =
+            chatError instanceof Error
+              ? chatError.message
+              : responsesError instanceof Error
+                ? responsesError.message
+                : 'Automatic translation failed.';
+          throw new Error(message);
+        }
       });
-    } catch {
-      return NextResponse.json(
-        { message: 'Could not reach the translation service right now.' },
-        { status: 502 },
-      );
-    }
 
-    if (!response.ok) {
-      const message = await response.text().catch(() => '');
+      return NextResponse.json({ translations });
+    } catch (error) {
       return NextResponse.json(
-        { message: `Translation request failed (${response.status}). ${message}`.trim() },
-        { status: 502 },
-      );
-    }
-
-    const payload = (await response.json().catch(() => null)) as unknown;
-    const outputText = extractResponseText(payload);
-    if (!outputText) {
-      return NextResponse.json({ message: 'Translation response was empty.' }, { status: 502 });
-    }
-
-    try {
-      const parsedTranslations = z
-        .record(z.string())
-        .parse(JSON.parse(normalizeJsonText(outputText)));
-      return NextResponse.json({ translations: parsedTranslations });
-    } catch {
-      return NextResponse.json(
-        { message: 'Translation response could not be parsed.' },
+        {
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Could not reach the translation service right now.',
+        },
         { status: 502 },
       );
     }

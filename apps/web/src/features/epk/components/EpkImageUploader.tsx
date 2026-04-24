@@ -12,12 +12,22 @@ interface EpkImageUploaderProps {
   artistId: string;
   onUploaded: (asset: AssetDto) => void;
   disabled?: boolean;
+  buttonLabel?: string;
+  helperText?: string;
+  renderTrigger?: (props: {
+    open: () => void;
+    uploading: boolean;
+    disabled: boolean;
+  }) => React.ReactNode;
 }
 
 export function EpkImageUploader({
   artistId,
   onUploaded,
   disabled = false,
+  buttonLabel = 'Upload EPK image',
+  helperText = 'JPEG, PNG or WebP · max 8 MB',
+  renderTrigger,
 }: EpkImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -62,16 +72,24 @@ export function EpkImageUploader({
         className="hidden"
         onChange={handleFileChange}
       />
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => inputRef.current?.click()}
-        disabled={uploading || disabled}
-      >
-        {uploading ? 'Uploading…' : 'Upload EPK image'}
-      </Button>
+      {renderTrigger ? (
+        renderTrigger({
+          open: () => inputRef.current?.click(),
+          uploading,
+          disabled,
+        })
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading || disabled}
+        >
+          {uploading ? 'Uploading…' : buttonLabel}
+        </Button>
+      )}
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
-      <p className="text-xs text-muted-foreground">JPEG, PNG or WebP · max 8 MB</p>
+      {helperText ? <p className="text-xs text-muted-foreground">{helperText}</p> : null}
     </div>
   );
 }

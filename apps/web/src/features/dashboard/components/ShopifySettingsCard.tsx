@@ -14,7 +14,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { saveShopifyConnection, validateShopifyConnection } from '@/lib/api/shopify';
+import {
+  disconnectShopifyConnection,
+  saveShopifyConnection,
+  validateShopifyConnection,
+} from '@/lib/api/shopify';
 
 interface ShopifySettingsCardProps {
   artistId: string;
@@ -69,6 +73,7 @@ export function ShopifySettingsCard({
   const [statusTone, setStatusTone] = useState<'default' | 'success' | 'error'>('default');
   const [validating, setValidating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
 
   const previewProducts = connection?.previewProducts ?? [];
   const upgradeHref = `/${locale}/dashboard/billing`;
@@ -116,6 +121,27 @@ export function ShopifySettingsCard({
       setStatusMessage(error instanceof Error ? error.message : t('messages.save_error'));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDisconnect() {
+    setDisconnecting(true);
+    setStatusMessage(null);
+    try {
+      const cleared = await disconnectShopifyConnection(artistId);
+      setConnection(cleared);
+      setStoreDomain('');
+      setStorefrontToken('');
+      setCollectionHandle('');
+      setProductHandlesInput('');
+      setSelectionMode('collection');
+      setStatusTone('success');
+      setStatusMessage(t('messages.disconnected'));
+    } catch (error) {
+      setStatusTone('error');
+      setStatusMessage(error instanceof Error ? error.message : t('messages.disconnect_error'));
+    } finally {
+      setDisconnecting(false);
     }
   }
 
@@ -234,6 +260,16 @@ export function ShopifySettingsCard({
           <Button type="button" onClick={handleSave} disabled={saving}>
             {saving ? t('actions_card.saving') : t('actions_card.save')}
           </Button>
+          {connection?.isConnected ? (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleDisconnect}
+              disabled={disconnecting}
+            >
+              {disconnecting ? t('actions_card.disconnecting') : t('actions_card.disconnect')}
+            </Button>
+          ) : null}
         </div>
 
         {statusMessage ? (

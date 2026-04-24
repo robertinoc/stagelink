@@ -10,7 +10,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { saveMerchConnection, validateMerchConnection } from '@/lib/api/merch';
+import {
+  disconnectMerchConnection,
+  saveMerchConnection,
+  validateMerchConnection,
+} from '@/lib/api/merch';
 
 interface MerchProviderSettingsCardProps {
   artistId: string;
@@ -53,6 +57,7 @@ export function MerchProviderSettingsCard({
   const [statusTone, setStatusTone] = useState<'default' | 'success' | 'error'>('default');
   const [validating, setValidating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
 
   const upgradeHref = `/${locale}/dashboard/billing`;
   const requiredPlanLabel = resolvePlanLabel(getMinimumPlanForFeature('smart_merch'));
@@ -94,6 +99,23 @@ export function MerchProviderSettingsCard({
       setStatusMessage(error instanceof Error ? error.message : t('messages.save_error'));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDisconnect() {
+    setDisconnecting(true);
+    setStatusMessage(null);
+    try {
+      const cleared = await disconnectMerchConnection(artistId);
+      setConnection(cleared);
+      setApiToken('');
+      setStatusTone('success');
+      setStatusMessage(t('messages.disconnected'));
+    } catch (error) {
+      setStatusTone('error');
+      setStatusMessage(error instanceof Error ? error.message : t('messages.disconnect_error'));
+    } finally {
+      setDisconnecting(false);
     }
   }
 
@@ -181,6 +203,16 @@ export function MerchProviderSettingsCard({
           <Button type="button" onClick={handleSave} disabled={saving || !canSubmitToken}>
             {saving ? t('actions_card.saving') : t('actions_card.save')}
           </Button>
+          {connection?.isConnected ? (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleDisconnect}
+              disabled={disconnecting}
+            >
+              {disconnecting ? t('actions_card.disconnecting') : t('actions_card.disconnect')}
+            </Button>
+          ) : null}
         </div>
 
         {statusMessage ? (

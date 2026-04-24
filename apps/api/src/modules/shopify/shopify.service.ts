@@ -199,6 +199,43 @@ export class ShopifyService {
     return this.mapConnection(saved, preview);
   }
 
+  async disconnectConnection(
+    artistId: string,
+    userId: string,
+    ipAddress?: string,
+  ): Promise<ShopifyConnection> {
+    await this.membershipService.validateAccess(userId, artistId, 'write');
+    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'shopify_integration');
+
+    const existing = await this.prisma.shopifyConnection.findUnique({
+      where: { artistId },
+    });
+
+    if (!existing) {
+      return this.buildEmptyConnection(artistId);
+    }
+
+    await this.prisma.shopifyConnection.delete({
+      where: { artistId },
+    });
+
+    this.auditService.log({
+      actorId: userId,
+      action: 'shopify_connection.delete',
+      entityType: 'shopify_connection',
+      entityId: existing.id,
+      metadata: {
+        artistId,
+        storeDomain: existing.storeDomain,
+      },
+      ipAddress,
+    });
+
+    this.clearSelectionPreviewCache(artistId);
+
+    return this.buildEmptyConnection(artistId);
+  }
+
   async getPublicStoreSelection(
     artistId: string,
     options?: { maxItems?: number },
