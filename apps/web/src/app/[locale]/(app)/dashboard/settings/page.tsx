@@ -5,6 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { getBillingSummary } from '@/lib/api/billing';
 import { getArtist } from '@/lib/api/artists';
 import { getStageLinkInsightsDashboard } from '@/lib/api/insights';
@@ -90,10 +91,49 @@ export default async function DashboardSettingsPage({
     } => plan.planCode !== 'enterprise',
   );
   const settingsSections = [
-    { id: 'plans-billing', label: t('navigation.plans_billing') },
-    { id: 'insights-connections', label: t('navigation.insights_connections') },
-    { id: 'shopify-store', label: t('navigation.shopify_store') },
-    { id: 'smart-merch', label: t('navigation.smart_merch') },
+    {
+      id: 'plans-billing',
+      label: t('navigation.plans_billing'),
+      description: t('overview.plans_billing'),
+      badge: resolvePlanLabel(summary.effectivePlan),
+      href: '#plans-billing',
+    },
+    {
+      id: 'insights-connections',
+      label: t('navigation.insights_connections'),
+      description: t('overview.insights_connections'),
+      badge: summary.entitlements.stage_link_insights
+        ? t('overview.badges.enabled')
+        : t('overview.badges.locked'),
+      href: '#insights-connections',
+      muted: !summary.entitlements.stage_link_insights,
+    },
+    {
+      id: 'shopify-store',
+      label: t('navigation.shopify_store'),
+      description: t('overview.shopify_store'),
+      badge:
+        summary.entitlements.shopify_integration && shopifyConnection
+          ? t('overview.badges.connected')
+          : summary.entitlements.shopify_integration
+            ? t('overview.badges.ready')
+            : t('overview.badges.locked'),
+      href: '#shopify-store',
+      muted: !summary.entitlements.shopify_integration,
+    },
+    {
+      id: 'smart-merch',
+      label: t('navigation.smart_merch'),
+      description: t('overview.smart_merch'),
+      badge:
+        summary.entitlements.smart_merch && merchConnection
+          ? t('overview.badges.connected')
+          : summary.entitlements.smart_merch
+            ? t('overview.badges.ready')
+            : t('overview.badges.locked'),
+      href: '#smart-merch',
+      muted: !summary.entitlements.smart_merch,
+    },
   ];
 
   return (
@@ -139,25 +179,38 @@ export default async function DashboardSettingsPage({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('navigation.title')}</CardTitle>
-          <CardDescription>{t('navigation.description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {settingsSections.map((section) => (
-              <a
-                key={section.id}
-                href={`#${section.id}`}
-                className="rounded-2xl border border-border/70 bg-muted/20 px-4 py-3 text-sm font-medium transition hover:border-primary/40 hover:bg-primary/5"
-              >
-                {section.label}
-              </a>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">{t('navigation.title')}</h2>
+          <p className="text-sm text-muted-foreground">{t('navigation.description')}</p>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-2">
+          {settingsSections.map((section) => (
+            <a
+              key={section.id}
+              href={section.href}
+              className={cn(
+                'group rounded-[1.6rem] border border-border/70 bg-card/70 p-6 transition hover:border-primary/35 hover:bg-primary/[0.05] hover:shadow-[0_16px_40px_rgba(155,48,208,0.12)]',
+                section.muted && 'opacity-90',
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-base font-semibold text-foreground">{section.label}</p>
+                  <p className="mt-2 max-w-lg text-sm leading-7 text-muted-foreground">
+                    {section.description}
+                  </p>
+                </div>
+                <Badge variant="secondary">{section.badge}</Badge>
+              </div>
+              <div className="mt-5 inline-flex text-sm font-medium text-primary transition group-hover:text-primary/85">
+                {t('overview.open_section')}
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
 
       <section id="plans-billing" className="space-y-4 scroll-mt-24">
         <div>

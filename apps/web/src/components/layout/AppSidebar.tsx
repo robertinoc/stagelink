@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import {
   LayoutDashboard,
@@ -57,6 +58,39 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
   const pathname = usePathname();
   const locale = useLocale();
   const t = useTranslations();
+  const [activeHash, setActiveHash] = useState('');
+
+  useEffect(() => {
+    function updateHash() {
+      setActiveHash(window.location.hash);
+    }
+
+    updateHash();
+    window.addEventListener('hashchange', updateHash);
+    return () => window.removeEventListener('hashchange', updateHash);
+  }, [pathname]);
+
+  const settingsBaseHref = `/${locale}/dashboard/settings`;
+  const settingsExpanded =
+    pathname === settingsBaseHref || pathname.startsWith(`${settingsBaseHref}/`);
+  const settingsChildren = [
+    {
+      id: 'plans-billing',
+      label: t('dashboard.settings.navigation.plans_billing'),
+    },
+    {
+      id: 'insights-connections',
+      label: t('dashboard.settings.navigation.insights_connections'),
+    },
+    {
+      id: 'shopify-store',
+      label: t('dashboard.settings.navigation.shopify_store'),
+    },
+    {
+      id: 'smart-merch',
+      label: t('dashboard.settings.navigation.smart_merch'),
+    },
+  ];
 
   /** Returns true when the nav item should render as active. */
   function isActive(item: NavItem): boolean {
@@ -116,26 +150,55 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
           const href = `/${locale}/${item.href}`;
           const active = isActive(item);
           const isDashboard = item.href === 'dashboard';
+          const isSettings = item.href === 'dashboard/settings';
+
           return (
-            <Link
-              key={item.href}
-              href={href}
-              onClick={onNavigate}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
-                isDashboard &&
-                  'mb-2 border border-primary/30 bg-primary/12 text-white shadow-[0_0_18px_rgba(168,85,247,0.12)]',
-                isDashboard && active && 'bg-primary/20 text-white font-medium',
-                isDashboard && !active && 'text-white hover:bg-primary/15',
-                !isDashboard &&
-                  (active
-                    ? 'bg-white/10 text-white font-medium'
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'),
-              )}
-            >
-              <item.icon className="h-4 w-4 flex-shrink-0" />
-              <span>{t(item.labelKey)}</span>
-            </Link>
+            <div key={item.href}>
+              <Link
+                href={href}
+                onClick={onNavigate}
+                className={cn(
+                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+                  isDashboard &&
+                    'mb-2 border border-primary/30 bg-primary/12 text-white shadow-[0_0_18px_rgba(168,85,247,0.12)]',
+                  isDashboard && active && 'bg-primary/20 text-white font-medium',
+                  isDashboard && !active && 'text-white hover:bg-primary/15',
+                  !isDashboard &&
+                    (active
+                      ? 'bg-white/10 text-white font-medium'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'),
+                )}
+              >
+                <item.icon className="h-4 w-4 flex-shrink-0" />
+                <span>{t(item.labelKey)}</span>
+              </Link>
+
+              {isSettings && settingsExpanded ? (
+                <div className="mt-1 ml-6 space-y-1 border-l border-white/10 pl-3">
+                  {settingsChildren.map((child) => {
+                    const childHref = `${settingsBaseHref}#${child.id}`;
+                    const childActive =
+                      pathname === settingsBaseHref && activeHash === `#${child.id}`;
+
+                    return (
+                      <a
+                        key={child.id}
+                        href={childHref}
+                        onClick={onNavigate}
+                        className={cn(
+                          'block rounded-md px-3 py-1.5 text-xs transition-colors',
+                          childActive
+                            ? 'bg-primary/12 text-white'
+                            : 'text-white/55 hover:bg-white/8 hover:text-white/85',
+                        )}
+                      >
+                        {child.label}
+                      </a>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
           );
         })}
       </nav>

@@ -747,11 +747,24 @@
       "description": "Manage your plan, billing, and external product connections for this artist workspace.",
       "navigation": {
         "title": "Settings sections",
-        "description": "Jump straight to the part of Settings you want to edit.",
+        "description": "Open the part of Settings you want to configure.",
         "plans_billing": "Plans and billing",
         "insights_connections": "Insights connections",
         "shopify_store": "Shopify Store",
         "smart_merch": "Smart Merch (Printful)"
+      },
+      "overview": {
+        "open_section": "Open section",
+        "plans_billing": "Choose your plan, review what each tier unlocks, and manage billing from one home base.",
+        "insights_connections": "Connect the artist platforms StageLink uses for Insights, then read metrics later inside Analytics.",
+        "shopify_store": "Validate your Shopify storefront, decide what merch to show, and keep that setup tied to this artist workspace.",
+        "smart_merch": "Connect Printful, review product availability, and control the merch source your blocks can use.",
+        "badges": {
+          "enabled": "Enabled",
+          "connected": "Connected",
+          "ready": "Ready",
+          "locked": "Locked"
+        }
       },
       "summary": {
         "title": "Plan capabilities",
