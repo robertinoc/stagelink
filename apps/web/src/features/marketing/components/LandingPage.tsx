@@ -276,6 +276,9 @@ export function LandingPage({ locale }: LandingPageProps) {
               </a>
             </div>
             <p className="mt-3 text-sm text-white/45">{t.hero.ctaNote}</p>
+            <p className="mt-4 max-w-xl rounded-2xl border border-white/10 bg-white/4 px-4 py-3 text-sm leading-7 text-white/60">
+              {t.hero.founderLine}
+            </p>
           </div>
 
           <div id="preview" className="relative">
