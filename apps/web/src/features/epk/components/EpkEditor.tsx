@@ -354,11 +354,12 @@ export function EpkEditor({
   }
 
   function toggleFeaturedLinkVisibility(link: { label: string; url: string }) {
-    const exists = watchedFeaturedLinks.some((item) => item.url === link.url);
+    const currentFeaturedLinks = getValues('featuredLinks') ?? [];
+    const exists = currentFeaturedLinks.some((item) => item.url === link.url);
     if (exists) {
       setValue(
         'featuredLinks',
-        watchedFeaturedLinks.filter((item) => item.url !== link.url),
+        currentFeaturedLinks.filter((item) => item.url !== link.url),
         { shouldDirty: true },
       );
       return;
@@ -367,7 +368,7 @@ export function EpkEditor({
     setValue(
       'featuredLinks',
       dedupeLinks([
-        ...watchedFeaturedLinks,
+        ...currentFeaturedLinks,
         {
           id: crypto.randomUUID(),
           label: link.label,
@@ -379,16 +380,17 @@ export function EpkEditor({
   }
 
   function setHighlightedLink(url: string) {
-    const existing = watchedFeaturedLinks.find((item) => item.url === url);
+    const currentFeaturedLinks = getValues('featuredLinks') ?? [];
+    const existing = currentFeaturedLinks.find((item) => item.url === url);
     const next = existing
-      ? [existing, ...watchedFeaturedLinks.filter((item) => item.url !== url)]
+      ? [existing, ...currentFeaturedLinks.filter((item) => item.url !== url)]
       : [
           {
             id: crypto.randomUUID(),
             label: profileAndSmartLinks.find((item) => item.url === url)?.label ?? 'Link',
             url,
           },
-          ...watchedFeaturedLinks,
+          ...currentFeaturedLinks,
         ];
     setValue('featuredLinks', dedupeLinks(next), { shouldDirty: true });
   }
