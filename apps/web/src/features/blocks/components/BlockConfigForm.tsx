@@ -14,6 +14,7 @@ import type {
   VideoEmbedBlockConfig,
   EmailCaptureBlockConfig,
   TextBlockConfig,
+  ImageGalleryBlockConfig,
   SmartMerchBlockConfig,
   SmartMerchProduct,
   ShopifyStoreBlockConfig,
@@ -29,6 +30,7 @@ interface Props {
   onChange: (config: BlockConfig) => void;
   localizedContent?: BlockLocalizedContent | null;
   onLocalizedContentChange?: (localizedContent: BlockLocalizedContent) => void;
+  galleryImages?: string[];
   textSources?: Array<{
     id: string;
     label: string;
@@ -559,6 +561,125 @@ function TextBlockForm({
         <p className="mt-1 text-xs text-muted-foreground">{config.body.length}/5000</p>
       </div>
       <p className="text-xs text-muted-foreground">{t('body_locale_hint')}</p>
+    </div>
+  );
+}
+
+function ImageGalleryBlockForm({
+  config,
+  onChange,
+  galleryImages,
+}: {
+  config: ImageGalleryBlockConfig;
+  onChange: (c: ImageGalleryBlockConfig) => void;
+  galleryImages?: string[];
+}) {
+  const t = useTranslations('blocks.fields');
+  const availableImages = useMemo(() => galleryImages ?? [], [galleryImages]);
+  const selectedImages = useMemo(
+    () => config.imageUrls.filter((url) => availableImages.includes(url)),
+    [availableImages, config.imageUrls],
+  );
+
+  function toggleImage(url: string) {
+    const isSelected = selectedImages.includes(url);
+    if (isSelected) {
+      onChange({
+        ...config,
+        imageUrls: selectedImages.filter((imageUrl) => imageUrl !== url),
+      });
+      return;
+    }
+
+    if (selectedImages.length >= 6) return;
+
+    onChange({
+      ...config,
+      imageUrls: [...selectedImages, url],
+    });
+  }
+
+  function useAllImages() {
+    onChange({
+      ...config,
+      imageUrls: availableImages.slice(0, 6),
+    });
+  }
+
+  if (availableImages.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.03] p-4 text-sm text-muted-foreground">
+        <p className="font-medium text-white">{t('image_gallery_empty')}</p>
+        <p className="mt-1">{t('image_gallery_from_profile')}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-white">{t('image_gallery_title')}</p>
+            <p className="text-xs text-muted-foreground">{t('image_gallery_hint')}</p>
+            <p className="text-xs text-muted-foreground">
+              {t('image_gallery_selected_count', {
+                selected: selectedImages.length,
+                total: Math.min(availableImages.length, 6),
+              })}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={useAllImages}
+            className="rounded-full border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary hover:text-foreground"
+          >
+            {t('image_gallery_use_all')}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {availableImages.slice(0, 6).map((url, index) => {
+          const selected = selectedImages.includes(url);
+          return (
+            <button
+              key={`${url}-${index}`}
+              type="button"
+              onClick={() => toggleImage(url)}
+              className={`overflow-hidden rounded-2xl border text-left transition ${
+                selected
+                  ? 'border-primary bg-primary/[0.08] ring-1 ring-primary/50'
+                  : 'border-white/10 bg-white/[0.03] hover:border-primary/30'
+              }`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="" className="h-40 w-full object-cover" />
+              <div className="flex items-center justify-between gap-3 p-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-white">
+                    {t('image_gallery_pick_hint', { index: index + 1 })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {selected ? t('image_gallery_selected') : t('image_gallery_select')}
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                    selected
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border border-white/10 bg-white/[0.04] text-muted-foreground'
+                  }`}
+                >
+                  {selected ? t('image_gallery_selected') : t('image_gallery_select')}
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <p className="text-xs text-muted-foreground">{t('image_gallery_minimum')}</p>
     </div>
   );
 }
@@ -1173,6 +1294,8 @@ export function defaultConfig(type: BlockType): BlockConfig {
       return { headline: '', buttonLabel: 'Subscribe' };
     case 'text':
       return { body: '' };
+    case 'image_gallery':
+      return { imageUrls: [] };
     case 'shopify_store':
       return { headline: '', description: '', ctaLabel: '', maxItems: 4 };
     case 'smart_merch':
@@ -1197,6 +1320,7 @@ export function BlockConfigForm({
   onChange,
   localizedContent,
   onLocalizedContentChange,
+  galleryImages,
   textSources,
   artistId,
   accessToken,
@@ -1232,6 +1356,14 @@ export function BlockConfigForm({
           config={config as TextBlockConfig}
           onChange={(c) => onChange(c)}
           textSources={textSources}
+        />
+      );
+    case 'image_gallery':
+      return (
+        <ImageGalleryBlockForm
+          config={config as ImageGalleryBlockConfig}
+          onChange={(c) => onChange(c)}
+          galleryImages={galleryImages}
         />
       );
     case 'shopify_store':

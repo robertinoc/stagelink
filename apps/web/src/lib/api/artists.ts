@@ -17,6 +17,7 @@ export interface Artist {
   tags: string[];
   avatarUrl: string | null;
   coverUrl: string | null;
+  galleryImageUrls: string[];
   // Social links
   instagramUrl: string | null;
   tiktokUrl: string | null;
@@ -41,6 +42,7 @@ export interface UpdateArtistPayload {
   category?: ArtistCategory;
   secondaryCategories?: ArtistCategory[];
   tags?: string[];
+  galleryImageUrls?: string[];
   instagramUrl?: string | null;
   tiktokUrl?: string | null;
   youtubeUrl?: string | null;

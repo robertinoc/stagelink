@@ -607,7 +607,17 @@
       "saved": "Perfil guardado correctamente.",
       "unsaved": "Tenés cambios sin guardar.",
       "cover": "Imagen de portada",
-      "avatar": "Foto de perfil"
+      "avatar": "Foto de perfil",
+      "gallery": {
+        "title": "Mi galería",
+        "description": "Subí hasta 6 fotos del artista acá. Después podés reutilizarlas dentro de un bloque Image Gallery en tu página.",
+        "count": "{current}/{max} imágenes cargadas",
+        "add_image": "Agregar imagen",
+        "uploading": "Subiendo…",
+        "helper": "JPEG, PNG o WebP · máximo 8 MB",
+        "image_alt": "Imagen de galería {index}",
+        "image_label": "Imagen {index}"
+      }
     },
     "epk": {
       "fields": {
@@ -1028,6 +1038,7 @@
       "video_embed": "Video",
       "email_capture": "Formulario de captura de fans",
       "text": "Texto",
+      "image_gallery": "Galería de imágenes",
       "shopify_store": "Merch",
       "smart_merch": "Smart Merch"
     },
@@ -1037,6 +1048,7 @@
       "video_embed": "Incrustá un video de YouTube, Vimeo o TikTok.",
       "email_capture": "Capturá registros de fans desde tu página y alimentá los fan insights de StageLink.",
       "text": "Agregá un bloque de texto para una bio, technical rider, requerimientos del artista o cualquier información pública que ya tengas lista.",
+      "image_gallery": "Mostrá una galería usando imágenes que ya subiste en Mi galería.",
       "shopify_store": "Mostrá merch seleccionada desde tu storefront conectado de Shopify.",
       "smart_merch": "Elegí productos reales desde Printful y agregá un link externo de compra para cada uno."
     },
@@ -1081,6 +1093,16 @@
       "reuse_section_title": "Usar información ya disponible",
       "reuse_section_hint": "Traé texto guardado desde My Profile o My Press Kit (EPK) en lugar de escribirlo otra vez.",
       "body_locale_hint": "Por ahora los bloques de texto usan tu idioma base. Si necesitás copy distinto por idioma, duplicá el bloque.",
+      "image_gallery_title": "Elegí imágenes desde Mi galería",
+      "image_gallery_hint": "Seleccioná las imágenes de perfil que querés mostrar en este bloque.",
+      "image_gallery_empty": "Primero agregá imágenes en My Profile",
+      "image_gallery_from_profile": "Este bloque solo usa imágenes ya subidas en Mi galería.",
+      "image_gallery_use_all": "Usar todas",
+      "image_gallery_selected": "Seleccionada",
+      "image_gallery_select": "Seleccionar",
+      "image_gallery_selected_count": "{selected} de {total} seleccionadas",
+      "image_gallery_minimum": "Seleccioná al menos 2 imágenes y hasta 6.",
+      "image_gallery_pick_hint": "Imagen {index}",
       "shopify_headline": "Título de merch (opcional)",
       "shopify_headline_placeholder": "ej. Último drop de merch",
       "shopify_description": "Descripción de merch (opcional)",

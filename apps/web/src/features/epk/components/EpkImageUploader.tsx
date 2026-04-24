@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import type { AssetDto } from '@stagelink/types';
+import type { AssetDto, AssetKind } from '@stagelink/types';
 import { confirmUpload, requestUploadIntent, uploadToS3 } from '@/lib/api/assets';
 import { Button } from '@/components/ui/button';
 
@@ -11,6 +11,7 @@ const MAX_SIZE_BYTES = 8 * 1024 * 1024;
 interface EpkImageUploaderProps {
   artistId: string;
   onUploaded: (asset: AssetDto) => void;
+  assetKind?: AssetKind;
   disabled?: boolean;
   buttonLabel?: string;
   helperText?: string;
@@ -24,6 +25,7 @@ interface EpkImageUploaderProps {
 export function EpkImageUploader({
   artistId,
   onUploaded,
+  assetKind = 'epk_image',
   disabled = false,
   buttonLabel = 'Upload EPK image',
   helperText = 'JPEG, PNG or WebP · max 8 MB',
@@ -51,7 +53,7 @@ export function EpkImageUploader({
     setError(null);
 
     try {
-      const intent = await requestUploadIntent(artistId, 'epk_image', file);
+      const intent = await requestUploadIntent(artistId, assetKind, file);
       await uploadToS3(intent.uploadUrl, file);
       const asset = await confirmUpload(intent.assetId);
       onUploaded(asset);

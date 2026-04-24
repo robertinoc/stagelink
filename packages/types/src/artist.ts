@@ -32,6 +32,7 @@ export interface Artist {
   baseLocale: SupportedLocale;
   avatarUrl: string | null;
   coverUrl: string | null;
+  galleryImageUrls: string[];
   category: ArtistCategory;
   secondaryCategories: ArtistCategory[];
   tags: string[];
@@ -82,6 +83,7 @@ export interface PublicArtist {
   baseLocale: SupportedLocale;
   avatarUrl: string | null;
   coverUrl: string | null;
+  galleryImageUrls: string[];
   category: ArtistCategory;
   secondaryCategories: ArtistCategory[];
   tags: string[];

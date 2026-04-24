@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { updateArtist, type Artist, type UpdateArtistPayload } from '@/lib/api/artists';
 import { profileSchema, type ProfileFormValues } from '../schemas/profile.schema';
 import { ProfileBasicInfo } from './ProfileBasicInfo';
+import { ProfileGallerySection } from './ProfileGallerySection';
 import { ProfileImagesSection } from './ProfileImagesSection';
 import { ProfileSocialLinks } from './ProfileSocialLinks';
 import { ProfileSeoSection } from './ProfileSeoSection';
@@ -53,6 +54,7 @@ export function ArtistProfileSettings({
       baseLocale: artist.baseLocale,
       categories: [artist.category, ...(artist.secondaryCategories ?? [])],
       tags: artist.tags ?? [],
+      galleryImageUrls: artist.galleryImageUrls ?? [],
       instagramUrl: artist.instagramUrl ?? '',
       tiktokUrl: artist.tiktokUrl ?? '',
       youtubeUrl: artist.youtubeUrl ?? '',
@@ -154,6 +156,7 @@ export function ArtistProfileSettings({
       category,
       secondaryCategories,
       tags: values.tags,
+      galleryImageUrls: values.galleryImageUrls,
       instagramUrl: values.instagramUrl || null,
       tiktokUrl: values.tiktokUrl || null,
       youtubeUrl: values.youtubeUrl || null,
@@ -178,6 +181,7 @@ export function ArtistProfileSettings({
         baseLocale: updated.baseLocale,
         categories: [updated.category, ...(updated.secondaryCategories ?? [])],
         tags: updated.tags ?? [],
+        galleryImageUrls: updated.galleryImageUrls ?? [],
         instagramUrl: updated.instagramUrl ?? '',
         tiktokUrl: updated.tiktokUrl ?? '',
         youtubeUrl: updated.youtubeUrl ?? '',
@@ -222,6 +226,14 @@ export function ArtistProfileSettings({
           coverUrl={artist.coverUrl}
           onAvatarChange={(url) => setArtist((a) => ({ ...a, avatarUrl: url }))}
           onCoverChange={(url) => setArtist((a) => ({ ...a, coverUrl: url }))}
+        />
+
+        <ProfileGallerySection
+          artistId={artist.id}
+          galleryImageUrls={form.watch('galleryImageUrls')}
+          onChange={(galleryImageUrls) =>
+            form.setValue('galleryImageUrls', galleryImageUrls, { shouldDirty: true })
+          }
         />
 
         {/* 2 — Basic info */}

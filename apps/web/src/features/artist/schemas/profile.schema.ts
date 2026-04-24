@@ -37,6 +37,11 @@ const optionalLocalizedDescription = z
   .string()
   .max(160, 'SEO description must be 160 characters or less')
   .optional();
+const galleryImageUrlSchema = z
+  .string()
+  .trim()
+  .url('Gallery images must be valid URLs')
+  .max(2048, 'Gallery image URLs must be 2048 characters or less');
 
 const localizedProfileFieldsSchema = z.object({
   displayName: z.string().max(100, 'Artist name must be 100 characters or less').optional(),
@@ -83,6 +88,10 @@ export const profileSchema = z
       .max(3, 'Choose up to 3 categories')
       .default([]),
     tags: z.array(descriptorSchema).max(6, 'Choose up to 6 descriptors').default([]),
+    galleryImageUrls: z
+      .array(galleryImageUrlSchema)
+      .max(6, 'Upload up to 6 gallery images')
+      .default([]),
 
     // Social links (all optional, empty string = clear)
     instagramUrl: optionalUrl,

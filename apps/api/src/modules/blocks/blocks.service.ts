@@ -83,6 +83,10 @@ export class BlocksService {
       await this.assertSmartMerchSelection(artistId, dto.config as Record<string, unknown>);
     }
 
+    if (blockType === 'image_gallery') {
+      await this.assertImageGallerySelection(artistId, dto.config as Record<string, unknown>);
+    }
+
     const enrichedConfig = sanitizeBlockConfig(
       blockType,
       enrichBlockConfig(blockType, dto.config as Record<string, unknown>),
@@ -179,6 +183,10 @@ export class BlocksService {
 
       if (block.type === 'smart_merch') {
         await this.assertSmartMerchSelection(artistId, mergedConfig);
+      }
+
+      if (block.type === 'image_gallery') {
+        await this.assertImageGallerySelection(artistId, mergedConfig);
       }
 
       enrichedConfig = sanitizeBlockConfig(block.type, enrichBlockConfig(block.type, mergedConfig));
@@ -447,5 +455,34 @@ export class BlocksService {
           purchaseUrl: entry.purchaseUrl,
         })),
     );
+  }
+
+  private async assertImageGallerySelection(
+    artistId: string,
+    config: Record<string, unknown>,
+  ): Promise<void> {
+    const imageUrls = Array.isArray(config['imageUrls'])
+      ? config['imageUrls'].filter((value): value is string => typeof value === 'string')
+      : [];
+
+    if (imageUrls.length === 0) {
+      return;
+    }
+
+    const artist = await this.prisma.artist.findUniqueOrThrow({
+      where: { id: artistId },
+      select: { galleryImageUrls: true },
+    });
+
+    const availableUrls = new Set(
+      ((artist.galleryImageUrls as unknown as string[]) ?? []).map((url) => url.trim()),
+    );
+
+    const invalidUrl = imageUrls.find((url) => !availableUrls.has(url.trim()));
+    if (invalidUrl) {
+      throw new BadRequestException(
+        'Every Image Gallery block image must come from My gallery in the artist profile.',
+      );
+    }
   }
 }
