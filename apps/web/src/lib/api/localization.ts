@@ -21,10 +21,18 @@ export async function autoTranslateLocalizedFields(
   });
 
   if (!res.ok) {
-    const err = (await res.json().catch(() => ({}))) as { message?: string | string[] };
-    const message = Array.isArray(err.message)
-      ? err.message.join(', ')
-      : (err.message ?? `Translation failed (${res.status})`);
+    const text = await res.text().catch(() => '');
+    let message = `Translation failed (${res.status})`;
+
+    try {
+      const err = JSON.parse(text) as { message?: string | string[] };
+      message = Array.isArray(err.message) ? err.message.join(', ') : (err.message ?? message);
+    } catch {
+      if (text.trim()) {
+        message = text.trim();
+      }
+    }
+
     throw new Error(message);
   }
 
