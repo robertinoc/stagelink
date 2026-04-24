@@ -29,6 +29,11 @@ interface Props {
   onChange: (config: BlockConfig) => void;
   localizedContent?: BlockLocalizedContent | null;
   onLocalizedContentChange?: (localizedContent: BlockLocalizedContent) => void;
+  textSources?: Array<{
+    id: string;
+    label: string;
+    body: string;
+  }>;
   /**
    * Required for the smart link picker inside the links block form.
    * When absent, the smart link option is hidden.
@@ -512,14 +517,36 @@ function EmailCaptureForm({
 function TextBlockForm({
   config,
   onChange,
+  textSources,
 }: {
   config: TextBlockConfig;
   onChange: (c: TextBlockConfig) => void;
+  textSources?: Props['textSources'];
 }) {
   const t = useTranslations('blocks.fields');
 
   return (
     <div className="space-y-3">
+      {textSources && textSources.length > 0 ? (
+        <div className="rounded-md border border-input bg-muted/20 p-3">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">{t('reuse_section_title')}</p>
+            <p className="text-xs text-muted-foreground">{t('reuse_section_hint')}</p>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {textSources.map((source) => (
+              <button
+                key={source.id}
+                type="button"
+                onClick={() => onChange({ ...config, body: source.body })}
+                className="rounded-full border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary hover:text-foreground"
+              >
+                {source.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <div>
         <label className="mb-1 block text-sm font-medium">{t('body')}</label>
         <textarea
@@ -531,6 +558,7 @@ function TextBlockForm({
         />
         <p className="mt-1 text-xs text-muted-foreground">{config.body.length}/5000</p>
       </div>
+      <p className="text-xs text-muted-foreground">{t('body_locale_hint')}</p>
     </div>
   );
 }
@@ -1169,6 +1197,7 @@ export function BlockConfigForm({
   onChange,
   localizedContent,
   onLocalizedContentChange,
+  textSources,
   artistId,
   accessToken,
 }: Props) {
@@ -1198,7 +1227,13 @@ export function BlockConfigForm({
         />
       );
     case 'text':
-      return <TextBlockForm config={config as TextBlockConfig} onChange={(c) => onChange(c)} />;
+      return (
+        <TextBlockForm
+          config={config as TextBlockConfig}
+          onChange={(c) => onChange(c)}
+          textSources={textSources}
+        />
+      );
     case 'shopify_store':
       return (
         <ShopifyStoreBlockForm

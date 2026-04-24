@@ -147,8 +147,8 @@
       },
       "top_links": {
         "title": "Top links",
-        "description": "Mirá qué enlaces están atrayendo más clicks en este período.",
-        "scope_note": "Hoy esto cubre clicks trackeados desde bloques de StageLink y smart links. El tracking más amplio para merch, compras y otros eventos queda anotado para una próxima versión.",
+        "description": "Mirá qué links trackeados están atrayendo más clicks en este período.",
+        "scope_note": "Hoy esto cubre clicks trackeados desde links del page builder, links del perfil y smart links. El tracking más amplio para merch, compras y otros eventos queda anotado para una próxima versión.",
         "rank": "#",
         "label": "Link",
         "source": "Origen",
@@ -194,7 +194,8 @@
         },
         "smart_links": {
           "title": "Rendimiento de smart links",
-          "description": "Los Smart Links que más clicks y resoluciones generan en este rango.",
+          "description": "Esto solo cuenta Smart Links. Muestra cuáles recibieron más clicks y cuántas personas siguieron por su ruteo de destinos.",
+          "scope_note": "Los links del perfil y los links normales del page builder no entran acá. Esta tabla es solo para Smart Links.",
           "label": "Smart link",
           "clicks": "Clicks",
           "resolutions": "Resoluciones",
@@ -203,7 +204,8 @@
       },
       "fan_insights": {
         "title": "Insights de fans",
-        "description": "Insights agregados construidos sobre la captación de fans. Acá no se muestran emails ni registros individuales.",
+        "description": "Estos números salen de tus formularios de captura de fans. Muestran cuántas personas enviaron el formulario, no quiénes fueron.",
+        "setup_note": "Los insights de fans solo funcionan cuando tenés al menos un bloque de captura de fans publicado en tu página.",
         "locked_title": "Desbloqueá insights de fans",
         "locked_description": "Tu plan actual es {currentPlan}. Los insights de fans están incluidos en {requiredPlan}; Free y Pro mantienen la vista básica. Actualizá para desbloquear tendencias de captación y top capture blocks.",
         "summary": {
@@ -218,7 +220,7 @@
         "captures_over_time_description": "Actividad diaria de captación de fans para el rango seleccionado.",
         "captures_empty": "Todavía no hay capturas de fans. Los insights avanzados aparecerán cuando tu página empiece a recibir registros.",
         "top_blocks_title": "Top capture blocks",
-        "top_blocks_description": "Qué bloques de captura están generando más registros exitosos.",
+        "top_blocks_description": "Qué bloques publicados de captura de fans están trayendo más registros exitosos.",
         "top_blocks_empty": "Ningún bloque de captura generó registros en este rango todavía.",
         "captures_label": "capturas",
         "formula_note": "La tasa de captura se muestra como una aproximación usando la fórmula fan_capture_submit / page_view."
@@ -243,7 +245,18 @@
         "connected_platforms": "Plataformas conectadas",
         "synced_platforms": "Plataformas con data sincronizada",
         "stored_snapshots": "Snapshots guardados",
-        "supported_platforms": "Plataformas soportadas"
+        "supported_platforms": "Plataformas soportadas",
+        "platform_labels": {
+          "spotify": "Spotify",
+          "youtube": "YouTube",
+          "soundcloud": "SoundCloud"
+        },
+        "help": {
+          "connected_platforms": "Cuántas conexiones de plataformas están activas ahora mismo.",
+          "synced_platforms": "Cuántas plataformas conectadas ya tienen al menos una sincronización guardada.",
+          "stored_snapshots": "Cada sync exitoso guarda un snapshot para que lo revises después.",
+          "supported_platforms": "Plataformas modeladas hoy dentro de StageLink Insights."
+        }
       },
       "range": {
         "label": "Rango de snapshots",
@@ -547,6 +560,7 @@
         }
       },
       "descriptors": {
+        "title": "Descriptores",
         "hint": "Agregá hasta 6 descriptores como géneros, nichos o estilos.",
         "selected": "Descriptores",
         "empty": "Sumá descriptores como Hard Techno, Rock Alternativo o Educativo.",
@@ -567,7 +581,7 @@
         "copy_from_base_description": "Completá estos campos con una traducción automática desde {sourceLocale} hacia {locale}. Después podés editar todo antes de guardar.",
         "auto_translate_loading": "Traduciendo…",
         "auto_translate_success": "La traducción automática ya se insertó. Podés editar cualquier campo antes de guardar.",
-        "auto_translate_error": "La traducción automática falló. Intentá de nuevo en un momento.",
+        "auto_translate_error": "La traducción automática falló. Revisá la configuración de traducción e intentá de nuevo en un momento.",
         "lock_badge": "Pro+",
         "lock_title": "Desbloqueá páginas multi-idioma",
         "lock_description": "Los idiomas adicionales están disponibles en Pro+. Podés seguir editando tu perfil base, pero el contenido público traducido requiere la feature de multi-language pages.",
@@ -617,7 +631,7 @@
         "copy_from_base_description": "Completá estos campos con una traducción automática desde {sourceLocale} hacia {locale}. Después podés editar todo antes de guardar.",
         "auto_translate_loading": "Traduciendo…",
         "auto_translate_success": "La traducción automática ya se insertó. Podés editar cualquier campo antes de guardar.",
-        "auto_translate_error": "La traducción automática falló. Intentá de nuevo en un momento.",
+        "auto_translate_error": "La traducción automática falló. Revisá la configuración de traducción e intentá de nuevo en un momento.",
         "lock_badge": "Pro+",
         "lock_title": "Desbloqueá contenido localizado del EPK",
         "lock_description": "Los idiomas adicionales están disponibles en Pro+. Tu EPK base sigue estando disponible, pero el contenido público específico por idioma necesita la feature de multi-language pages.",
@@ -1012,7 +1026,7 @@
       "links": "Links",
       "music_embed": "Música",
       "video_embed": "Video",
-      "email_capture": "Captura de emails",
+      "email_capture": "Formulario de captura de fans",
       "text": "Texto",
       "shopify_store": "Merch",
       "smart_merch": "Smart Merch"
@@ -1021,8 +1035,8 @@
       "links": "Agregá links a tus perfiles, sitio web o cualquier lugar.",
       "music_embed": "Incrustá una canción o playlist de Spotify, SoundCloud y más.",
       "video_embed": "Incrustá un video de YouTube, Vimeo o TikTok.",
-      "email_capture": "Recopilá emails de tus fans.",
-      "text": "Agregá un bloque de texto para bio, rider, historia o cualquier información pública.",
+      "email_capture": "Capturá registros de fans desde tu página y alimentá los fan insights de StageLink.",
+      "text": "Agregá un bloque de texto para una bio, technical rider, requerimientos del artista o cualquier información pública que ya tengas lista.",
       "shopify_store": "Mostrá merch seleccionada desde tu storefront conectado de Shopify.",
       "smart_merch": "Elegí productos reales desde Printful y agregá un link externo de compra para cada uno."
     },
@@ -1064,6 +1078,9 @@
       "consent_label_placeholder": "ej. Acepto recibir novedades de este artista.",
       "body": "Contenido",
       "body_placeholder": "Escribí una bio corta, nota de prensa, technical rider o cualquier texto público que quieras mostrar en la página…",
+      "reuse_section_title": "Usar información ya disponible",
+      "reuse_section_hint": "Traé texto guardado desde My Profile o My Press Kit (EPK) en lugar de escribirlo otra vez.",
+      "body_locale_hint": "Por ahora los bloques de texto usan tu idioma base. Si necesitás copy distinto por idioma, duplicá el bloque.",
       "shopify_headline": "Título de merch (opcional)",
       "shopify_headline_placeholder": "ej. Último drop de merch",
       "shopify_description": "Descripción de merch (opcional)",

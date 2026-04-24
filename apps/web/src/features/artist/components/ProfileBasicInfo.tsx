@@ -178,7 +178,7 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
         <div className="space-y-2">
           <div className="space-y-1">
             <label htmlFor="tagDraft" className="text-sm font-medium">
-              {t('fields.descriptors')}
+              {t('descriptors.title')}
             </label>
             <p className="text-xs text-muted-foreground">{t('descriptors.hint')}</p>
           </div>

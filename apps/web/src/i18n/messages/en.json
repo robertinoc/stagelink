@@ -147,8 +147,8 @@
       },
       "top_links": {
         "title": "Top links",
-        "description": "See what people are clicking the most in this period.",
-        "scope_note": "This currently covers tracked clicks from StageLink blocks and smart links. Broader event tracking for merch, purchases, and more lands in a future version.",
+        "description": "See which tracked links people are clicking the most in this period.",
+        "scope_note": "This currently covers tracked clicks from page-builder links, profile links, and smart links. Broader event tracking for merch, purchases, and more lands in a future version.",
         "rank": "#",
         "label": "Link",
         "source": "Source",
@@ -194,7 +194,8 @@
         },
         "smart_links": {
           "title": "Smart link performance",
-          "description": "The Smart Links driving the most clicks and downstream resolutions in this range.",
+          "description": "This only counts Smart Links. It shows which ones got the most clicks, and how many people continued through their destination routing.",
+          "scope_note": "Profile links and regular page-builder links are not counted here. This table is only for Smart Links.",
           "label": "Smart link",
           "clicks": "Clicks",
           "resolutions": "Resolutions",
@@ -203,7 +204,8 @@
       },
       "fan_insights": {
         "title": "Fan insights",
-        "description": "Aggregated capture insights built from your fan signup activity. No emails or individual fan records are shown here.",
+        "description": "These numbers come from your fan capture forms. They show how many people submitted the form, not who they were.",
+        "setup_note": "Fan insights only work when you have at least one fan capture block published on your page.",
         "locked_title": "Unlock fan insights",
         "locked_description": "Your current plan is {currentPlan}. Fan insights are included in {requiredPlan}, while Free and Pro keep the basic analytics view. Upgrade to unlock fan capture trends and top capture blocks.",
         "summary": {
@@ -218,7 +220,7 @@
         "captures_over_time_description": "Daily fan capture activity for the selected range.",
         "captures_empty": "No fan captures yet. Advanced fan insights will appear as your page starts collecting signups.",
         "top_blocks_title": "Top capture blocks",
-        "top_blocks_description": "Which capture blocks are driving the most successful signups.",
+        "top_blocks_description": "Which published fan capture blocks are bringing in the most successful signups.",
         "top_blocks_empty": "No capture blocks have generated signups in this range yet.",
         "captures_label": "captures",
         "formula_note": "Capture rate is shown as an approximation using the formula fan_capture_submit / page_view."
@@ -243,7 +245,18 @@
         "connected_platforms": "Connected platforms",
         "synced_platforms": "Platforms with synced data",
         "stored_snapshots": "Stored snapshots",
-        "supported_platforms": "Supported platforms"
+        "supported_platforms": "Supported platforms",
+        "platform_labels": {
+          "spotify": "Spotify",
+          "youtube": "YouTube",
+          "soundcloud": "SoundCloud"
+        },
+        "help": {
+          "connected_platforms": "How many platform connections are active right now.",
+          "synced_platforms": "How many connected platforms already have at least one stored sync.",
+          "stored_snapshots": "Every successful sync stores a snapshot you can review later.",
+          "supported_platforms": "Platforms modeled inside StageLink Insights today."
+        }
       },
       "range": {
         "label": "Snapshot range",
@@ -547,6 +560,7 @@
         }
       },
       "descriptors": {
+        "title": "Descriptors",
         "hint": "Add up to 6 descriptors like genres, niches, or vibes.",
         "selected": "Descriptors",
         "empty": "Add descriptors such as Hard Techno, Alternative Rock, or Educational.",
@@ -567,7 +581,7 @@
         "copy_from_base_description": "Fill these fields with an automatic translation from {sourceLocale} to {locale}. You can edit everything after the translation is inserted.",
         "auto_translate_loading": "Translating…",
         "auto_translate_success": "Automatic translation inserted. You can edit any field before saving.",
-        "auto_translate_error": "Automatic translation failed. Try again in a moment.",
+        "auto_translate_error": "Automatic translation failed. Check your translation setup and try again in a moment.",
         "lock_badge": "Pro+",
         "lock_title": "Unlock multi-language pages",
         "lock_description": "Additional locales are available on Pro+. You can keep editing your base profile, but translated public content needs the multi-language pages feature.",
@@ -617,7 +631,7 @@
         "copy_from_base_description": "Fill these fields with an automatic translation from {sourceLocale} to {locale}. You can edit everything after the translation is inserted.",
         "auto_translate_loading": "Translating…",
         "auto_translate_success": "Automatic translation inserted. You can edit any field before saving.",
-        "auto_translate_error": "Automatic translation failed. Try again in a moment.",
+        "auto_translate_error": "Automatic translation failed. Check your translation setup and try again in a moment.",
         "lock_badge": "Pro+",
         "lock_title": "Unlock localized EPK copy",
         "lock_description": "Additional locales are available on Pro+. Your base EPK stays available, but locale-specific public EPK content needs the multi-language pages feature.",
@@ -1012,7 +1026,7 @@
       "links": "Links",
       "music_embed": "Music",
       "video_embed": "Video",
-      "email_capture": "Email Capture",
+      "email_capture": "Fan capture form",
       "text": "Text",
       "shopify_store": "Merch",
       "smart_merch": "Smart Merch"
@@ -1021,8 +1035,8 @@
       "links": "Add clickable links to your profiles, website or anywhere.",
       "music_embed": "Embed a track or playlist from Spotify, SoundCloud and more.",
       "video_embed": "Embed a video from YouTube, Vimeo or TikTok.",
-      "email_capture": "Collect email addresses from your fans.",
-      "text": "Add a paragraph block for a bio, rider, story or any public info.",
+      "email_capture": "Collect fan signups from your page and feed StageLink fan insights.",
+      "text": "Add a text block for a bio, technical rider, artist requirements, or any public info you already have ready.",
       "shopify_store": "Show selected merch from your connected Shopify storefront.",
       "smart_merch": "Pick real products from Printful and attach an external purchase link for each one."
     },
@@ -1064,6 +1078,9 @@
       "consent_label_placeholder": "e.g. I agree to receive updates from this artist.",
       "body": "Body",
       "body_placeholder": "Write a short bio, press note, technical rider, or any public text you want to show on the page…",
+      "reuse_section_title": "Use information already available",
+      "reuse_section_hint": "Pull saved text from Profile or Press Kit instead of rewriting it here.",
+      "body_locale_hint": "Text blocks currently use your base language. If you need different copy by language, duplicate the block for now.",
       "shopify_headline": "Merch headline (optional)",
       "shopify_headline_placeholder": "e.g. Latest merch drop",
       "shopify_description": "Merch description (optional)",

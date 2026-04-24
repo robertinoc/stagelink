@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getSession } from '@/lib/auth';
 
 const localeSchema = z.enum(['en', 'es']);
 
@@ -9,6 +8,8 @@ const translationRequestSchema = z.object({
   targetLocale: localeSchema,
   values: z.record(z.string()),
 });
+
+const FALLBACK_TRANSLATION_MODELS = ['gpt-4.1-mini', 'gpt-4.1'] as const;
 
 function extractResponseText(payload: unknown): string | null {
   if (!payload || typeof payload !== 'object') {
@@ -69,7 +70,18 @@ function normalizeJsonText(input: string): string {
 }
 
 function buildTranslationInstruction(sourceLocale: 'en' | 'es', targetLocale: 'en' | 'es') {
-  return `Translate structured artist-facing product content from ${sourceLocale} to ${targetLocale}. Preserve artist names, usernames, URLs, emails, genres, brand names, and formatting. Keep the tone natural, human, and ready for StageLink artists. Return valid JSON only.`;
+  return `Translate structured artist-facing product content from ${sourceLocale} to ${targetLocale}. Preserve the original JSON keys exactly as provided. Preserve artist names, usernames, URLs, emails, genres, brand names, and formatting. Keep the tone natural, human, and ready for StageLink artists. Return valid JSON only.`;
+}
+
+function sanitizeValues(values: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(values).map(([key, value]) => [key, typeof value === 'string' ? value : '']),
+  );
+}
+
+function resolveTranslationModels(configuredModel: string | undefined): string[] {
+  const candidates = [configuredModel?.trim(), ...FALLBACK_TRANSLATION_MODELS];
+  return Array.from(new Set(candidates.filter((value): value is string => Boolean(value))));
 }
 
 async function readErrorMessage(response: Response): Promise<string> {
@@ -192,11 +204,6 @@ async function requestChatCompletionsApi(params: {
 
 export async function POST(request: Request) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-    }
-
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
@@ -214,7 +221,8 @@ export async function POST(request: Request) {
     }
 
     const { sourceLocale, targetLocale, values } = parsed.data;
-    const keys = Object.keys(values);
+    const sanitizedValues = sanitizeValues(values);
+    const keys = Object.keys(sanitizedValues);
     if (keys.length === 0) {
       return NextResponse.json({ translations: {} });
     }
@@ -227,34 +235,44 @@ export async function POST(request: Request) {
     };
 
     try {
-      const model = process.env.OPENAI_TRANSLATION_MODEL ?? 'gpt-4.1-mini';
+      let lastError: Error | null = null;
+      let translations: Record<string, string> | null = null;
 
-      const translations = await requestResponsesApi({
-        apiKey,
-        model,
-        sourceLocale,
-        targetLocale,
-        values,
-        schema,
-      }).catch(async (responsesError) => {
+      for (const model of resolveTranslationModels(process.env.OPENAI_TRANSLATION_MODEL)) {
         try {
-          return await requestChatCompletionsApi({
+          translations = await requestResponsesApi({
             apiKey,
             model,
             sourceLocale,
             targetLocale,
-            values,
+            values: sanitizedValues,
+            schema,
           });
-        } catch (chatError) {
-          const message =
-            chatError instanceof Error
-              ? chatError.message
-              : responsesError instanceof Error
-                ? responsesError.message
-                : 'Automatic translation failed.';
-          throw new Error(message);
+          break;
+        } catch (responsesError) {
+          try {
+            translations = await requestChatCompletionsApi({
+              apiKey,
+              model,
+              sourceLocale,
+              targetLocale,
+              values: sanitizedValues,
+            });
+            break;
+          } catch (chatError) {
+            lastError =
+              chatError instanceof Error
+                ? chatError
+                : responsesError instanceof Error
+                  ? responsesError
+                  : new Error('Automatic translation failed.');
+          }
         }
-      });
+      }
+
+      if (!translations) {
+        throw lastError ?? new Error('Automatic translation failed.');
+      }
 
       return NextResponse.json({ translations });
     } catch (error) {
@@ -268,9 +286,14 @@ export async function POST(request: Request) {
         { status: 502 },
       );
     }
-  } catch {
+  } catch (error) {
     return NextResponse.json(
-      { message: 'Automatic translation failed unexpectedly. Please try again.' },
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Automatic translation failed unexpectedly. Please try again.',
+      },
       { status: 500 },
     );
   }

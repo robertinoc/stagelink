@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { FeatureLockCta } from '@/components/billing/FeatureLockCta';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EpkEditor } from '@/features/epk/components/EpkEditor';
 import { getArtist } from '@/lib/api/artists';
 import { getArtistAssets } from '@/lib/api/assets';
@@ -100,29 +99,6 @@ export default async function DashboardEpkPage({
           <Badge variant="outline">Public routes available after publish</Badge>
         </div>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>How this Press Kit (EPK) works</CardTitle>
-          <CardDescription>
-            Your profile is the source of truth for identity, links, and core artist story. The
-            Press Kit (EPK) editor is where you add the extra press-kit pieces like overrides,
-            riders, hospitality notes, and share-ready presentation.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-3 text-sm text-muted-foreground md:grid-cols-3">
-          <p>
-            Your public page and your EPK can share the same artist foundation without becoming the
-            same experience.
-          </p>
-          <p>Only the published EPK fields and overrides appear on the public press-kit route.</p>
-          <p>
-            The print view stays ready for browser-based Save as PDF when you need a portable
-            version.
-          </p>
-        </CardContent>
-      </Card>
-
       <EpkEditor
         artistId={artistId}
         username={artist.username}

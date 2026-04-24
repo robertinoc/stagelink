@@ -42,6 +42,11 @@ interface Props {
   accessToken: string;
   canUseShopifyIntegration: boolean;
   canUseSmartMerch: boolean;
+  textSources?: Array<{
+    id: string;
+    label: string;
+    body: string;
+  }>;
 }
 
 // ─── Block type metadata ──────────────────────────────────────────────────────
@@ -223,6 +228,7 @@ function CreateBlockDialog({
   accessToken,
   canUseShopifyIntegration,
   canUseSmartMerch,
+  textSources,
   onCreated,
   onClose,
 }: {
@@ -232,6 +238,7 @@ function CreateBlockDialog({
   accessToken: string;
   canUseShopifyIntegration: boolean;
   canUseSmartMerch: boolean;
+  textSources?: Props['textSources'];
   onCreated: (block: Block) => void;
   onClose: () => void;
 }) {
@@ -353,6 +360,7 @@ function CreateBlockDialog({
                 onLocalizedContentChange={setLocalizedContent}
                 artistId={artistId}
                 accessToken={accessToken}
+                textSources={textSources}
               />
             )}
 
@@ -379,12 +387,14 @@ function EditBlockSheet({
   block,
   artistId,
   accessToken,
+  textSources,
   onUpdated,
   onClose,
 }: {
   block: Block | null;
   artistId: string;
   accessToken: string;
+  textSources?: Props['textSources'];
   onUpdated: (block: Block) => void;
   onClose: () => void;
 }) {
@@ -465,6 +475,7 @@ function EditBlockSheet({
                 onLocalizedContentChange={setLocalizedContent}
                 artistId={artistId}
                 accessToken={accessToken}
+                textSources={textSources}
               />
 
               {error && <p className="text-sm text-destructive">{error}</p>}
@@ -692,6 +703,7 @@ export function BlockManager({
   accessToken,
   canUseShopifyIntegration,
   canUseSmartMerch,
+  textSources,
 }: Props) {
   const t = useTranslations('blocks');
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -865,6 +877,7 @@ export function BlockManager({
         accessToken={accessToken}
         canUseShopifyIntegration={canUseShopifyIntegration}
         canUseSmartMerch={canUseSmartMerch}
+        textSources={textSources}
         onCreated={handleCreated}
         onClose={() => setCreateOpen(false)}
       />
@@ -873,6 +886,7 @@ export function BlockManager({
         block={editingBlock}
         artistId={artistId}
         accessToken={accessToken}
+        textSources={textSources}
         onUpdated={(updated) => {
           handleUpdated(updated);
           setEditingBlock(null);

@@ -503,29 +503,11 @@ export function EpkEditor({
         <CardHeader>
           <CardTitle>Header and identity</CardTitle>
           <CardDescription>
-            Keep this simple: one cover image and one artist image. Both can start from Profile and
+            Keep this simple: one hero image and one artist image. Both can start from Profile and
             be replaced here whenever you want.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white">Artist name *</label>
-              <Input value={inherited.displayName} disabled />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-white">Headline *</label>
-              <Input
-                placeholder="Genre, positioning, key context…"
-                disabled={formDisabled}
-                {...register('headline')}
-              />
-              {errors.headline ? (
-                <p className="text-xs text-destructive">{errors.headline.message}</p>
-              ) : null}
-            </div>
-          </div>
-
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
@@ -655,6 +637,21 @@ export function EpkEditor({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Artist name *</label>
+            <Input value={inherited.displayName} disabled />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Headline *</label>
+            <Input
+              placeholder="Genre, positioning, key context…"
+              disabled={formDisabled}
+              {...register('headline')}
+            />
+            {errors.headline ? (
+              <p className="text-xs text-destructive">{errors.headline.message}</p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
             <label className="text-sm font-medium text-white">Short bio *</label>
             <Textarea
               rows={4}
@@ -707,10 +704,10 @@ export function EpkEditor({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] shadow-[0_16px_50px_rgba(10,7,20,0.18)]">
-            <div className="grid grid-cols-[1.7fr,0.65fr,0.7fr] gap-0 border-b border-white/10 bg-white/[0.04] px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/45">
-              <span>Existing links</span>
-              <span className="text-center">Visible on my EPK</span>
-              <span className="text-center">Highlighted</span>
+            <div className="grid grid-cols-[1.5fr,0.8fr,0.8fr] gap-0 border-b border-white/10 bg-white/[0.04] px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/45">
+              <span>Platform</span>
+              <span className="text-center">Visible / Hidden</span>
+              <span className="text-center">Highlighted link</span>
             </div>
             {profileAndSmartLinks.map((link) => {
               const visible = watchedFeaturedLinks.some((item) => item.url === link.url);
@@ -719,20 +716,19 @@ export function EpkEditor({
               return (
                 <div
                   key={link.url}
-                  className="grid grid-cols-[1.7fr,0.65fr,0.7fr] items-center gap-0 border-b border-white/10 px-5 py-4 transition hover:bg-white/[0.03] last:border-b-0"
+                  className="grid grid-cols-[1.5fr,0.8fr,0.8fr] items-center gap-0 border-b border-white/10 px-5 py-4 transition hover:bg-white/[0.03] last:border-b-0"
                 >
                   <div className="min-w-0">
                     <p className="font-medium text-white">{link.label}</p>
-                    <p className="mt-1 truncate text-xs text-white/45">{link.url}</p>
                   </div>
                   <div className="flex justify-center">
                     <button
                       type="button"
                       disabled={formDisabled}
                       onClick={() => toggleFeaturedLinkVisibility(link)}
-                      className={`inline-flex min-w-[96px] items-center justify-center rounded-full border px-3 py-2 text-xs font-medium transition ${
+                      className={`inline-flex min-w-[116px] items-center justify-center rounded-full border px-3 py-2 text-xs font-medium transition ${
                         visible
-                          ? 'border-primary/40 bg-primary/15 text-white'
+                          ? 'border-primary/40 bg-primary/15 text-white shadow-[0_0_18px_rgba(155,48,208,0.12)]'
                           : 'border-white/12 bg-black/10 text-white/60 hover:border-white/25 hover:text-white'
                       }`}
                     >
@@ -744,13 +740,16 @@ export function EpkEditor({
                       type="button"
                       disabled={formDisabled}
                       onClick={() => setHighlightedLink(link.url)}
-                      className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition ${
+                      className={`inline-flex h-10 min-w-[116px] items-center justify-center gap-2 rounded-full border px-3 transition ${
                         highlighted
-                          ? 'border-amber-300/40 bg-amber-400/15 text-amber-200'
+                          ? 'border-amber-300/40 bg-amber-400/15 text-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.14)]'
                           : 'border-white/15 bg-white/[0.03] text-muted-foreground hover:border-primary/30 hover:text-primary'
                       }`}
                     >
                       <Star className={`h-4 w-4 ${highlighted ? 'fill-current' : ''}`} />
+                      <span className="text-xs font-medium">
+                        {highlighted ? 'Highlighted' : 'Set highlight'}
+                      </span>
                     </button>
                   </div>
                 </div>
