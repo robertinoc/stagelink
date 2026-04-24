@@ -218,7 +218,7 @@ export async function PublicEpkView({
                   {t('sections.featured_links')}
                 </h2>
                 <div className="flex flex-wrap gap-3">
-                  {epk.featuredLinks.map((item) => (
+                  {epk.featuredLinks.map((item, index) => (
                     <a
                       key={item.id}
                       href={item.url}
@@ -227,7 +227,9 @@ export async function PublicEpkView({
                       className={`rounded-full border px-4 py-2 text-sm transition ${
                         printMode
                           ? 'border-zinc-300 bg-white text-zinc-900'
-                          : 'border-white/10 bg-white/5'
+                          : index === 0
+                            ? 'border-primary/40 bg-primary/15 text-white shadow-[0_0_24px_rgba(168,85,247,0.18)]'
+                            : 'border-white/10 bg-white/5'
                       } hover:border-white/30`}
                     >
                       {item.label}
@@ -277,7 +279,7 @@ export async function PublicEpkView({
                     <h3
                       className={`text-sm font-semibold uppercase tracking-[0.18em] ${mutedHeadingClass}`}
                     >
-                      {t('sections.rider')}
+                      {t('sections.artist_requirements')}
                     </h3>
                     <p className={`whitespace-pre-line text-sm leading-7 ${bodyTextClass}`}>
                       {epk.riderInfo}
@@ -289,7 +291,7 @@ export async function PublicEpkView({
                     <h3
                       className={`text-sm font-semibold uppercase tracking-[0.18em] ${mutedHeadingClass}`}
                     >
-                      {t('sections.tech')}
+                      {t('sections.technical_rider')}
                     </h3>
                     <p className={`whitespace-pre-line text-sm leading-7 ${bodyTextClass}`}>
                       {epk.techRequirements}

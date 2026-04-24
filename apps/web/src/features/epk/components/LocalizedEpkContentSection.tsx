@@ -151,7 +151,7 @@ export function LocalizedEpkContentSection({
   }
 
   return (
-    <Card>
+    <Card className="border-white/10 bg-white/[0.04] shadow-[0_18px_65px_rgba(10,7,20,0.18)] transition duration-200 hover:border-primary/30 hover:bg-primary/[0.04] hover:shadow-[0_18px_80px_rgba(155,48,208,0.14)]">
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import { BadgeCheck, CircleDashed, EyeOff, GripVertical, Pencil, Trash2 } from 'lucide-react';
 import type {
   Block,
   BlockType,
@@ -55,6 +56,51 @@ const BLOCK_TYPE_ICONS: Record<BlockType, string> = {
   smart_merch: '👕',
 };
 
+const BLOCK_TYPE_ACCENTS: Record<
+  BlockType,
+  {
+    border: string;
+    background: string;
+    preview: string;
+  }
+> = {
+  links: {
+    border: 'border-slate-500/25',
+    background: 'bg-slate-500/8',
+    preview: 'text-slate-300',
+  },
+  music_embed: {
+    border: 'border-emerald-500/25',
+    background: 'bg-emerald-500/8',
+    preview: 'text-emerald-200',
+  },
+  video_embed: {
+    border: 'border-rose-500/25',
+    background: 'bg-rose-500/8',
+    preview: 'text-rose-200',
+  },
+  email_capture: {
+    border: 'border-amber-500/25',
+    background: 'bg-amber-500/8',
+    preview: 'text-amber-200',
+  },
+  text: {
+    border: 'border-zinc-500/25',
+    background: 'bg-zinc-500/8',
+    preview: 'text-zinc-300',
+  },
+  shopify_store: {
+    border: 'border-orange-500/25',
+    background: 'bg-orange-500/8',
+    preview: 'text-orange-200',
+  },
+  smart_merch: {
+    border: 'border-cyan-500/25',
+    background: 'bg-cyan-500/8',
+    preview: 'text-cyan-200',
+  },
+};
+
 function hasLocalizedContent(content: BlockLocalizedContent | null | undefined): boolean {
   if (!content) return false;
   return Object.values(content).some((value) => {
@@ -79,6 +125,93 @@ function getBlockConfigValidationMessage(config: BlockConfig | null): string | n
   }
 
   return null;
+}
+
+function getYouTubeThumbnail(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.includes('youtu.be')) {
+      const videoId = parsed.pathname.split('/').filter(Boolean)[0];
+      return videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : null;
+    }
+
+    if (parsed.hostname.includes('youtube.com')) {
+      const videoId = parsed.searchParams.get('v');
+      return videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : null;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+function getBlockPreview(block: Block, t: ReturnType<typeof useTranslations<'blocks'>>) {
+  switch (block.type) {
+    case 'text': {
+      const body = 'body' in block.config ? block.config.body : '';
+      return body?.trim() ? body.trim().slice(0, 140) : t('type_descriptions.text');
+    }
+    case 'video_embed': {
+      const provider = 'provider' in block.config ? block.config.provider : '';
+      const sourceUrl = 'sourceUrl' in block.config ? block.config.sourceUrl : '';
+      return sourceUrl ? `${provider} • ${sourceUrl}` : t('type_descriptions.video_embed');
+    }
+    case 'music_embed': {
+      const provider = 'provider' in block.config ? block.config.provider : '';
+      const sourceUrl = 'sourceUrl' in block.config ? block.config.sourceUrl : '';
+      return sourceUrl ? `${provider} • ${sourceUrl}` : t('type_descriptions.music_embed');
+    }
+    case 'links': {
+      const items = 'items' in block.config ? block.config.items : [];
+      if (!items?.length) return t('type_descriptions.links');
+      return items
+        .slice(0, 2)
+        .map((item) => item.label || item.url)
+        .filter(Boolean)
+        .join(' • ');
+    }
+    case 'shopify_store': {
+      const products = 'products' in block.config ? block.config.products : [];
+      if (!products?.length) return t('type_descriptions.shopify_store');
+      return `${products.length} products ready to show`;
+    }
+    case 'smart_merch': {
+      const products = 'products' in block.config ? block.config.products : [];
+      const selectedProducts =
+        'selectedProducts' in block.config ? block.config.selectedProducts : [];
+      const count = products?.length || selectedProducts?.length || 0;
+      return count > 0 ? `${count} merch products selected` : t('type_descriptions.smart_merch');
+    }
+    case 'email_capture': {
+      const headline = 'headline' in block.config ? block.config.headline : '';
+      return headline?.trim() || t('type_descriptions.email_capture');
+    }
+    default:
+      return t(`type_descriptions.${block.type}`);
+  }
+}
+
+function getBlockThumbnail(block: Block): string | null {
+  switch (block.type) {
+    case 'video_embed':
+      if ('sourceUrl' in block.config) {
+        return getYouTubeThumbnail(block.config.sourceUrl);
+      }
+      return null;
+    case 'shopify_store':
+      if ('products' in block.config) {
+        return block.config.products?.[0]?.imageUrl ?? null;
+      }
+      return null;
+    case 'smart_merch':
+      if ('products' in block.config) {
+        return block.config.products?.[0]?.imageUrl ?? null;
+      }
+      return null;
+    default:
+      return null;
+  }
 }
 
 // ─── Create Block Dialog ──────────────────────────────────────────────────────
@@ -358,22 +491,37 @@ function BlockRow({
   block,
   isFirst,
   isLast,
+  isDragging,
+  dragDisabled,
   onEdit,
   onUpdated,
   onDeleted,
   onMoved,
+  onDragStart,
+  onDragEnter,
+  onDragEnd,
+  onDrop,
 }: {
   block: Block;
   isFirst: boolean;
   isLast: boolean;
+  isDragging: boolean;
+  dragDisabled: boolean;
   onEdit: () => void;
   onUpdated: (block: Block) => void;
   onDeleted: (id: string) => void;
   onMoved: (id: string, direction: 'up' | 'down') => void;
+  onDragStart: (id: string) => void;
+  onDragEnter: (id: string) => void;
+  onDragEnd: () => void;
+  onDrop: (id: string) => void;
 }) {
   const t = useTranslations('blocks');
   const [toggling, setToggling] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const accent = BLOCK_TYPE_ACCENTS[block.type];
+  const preview = getBlockPreview(block, t);
+  const thumbnail = getBlockThumbnail(block);
 
   async function handleTogglePublish() {
     setToggling(true);
@@ -399,57 +547,137 @@ function BlockRow({
   }
 
   return (
-    <Card className="group">
-      <CardContent className="flex items-center gap-3 p-4">
+    <Card
+      draggable={!dragDisabled}
+      onDragStart={() => onDragStart(block.id)}
+      onDragEnter={(event) => {
+        event.preventDefault();
+        onDragEnter(block.id);
+      }}
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={(event) => {
+        event.preventDefault();
+        onDrop(block.id);
+      }}
+      onDragEnd={onDragEnd}
+      className={`group cursor-pointer transition-all ${
+        accent.border
+      } ${accent.background} ${isDragging ? 'scale-[0.99] opacity-70' : ''}`}
+      onClick={onEdit}
+    >
+      <CardContent className="flex items-start gap-3 p-4">
         {/* Order controls */}
-        <div className="flex flex-col gap-0.5">
-          <button
-            onClick={() => onMoved(block.id, 'up')}
-            disabled={isFirst}
+        <div className="flex items-center gap-2 pt-1">
+          <span
+            className="cursor-grab rounded-md border border-white/10 bg-white/5 p-1 text-muted-foreground active:cursor-grabbing"
             title={t('move_up')}
-            className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
+            onClick={(event) => event.stopPropagation()}
           >
-            ▲
-          </button>
-          <button
-            onClick={() => onMoved(block.id, 'down')}
-            disabled={isLast}
-            title={t('move_down')}
-            className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-          >
-            ▼
-          </button>
+            <GripVertical className="h-4 w-4" />
+          </span>
+          <div className="flex flex-col gap-0.5">
+            <button
+              type="button"
+              onClick={() => onMoved(block.id, 'up')}
+              disabled={isFirst}
+              title={t('move_up')}
+              className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
+            >
+              ▲
+            </button>
+            <button
+              type="button"
+              onClick={() => onMoved(block.id, 'down')}
+              disabled={isLast}
+              title={t('move_down')}
+              className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
+            >
+              ▼
+            </button>
+          </div>
         </div>
 
         {/* Icon + info */}
-        <span className="text-xl">{BLOCK_TYPE_ICONS[block.type]}</span>
-        <div className="flex-1 min-w-0">
+        {thumbnail ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={thumbnail}
+            alt=""
+            className="mt-0.5 h-12 w-12 rounded-xl border border-white/10 object-cover"
+          />
+        ) : (
+          <span className="mt-0.5 flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-black/10 text-xl">
+            {BLOCK_TYPE_ICONS[block.type]}
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
           <p className="truncate font-medium text-sm">{block.title ?? t(`types.${block.type}`)}</p>
           <p className="text-xs text-muted-foreground">{t(`types.${block.type}`)}</p>
+          <p className={`mt-1 line-clamp-2 text-xs ${accent.preview}`}>{preview}</p>
         </div>
 
         {/* Status badge */}
-        <Badge variant={block.isPublished ? 'default' : 'secondary'} className="shrink-0">
-          {block.isPublished ? t('published') : t('draft')}
-        </Badge>
-
-        {/* Actions */}
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button size="sm" variant="ghost" onClick={onEdit}>
-            {t('edit')}
-          </Button>
-          <Button size="sm" variant="ghost" onClick={handleTogglePublish} disabled={toggling}>
-            {block.isPublished ? t('unpublish') : t('publish')}
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleDelete}
-            disabled={deleting}
-            className="text-destructive hover:text-destructive"
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <Badge
+            variant={block.isPublished ? 'default' : 'secondary'}
+            className={block.isPublished ? 'bg-emerald-500/90 text-white' : ''}
           >
-            {t('delete')}
-          </Button>
+            {block.isPublished ? t('published') : t('draft')}
+          </Badge>
+
+          <div className="flex flex-wrap items-center justify-end gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(event) => {
+                event.stopPropagation();
+                onEdit();
+              }}
+            >
+              <Pencil className="mr-1 h-3.5 w-3.5" />
+              {t('edit')}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(event) => {
+                event.stopPropagation();
+                void handleTogglePublish();
+              }}
+              disabled={toggling}
+            >
+              {block.isPublished ? (
+                <>
+                  <EyeOff className="mr-1 h-3.5 w-3.5" />
+                  {t('unpublish')}
+                </>
+              ) : (
+                <>
+                  <BadgeCheck className="mr-1 h-3.5 w-3.5" />
+                  {t('publish')}
+                </>
+              )}
+            </Button>
+            {!block.isPublished ? (
+              <Badge variant="outline" className="hidden sm:inline-flex">
+                <CircleDashed className="mr-1 h-3 w-3" />
+                {t('draft')}
+              </Badge>
+            ) : null}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(event) => {
+                event.stopPropagation();
+                void handleDelete();
+              }}
+              disabled={deleting}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="mr-1 h-3.5 w-3.5" />
+              {t('delete')}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -471,6 +699,8 @@ export function BlockManager({
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [editingBlock, setEditingBlock] = useState<Block | null>(null);
+  const [draggedBlockId, setDraggedBlockId] = useState<string | null>(null);
+  const [dragTargetBlockId, setDragTargetBlockId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -527,6 +757,40 @@ export function BlockManager({
     }
   }
 
+  async function handleDrop(sourceId: string, targetId: string) {
+    if (sourceId === targetId) {
+      setDraggedBlockId(null);
+      setDragTargetBlockId(null);
+      return;
+    }
+
+    const sourceIndex = blocks.findIndex((block) => block.id === sourceId);
+    const targetIndex = blocks.findIndex((block) => block.id === targetId);
+    if (sourceIndex === -1 || targetIndex === -1) {
+      setDraggedBlockId(null);
+      setDragTargetBlockId(null);
+      return;
+    }
+
+    const reordered = [...blocks];
+    const [moved] = reordered.splice(sourceIndex, 1);
+    if (!moved) return;
+    reordered.splice(targetIndex, 0, moved);
+    const nextBlocks = reordered.map((block, index) => ({ ...block, position: index }));
+    setBlocks(nextBlocks);
+    setDraggedBlockId(null);
+    setDragTargetBlockId(null);
+
+    try {
+      const updated = await reorderBlocks(pageId, {
+        blocks: nextBlocks.map((block) => ({ id: block.id, position: block.position })),
+      });
+      setBlocks(updated);
+    } catch {
+      void load();
+    }
+  }
+
   if (loading) {
     return <p className="text-sm text-muted-foreground">{t('loading')}</p>;
   }
@@ -571,10 +835,23 @@ export function BlockManager({
               block={block}
               isFirst={index === 0}
               isLast={index === blocks.length - 1}
+              isDragging={draggedBlockId === block.id || dragTargetBlockId === block.id}
+              dragDisabled={blocks.length <= 1}
               onEdit={() => setEditingBlock(block)}
               onUpdated={handleUpdated}
               onDeleted={handleDeleted}
               onMoved={handleMoved}
+              onDragStart={(id) => setDraggedBlockId(id)}
+              onDragEnter={(id) => setDragTargetBlockId(id)}
+              onDragEnd={() => {
+                setDraggedBlockId(null);
+                setDragTargetBlockId(null);
+              }}
+              onDrop={(targetId) => {
+                if (draggedBlockId) {
+                  void handleDrop(draggedBlockId, targetId);
+                }
+              }}
             />
           ))}
         </div>
