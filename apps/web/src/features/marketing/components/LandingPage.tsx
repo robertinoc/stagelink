@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import type { SupportedLocale } from '@/lib/landing-translations';
@@ -176,6 +177,11 @@ const platformToneClasses = [
   'text-fuchsia-200/90 bg-fuchsia-400/10 border-fuchsia-400/20',
 ] as const;
 
+// TODO: Replace these local placeholder assets with final AI-generated artist images
+// once image generation is available in the repo workflow.
+const demoCoverImageSrc = '/landing/artist-demo-cover.svg';
+const demoAvatarImageSrc = '/landing/artist-demo-avatar.svg';
+
 export function LandingPage({ locale }: LandingPageProps) {
   const resolvedLocale: SupportedLocale = locale === 'es' ? 'es' : 'en';
   const t = getLandingT(resolvedLocale);
@@ -257,7 +263,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/70 sm:mt-6 sm:text-lg sm:leading-8">
               {t.hero.subheadline}
             </p>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-white/45 sm:leading-7">
+            <p className="mt-4 max-w-xl text-sm leading-6 text-white/52 sm:leading-7">
               {t.hero.supportingText}
             </p>
 
@@ -275,23 +281,35 @@ export function LandingPage({ locale }: LandingPageProps) {
                 {t.hero.ctaSecondary}
               </a>
             </div>
-            <p className="mt-3 text-sm text-white/45">{t.hero.ctaNote}</p>
+            <p className="mt-3 text-sm text-white/55">{t.hero.ctaNote}</p>
           </div>
 
           <div id="preview" className="relative">
             <div className="mx-auto max-w-[22rem] rounded-[1.65rem] border border-white/10 bg-white/5 p-3 shadow-[0_30px_80px_rgba(155,48,208,0.18)] backdrop-blur sm:max-w-xl sm:rounded-[2rem] sm:p-4">
               <div className="rounded-[1.35rem] border border-white/10 bg-sidebar p-3 sm:rounded-[1.6rem] sm:p-4">
                 <div className="max-h-[31rem] overflow-y-auto rounded-[1.15rem] border border-white/10 bg-[#140a22] p-2.5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 sm:max-h-[40rem] sm:rounded-[1.35rem] sm:p-3">
-                  <div className="relative h-32 overflow-hidden rounded-[1rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(155,48,208,0.55),rgba(64,18,108,0.92)_58%,rgba(18,11,28,1)_100%)] sm:h-40 sm:rounded-[1.2rem]">
-                    <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),transparent_35%,rgba(255,255,255,0.02)_65%,transparent)]" />
-                    <div className="absolute bottom-0 left-3 h-20 w-12 rounded-t-full bg-white/10 blur-[1px] sm:left-4 sm:h-28 sm:w-16" />
-                    <div className="absolute bottom-0 left-1/2 h-24 w-16 -translate-x-1/2 rounded-t-full bg-white/20 blur-[1px] sm:h-32 sm:w-20" />
-                    <div className="absolute bottom-0 right-3 h-20 w-12 rounded-t-full bg-white/10 blur-[1px] sm:right-4 sm:h-28 sm:w-16" />
-                    <div className="absolute bottom-5 left-1/2 h-8 w-8 -translate-x-1/2 rounded-full bg-white/8 sm:bottom-6 sm:h-10 sm:w-10" />
+                  <div className="relative h-32 overflow-hidden rounded-[1rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(155,48,208,0.4),rgba(64,18,108,0.86)_58%,rgba(18,11,28,0.98)_100%)] sm:h-40 sm:rounded-[1.2rem]">
+                    <Image
+                      src={demoCoverImageSrc}
+                      alt="Demo artist cover"
+                      fill
+                      sizes="(max-width: 640px) 320px, 480px"
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,3,16,0.08),rgba(7,3,16,0.18)_42%,rgba(7,3,16,0.46)_100%)]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),transparent_35%,rgba(255,255,255,0.03)_65%,transparent)]" />
                   </div>
 
                   <div className="relative z-10 mx-auto -mt-10 flex h-20 w-20 items-center justify-center rounded-full border-[3px] border-[#140a22] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.92),rgba(187,132,255,0.95)_28%,rgba(55,22,92,0.98)_74%,rgba(17,9,31,1)_100%)] shadow-[0_18px_35px_rgba(0,0,0,0.45)] sm:-mt-12 sm:h-24 sm:w-24 sm:border-4">
-                    <div className="h-14 w-14 rounded-full bg-[radial-gradient(circle_at_40%_20%,rgba(255,255,255,0.95),rgba(255,215,188,0.92)_34%,rgba(55,29,18,0.65)_36%,rgba(18,10,31,0.92)_68%)] sm:h-16 sm:w-16" />
+                    <div className="relative h-14 w-14 overflow-hidden rounded-full sm:h-16 sm:w-16">
+                      <Image
+                        src={demoAvatarImageSrc}
+                        alt="Demo artist portrait"
+                        fill
+                        sizes="64px"
+                        className="object-cover"
+                      />
+                    </div>
                   </div>
 
                   <div className="mt-3 text-center sm:mt-4">
@@ -299,15 +317,15 @@ export function LandingPage({ locale }: LandingPageProps) {
                       {t.hero.previewLabel}
                     </div>
                     <h2 className="mt-2 text-xl font-semibold sm:mt-3 sm:text-2xl">Robertino</h2>
-                    <p className="mt-1 text-sm text-white/45">{t.hero.previewHandle}</p>
-                    <p className="mt-2 text-sm text-white/55">{t.hero.previewRoles}</p>
+                    <p className="mt-1 text-sm text-white/58">{t.hero.previewHandle}</p>
+                    <p className="mt-2 text-sm text-white/66">{t.hero.previewRoles}</p>
                   </div>
 
                   <div className="mt-3 flex flex-wrap justify-center gap-2 sm:mt-4">
                     {t.hero.previewTags.map((tag) => (
                       <span
                         key={tag}
-                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-white/60"
+                        className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-white/74"
                       >
                         {tag}
                       </span>
@@ -318,7 +336,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                     {socialIcons.map((Icon, index) => (
                       <span
                         key={index}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/65 sm:h-9 sm:w-9"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/75 sm:h-9 sm:w-9"
                       >
                         <Icon />
                       </span>
@@ -327,7 +345,7 @@ export function LandingPage({ locale }: LandingPageProps) {
 
                   <div className="mt-4 rounded-[1.25rem] border border-white/10 bg-white/5 p-4 sm:mt-5 sm:rounded-[1.5rem] sm:p-5">
                     <h3 className="text-base font-semibold sm:text-lg">{t.hero.previewTitle}</h3>
-                    <p className="mt-3 text-sm leading-6 text-white/60 sm:leading-7">
+                    <p className="mt-3 text-sm leading-6 text-white/68 sm:leading-7">
                       {t.hero.previewDescription}
                     </p>
 
@@ -338,7 +356,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                         return (
                           <div
                             key={item}
-                            className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3.5 py-3 text-sm text-white/80 sm:px-4"
+                            className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3.5 py-3 text-sm text-white/86 sm:px-4"
                           >
                             <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-primary">
                               <Icon />
@@ -351,7 +369,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                   </div>
 
                   <div className="mt-4 rounded-[1.25rem] border border-white/10 bg-white/5 p-4 sm:rounded-[1.45rem]">
-                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.22em] text-white/40">
+                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.22em] text-white/52">
                       <span>{t.hero.previewMediaLabel}</span>
                       <span className="text-primary/80">{t.hero.previewMediaBadge}</span>
                     </div>
@@ -370,7 +388,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                           />
                           <div className="p-3">
                             <div className="text-sm font-medium text-white/90">{item}</div>
-                            <div className="mt-1 text-xs text-white/45">
+                            <div className="mt-1 text-xs text-white/56">
                               {t.hero.previewMediaMeta[index]}
                             </div>
                           </div>
@@ -380,16 +398,16 @@ export function LandingPage({ locale }: LandingPageProps) {
                   </div>
 
                   <div className="mt-4 rounded-[1.25rem] border border-white/10 bg-white/5 p-4 sm:rounded-[1.45rem]">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/40">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/52">
                       {t.hero.previewAboutLabel}
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-white/65 sm:leading-7">
+                    <p className="mt-3 text-sm leading-6 text-white/72 sm:leading-7">
                       {t.hero.previewAboutText}
                     </p>
                   </div>
 
                   <div className="mt-4 rounded-[1.25rem] border border-white/10 bg-white/5 p-4 sm:rounded-[1.45rem]">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/40">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/52">
                       {t.hero.previewMerchLabel}
                     </div>
                     <div className="mt-3 flex items-center gap-3 rounded-[1.05rem] border border-white/10 bg-sidebar/75 p-3 sm:gap-4 sm:rounded-[1.2rem]">
@@ -398,7 +416,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                         <div className="truncate text-sm font-semibold text-white/90">
                           {t.hero.previewMerchName}
                         </div>
-                        <div className="mt-1 text-xs text-white/45">{t.hero.previewMerchPrice}</div>
+                        <div className="mt-1 text-xs text-white/56">{t.hero.previewMerchPrice}</div>
                         <div className="mt-3 inline-flex rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
                           {t.hero.previewMerchStatus}
                         </div>
@@ -418,7 +436,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                         <div className="text-sm font-semibold text-white">
                           {t.hero.previewFanLabel}
                         </div>
-                        <div className="mt-1 text-xs text-white/50">
+                        <div className="mt-1 text-xs text-white/62">
                           {t.hero.previewAudienceText}
                         </div>
                       </div>
@@ -438,15 +456,15 @@ export function LandingPage({ locale }: LandingPageProps) {
         <div className="mx-auto max-w-7xl rounded-[2rem] border border-white/8 bg-white/[0.03] p-6 md:p-8">
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-4">
-              <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/30">
+              <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/44">
                 {t.strip.label}
               </p>
-              <p className="max-w-3xl text-sm leading-7 text-white/60">{t.strip.socialProof}</p>
+              <p className="max-w-3xl text-sm leading-7 text-white/72">{t.strip.socialProof}</p>
               <div className="flex flex-wrap gap-3">
                 {t.strip.items.map((item) => (
                   <span
                     key={item}
-                    className="landing-hover-card rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70"
+                    className="landing-hover-card rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/82"
                   >
                     {item}
                   </span>
@@ -455,10 +473,10 @@ export function LandingPage({ locale }: LandingPageProps) {
             </div>
 
             <div className="flex flex-col gap-4">
-              <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/30">
+              <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/44">
                 {t.strip.platformsLabel}
               </p>
-              <p className="max-w-3xl text-sm leading-7 text-white/45">
+              <p className="max-w-3xl text-sm leading-7 text-white/60">
                 {t.strip.platformsDescription}
               </p>
             </div>
@@ -495,16 +513,16 @@ export function LandingPage({ locale }: LandingPageProps) {
           <h2 className="mt-3 max-w-4xl text-3xl font-semibold tracking-tight md:text-5xl">
             {t.problem.headline}
           </h2>
-          <p className="mt-6 max-w-3xl text-base leading-8 text-white/60">{t.problem.intro}</p>
+          <p className="mt-6 max-w-3xl text-base leading-8 text-white/68">{t.problem.intro}</p>
 
           <div className="mt-10 grid gap-6 lg:grid-cols-2">
-            <div className="landing-hover-card rounded-[1.8rem] border border-white/10 bg-sidebar/70 p-6">
+            <div className="landing-hover-card rounded-[1.8rem] border border-rose-900/55 bg-[linear-gradient(180deg,rgba(62,18,31,0.5),rgba(26,10,18,0.82))] p-6 shadow-[0_22px_48px_rgba(34,8,16,0.24)]">
               <h3 className="text-lg font-semibold">{t.problem.painLabel}</h3>
               <div className="mt-5 space-y-3">
                 {t.problem.painPoints.map((item) => (
                   <div
                     key={item}
-                    className="landing-hover-card rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-7 text-white/70"
+                    className="landing-hover-card rounded-2xl border border-rose-900/45 bg-rose-950/25 px-4 py-3 text-sm leading-7 text-white/80"
                   >
                     {item}
                   </div>
@@ -512,13 +530,13 @@ export function LandingPage({ locale }: LandingPageProps) {
               </div>
             </div>
 
-            <div className="landing-hover-card rounded-[1.8rem] border border-primary/20 bg-primary/5 p-6">
+            <div className="landing-hover-card rounded-[1.8rem] border border-emerald-900/50 bg-[linear-gradient(180deg,rgba(10,48,33,0.36),rgba(9,24,17,0.82))] p-6 shadow-[0_22px_48px_rgba(5,26,17,0.22)]">
               <h3 className="text-lg font-semibold">{t.problem.solutionLabel}</h3>
               <div className="mt-5 space-y-3">
                 {t.problem.solutionPoints.map((item) => (
                   <div
                     key={item}
-                    className="landing-hover-card rounded-2xl border border-primary/20 bg-white/5 px-4 py-3 text-sm leading-7 text-white/80"
+                    className="landing-hover-card rounded-2xl border border-emerald-900/35 bg-emerald-950/20 px-4 py-3 text-sm leading-7 text-white/86"
                   >
                     {item}
                   </div>
@@ -539,7 +557,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
               {t.features.headline}
             </h2>
-            <p className="mt-5 text-base leading-8 text-white/60">{t.features.intro}</p>
+            <p className="mt-5 text-base leading-8 text-white/68">{t.features.intro}</p>
           </div>
 
           <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -552,7 +570,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                   {featureNumbers[index] ?? '00'}
                 </div>
                 <h3 className="mt-4 text-xl font-semibold">{feature.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-white/60">{feature.description}</p>
+                <p className="mt-3 text-sm leading-7 text-white/68">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -568,7 +586,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
               {t.howItWorks.headline}
             </h2>
-            <p className="mt-5 text-base leading-8 text-white/60">{t.howItWorks.intro}</p>
+            <p className="mt-5 text-base leading-8 text-white/68">{t.howItWorks.intro}</p>
           </div>
 
           <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -579,7 +597,7 @@ export function LandingPage({ locale }: LandingPageProps) {
               >
                 <div className="text-sm font-semibold text-primary">{item.step}</div>
                 <h3 className="mt-3 text-xl font-semibold">{item.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-white/60">{item.text}</p>
+                <p className="mt-3 text-sm leading-7 text-white/68">{item.text}</p>
               </div>
             ))}
           </div>
@@ -595,7 +613,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
               {t.forArtists.headline}
             </h2>
-            <p className="mt-5 text-base leading-8 text-white/60">{t.forArtists.body}</p>
+            <p className="mt-5 text-base leading-8 text-white/68">{t.forArtists.body}</p>
           </div>
 
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -605,7 +623,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                 className="rounded-[1.8rem] border border-white/10 bg-white/5 p-6 transition-colors hover:border-primary/30 hover:bg-primary/5"
               >
                 <h3 className="text-xl font-semibold">{segment.label}</h3>
-                <p className="mt-3 text-sm leading-7 text-white/55">{segment.description}</p>
+                <p className="mt-3 text-sm leading-7 text-white/66">{segment.description}</p>
               </div>
             ))}
           </div>
@@ -617,19 +635,19 @@ export function LandingPage({ locale }: LandingPageProps) {
         <div className="relative mx-auto max-w-7xl rounded-[2rem] border border-white/10 bg-white/5 p-8 md:p-12">
           <div className="grid gap-10 lg:grid-cols-[1fr_1.05fr]">
             <div>
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/50">
+              <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/60">
                 {t.monetization.eyebrow}
               </p>
               <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
                 {t.monetization.headline}
               </h2>
-              <p className="mt-5 text-base leading-8 text-white/60">{t.monetization.body}</p>
+              <p className="mt-5 text-base leading-8 text-white/68">{t.monetization.body}</p>
 
               <div className="mt-8 space-y-3">
                 {t.monetization.points.map((point) => (
                   <div
                     key={point}
-                    className="rounded-2xl border border-white/10 bg-sidebar/60 px-4 py-3 text-sm text-white/80"
+                    className="rounded-2xl border border-white/10 bg-sidebar/60 px-4 py-3 text-sm text-white/86"
                   >
                     {point}
                   </div>
@@ -638,7 +656,7 @@ export function LandingPage({ locale }: LandingPageProps) {
 
               <blockquote className="mt-8 rounded-[1.7rem] border border-primary/20 bg-primary/8 px-5 py-5">
                 <p className="text-lg leading-8 text-white/90">{t.monetization.founderQuote}</p>
-                <footer className="mt-4 block text-sm text-white/55">
+                <footer className="mt-4 block text-sm text-white/66">
                   {t.monetization.founderCredit}
                 </footer>
               </blockquote>
@@ -654,7 +672,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                     {pillarNumbers[index] ?? 'A'}
                   </div>
                   <h3 className="mt-4 text-xl font-semibold">{pillar.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-white/60">{pillar.description}</p>
+                  <p className="mt-3 text-sm leading-7 text-white/68">{pillar.description}</p>
                 </div>
               ))}
             </div>
@@ -670,7 +688,7 @@ export function LandingPage({ locale }: LandingPageProps) {
           <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
             {t.cta.headline}
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/60">{t.cta.body}</p>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/68">{t.cta.body}</p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
               href="/api/auth/signin"
@@ -685,7 +703,7 @@ export function LandingPage({ locale }: LandingPageProps) {
               {t.cta.secondary}
             </a>
           </div>
-          <p className="mt-3 text-sm text-white/45">{t.cta.note}</p>
+          <p className="mt-3 text-sm text-white/55">{t.cta.note}</p>
         </div>
       </section>
 
@@ -698,7 +716,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-5xl">
               {t.contact.headline}
             </h2>
-            <p className="mt-4 text-base leading-8 text-white/60">{t.contact.body}</p>
+            <p className="mt-4 text-base leading-8 text-white/68">{t.contact.body}</p>
 
             {contactState === 'success' ? (
               <div className="mt-10 rounded-[2rem] border border-primary/30 bg-primary/10 p-10 text-center">
