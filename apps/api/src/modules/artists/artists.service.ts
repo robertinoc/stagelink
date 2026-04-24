@@ -36,6 +36,7 @@ interface UpdateArtistPayload {
   category?: ArtistCategory;
   secondaryCategories?: ArtistCategory[];
   tags?: string[];
+  galleryImageUrls?: string[];
   instagramUrl?: string | null;
   tiktokUrl?: string | null;
   youtubeUrl?: string | null;
@@ -64,6 +65,19 @@ function sanitizeTags(tags?: string[]): string[] | undefined {
   if (tags === undefined) return undefined;
 
   return Array.from(new Set(tags.map((tag) => tag.trim()).filter((tag) => tag.length > 0)));
+}
+
+function sanitizeGalleryImageUrls(galleryImageUrls?: string[]): string[] | undefined {
+  if (galleryImageUrls === undefined) return undefined;
+
+  return Array.from(
+    new Set(
+      galleryImageUrls
+        .map((url) => url.trim())
+        .filter((url) => url.length > 0)
+        .slice(0, 6),
+    ),
+  );
 }
 
 @Injectable()
@@ -166,6 +180,7 @@ export class ArtistsService {
       payload.secondaryCategories,
     );
     const tags = sanitizeTags(payload.tags);
+    const galleryImageUrls = sanitizeGalleryImageUrls(payload.galleryImageUrls);
 
     const artist = await this.prisma.artist.update({
       where: { id },
@@ -178,6 +193,7 @@ export class ArtistsService {
         ...(payload.category !== undefined && { category: payload.category }),
         ...(secondaryCategories !== undefined && { secondaryCategories }),
         ...(tags !== undefined && { tags }),
+        ...(galleryImageUrls !== undefined && { galleryImageUrls }),
         ...(payload.instagramUrl !== undefined && { instagramUrl: payload.instagramUrl }),
         ...(payload.tiktokUrl !== undefined && { tiktokUrl: payload.tiktokUrl }),
         ...(payload.youtubeUrl !== undefined && { youtubeUrl: payload.youtubeUrl }),

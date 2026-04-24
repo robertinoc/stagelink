@@ -51,6 +51,8 @@ const MAX_CONSENT_LABEL_LENGTH = 200;
 const MAX_SUCCESS_MESSAGE_LENGTH = 200;
 const MAX_TEXT_BODY_LENGTH = 5000;
 const MAX_LINK_ITEMS = 20;
+const MIN_GALLERY_IMAGES = 2;
+const MAX_GALLERY_IMAGES = 6;
 const MAX_SHOPIFY_HEADLINE_LENGTH = 100;
 const MAX_SHOPIFY_DESCRIPTION_LENGTH = 300;
 const MAX_SHOPIFY_CTA_LENGTH = 40;
@@ -358,6 +360,31 @@ function validateEmailCaptureConfig(c: Record<string, unknown>): void {
 
 function validateTextConfig(c: Record<string, unknown>): void {
   assertNonEmptyString(c['body'], 'text config.body', MAX_TEXT_BODY_LENGTH);
+}
+
+function validateImageGalleryConfig(c: Record<string, unknown>): void {
+  if (!Array.isArray(c['imageUrls'])) {
+    throw new BadRequestException('image_gallery config.imageUrls must be an array');
+  }
+
+  const imageUrls = c['imageUrls'] as unknown[];
+  if (imageUrls.length < MIN_GALLERY_IMAGES || imageUrls.length > MAX_GALLERY_IMAGES) {
+    throw new BadRequestException(
+      `image_gallery config.imageUrls must contain between ${MIN_GALLERY_IMAGES} and ${MAX_GALLERY_IMAGES} items`,
+    );
+  }
+
+  const seenUrls = new Set<string>();
+  for (const [index, value] of imageUrls.entries()) {
+    assertSafeUrl(value, `image_gallery config.imageUrls[${index}]`);
+    const normalized = (value as string).trim();
+    if (seenUrls.has(normalized)) {
+      throw new BadRequestException(
+        `image_gallery config.imageUrls[${index}] must be unique within the block`,
+      );
+    }
+    seenUrls.add(normalized);
+  }
 }
 
 function validateShopifyStoreConfig(c: Record<string, unknown>): void {
@@ -723,6 +750,9 @@ export function validateBlockConfig(type: BlockType, config: unknown): void {
     case 'text':
       validateTextConfig(config);
       break;
+    case 'image_gallery':
+      validateImageGalleryConfig(config);
+      break;
     case 'shopify_store':
       validateShopifyStoreConfig(config);
       break;
@@ -807,6 +837,17 @@ export function sanitizeBlockConfig(
                 : item['purchaseUrl'],
           }))
         : config['selectedProducts'],
+    };
+  }
+
+  if (type === 'image_gallery') {
+    return {
+      ...config,
+      imageUrls: Array.isArray(config['imageUrls'])
+        ? (config['imageUrls'] as unknown[])
+            .filter((value): value is string => typeof value === 'string')
+            .map((value) => value.trim())
+        : config['imageUrls'],
     };
   }
 

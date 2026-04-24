@@ -20,6 +20,7 @@ export const BLOCK_TYPES = [
   'video_embed',
   'email_capture',
   'text',
+  'image_gallery',
   'shopify_store',
   'smart_merch',
 ] as const;

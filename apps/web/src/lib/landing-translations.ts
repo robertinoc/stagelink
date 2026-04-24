@@ -244,11 +244,13 @@ const en: LandingTranslation = {
     items: [
       {
         title: 'Help people find your music',
-        description: 'Give listeners one place to hear your music, open your sets, and keep exploring.',
+        description:
+          'Give listeners one place to hear your music, open your sets, and keep exploring.',
       },
       {
         title: 'Grow your audience',
-        description: 'Make it simple for new listeners to follow your links, socials, and next release.',
+        description:
+          'Make it simple for new listeners to follow your links, socials, and next release.',
       },
       {
         title: 'Get more opportunities',
@@ -263,7 +265,8 @@ const en: LandingTranslation = {
   howItWorks: {
     eyebrow: 'How it works',
     headline: 'Simple from day one',
-    intro: 'You do not need to rebuild everything. You just bring your artist world into one place.',
+    intro:
+      'You do not need to rebuild everything. You just bring your artist world into one place.',
     steps: [
       {
         step: '01',
@@ -285,8 +288,7 @@ const en: LandingTranslation = {
   forArtists: {
     eyebrow: 'Built for different kinds of artists',
     headline: 'For artists already out there',
-    body:
-      'Different paths, same need: one place that helps people hear your music, get your identity, and keep following what you do.',
+    body: 'Different paths, same need: one place that helps people hear your music, get your identity, and keep following what you do.',
     segments: [
       {
         label: 'DJs',
@@ -323,8 +325,7 @@ const en: LandingTranslation = {
   monetization: {
     eyebrow: 'Why StageLink',
     headline: 'Built by a DJ and producer',
-    body:
-      'StageLink was made for music artists who need more than a list of links. It helps you show your music, sets, visuals, and story in one artist presence.',
+    body: 'StageLink was made for music artists who need more than a list of links. It helps you show your music, sets, visuals, and story in one artist presence.',
     pillars: [
       {
         title: 'It starts with the artist',
@@ -355,8 +356,7 @@ const en: LandingTranslation = {
   cta: {
     eyebrow: 'When you are ready',
     headline: 'Give your music a home people remember',
-    body:
-      'Create one artist profile for your music, sets, links, social profiles, and content so the right people know where to go.',
+    body: 'Create one artist profile for your music, sets, links, social profiles, and content so the right people know where to go.',
     primary: 'Show my music',
     secondary: 'See how it works',
     note: 'Free. No credit card required.',
@@ -419,7 +419,8 @@ const es: LandingTranslation = {
       'Uní tu música, tus sets, tus visuales, tus links, tus perfiles sociales y tu contenido en una sola página para que te descubran rápido y se acerquen más fechas, bookings y colaboraciones.',
     supportingText:
       'StageLink es más que una página de links. Le da a tu sonido, tu estilo y tu historia un lugar que se siente tuyo.',
-    socialProof: 'Más de 1.000 artistas independientes están construyendo su presencia con StageLink',
+    socialProof:
+      'Más de 1.000 artistas independientes están construyendo su presencia con StageLink',
     ctaPrimary: 'Crear mi perfil artístico',
     ctaSecondary: 'Ver cómo se ve',
     ctaNote: 'Gratis. Sin tarjeta.',
@@ -533,8 +534,7 @@ const es: LandingTranslation = {
   forArtists: {
     eyebrow: 'Para distintos tipos de artistas',
     headline: 'Para artistas que ya están ahí afuera',
-    body:
-      'No importa cómo crees. La necesidad es la misma: que la gente escuche tu música, entienda tu identidad y quiera seguir de cerca lo que hacés.',
+    body: 'No importa cómo crees. La necesidad es la misma: que la gente escuche tu música, entienda tu identidad y quiera seguir de cerca lo que hacés.',
     segments: [
       {
         label: 'DJs',
@@ -569,8 +569,7 @@ const es: LandingTranslation = {
   monetization: {
     eyebrow: 'Por qué StageLink',
     headline: 'Hecho por un DJ y productor',
-    body:
-      'StageLink nació para artistas de música que necesitan más que una lista de links. Te ayuda a mostrar tu música, tus sets, tus visuales y tu historia en una sola presencia artística.',
+    body: 'StageLink nació para artistas de música que necesitan más que una lista de links. Te ayuda a mostrar tu música, tus sets, tus visuales y tu historia en una sola presencia artística.',
     pillars: [
       {
         title: 'Todo empieza en el artista',
@@ -601,8 +600,7 @@ const es: LandingTranslation = {
   cta: {
     eyebrow: 'Cuando quieras',
     headline: 'Dale a tu música un lugar que la gente recuerde',
-    body:
-      'Creá un perfil artístico para tu música, tus sets, tus links, tus perfiles sociales y tu contenido para que la gente indicada sepa adónde ir.',
+    body: 'Creá un perfil artístico para tu música, tus sets, tus links, tus perfiles sociales y tu contenido para que la gente indicada sepa adónde ir.',
     primary: 'Mostrar mi música',
     secondary: 'Ver cómo funciona',
     note: 'Gratis. Sin tarjeta.',

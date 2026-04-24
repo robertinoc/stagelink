@@ -42,6 +42,7 @@ interface Props {
   accessToken: string;
   canUseShopifyIntegration: boolean;
   canUseSmartMerch: boolean;
+  galleryImages?: string[];
   textSources?: Array<{
     id: string;
     label: string;
@@ -57,6 +58,7 @@ const BLOCK_TYPE_ICONS: Record<BlockType, string> = {
   video_embed: '🎬',
   email_capture: '✉️',
   text: '📝',
+  image_gallery: '🖼️',
   shopify_store: '🛍️',
   smart_merch: '👕',
 };
@@ -93,6 +95,11 @@ const BLOCK_TYPE_ACCENTS: Record<
     border: 'border-zinc-500/25',
     background: 'bg-zinc-500/8',
     preview: 'text-zinc-300',
+  },
+  image_gallery: {
+    border: 'border-indigo-500/25',
+    background: 'bg-indigo-500/8',
+    preview: 'text-indigo-200',
   },
   shopify_store: {
     border: 'border-orange-500/25',
@@ -181,6 +188,12 @@ function getBlockPreview(block: Block, t: ReturnType<typeof useTranslations<'blo
       if (!products?.length) return t('type_descriptions.shopify_store');
       return `${products.length} products ready to show`;
     }
+    case 'image_gallery': {
+      const imageUrls = 'imageUrls' in block.config ? block.config.imageUrls : [];
+      return imageUrls?.length
+        ? `${imageUrls.length} images selected`
+        : t('type_descriptions.image_gallery');
+    }
     case 'smart_merch': {
       const products = 'products' in block.config ? block.config.products : [];
       const selectedProducts =
@@ -214,6 +227,11 @@ function getBlockThumbnail(block: Block): string | null {
         return block.config.products?.[0]?.imageUrl ?? null;
       }
       return null;
+    case 'image_gallery':
+      if ('imageUrls' in block.config) {
+        return block.config.imageUrls?.[0] ?? null;
+      }
+      return null;
     default:
       return null;
   }
@@ -228,6 +246,7 @@ function CreateBlockDialog({
   accessToken,
   canUseShopifyIntegration,
   canUseSmartMerch,
+  galleryImages,
   textSources,
   onCreated,
   onClose,
@@ -238,6 +257,7 @@ function CreateBlockDialog({
   accessToken: string;
   canUseShopifyIntegration: boolean;
   canUseSmartMerch: boolean;
+  galleryImages?: Props['galleryImages'];
   textSources?: Props['textSources'];
   onCreated: (block: Block) => void;
   onClose: () => void;
@@ -360,6 +380,7 @@ function CreateBlockDialog({
                 onLocalizedContentChange={setLocalizedContent}
                 artistId={artistId}
                 accessToken={accessToken}
+                galleryImages={galleryImages}
                 textSources={textSources}
               />
             )}
@@ -387,6 +408,7 @@ function EditBlockSheet({
   block,
   artistId,
   accessToken,
+  galleryImages,
   textSources,
   onUpdated,
   onClose,
@@ -394,6 +416,7 @@ function EditBlockSheet({
   block: Block | null;
   artistId: string;
   accessToken: string;
+  galleryImages?: Props['galleryImages'];
   textSources?: Props['textSources'];
   onUpdated: (block: Block) => void;
   onClose: () => void;
@@ -475,6 +498,7 @@ function EditBlockSheet({
                 onLocalizedContentChange={setLocalizedContent}
                 artistId={artistId}
                 accessToken={accessToken}
+                galleryImages={galleryImages}
                 textSources={textSources}
               />
 
@@ -703,6 +727,7 @@ export function BlockManager({
   accessToken,
   canUseShopifyIntegration,
   canUseSmartMerch,
+  galleryImages,
   textSources,
 }: Props) {
   const t = useTranslations('blocks');
@@ -877,6 +902,7 @@ export function BlockManager({
         accessToken={accessToken}
         canUseShopifyIntegration={canUseShopifyIntegration}
         canUseSmartMerch={canUseSmartMerch}
+        galleryImages={galleryImages}
         textSources={textSources}
         onCreated={handleCreated}
         onClose={() => setCreateOpen(false)}
@@ -886,6 +912,7 @@ export function BlockManager({
         block={editingBlock}
         artistId={artistId}
         accessToken={accessToken}
+        galleryImages={galleryImages}
         textSources={textSources}
         onUpdated={(updated) => {
           handleUpdated(updated);

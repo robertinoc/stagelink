@@ -607,7 +607,17 @@
       "saved": "Profile saved successfully.",
       "unsaved": "You have unsaved changes.",
       "cover": "Cover image",
-      "avatar": "Profile picture"
+      "avatar": "Profile picture",
+      "gallery": {
+        "title": "My gallery",
+        "description": "Upload up to 6 artist photos here. You can reuse them later inside an Image Gallery block on your page.",
+        "count": "{current}/{max} images uploaded",
+        "add_image": "Add image",
+        "uploading": "Uploading…",
+        "helper": "JPEG, PNG or WebP · max 8 MB",
+        "image_alt": "Gallery image {index}",
+        "image_label": "Image {index}"
+      }
     },
     "epk": {
       "fields": {
@@ -1028,6 +1038,7 @@
       "video_embed": "Video",
       "email_capture": "Fan capture form",
       "text": "Text",
+      "image_gallery": "Image Gallery",
       "shopify_store": "Merch",
       "smart_merch": "Smart Merch"
     },
@@ -1037,6 +1048,7 @@
       "video_embed": "Embed a video from YouTube, Vimeo or TikTok.",
       "email_capture": "Collect fan signups from your page and feed StageLink fan insights.",
       "text": "Add a text block for a bio, technical rider, artist requirements, or any public info you already have ready.",
+      "image_gallery": "Show a gallery using images you already uploaded in My gallery.",
       "shopify_store": "Show selected merch from your connected Shopify storefront.",
       "smart_merch": "Pick real products from Printful and attach an external purchase link for each one."
     },
@@ -1081,6 +1093,16 @@
       "reuse_section_title": "Use information already available",
       "reuse_section_hint": "Pull saved text from Profile or Press Kit instead of rewriting it here.",
       "body_locale_hint": "Text blocks currently use your base language. If you need different copy by language, duplicate the block for now.",
+      "image_gallery_title": "Choose images from My gallery",
+      "image_gallery_hint": "Pick the profile gallery images you want to show in this block.",
+      "image_gallery_empty": "Add gallery images in My Profile first",
+      "image_gallery_from_profile": "This block only uses images already uploaded in My gallery.",
+      "image_gallery_use_all": "Use all images",
+      "image_gallery_selected": "Selected",
+      "image_gallery_select": "Select",
+      "image_gallery_selected_count": "{selected} of {total} selected",
+      "image_gallery_minimum": "Select at least 2 images and up to 6.",
+      "image_gallery_pick_hint": "Gallery image {index}",
       "shopify_headline": "Merch headline (optional)",
       "shopify_headline_placeholder": "e.g. Latest merch drop",
       "shopify_description": "Merch description (optional)",
@@ -1232,6 +1254,7 @@
     "sections": {
       "featured_links": "Featured links",
       "featured_media": "Featured media",
+      "highlighted_link": "Highlighted link",
       "merch": "Merch",
       "about": "About",
       "presskit": "Press kit",

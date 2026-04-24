@@ -56,7 +56,7 @@ export class AssetsService {
     const asset = await this.prisma.asset.create({
       data: {
         artistId: dto.artistId,
-        kind: dto.kind as 'avatar' | 'cover',
+        kind: dto.kind as 'avatar' | 'cover' | 'epk_image' | 'profile_gallery',
         bucket: this.s3.getBucket(),
         objectKey,
         originalFilename: dto.originalFilename ?? null,
@@ -154,7 +154,7 @@ export class AssetsService {
       where: {
         artistId,
         status: 'uploaded',
-        kind: { in: ['avatar', 'cover', 'epk_image'] },
+        kind: { in: ['avatar', 'cover', 'epk_image', 'profile_gallery'] },
       },
       orderBy: { createdAt: 'desc' },
     });

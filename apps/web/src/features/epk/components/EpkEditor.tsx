@@ -354,7 +354,7 @@ export function EpkEditor({
   }
 
   function toggleFeaturedLinkVisibility(link: { label: string; url: string }) {
-    const currentLinks = getValues('featuredLinks');
+    const currentLinks = getValues('featuredLinks') ?? [];
     const exists = currentLinks.some((item) => item.url === link.url);
     if (exists) {
       setValue(
@@ -380,7 +380,7 @@ export function EpkEditor({
   }
 
   function setHighlightedLink(url: string) {
-    const currentLinks = getValues('featuredLinks');
+    const currentLinks = getValues('featuredLinks') ?? [];
     const existing = currentLinks.find((item) => item.url === url);
     const next = existing
       ? [existing, ...currentLinks.filter((item) => item.url !== url)]

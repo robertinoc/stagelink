@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Globe2, PlayCircle, Radio } from 'lucide-react';
+import { Globe2 } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { DEFAULT_LOCALE, type PublicEpkResponse, type SupportedLocale } from '@stagelink/types';
 
@@ -7,17 +7,6 @@ interface PublicEpkViewProps {
   epk: PublicEpkResponse;
   printMode?: boolean;
   locale?: SupportedLocale;
-}
-
-function getMediaIcon(provider: string) {
-  switch (provider) {
-    case 'soundcloud':
-      return Radio;
-    case 'youtube':
-      return PlayCircle;
-    default:
-      return Globe2;
-  }
 }
 
 export async function PublicEpkView({
@@ -37,6 +26,8 @@ export async function PublicEpkView({
     ? 'border-zinc-200 bg-zinc-50 text-zinc-900'
     : 'border-white/10 bg-white/5 text-white';
   const softCardClass = printMode ? 'border-zinc-200 bg-zinc-50' : 'border-white/10 bg-black/20';
+  const highlightedLink = epk.featuredLinks[0] ?? null;
+  const featuredLinks = highlightedLink ? epk.featuredLinks.slice(1) : epk.featuredLinks;
 
   return (
     <div className={printMode ? 'bg-white text-zinc-900' : 'min-h-screen bg-zinc-950 text-white'}>
@@ -164,78 +155,77 @@ export async function PublicEpkView({
               </section>
             ) : null}
 
-            {epk.featuredMedia.length > 0 ? (
+            {highlightedLink ? (
               <section className="space-y-4">
                 <h2
                   className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
                 >
-                  {t('sections.featured_media')}
+                  {t('sections.highlighted_link')}
                 </h2>
-                <div className="grid gap-3 md:grid-cols-2">
-                  {epk.featuredMedia.map((item) => {
-                    const MediaIcon = getMediaIcon(item.provider);
-                    return (
-                      <a
-                        key={item.id}
-                        href={item.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={`rounded-2xl border px-4 py-4 transition ${cardClass} hover:border-white/30 print:hover:border-zinc-300`}
+                <a
+                  href={highlightedLink.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`block rounded-2xl border px-4 py-4 transition ${cardClass} hover:border-white/30 print:hover:border-zinc-300`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`rounded-full border p-2 ${
+                        printMode
+                          ? 'border-zinc-300 bg-white text-zinc-700'
+                          : 'border-white/10 bg-white/10 text-zinc-200'
+                      }`}
+                    >
+                      <Globe2 className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className={`text-sm font-semibold ${bodyTextClass}`}>
+                        {highlightedLink.label}
+                      </p>
+                      <p
+                        className={`mt-1 break-all text-xs ${
+                          printMode ? 'text-zinc-700' : 'text-zinc-400'
+                        }`}
                       >
-                        <div className="flex items-start gap-3">
-                          <div
-                            className={`rounded-full border p-2 ${
-                              printMode
-                                ? 'border-zinc-300 bg-white text-zinc-700'
-                                : 'border-white/10 bg-white/10 text-zinc-200'
-                            }`}
-                          >
-                            <MediaIcon className="h-4 w-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className={`text-sm font-semibold ${bodyTextClass}`}>{item.title}</p>
-                            <p
-                              className={`mt-1 text-xs uppercase tracking-[0.18em] ${
-                                printMode ? 'text-zinc-600' : 'text-zinc-400'
-                              }`}
-                            >
-                              {item.provider}
-                            </p>
-                          </div>
-                        </div>
-                      </a>
-                    );
-                  })}
-                </div>
+                        {highlightedLink.url}
+                      </p>
+                    </div>
+                  </div>
+                </a>
               </section>
             ) : null}
 
-            {epk.featuredLinks.length > 0 ? (
+            {featuredLinks.length > 0 ? (
               <section className="space-y-4">
                 <h2
                   className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
                 >
                   {t('sections.featured_links')}
                 </h2>
-                <div className="flex flex-wrap gap-3">
-                  {epk.featuredLinks.map((item, index) => (
-                    <a
-                      key={item.id}
-                      href={item.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`rounded-full border px-4 py-2 text-sm transition ${
-                        printMode
-                          ? 'border-zinc-300 bg-white text-zinc-900'
-                          : index === 0
-                            ? 'border-primary/40 bg-primary/15 text-white shadow-[0_0_24px_rgba(168,85,247,0.18)]'
-                            : 'border-white/10 bg-white/5'
-                      } hover:border-white/30`}
-                    >
-                      {item.label}
-                    </a>
-                  ))}
-                </div>
+                {printMode ? (
+                  <div className="space-y-3">
+                    {featuredLinks.map((item) => (
+                      <div key={item.id} className={`rounded-2xl border px-4 py-3 ${cardClass}`}>
+                        <p className={`text-sm font-semibold ${bodyTextClass}`}>{item.label}</p>
+                        <p className="mt-1 break-all text-xs text-zinc-700">{item.url}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-3">
+                    {featuredLinks.map((item) => (
+                      <a
+                        key={item.id}
+                        href={item.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm transition hover:border-white/30"
+                      >
+                        {item.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </section>
             ) : null}
 

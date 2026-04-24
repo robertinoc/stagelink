@@ -657,7 +657,9 @@ export function LandingPage({ locale }: LandingPageProps) {
 
               <blockquote className="mt-8 rounded-[1.7rem] border border-primary/20 bg-primary/8 px-5 py-5">
                 <p className="text-sm text-primary/80">{t.monetization.founderSupport}</p>
-                <p className="mt-3 text-lg leading-8 text-white/90">{t.monetization.founderQuote}</p>
+                <p className="mt-3 text-lg leading-8 text-white/90">
+                  {t.monetization.founderQuote}
+                </p>
                 <footer className="mt-4 block text-sm text-white/66">
                   {t.monetization.founderCredit}
                 </footer>

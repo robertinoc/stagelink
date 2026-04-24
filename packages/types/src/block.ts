@@ -20,6 +20,7 @@ export const BLOCK_TYPES = [
   'video_embed',
   'email_capture',
   'text',
+  'image_gallery',
   'shopify_store',
   'smart_merch',
 ] as const;
@@ -129,6 +130,10 @@ export interface TextBlockConfig {
   body: string;
 }
 
+export interface ImageGalleryBlockConfig {
+  imageUrls: string[];
+}
+
 export interface ShopifyStoreBlockConfig {
   headline?: string;
   description?: string;
@@ -192,6 +197,7 @@ export type BlockConfig =
   | VideoEmbedBlockConfig
   | EmailCaptureBlockConfig
   | TextBlockConfig
+  | ImageGalleryBlockConfig
   | ShopifyStoreBlockConfig
   | SmartMerchBlockConfig;
 
@@ -255,6 +261,12 @@ export function isEmailCaptureBlock(
 
 export function isTextBlock(block: Block): block is Block & { config: TextBlockConfig } {
   return block.type === 'text';
+}
+
+export function isImageGalleryBlock(
+  block: Block,
+): block is Block & { config: ImageGalleryBlockConfig } {
+  return block.type === 'image_gallery';
 }
 
 export function isShopifyStoreBlock(

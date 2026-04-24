@@ -16,6 +16,7 @@ enum AssetKind {
   avatar
   cover
   epk_image
+  profile_gallery
 
   @@map("asset_kind")
 }
@@ -91,6 +92,7 @@ model Artist {
   tags        String[] @default([])
   avatarUrl     String?  @map("avatar_url")
   coverUrl      String?  @map("cover_url")
+  galleryImageUrls Json   @default("[]") @map("gallery_image_urls")
   avatarAssetId String?  @unique @map("avatar_asset_id")
   coverAssetId  String?  @unique @map("cover_asset_id")
   // Social links
@@ -238,6 +240,7 @@ enum BlockType {
   video_embed
   email_capture
   text
+  image_gallery
   shopify_store
   smart_merch
 

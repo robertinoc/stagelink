@@ -159,6 +159,22 @@ export class UpdateArtistDto {
   })
   tags?: string[];
 
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) => {
+    if (!Array.isArray(value)) return value;
+    return value
+      .map((item) => (typeof item === 'string' ? item.trim() : item))
+      .filter((item): item is string => typeof item === 'string' && item.length > 0);
+  })
+  @IsArray()
+  @ArrayUnique()
+  @ArrayMaxSize(6, { message: 'You can upload up to 6 gallery images' })
+  @IsUrl(
+    { require_protocol: true },
+    { each: true, message: 'galleryImageUrls must contain only valid URLs' },
+  )
+  galleryImageUrls?: string[];
+
   // ── Social links ─────────────────────────────────────────────
 
   @IsOptional()
