@@ -601,9 +601,9 @@
         "short_bio": "Bio corta",
         "full_bio": "Bio completa",
         "press_quote": "Cita de prensa",
-        "availability": "Disponibilidad",
-        "rider": "Rider",
-        "tech_requirements": "Requerimientos técnicos"
+        "availability": "Disponibilidad y logística",
+        "rider": "Requerimientos del artista",
+        "tech_requirements": "Technical rider"
       },
       "translations": {
         "title": "Contenido localizado del EPK",
@@ -636,9 +636,9 @@
           "short_bio": "Bio corta localizada para este idioma",
           "full_bio": "Historia ampliada del artista para este idioma",
           "press_quote": "Cita localizada opcional de prensa, curator o promoter",
-          "availability": "Notas de disponibilidad localizadas",
-          "rider": "Detalles localizados del rider",
-          "tech_requirements": "Requerimientos técnicos localizados"
+          "availability": "Notas localizadas de disponibilidad, viajes y logística",
+          "rider": "Requerimientos localizados de hospitality, invitados y staff",
+          "tech_requirements": "Setup localizado de DJ, sonido, luces, pantallas y técnica"
         }
       }
     },
@@ -766,6 +766,11 @@
           "locked": "Bloqueado"
         }
       },
+      "support": {
+        "title": "¿Necesitás ayuda con la configuración?",
+        "description": "Si encontrás un bug, querés pedir un cambio o necesitás ayuda conectando alguna de estas herramientas, escribile al centro de soporte y lo revisamos.",
+        "cta": "Contactar centro de soporte"
+      },
       "summary": {
         "title": "Capacidades por plan",
         "description": "StageLink resuelve actualmente este tenant como {plan}. El gating backend usa este plan efectivo, no solo la UI de billing.",
@@ -871,7 +876,9 @@
           "validate": "Validar conexión",
           "validating": "Validando...",
           "save": "Guardar Shopify",
-          "saving": "Guardando..."
+          "saving": "Guardando...",
+          "disconnect": "Desconectar tienda",
+          "disconnecting": "Desconectando..."
         },
         "hints": {
           "store_domain": "Usá solo el hostname de la tienda, sin https:// ni paths.",
@@ -884,7 +891,9 @@
           "saved": "Configuración de Shopify guardada.",
           "save_error": "No se pudo guardar la configuración de Shopify.",
           "validate_error": "No se pudo validar esta conexión con Shopify.",
-          "no_preview": "La selección actual no devolvió productos para la vista previa."
+          "no_preview": "La selección actual no devolvió productos para la vista previa.",
+          "disconnected": "Tienda de Shopify desconectada.",
+          "disconnect_error": "No se pudo desconectar esta tienda de Shopify."
         }
       },
       "merch": {
@@ -907,7 +916,9 @@
           "validate": "Validar conexión",
           "validating": "Validando...",
           "save": "Guardar Smart Merch",
-          "saving": "Guardando..."
+          "saving": "Guardando...",
+          "disconnect": "Desconectar Printful",
+          "disconnecting": "Desconectando..."
         },
         "hints": {
           "provider": "Printful es el primer proveedor de Smart Merch. Printify se puede sumar después sobre la misma arquitectura.",
@@ -918,7 +929,9 @@
           "saved": "Configuración de Smart Merch guardada.",
           "save_error": "No se pudo guardar la configuración de Smart Merch.",
           "validate_error": "No se pudo validar esta conexión con Printful.",
-          "no_preview": "Todavía no hay productos disponibles para esta tienda conectada de Printful."
+          "no_preview": "Todavía no hay productos disponibles para esta tienda conectada de Printful.",
+          "disconnected": "Printful desconectado.",
+          "disconnect_error": "No se pudo desconectar esta conexión de Printful."
         },
         "store": {
           "connected_to": "Conectado a {name}",

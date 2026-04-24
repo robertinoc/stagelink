@@ -5,6 +5,7 @@ import {
   resolvePlanLabel,
 } from '@/features/dashboard/settings/settings-data';
 import {
+  SettingsSupportBanner,
   SettingsOverviewGrid,
   type SettingsSectionCardItem,
 } from '@/features/dashboard/settings/SettingsSections';
@@ -81,6 +82,13 @@ export default async function DashboardSettingsPage({
         description={t('navigation.description')}
         items={items}
         openLabel={t('overview.open_section')}
+      />
+
+      <SettingsSupportBanner
+        title={t('support.title')}
+        description={t('support.description')}
+        ctaLabel={t('support.cta')}
+        href="mailto:robertinoc@gmail.com?subject=StageLink%20Support"
       />
     </div>
   );

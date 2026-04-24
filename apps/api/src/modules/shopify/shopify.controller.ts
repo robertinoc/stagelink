@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import type { Request } from 'express';
 import type { User } from '@prisma/client';
 import type { ShopifyConnection, ShopifyConnectionValidationResult } from '@stagelink/types';
@@ -36,5 +36,14 @@ export class ShopifyController {
     @Req() req: Request,
   ): Promise<ShopifyConnection> {
     return this.shopifyService.updateConnection(artistId, dto, user.id, extractClientIp(req));
+  }
+
+  @Delete()
+  disconnectConnection(
+    @Param('artistId') artistId: string,
+    @CurrentUser() user: User,
+    @Req() req: Request,
+  ): Promise<ShopifyConnection> {
+    return this.shopifyService.disconnectConnection(artistId, user.id, extractClientIp(req));
   }
 }

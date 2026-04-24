@@ -375,7 +375,7 @@ export function LocalizedEpkContentSection({
             />
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid gap-5 xl:grid-cols-3">
             <div className="space-y-1.5">
               <label
                 htmlFor={`translations.${activeLocale}.availabilityNotes`}
@@ -387,7 +387,7 @@ export function LocalizedEpkContentSection({
                 id={`translations.${activeLocale}.availabilityNotes`}
                 placeholder={t('translations.placeholders.availability')}
                 disabled={fieldsDisabled}
-                className="min-h-[140px]"
+                className="min-h-[180px]"
                 {...register(`translations.${activeLocale}.availabilityNotes`)}
               />
             </div>
@@ -403,26 +403,26 @@ export function LocalizedEpkContentSection({
                 id={`translations.${activeLocale}.riderInfo`}
                 placeholder={t('translations.placeholders.rider')}
                 disabled={fieldsDisabled}
-                className="min-h-[140px]"
+                className="min-h-[180px]"
                 {...register(`translations.${activeLocale}.riderInfo`)}
               />
             </div>
-          </div>
 
-          <div className="space-y-1.5">
-            <label
-              htmlFor={`translations.${activeLocale}.techRequirements`}
-              className="text-sm font-medium"
-            >
-              {t('fields.tech_requirements')}
-            </label>
-            <Textarea
-              id={`translations.${activeLocale}.techRequirements`}
-              placeholder={t('translations.placeholders.tech_requirements')}
-              disabled={fieldsDisabled}
-              className="min-h-[160px]"
-              {...register(`translations.${activeLocale}.techRequirements`)}
-            />
+            <div className="space-y-1.5">
+              <label
+                htmlFor={`translations.${activeLocale}.techRequirements`}
+                className="text-sm font-medium"
+              >
+                {t('fields.tech_requirements')}
+              </label>
+              <Textarea
+                id={`translations.${activeLocale}.techRequirements`}
+                placeholder={t('translations.placeholders.tech_requirements')}
+                disabled={fieldsDisabled}
+                className="min-h-[180px]"
+                {...register(`translations.${activeLocale}.techRequirements`)}
+              />
+            </div>
           </div>
         </div>
       </CardContent>

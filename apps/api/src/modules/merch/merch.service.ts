@@ -138,6 +138,44 @@ export class MerchService {
     return this.mapConnection(saved, previewProducts);
   }
 
+  async disconnectConnection(
+    artistId: string,
+    userId: string,
+    ipAddress?: string,
+  ): Promise<MerchProviderConnection> {
+    await this.membershipService.validateAccess(userId, artistId, 'write');
+    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'smart_merch');
+
+    const existing = await this.prisma.merchProviderConnection.findUnique({
+      where: { artistId },
+    });
+
+    if (!existing) {
+      return this.buildEmptyConnection(artistId);
+    }
+
+    await this.prisma.merchProviderConnection.delete({
+      where: { artistId },
+    });
+
+    this.auditService.log({
+      actorId: userId,
+      action: 'merch_connection.delete',
+      entityType: 'merch_connection',
+      entityId: existing.id,
+      metadata: {
+        artistId,
+        provider: existing.provider,
+        storeId: existing.storeId,
+      },
+      ipAddress,
+    });
+
+    this.clearCaches(artistId);
+
+    return this.buildEmptyConnection(artistId);
+  }
+
   async listAvailableProducts(
     artistId: string,
     userId: string,

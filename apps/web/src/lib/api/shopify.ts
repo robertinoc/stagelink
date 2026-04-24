@@ -61,3 +61,12 @@ export async function saveShopifyConnection(
   const json = await readJsonOrThrow<ShopifyConnection>(res, 'Could not save Shopify connection');
   return json;
 }
+
+export async function disconnectShopifyConnection(artistId: string): Promise<ShopifyConnection> {
+  const res = await fetch(`/api/artists/${artistId}/shopify`, {
+    method: 'DELETE',
+    cache: 'no-store',
+  });
+
+  return readJsonOrThrow<ShopifyConnection>(res, 'Could not disconnect Shopify connection');
+}

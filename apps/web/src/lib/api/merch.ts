@@ -72,3 +72,17 @@ export async function listMerchProducts(
 
   return readJsonOrThrow<SmartMerchProduct[]>(res, 'Could not load merch products');
 }
+
+export async function disconnectMerchConnection(
+  artistId: string,
+): Promise<MerchProviderConnection> {
+  const res = await fetch(`/api/artists/${artistId}/merch`, {
+    method: 'DELETE',
+    cache: 'no-store',
+  });
+
+  return readJsonOrThrow<MerchProviderConnection>(
+    res,
+    'Could not disconnect merch provider settings',
+  );
+}

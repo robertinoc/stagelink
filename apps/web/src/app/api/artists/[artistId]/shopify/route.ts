@@ -90,3 +90,44 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     );
   }
 }
+
+export async function DELETE(_request: NextRequest, context: RouteContext) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+
+  const apiBaseUrl = resolveApiBaseUrl();
+  if (!apiBaseUrl) {
+    return NextResponse.json(
+      { message: 'Shopify API is not configured on this deployment.' },
+      { status: 500 },
+    );
+  }
+
+  const { artistId } = await context.params;
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/artists/${artistId}/shopify`, {
+      method: 'DELETE',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${session.accessToken}`,
+      },
+      cache: 'no-store',
+    });
+
+    const responseBody = await response.text();
+    return new NextResponse(responseBody, {
+      status: response.status,
+      headers: {
+        'Content-Type': response.headers.get('Content-Type') ?? 'application/json',
+        'Cache-Control': 'no-store',
+      },
+    });
+  } catch (error) {
+    console.error('[shopify][proxy] Delete request failed', error);
+    return NextResponse.json(
+      { message: 'Could not disconnect Shopify settings right now.' },
+      { status: 502 },
+    );
+  }
+}

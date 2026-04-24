@@ -601,9 +601,9 @@
         "short_bio": "Short bio",
         "full_bio": "Full bio",
         "press_quote": "Press quote",
-        "availability": "Availability",
-        "rider": "Rider",
-        "tech_requirements": "Tech requirements"
+        "availability": "Availability and logistics",
+        "rider": "Artist requirements",
+        "tech_requirements": "Technical rider"
       },
       "translations": {
         "title": "Localized EPK content",
@@ -636,9 +636,9 @@
           "short_bio": "Localized short bio for this locale",
           "full_bio": "Longer localized artist story for this locale",
           "press_quote": "Optional localized quote from media, curator or promoter",
-          "availability": "Localized availability notes",
-          "rider": "Localized rider details",
-          "tech_requirements": "Localized technical requirements"
+          "availability": "Localized travel, logistics, and availability notes",
+          "rider": "Localized hospitality, guest list, and artist-side requirements",
+          "tech_requirements": "Localized DJ setup, sound, lights, screens, and technical needs"
         }
       }
     },
@@ -766,6 +766,11 @@
           "locked": "Locked"
         }
       },
+      "support": {
+        "title": "Need help with your setup?",
+        "description": "If you run into a bug, want a change, or need help connecting one of these tools, contact the support center and we will take a look.",
+        "cta": "Contact support center"
+      },
       "summary": {
         "title": "Plan capabilities",
         "description": "StageLink currently resolves this tenant as {plan}. Backend gating uses this effective plan, not only the billing UI.",
@@ -871,7 +876,9 @@
           "validate": "Validate connection",
           "validating": "Validating...",
           "save": "Save Shopify settings",
-          "saving": "Saving..."
+          "saving": "Saving...",
+          "disconnect": "Disconnect store",
+          "disconnecting": "Disconnecting..."
         },
         "hints": {
           "store_domain": "Use the store hostname only, without https:// or any path.",
@@ -884,7 +891,9 @@
           "saved": "Shopify settings saved.",
           "save_error": "Could not save Shopify settings.",
           "validate_error": "Could not validate this Shopify connection.",
-          "no_preview": "No preview products were returned for the current selection."
+          "no_preview": "No preview products were returned for the current selection.",
+          "disconnected": "Shopify store disconnected.",
+          "disconnect_error": "Could not disconnect this Shopify store."
         }
       },
       "merch": {
@@ -907,7 +916,9 @@
           "validate": "Validate connection",
           "validating": "Validating...",
           "save": "Save Smart Merch settings",
-          "saving": "Saving..."
+          "saving": "Saving...",
+          "disconnect": "Disconnect Printful",
+          "disconnecting": "Disconnecting..."
         },
         "hints": {
           "provider": "Printful is the first Smart Merch provider. Printify can plug into the same architecture later.",
@@ -918,7 +929,9 @@
           "saved": "Smart Merch settings saved.",
           "save_error": "Could not save Smart Merch settings.",
           "validate_error": "Could not validate this Printful connection.",
-          "no_preview": "No products are available yet for this connected Printful store."
+          "no_preview": "No products are available yet for this connected Printful store.",
+          "disconnected": "Printful disconnected.",
+          "disconnect_error": "Could not disconnect this Printful connection."
         },
         "store": {
           "connected_to": "Connected to {name}",

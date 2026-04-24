@@ -28,6 +28,34 @@ interface SettingsOverviewGridProps {
   openLabel: string;
 }
 
+interface SettingsSupportBannerProps {
+  title: string;
+  description: string;
+  ctaLabel: string;
+  href: string;
+}
+
+export function SettingsSupportBanner({
+  title,
+  description,
+  ctaLabel,
+  href,
+}: SettingsSupportBannerProps) {
+  return (
+    <Card className="border-primary/20 bg-primary/[0.08] shadow-[0_18px_50px_rgba(155,48,208,0.12)]">
+      <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <p className="text-base font-semibold text-foreground">{title}</p>
+          <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>
+        </div>
+        <Button asChild>
+          <a href={href}>{ctaLabel}</a>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function SettingsOverviewGrid({
   title,
   description,
