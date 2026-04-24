@@ -1244,7 +1244,9 @@
       "gallery": "Galería",
       "availability": "Disponibilidad",
       "rider": "Rider",
-      "tech": "Técnica"
+      "tech": "Técnica",
+      "artist_requirements": "Requerimientos del artista",
+      "technical_rider": "Rider técnico"
     },
     "contact": {
       "booking": "Bookings",

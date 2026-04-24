@@ -11,9 +11,14 @@ const MAX_SIZE_BYTES = 8 * 1024 * 1024;
 interface EpkImageUploaderProps {
   artistId: string;
   onUploaded: (asset: AssetDto) => void;
+  disabled?: boolean;
 }
 
-export function EpkImageUploader({ artistId, onUploaded }: EpkImageUploaderProps) {
+export function EpkImageUploader({
+  artistId,
+  onUploaded,
+  disabled = false,
+}: EpkImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +66,7 @@ export function EpkImageUploader({ artistId, onUploaded }: EpkImageUploaderProps
         type="button"
         variant="outline"
         onClick={() => inputRef.current?.click()}
-        disabled={uploading}
+        disabled={uploading || disabled}
       >
         {uploading ? 'Uploading…' : 'Upload EPK image'}
       </Button>

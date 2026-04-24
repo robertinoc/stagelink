@@ -77,18 +77,22 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
     {
       id: 'plans-billing',
       label: t('dashboard.settings.navigation.plans_billing'),
+      href: `${settingsBaseHref}/plans-billing`,
     },
     {
       id: 'insights-connections',
       label: t('dashboard.settings.navigation.insights_connections'),
+      href: `${settingsBaseHref}/insights-connections`,
     },
     {
       id: 'shopify-store',
       label: t('dashboard.settings.navigation.shopify_store'),
+      href: `${settingsBaseHref}/shopify-store`,
     },
     {
       id: 'smart-merch',
       label: t('dashboard.settings.navigation.smart_merch'),
+      href: `${settingsBaseHref}/smart-merch`,
     },
   ];
 
@@ -176,14 +180,15 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
               {isSettings && settingsExpanded ? (
                 <div className="mt-1 ml-6 space-y-1 border-l border-white/10 pl-3">
                   {settingsChildren.map((child) => {
-                    const childHref = `${settingsBaseHref}#${child.id}`;
                     const childActive =
-                      pathname === settingsBaseHref && activeHash === `#${child.id}`;
+                      pathname === child.href ||
+                      pathname.startsWith(`${child.href}/`) ||
+                      (pathname === settingsBaseHref && activeHash === `#${child.id}`);
 
                     return (
-                      <a
+                      <Link
                         key={child.id}
-                        href={childHref}
+                        href={child.href}
                         onClick={onNavigate}
                         className={cn(
                           'block rounded-md px-3 py-1.5 text-xs transition-colors',
@@ -193,7 +198,7 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
                         )}
                       >
                         {child.label}
-                      </a>
+                      </Link>
                     );
                   })}
                 </div>
