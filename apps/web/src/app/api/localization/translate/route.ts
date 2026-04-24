@@ -209,7 +209,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           message:
-            'Automatic translation is not configured yet. Add OPENAI_API_KEY to enable this feature.',
+            'Automatic translation is not configured yet. Add OPENAI_API_KEY in Vercel to enable this feature.',
         },
         { status: 503 },
       );
