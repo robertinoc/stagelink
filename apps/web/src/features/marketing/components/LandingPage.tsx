@@ -276,9 +276,6 @@ export function LandingPage({ locale }: LandingPageProps) {
               </a>
             </div>
             <p className="mt-3 text-sm text-white/45">{t.hero.ctaNote}</p>
-            <p className="mt-4 max-w-xl rounded-2xl border border-white/10 bg-white/4 px-4 py-3 text-sm leading-7 text-white/60">
-              {t.hero.founderLine}
-            </p>
           </div>
 
           <div id="preview" className="relative">
@@ -444,6 +441,7 @@ export function LandingPage({ locale }: LandingPageProps) {
               <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/30">
                 {t.strip.label}
               </p>
+              <p className="max-w-3xl text-sm leading-7 text-white/60">{t.strip.socialProof}</p>
               <div className="flex flex-wrap gap-3">
                 {t.strip.items.map((item) => (
                   <span
@@ -637,6 +635,13 @@ export function LandingPage({ locale }: LandingPageProps) {
                   </div>
                 ))}
               </div>
+
+              <blockquote className="mt-8 rounded-[1.7rem] border border-primary/20 bg-primary/8 px-5 py-5">
+                <p className="text-lg leading-8 text-white/90">{t.monetization.founderQuote}</p>
+                <footer className="mt-4 block text-sm text-white/55">
+                  {t.monetization.founderCredit}
+                </footer>
+              </blockquote>
             </div>
 
             <div className="grid gap-4">

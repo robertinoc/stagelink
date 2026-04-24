@@ -46,7 +46,6 @@ export interface LandingTranslation {
     ctaPrimary: string;
     ctaSecondary: string;
     ctaNote: string;
-    founderLine: string;
     previewLabel: string;
     previewHandle: string;
     previewRoles: string;
@@ -71,6 +70,7 @@ export interface LandingTranslation {
   };
   strip: {
     label: string;
+    socialProof: string;
     items: string[];
     platformsLabel: string;
     platformsDescription: string;
@@ -109,6 +109,8 @@ export interface LandingTranslation {
     body: string;
     pillars: Feature[];
     points: string[];
+    founderQuote: string;
+    founderCredit: string;
   };
   cta: {
     eyebrow: string;
@@ -170,16 +172,14 @@ const en: LandingTranslation = {
   },
   badge: 'Made by an artist, for artists',
   hero: {
-    headline: 'Give your art a real home',
+    headline: 'Be seen for the full project',
     subheadline:
-      'Share your music, videos, Press Kit, merch, and links in one place that helps more people find you and stay with you.',
+      'Bring your music, videos, Press Kit, merch, and story together in one place that helps more people find you, follow you, and book you.',
     supportingText:
-      'For DJs, producers, musicians, creators, bands, and visual artists who want to be easier to discover and easier to remember.',
-    ctaPrimary: 'Start my StageLink',
-    ctaSecondary: 'See a live preview',
-    ctaNote: 'Free to start. No credit card. Setup takes a few minutes.',
-    founderLine:
-      'I built StageLink because I wanted one place that felt like my project, not a pile of random links.',
+      'For artists who are building something real and want one place that feels like their world, not a generic profile.',
+    ctaPrimary: 'Create my StageLink',
+    ctaSecondary: 'See a real example',
+    ctaNote: 'Free to start. No card. You can set it up fast and keep editing anytime.',
     previewLabel: 'Artist page preview',
     previewHandle: '@robertino',
     previewRoles: 'DJ · Producer · Creator',
@@ -206,29 +206,31 @@ const en: LandingTranslation = {
     mockLinks: ['Listen on Spotify', 'Watch the latest video', 'Shop merch', 'Join the fan list'],
   },
   strip: {
-    label: 'A growing home for independent artists',
+    label: 'A growing home for artists building something real',
+    socialProof:
+      'More than 1,000 independent artists are already building their presence with StageLink.',
     items: ['Music', 'Videos', 'Press Kit', 'Merch'],
     platformsLabel: 'Works with the platforms your audience already uses',
     platformsDescription:
-      'Your art already lives across different places. StageLink helps you bring it together without losing your identity.',
+      'Your art already lives in different places. StageLink helps you bring it together without making it feel generic.',
     platforms: ['Spotify', 'SoundCloud', 'YouTube', 'Shopify', 'TikTok', 'Instagram'],
   },
   problem: {
     eyebrow: 'Why this matters',
-    headline: 'Your art is in many places',
+    headline: 'Your work is already out there',
     intro:
-      'That is normal. Music is in one place. Videos are in another. Merch, socials, and press live somewhere else. It gets hard to show the full picture.',
+      'Music lives in one place. Videos live somewhere else. Press, merch, and socials are spread out too. It becomes hard to show people the full picture of who you are.',
     painLabel: 'What that feels like',
     painPoints: [
-      'People find one part of your work, but miss the rest',
-      'Your story gets split across too many platforms',
-      'Good opportunities can pass because everything feels scattered',
+      'People find one piece of your work, but miss everything around it',
+      'Your story gets broken into small parts across too many platforms',
+      'Bookings, gigs, and collaborations are easier to miss when nothing feels connected',
     ],
     solutionLabel: 'What StageLink gives you',
     solutionPoints: [
-      'One place to share the full shape of your project',
-      'A clearer way for people to discover your music and stay connected',
-      'A stronger home for fans, bookers, and collaborators to understand your work',
+      'One place that shows the full shape of your project',
+      'A better way for people to discover your work and stay close to it',
+      'Something strong to share when an opportunity shows up',
     ],
   },
   features: {
@@ -288,8 +290,8 @@ const en: LandingTranslation = {
   },
   forArtists: {
     eyebrow: 'Built for different kinds of artists',
-    headline: 'Made for artists with something to share',
-    body: 'No matter how you create, the idea is the same: help people find your work, remember it, and come back for more.',
+    headline: 'For artists building something real',
+    body: 'Different paths, same need: one place that helps people understand your work and keep following it.',
     segments: [
       {
         label: 'DJs',
@@ -325,37 +327,40 @@ const en: LandingTranslation = {
   },
   monetization: {
     eyebrow: 'Why StageLink',
-    headline: 'Built by an artist. Made for artists.',
-    body: 'StageLink came from a simple need: one place to share your work without making it feel small, messy, or generic.',
+    headline: 'Built by an artist, not a generic tool',
+    body: 'StageLink came from a real need: a place that could hold the full identity of an artist without making it feel flat, messy, or disposable.',
     pillars: [
       {
-        title: 'It starts from the artist',
+        title: 'It starts with the artist',
         description:
-          'The page is there to support your music, your story, and the people discovering you.',
+          'The page is there to support your music, your story, and the people finding you.',
       },
       {
-        title: 'It feels personal',
-        description: 'It is not trying to look like every other link page on the internet.',
+        title: 'It feels like a real project',
+        description: 'It is not trying to look like every other tool on the internet.',
       },
       {
-        title: 'It helps you look ready',
+        title: 'It helps opportunities feel closer',
         description:
-          'When a booking, a gig, a collaboration, or a press chance appears, you already have something strong to share.',
+          'When a booking, a gig, a collaboration, or a press moment shows up, you already have something strong to send.',
       },
     ],
     points: [
       'Your music, merch, and Press Kit can live side by side.',
-      'You can keep growing without rebuilding everything every few months.',
-      'People get a clearer picture of who you are and what you are making.',
+      'People get a clearer sense of who you are and what you are making.',
+      'You can keep growing without rebuilding your whole presence every few months.',
     ],
+    founderQuote:
+      '“I built StageLink because I needed one place that felt like my project, not a pile of loose links.”',
+    founderCredit: '— Robertino, DJ, Producer & creator of StageLink',
   },
   cta: {
     eyebrow: 'When you are ready',
-    headline: 'Let your art live in one place',
-    body: 'Give people a better way to find your work, stay close to it, and share it with others.',
-    primary: 'Create my StageLink',
+    headline: 'Give your work a stronger home',
+    body: 'Show people the full shape of your project and make it easier for the right ones to stay with you.',
+    primary: 'Start my StageLink',
     secondary: 'See how it works',
-    note: 'Free to start. No credit card. Easy to edit later.',
+    note: 'Free to start. No card. Change it whenever you need.',
   },
   contact: {
     eyebrow: 'Contact',
@@ -377,7 +382,7 @@ const en: LandingTranslation = {
   },
   footer: {
     description:
-      'StageLink is the artist platform for public page, Press Kit (EPK), merch, analytics, smart links, and audience flow.',
+      'StageLink is where artists bring together their page, Press Kit, merch, links, and the parts of their project they want the world to see.',
     links: {
       product: 'Product',
       features: 'Features',
@@ -410,16 +415,14 @@ const es: LandingTranslation = {
   },
   badge: 'Hecho por un artista, para artistas',
   hero: {
-    headline: 'Dale a tu arte un lugar real',
+    headline: 'Que vean el proyecto completo',
     subheadline:
-      'Compartí tu música, tus videos, tu Press Kit, tu merch y tus links en un solo lugar que te ayude a llegar a más gente y a que se queden con vos.',
+      'Uní tu música, tus videos, tu Press Kit, tu merch y tu historia en un solo lugar para que más gente te encuentre, te siga y te tenga en cuenta.',
     supportingText:
-      'Para DJs, productores, músicos, creadores, bandas y artistas visuales que quieren ser más fáciles de descubrir y más difíciles de olvidar.',
-    ctaPrimary: 'Empezar mi StageLink',
+      'Para artistas que están armando algo propio y quieren un lugar que se sienta parte de su mundo, no un perfil genérico más.',
+    ctaPrimary: 'Crear mi StageLink',
     ctaSecondary: 'Ver un ejemplo real',
-    ctaNote: 'Gratis para empezar. Sin tarjeta. Se arma en pocos minutos.',
-    founderLine:
-      'Creé StageLink porque necesitaba un lugar que se sintiera como mi proyecto, no como una pila de links sueltos.',
+    ctaNote: 'Gratis para empezar. Sin tarjeta. Lo armás rápido y después lo editás a tu ritmo.',
     previewLabel: 'Preview de página de artista',
     previewHandle: '@robertino',
     previewRoles: 'DJ · Producer · Creator',
@@ -451,29 +454,31 @@ const es: LandingTranslation = {
     ],
   },
   strip: {
-    label: 'Un hogar que ya están usando artistas independientes',
+    label: 'Un hogar para artistas que están construyendo algo propio',
+    socialProof:
+      'Más de 1.000 artistas independientes ya están construyendo su presencia con StageLink.',
     items: ['Música', 'Videos', 'Press Kit', 'Merch'],
     platformsLabel: 'Se integra con las plataformas que tu audiencia ya usa',
     platformsDescription:
-      'Tu arte ya vive en distintos lugares. StageLink te ayuda a unirlo sin perder tu identidad.',
+      'Tu arte ya vive en distintos lugares. StageLink te ayuda a unirlo sin que se vea genérico.',
     platforms: ['Spotify', 'SoundCloud', 'YouTube', 'Shopify', 'TikTok', 'Instagram'],
   },
   problem: {
     eyebrow: 'Por qué importa',
-    headline: 'Tu arte vive en muchos lugares',
+    headline: 'Tu obra ya está allá afuera',
     intro:
-      'Es normal. La música está en un lado. Los videos en otro. El merch, las redes y la prensa viven por separado. Se vuelve difícil mostrar el cuadro completo.',
+      'Es normal. La música está en un lado. Los videos en otro. La prensa, el merch y las redes van por separado. Entonces se vuelve difícil mostrar quién sos de verdad.',
     painLabel: 'Lo que eso genera',
     painPoints: [
-      'La gente encuentra una parte de tu obra, pero se pierde el resto',
-      'Tu historia queda repartida entre demasiadas plataformas',
-      'Buenas oportunidades pueden pasar de largo porque todo se ve disperso',
+      'La gente encuentra una parte de tu obra, pero se pierde todo lo demás',
+      'Tu historia queda partida en pedazos entre demasiadas plataformas',
+      'Bookings, gigs y colaboraciones pueden pasar de largo cuando todo se ve desconectado',
     ],
     solutionLabel: 'Lo que te da StageLink',
     solutionPoints: [
-      'Un solo lugar para mostrar la forma completa de tu proyecto',
-      'Una manera más clara de que la gente descubra tu música y siga cerca',
-      'Un espacio más fuerte para fans, bookers y colaboradores que quieren entender tu obra',
+      'Un lugar para mostrar la forma completa de tu proyecto',
+      'Una mejor manera de que la gente descubra tu obra y siga cerca',
+      'Algo fuerte para compartir cuando aparece una oportunidad',
     ],
   },
   features: {
@@ -534,8 +539,8 @@ const es: LandingTranslation = {
   },
   forArtists: {
     eyebrow: 'Para distintos tipos de artistas',
-    headline: 'Hecho para artistas con algo que mostrar',
-    body: 'No importa cómo crees. La idea es la misma: ayudar a que más gente encuentre tu obra, la recuerde y vuelva.',
+    headline: 'Para artistas que están armando algo real',
+    body: 'No importa cómo crees. La necesidad es la misma: que la gente entienda tu obra y quiera seguir de cerca lo que hacés.',
     segments: [
       {
         label: 'DJs',
@@ -569,35 +574,38 @@ const es: LandingTranslation = {
   },
   monetization: {
     eyebrow: 'Por qué StageLink',
-    headline: 'Hecho por un artista. Pensado para artistas.',
-    body: 'StageLink nació de una necesidad simple: tener un solo lugar para compartir tu obra sin que se vea chica, desordenada o genérica.',
+    headline: 'Hecho por un artista, no por una herramienta genérica',
+    body: 'StageLink nació de una necesidad real: tener un lugar que pudiera mostrar la identidad completa de un artista sin que se vea chiquita, desordenada o intercambiable.',
     pillars: [
       {
         title: 'Todo empieza en el artista',
         description:
-          'La página está para acompañar tu música, tu historia y la gente que te descubre.',
+          'La página está para acompañar tu música, tu historia y la gente que te va encontrando.',
       },
       {
-        title: 'Se siente personal',
-        description: 'No intenta verse como otra página de links más del montón.',
+        title: 'Se siente como un proyecto',
+        description: 'No intenta verse como otra herramienta más del montón.',
       },
       {
-        title: 'Te ayuda a verte listo',
+        title: 'Acerca más oportunidades',
         description:
-          'Cuando aparece un booking, un gig, una colaboración o prensa, ya tenés algo fuerte para compartir.',
+          'Cuando aparece un booking, un gig, una colaboración o prensa, ya tenés algo fuerte para mandar.',
       },
     ],
     points: [
       'Tu música, tu merch y tu Press Kit pueden convivir lado a lado.',
+      'La gente entiende mejor quién sos y qué estás haciendo.',
       'Podés seguir creciendo sin rehacer todo cada pocos meses.',
-      'La gente entiende mejor quién sos y qué estás creando.',
     ],
+    founderQuote:
+      '“Creé StageLink porque necesitaba un lugar que se sintiera como mi proyecto, no como una pila de links sueltos.”',
+    founderCredit: '— Robertino, DJ, Producer & creador de StageLink',
   },
   cta: {
     eyebrow: 'Cuando quieras',
-    headline: 'Dejá que tu arte viva en un solo lugar',
-    body: 'Dale a la gente una mejor forma de encontrar tu obra, quedarse cerca y compartirla con otros.',
-    primary: 'Crear mi StageLink',
+    headline: 'Dale a tu obra un lugar más fuerte',
+    body: 'Mostrá mejor lo que hacés y hacé más fácil que la gente indicada se quede cerca.',
+    primary: 'Empezar mi StageLink',
     secondary: 'Ver cómo funciona',
     note: 'Gratis para empezar. Sin tarjeta. Después lo editás a tu ritmo.',
   },
@@ -621,7 +629,7 @@ const es: LandingTranslation = {
   },
   footer: {
     description:
-      'StageLink es un hogar para tu música, tu historia, tu Press Kit, tu merch y la gente que conecta con tu arte.',
+      'StageLink es el lugar donde unís tu página, tu Press Kit, tu merch, tus links y las partes de tu proyecto que querés mostrar al mundo.',
     links: {
       product: 'Producto',
       features: 'Funciones',
