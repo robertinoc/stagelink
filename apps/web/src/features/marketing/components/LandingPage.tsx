@@ -266,6 +266,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             <p className="mt-4 max-w-xl text-sm leading-6 text-white/52 sm:leading-7">
               {t.hero.supportingText}
             </p>
+            <p className="mt-4 text-sm text-white/64">{t.hero.socialProof}</p>
 
             <div className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:gap-4">
               <Link
@@ -655,7 +656,8 @@ export function LandingPage({ locale }: LandingPageProps) {
               </div>
 
               <blockquote className="mt-8 rounded-[1.7rem] border border-primary/20 bg-primary/8 px-5 py-5">
-                <p className="text-lg leading-8 text-white/90">{t.monetization.founderQuote}</p>
+                <p className="text-sm text-primary/80">{t.monetization.founderSupport}</p>
+                <p className="mt-3 text-lg leading-8 text-white/90">{t.monetization.founderQuote}</p>
                 <footer className="mt-4 block text-sm text-white/66">
                   {t.monetization.founderCredit}
                 </footer>
