@@ -103,6 +103,9 @@ h4,
 h5,
 h6 {
   font-family: var(--font-heading);
+  font-optical-sizing: auto;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
 }
 
 a,

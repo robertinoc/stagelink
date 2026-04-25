@@ -45,7 +45,9 @@ export function SettingsSupportBanner({
     <Card className="border-primary/20 bg-primary/[0.08] shadow-[0_18px_50px_rgba(155,48,208,0.12)]">
       <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <p className="text-base font-semibold text-foreground">{title}</p>
+          <p className="text-base font-semibold tracking-tight text-foreground font-[family-name:var(--font-heading)]">
+            {title}
+          </p>
           <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>
         </div>
         <Button asChild>
@@ -65,7 +67,7 @@ export function SettingsOverviewGrid({
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">{title}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
 
@@ -81,7 +83,9 @@ export function SettingsOverviewGrid({
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-base font-semibold text-foreground">{section.label}</p>
+                <p className="text-base font-semibold tracking-tight text-foreground font-[family-name:var(--font-heading)]">
+                  {section.label}
+                </p>
                 <p className="mt-2 max-w-lg text-sm leading-7 text-muted-foreground">
                   {section.description}
                 </p>
@@ -123,7 +127,7 @@ export function SettingsSectionShell({
             {eyebrow}
           </p>
           <div>
-            <h1 className="text-2xl font-bold">{title}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
             <p className="mt-2 max-w-3xl text-sm text-muted-foreground">{description}</p>
           </div>
         </div>
@@ -236,7 +240,7 @@ export function PlansBillingSection({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-2xl font-semibold">
+                  <p className="text-2xl font-semibold tracking-tight font-[family-name:var(--font-heading)]">
                     {plan.priceDisplay}
                     {plan.interval ? (
                       <span className="ml-1 text-sm font-normal text-muted-foreground">
