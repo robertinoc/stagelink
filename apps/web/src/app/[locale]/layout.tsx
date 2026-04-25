@@ -19,7 +19,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}>
+      <body className={`${inter.className} ${spaceGrotesk.variable} ${inter.variable} antialiased`}>
         <NextIntlClientProvider messages={messages}>
           <PostHogProvider>{children}</PostHogProvider>
         </NextIntlClientProvider>
