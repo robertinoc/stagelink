@@ -33,6 +33,25 @@ function trimNullable(value: string | null | undefined): string | null {
   return trimmed ? trimmed : null;
 }
 
+export function normalizeFeaturedLinks(items: EpkFeaturedLinkItem[]): EpkFeaturedLinkItem[] {
+  const seen = new Set<string>();
+
+  return items
+    .map((item) => ({
+      ...item,
+      label: item.label.trim(),
+      url: item.url.trim(),
+    }))
+    .filter((item) => {
+      if (!item.label || !item.url || seen.has(item.url)) {
+        return false;
+      }
+
+      seen.add(item.url);
+      return true;
+    });
+}
+
 export function buildFallbackFeaturedLinks(artist: ArtistLinkSource): EpkFeaturedLinkItem[] {
   const entries = [
     artist.websiteUrl && { id: 'website', label: 'Website', url: artist.websiteUrl },
@@ -82,8 +101,9 @@ export function buildPublishedEpkSnapshot(
     trimNullable(epk.heroImageUrl) ??
     trimNullable(artist.coverUrl) ??
     trimNullable(artist.avatarUrl);
-  const featuredLinks =
-    epk.featuredLinks.length > 0 ? epk.featuredLinks : buildFallbackFeaturedLinks(artist);
+  const featuredLinks = normalizeFeaturedLinks(
+    epk.featuredLinks.length > 0 ? epk.featuredLinks : buildFallbackFeaturedLinks(artist),
+  );
 
   return {
     shortBio,

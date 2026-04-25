@@ -10,7 +10,7 @@ import { PrismaService } from '../../lib/prisma.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
 import type { PublicEpkResponseDto } from './dto/public-epk-response.dto';
-import { buildFallbackFeaturedLinks } from '../epk/epk.helpers';
+import { buildFallbackFeaturedLinks, normalizeFeaturedLinks } from '../epk/epk.helpers';
 import {
   normalizeBaseLocale,
   resolveDocumentLocale,
@@ -93,8 +93,10 @@ export class PublicEpkService {
         bio?: Record<string, string>;
         displayName?: Record<string, string>;
       } | null) ?? {};
-    const featuredLinks = (epk.featuredLinks as unknown as EpkFeaturedLinkItem[]).filter(Boolean);
-    const fallbackFeaturedLinks = buildFallbackFeaturedLinks(artist);
+    const featuredLinks = normalizeFeaturedLinks(
+      (epk.featuredLinks as unknown as EpkFeaturedLinkItem[]).filter(Boolean),
+    );
+    const fallbackFeaturedLinks = normalizeFeaturedLinks(buildFallbackFeaturedLinks(artist));
     const baseLocale = normalizeBaseLocale(epk.baseLocale ?? artist.baseLocale ?? DEFAULT_LOCALE);
     const baseShortBio = epk.shortBio ?? artist.bio;
     const effectiveShortBioTranslations = epk.shortBio?.trim()

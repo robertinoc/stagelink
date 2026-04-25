@@ -14,7 +14,11 @@ import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { UpdateEpkDto } from './dto';
-import { buildPublishedEpkSnapshot, getEpkPublishValidation } from './epk.helpers';
+import {
+  buildPublishedEpkSnapshot,
+  getEpkPublishValidation,
+  normalizeFeaturedLinks,
+} from './epk.helpers';
 import {
   hasAdditionalLocaleContent,
   sanitizeTranslationFieldMap,
@@ -64,7 +68,9 @@ function mapEpk(epk: EpkRecord) {
     heroImageUrl: epk.heroImageUrl,
     galleryImageUrls: epk.galleryImageUrls as unknown as string[],
     featuredMedia: epk.featuredMedia as unknown as EpkFeaturedMediaItem[],
-    featuredLinks: epk.featuredLinks as unknown as EpkFeaturedLinkItem[],
+    featuredLinks: normalizeFeaturedLinks(
+      (epk.featuredLinks as unknown as EpkFeaturedLinkItem[]).filter(Boolean),
+    ),
     highlights: epk.highlights as unknown as string[],
     riderInfo: epk.riderInfo,
     techRequirements: epk.techRequirements,
@@ -119,8 +125,9 @@ export class EpkService {
     const payload = this.buildUpdatePayload(dto);
     const mergedFeaturedMedia =
       dto.featuredMedia ?? (epk.featuredMedia as unknown as EpkFeaturedMediaItem[]) ?? [];
-    const mergedFeaturedLinks =
-      dto.featuredLinks ?? (epk.featuredLinks as unknown as EpkFeaturedLinkItem[]) ?? [];
+    const mergedFeaturedLinks = normalizeFeaturedLinks(
+      dto.featuredLinks ?? (epk.featuredLinks as unknown as EpkFeaturedLinkItem[]) ?? [],
+    );
     const mergedGalleryImageUrls =
       dto.galleryImageUrls ?? (epk.galleryImageUrls as unknown as string[]) ?? [];
     const readiness = getEpkPublishValidation(
@@ -174,7 +181,9 @@ export class EpkService {
 
     const epk = await this.ensureEpkRecord(artistId);
     const currentFeaturedMedia = epk.featuredMedia as unknown as EpkFeaturedMediaItem[];
-    const currentFeaturedLinks = epk.featuredLinks as unknown as EpkFeaturedLinkItem[];
+    const currentFeaturedLinks = normalizeFeaturedLinks(
+      epk.featuredLinks as unknown as EpkFeaturedLinkItem[],
+    );
     const currentGalleryImageUrls = epk.galleryImageUrls as unknown as string[];
     const readiness = getEpkPublishValidation(
       {
@@ -295,7 +304,9 @@ export class EpkService {
         galleryImageUrls: sanitizeStringArray(dto.galleryImageUrls) ?? [],
       }),
       ...(dto.featuredMedia !== undefined && { featuredMedia: dto.featuredMedia }),
-      ...(dto.featuredLinks !== undefined && { featuredLinks: dto.featuredLinks }),
+      ...(dto.featuredLinks !== undefined && {
+        featuredLinks: normalizeFeaturedLinks(dto.featuredLinks),
+      }),
       ...(dto.highlights !== undefined && {
         highlights: sanitizeStringArray(dto.highlights) ?? [],
       }),
