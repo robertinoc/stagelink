@@ -1,11 +1,15 @@
 import {
   BadRequestException,
+  ConflictException,
   HttpException,
   Injectable,
+  Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import type {
+  InsightsSyncHealth,
+  InsightsSyncHealthItem,
   SoundCloudInsightsConnectionValidationResult,
   SoundCloudInsightsSyncResult,
   SpotifyInsightsConnectionValidationResult,
@@ -31,10 +35,20 @@ import {
   SpotifyInsightsConnectionDto,
   YouTubeInsightsConnectionDto,
 } from './dto';
-import { SoundCloudInsightsProvider } from './providers/soundcloud-insights.provider';
+import {
+  SYNC_BATCH_STAGGER_MS,
+  SYNC_CONCURRENT_GUARD_MS,
+  SYNC_PROVIDER_TIMEOUT_MS,
+  SYNC_SCHEDULED_MIN_INTERVAL_MS,
+} from './insights-metrics.constants';
 import type { PlatformInsightsProvider } from './providers/insights-provider.interface';
+import { SoundCloudInsightsProvider } from './providers/soundcloud-insights.provider';
 import { SpotifyInsightsProvider } from './providers/spotify-insights.provider';
 import { YouTubeInsightsProvider } from './providers/youtube-insights.provider';
+
+// ---------------------------------------------------------------------------
+// Internal record types (shape coming out of Prisma)
+// ---------------------------------------------------------------------------
 
 type InsightsConnectionRecord = {
   id: string;
@@ -67,11 +81,22 @@ type InsightsSnapshotRecord = {
   topContent: Prisma.JsonValue;
 };
 
+// ---------------------------------------------------------------------------
+// Module-level constants
+// ---------------------------------------------------------------------------
+
 const DEFAULT_INSIGHTS_RANGE: StageLinkInsightsDateRange = '30d';
 const MAX_INSIGHTS_HISTORY_POINTS = 180;
 
+/** Data is considered stale when it's older than this threshold. */
+const STALE_THRESHOLD_MS = 25 * 60 * 60 * 1000; // 25 hours
+
+// Re-export for use by scheduler (avoids importing constants directly)
+export { SYNC_BATCH_STAGGER_MS, SYNC_SCHEDULED_MIN_INTERVAL_MS };
+
 @Injectable()
 export class InsightsService {
+  private readonly logger = new Logger(InsightsService.name);
   private readonly providers: Record<StageLinkInsightsPlatform, PlatformInsightsProvider>;
 
   constructor(
@@ -90,15 +115,16 @@ export class InsightsService {
     };
   }
 
+  // =========================================================================
+  // Dashboard
+  // =========================================================================
+
   async getDashboard(artistId: string, rangeInput?: string): Promise<StageLinkInsightsDashboard> {
     await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
     const selectedRange = this.resolveDateRange(rangeInput);
     const rangeStart = this.resolveRangeStart(selectedRange);
     const snapshotWhere: Prisma.ArtistPlatformInsightsSnapshotWhereInput = rangeStart
-      ? {
-          artistId,
-          capturedAt: { gte: rangeStart },
-        }
+      ? { artistId, capturedAt: { gte: rangeStart } }
       : { artistId };
 
     const [connections, snapshots, snapshotCount] = await Promise.all([
@@ -111,32 +137,30 @@ export class InsightsService {
         orderBy: [{ capturedAt: 'desc' }],
         take: MAX_INSIGHTS_HISTORY_POINTS,
       }),
-      this.prisma.artistPlatformInsightsSnapshot.count({
-        where: snapshotWhere,
-      }),
+      this.prisma.artistPlatformInsightsSnapshot.count({ where: snapshotWhere }),
     ]);
 
     const connectionsByPlatform = new Map<StageLinkInsightsPlatform, InsightsConnectionRecord>();
-    connections.forEach((connection) => {
+    connections.forEach((c) =>
       connectionsByPlatform.set(
-        connection.platform as StageLinkInsightsPlatform,
-        connection as InsightsConnectionRecord,
-      );
-    });
+        c.platform as StageLinkInsightsPlatform,
+        c as InsightsConnectionRecord,
+      ),
+    );
 
     const latestSnapshots = new Map<StageLinkInsightsPlatform, InsightsSnapshotRecord>();
-    snapshots.forEach((snapshot) => {
-      const platform = snapshot.platform as StageLinkInsightsPlatform;
+    snapshots.forEach((s) => {
+      const platform = s.platform as StageLinkInsightsPlatform;
       if (!latestSnapshots.has(platform)) {
-        latestSnapshots.set(platform, snapshot as InsightsSnapshotRecord);
+        latestSnapshots.set(platform, s as InsightsSnapshotRecord);
       }
     });
 
     const historyByPlatform = new Map<StageLinkInsightsPlatform, StageLinkInsightsHistoryPoint[]>();
-    [...snapshots].reverse().forEach((snapshot) => {
-      const platform = snapshot.platform as StageLinkInsightsPlatform;
+    [...snapshots].reverse().forEach((s) => {
+      const platform = s.platform as StageLinkInsightsPlatform;
       const current = historyByPlatform.get(platform) ?? [];
-      current.push(this.mapHistoryPoint(snapshot as InsightsSnapshotRecord));
+      current.push(this.mapHistoryPoint(s as InsightsSnapshotRecord));
       historyByPlatform.set(platform, current);
     });
 
@@ -151,12 +175,11 @@ export class InsightsService {
     );
 
     const connectedPlatforms = platformSummaries.filter(
-      (platform) => platform.connection?.status === 'connected',
+      (p) => p.connection?.status === 'connected',
     ).length;
     const syncedPlatforms = platformSummaries.filter(
-      (platform) =>
-        platform.connection?.lastSyncStatus === 'success' ||
-        platform.connection?.lastSyncStatus === 'partial',
+      (p) =>
+        p.connection?.lastSyncStatus === 'success' || p.connection?.lastSyncStatus === 'partial',
     ).length;
     const lastUpdatedAt = snapshots[0]?.capturedAt?.toISOString() ?? null;
 
@@ -176,6 +199,47 @@ export class InsightsService {
     };
   }
 
+  // =========================================================================
+  // Sync health (admin / dev utility)
+  // =========================================================================
+
+  async getSyncHealth(artistId: string): Promise<InsightsSyncHealth> {
+    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
+
+    const connections = await this.prisma.artistPlatformInsightsConnection.findMany({
+      where: { artistId, status: 'connected' },
+      orderBy: [{ platform: 'asc' }],
+    });
+
+    const now = Date.now();
+    const items: InsightsSyncHealthItem[] = connections.map((conn) => {
+      const lastSyncedMs = conn.lastSyncedAt ? conn.lastSyncedAt.getTime() : null;
+      const isStale = lastSyncedMs === null || now - lastSyncedMs > STALE_THRESHOLD_MS;
+      return {
+        artistId: conn.artistId,
+        connectionId: conn.id,
+        platform: conn.platform as StageLinkInsightsPlatform,
+        connectionStatus: conn.status as InsightsSyncHealthItem['connectionStatus'],
+        lastSyncStatus: conn.lastSyncStatus as InsightsSyncHealthItem['lastSyncStatus'],
+        lastSyncedAt: conn.lastSyncedAt?.toISOString() ?? null,
+        lastSyncError: conn.lastSyncError,
+        isStale,
+      };
+    });
+
+    return {
+      artistId,
+      checkedAt: new Date().toISOString(),
+      items,
+      staleCount: items.filter((i) => i.isStale).length,
+      errorCount: items.filter((i) => i.lastSyncStatus === 'error').length,
+    };
+  }
+
+  // =========================================================================
+  // Spotify
+  // =========================================================================
+
   async validateSpotifyConnection(
     artistId: string,
     dto: SpotifyInsightsConnectionDto,
@@ -183,7 +247,6 @@ export class InsightsService {
   ): Promise<SpotifyInsightsConnectionValidationResult> {
     await this.membershipService.validateAccess(userId, artistId, 'write');
     await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
-
     return this.spotifyProvider.validateArtistReference(dto.artistInput);
   }
 
@@ -198,12 +261,8 @@ export class InsightsService {
 
     const validation = await this.spotifyProvider.validateArtistReference(dto.artistInput);
     const existing = await this.prisma.artistPlatformInsightsConnection.findFirst({
-      where: {
-        artistId,
-        platform: 'spotify',
-      },
+      where: { artistId, platform: 'spotify' },
     });
-
     const accountChanged = existing?.externalAccountId !== validation.externalAccountId;
     const metadata = {
       imageUrl: validation.imageUrl,
@@ -218,15 +277,7 @@ export class InsightsService {
           where: { connectionId: existing.id },
         });
       }
-
       if (existing) {
-        const recoveredSyncStatus =
-          accountChanged || !existing.lastSyncedAt
-            ? 'never'
-            : existing.lastSyncStatus === 'error'
-              ? 'success'
-              : existing.lastSyncStatus;
-
         return tx.artistPlatformInsightsConnection.update({
           where: { id: existing.id },
           data: {
@@ -243,12 +294,15 @@ export class InsightsService {
             metadata: metadata as Prisma.InputJsonValue,
             lastSyncStartedAt: null,
             lastSyncedAt: accountChanged ? null : existing.lastSyncedAt,
-            lastSyncStatus: recoveredSyncStatus,
+            lastSyncStatus: this.recoverSyncStatus(
+              accountChanged,
+              existing.lastSyncedAt,
+              existing.lastSyncStatus as InsightsConnectionRecord['lastSyncStatus'],
+            ),
             lastSyncError: null,
           },
         });
       }
-
       return tx.artistPlatformInsightsConnection.create({
         data: {
           artistId,
@@ -280,12 +334,10 @@ export class InsightsService {
         artistId,
         platform: 'spotify',
         externalAccountId: validation.externalAccountId,
-        externalUrl: validation.externalUrl,
         accountChanged,
       },
       ipAddress,
     });
-
     return this.mapConnection(savedConnection as InsightsConnectionRecord)!;
   }
 
@@ -297,133 +349,25 @@ export class InsightsService {
     await this.membershipService.validateAccess(userId, artistId, 'write');
     await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
 
-    const connection = await this.prisma.artistPlatformInsightsConnection.findFirst({
-      where: {
-        artistId,
-        platform: 'spotify',
-      },
-    });
-
-    if (!connection || !connection.externalAccountId) {
-      throw new BadRequestException('Connect a Spotify artist before syncing insights');
-    }
-
-    const startedAt = new Date();
-    await this.prisma.artistPlatformInsightsConnection.update({
-      where: { id: connection.id },
-      data: {
-        lastSyncStartedAt: startedAt,
-        lastSyncStatus: 'pending',
-        lastSyncError: null,
-      },
-    });
-
-    try {
-      const snapshot = await this.spotifyProvider.syncLatestSnapshot({
-        externalAccountId: connection.externalAccountId,
-        externalHandle: connection.externalHandle,
-        externalUrl: connection.externalUrl,
-        metadata: this.readJsonObject(connection.metadata),
-      });
-
-      const capturedAt = new Date(snapshot.capturedAt);
-      if (Number.isNaN(capturedAt.getTime())) {
-        throw new ServiceUnavailableException('Spotify returned an invalid snapshot timestamp');
-      }
-
-      const result = await this.prisma.$transaction(async (tx) => {
-        const savedSnapshot = await tx.artistPlatformInsightsSnapshot.create({
-          data: {
-            artistId,
-            connectionId: connection.id,
-            platform: 'spotify',
-            capturedAt,
-            profile: snapshot.profile as Prisma.InputJsonValue,
-            metrics: snapshot.metrics as Prisma.InputJsonValue,
-            topContent: snapshot.topContent as unknown as Prisma.InputJsonValue,
-            notes: [],
-          },
-        });
-
-        const updatedConnection = await tx.artistPlatformInsightsConnection.update({
-          where: { id: connection.id },
-          data: {
-            status: 'connected',
-            displayName: snapshot.profile.displayName,
-            externalUrl: snapshot.profile.externalUrl,
-            lastSyncStartedAt: startedAt,
-            lastSyncedAt: capturedAt,
-            lastSyncStatus: 'success',
-            lastSyncError: null,
-            metadata: {
-              ...(this.readJsonObject(connection.metadata) ?? {}),
-              imageUrl: snapshot.profile.imageUrl,
-            } as Prisma.InputJsonValue,
-          },
-        });
-
-        return {
-          connection: updatedConnection as InsightsConnectionRecord,
-          snapshot: savedSnapshot as InsightsSnapshotRecord,
-        };
-      });
-
-      this.auditService.log({
-        actorId: userId,
-        action: 'insights.spotify_connection.sync',
-        entityType: 'artist_platform_insights_connection',
-        entityId: connection.id,
-        metadata: {
-          artistId,
-          platform: 'spotify',
-          capturedAt: snapshot.capturedAt,
-        },
-        ipAddress,
-      });
-
-      return {
-        ok: true,
-        platform: 'spotify',
-        message: 'Spotify Insights synced successfully',
-        connection: this.mapConnection(result.connection)!,
-        snapshot: this.mapSnapshot(result.snapshot)!,
-      };
-    } catch (error) {
-      const normalizedError =
-        error instanceof HttpException
-          ? error
-          : new ServiceUnavailableException('Could not sync Spotify insights right now');
-      const message =
-        normalizedError instanceof Error
-          ? normalizedError.message
-          : 'Could not sync Spotify insights right now';
-
-      await this.prisma.artistPlatformInsightsConnection.update({
-        where: { id: connection.id },
-        data: {
-          status: 'connected',
-          lastSyncStartedAt: startedAt,
-          lastSyncStatus: 'error',
-          lastSyncError: message,
-        },
-      });
-
-      this.auditService.log({
-        actorId: userId,
-        action: 'insights.spotify_connection.sync_failed',
-        entityType: 'artist_platform_insights_connection',
-        entityId: connection.id,
-        metadata: {
-          artistId,
-          platform: 'spotify',
-          message,
-        },
-        ipAddress,
-      });
-
-      throw normalizedError;
-    }
+    const connection = await this.findConnectedConnection(artistId, 'spotify');
+    const { connection: conn, snapshot } = await this.syncConnectionCore(
+      connection,
+      this.spotifyProvider,
+      userId,
+      ipAddress,
+    );
+    return {
+      ok: true,
+      platform: 'spotify',
+      message: 'Spotify Insights synced successfully',
+      connection: conn,
+      snapshot,
+    };
   }
+
+  // =========================================================================
+  // YouTube
+  // =========================================================================
 
   async validateYouTubeConnection(
     artistId: string,
@@ -436,7 +380,6 @@ export class InsightsService {
     const expectedChannel = await this.resolveProfileYouTubeChannel(artistId);
     const validation = await this.youTubeProvider.validateChannelReference(dto.channelInput);
     this.assertMatchingYouTubeChannel(expectedChannel, validation);
-
     return validation;
   }
 
@@ -452,13 +395,10 @@ export class InsightsService {
     const expectedChannel = await this.resolveProfileYouTubeChannel(artistId);
     const validation = await this.youTubeProvider.validateChannelReference(dto.channelInput);
     this.assertMatchingYouTubeChannel(expectedChannel, validation);
-    const existing = await this.prisma.artistPlatformInsightsConnection.findFirst({
-      where: {
-        artistId,
-        platform: 'youtube',
-      },
-    });
 
+    const existing = await this.prisma.artistPlatformInsightsConnection.findFirst({
+      where: { artistId, platform: 'youtube' },
+    });
     const accountChanged = existing?.externalAccountId !== validation.externalAccountId;
     const metadata = {
       imageUrl: validation.imageUrl,
@@ -475,15 +415,7 @@ export class InsightsService {
           where: { connectionId: existing.id },
         });
       }
-
       if (existing) {
-        const recoveredSyncStatus =
-          accountChanged || !existing.lastSyncedAt
-            ? 'never'
-            : existing.lastSyncStatus === 'error'
-              ? 'success'
-              : existing.lastSyncStatus;
-
         return tx.artistPlatformInsightsConnection.update({
           where: { id: existing.id },
           data: {
@@ -500,12 +432,15 @@ export class InsightsService {
             metadata: metadata as Prisma.InputJsonValue,
             lastSyncStartedAt: null,
             lastSyncedAt: accountChanged ? null : existing.lastSyncedAt,
-            lastSyncStatus: recoveredSyncStatus,
+            lastSyncStatus: this.recoverSyncStatus(
+              accountChanged,
+              existing.lastSyncedAt,
+              existing.lastSyncStatus as InsightsConnectionRecord['lastSyncStatus'],
+            ),
             lastSyncError: null,
           },
         });
       }
-
       return tx.artistPlatformInsightsConnection.create({
         data: {
           artistId,
@@ -538,12 +473,10 @@ export class InsightsService {
         platform: 'youtube',
         externalAccountId: validation.externalAccountId,
         externalHandle: validation.externalHandle,
-        externalUrl: validation.externalUrl,
         accountChanged,
       },
       ipAddress,
     });
-
     return this.mapConnection(savedConnection as InsightsConnectionRecord)!;
   }
 
@@ -555,136 +488,28 @@ export class InsightsService {
     await this.membershipService.validateAccess(userId, artistId, 'write');
     await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
 
-    const connection = await this.prisma.artistPlatformInsightsConnection.findFirst({
-      where: {
-        artistId,
-        platform: 'youtube',
-      },
-    });
-
-    if (!connection || !connection.externalAccountId) {
-      throw new BadRequestException('Connect a YouTube channel before syncing insights');
-    }
-
+    const connection = await this.findConnectedConnection(artistId, 'youtube');
     const expectedChannel = await this.resolveProfileYouTubeChannel(artistId);
     this.assertMatchingConnectedYouTubeChannel(connection, expectedChannel);
 
-    const startedAt = new Date();
-    await this.prisma.artistPlatformInsightsConnection.update({
-      where: { id: connection.id },
-      data: {
-        lastSyncStartedAt: startedAt,
-        lastSyncStatus: 'pending',
-        lastSyncError: null,
-      },
-    });
-
-    try {
-      const snapshot = await this.youTubeProvider.syncLatestSnapshot({
-        externalAccountId: connection.externalAccountId,
-        externalHandle: connection.externalHandle,
-        externalUrl: connection.externalUrl,
-        metadata: this.readJsonObject(connection.metadata),
-      });
-
-      const capturedAt = new Date(snapshot.capturedAt);
-      if (Number.isNaN(capturedAt.getTime())) {
-        throw new ServiceUnavailableException('YouTube returned an invalid snapshot timestamp');
-      }
-
-      const result = await this.prisma.$transaction(async (tx) => {
-        const savedSnapshot = await tx.artistPlatformInsightsSnapshot.create({
-          data: {
-            artistId,
-            connectionId: connection.id,
-            platform: 'youtube',
-            capturedAt,
-            profile: snapshot.profile as Prisma.InputJsonValue,
-            metrics: snapshot.metrics as Prisma.InputJsonValue,
-            topContent: snapshot.topContent as unknown as Prisma.InputJsonValue,
-            notes: [],
-          },
-        });
-
-        const updatedConnection = await tx.artistPlatformInsightsConnection.update({
-          where: { id: connection.id },
-          data: {
-            status: 'connected',
-            displayName: snapshot.profile.displayName,
-            externalUrl: snapshot.profile.externalUrl,
-            lastSyncStartedAt: startedAt,
-            lastSyncedAt: capturedAt,
-            lastSyncStatus: 'success',
-            lastSyncError: null,
-            metadata: {
-              ...(this.readJsonObject(connection.metadata) ?? {}),
-              imageUrl: snapshot.profile.imageUrl,
-            } as Prisma.InputJsonValue,
-          },
-        });
-
-        return {
-          connection: updatedConnection as InsightsConnectionRecord,
-          snapshot: savedSnapshot as InsightsSnapshotRecord,
-        };
-      });
-
-      this.auditService.log({
-        actorId: userId,
-        action: 'insights.youtube_connection.sync',
-        entityType: 'artist_platform_insights_connection',
-        entityId: connection.id,
-        metadata: {
-          artistId,
-          platform: 'youtube',
-          capturedAt: snapshot.capturedAt,
-        },
-        ipAddress,
-      });
-
-      return {
-        ok: true,
-        platform: 'youtube',
-        message: 'YouTube Insights synced successfully',
-        connection: this.mapConnection(result.connection)!,
-        snapshot: this.mapSnapshot(result.snapshot)!,
-      };
-    } catch (error) {
-      const normalizedError =
-        error instanceof HttpException
-          ? error
-          : new ServiceUnavailableException('Could not sync YouTube insights right now');
-      const message =
-        normalizedError instanceof Error
-          ? normalizedError.message
-          : 'Could not sync YouTube insights right now';
-
-      await this.prisma.artistPlatformInsightsConnection.update({
-        where: { id: connection.id },
-        data: {
-          status: 'connected',
-          lastSyncStartedAt: startedAt,
-          lastSyncStatus: 'error',
-          lastSyncError: message,
-        },
-      });
-
-      this.auditService.log({
-        actorId: userId,
-        action: 'insights.youtube_connection.sync_failed',
-        entityType: 'artist_platform_insights_connection',
-        entityId: connection.id,
-        metadata: {
-          artistId,
-          platform: 'youtube',
-          message,
-        },
-        ipAddress,
-      });
-
-      throw normalizedError;
-    }
+    const { connection: conn, snapshot } = await this.syncConnectionCore(
+      connection,
+      this.youTubeProvider,
+      userId,
+      ipAddress,
+    );
+    return {
+      ok: true,
+      platform: 'youtube',
+      message: 'YouTube Insights synced successfully',
+      connection: conn,
+      snapshot,
+    };
   }
+
+  // =========================================================================
+  // SoundCloud
+  // =========================================================================
 
   async validateSoundCloudConnection(
     artistId: string,
@@ -693,7 +518,6 @@ export class InsightsService {
   ): Promise<SoundCloudInsightsConnectionValidationResult> {
     await this.membershipService.validateAccess(userId, artistId, 'write');
     await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
-
     return this.soundCloudProvider.validateProfileReference(dto.profileInput);
   }
 
@@ -710,7 +534,6 @@ export class InsightsService {
     const existing = await this.prisma.artistPlatformInsightsConnection.findFirst({
       where: { artistId, platform: 'soundcloud' },
     });
-
     const accountChanged = existing?.externalAccountId !== validation.externalAccountId;
     const metadata = {
       imageUrl: validation.imageUrl,
@@ -725,15 +548,7 @@ export class InsightsService {
           where: { connectionId: existing.id },
         });
       }
-
       if (existing) {
-        const recoveredSyncStatus =
-          accountChanged || !existing.lastSyncedAt
-            ? 'never'
-            : existing.lastSyncStatus === 'error'
-              ? 'success'
-              : existing.lastSyncStatus;
-
         return tx.artistPlatformInsightsConnection.update({
           where: { id: existing.id },
           data: {
@@ -750,12 +565,15 @@ export class InsightsService {
             metadata: metadata as Prisma.InputJsonValue,
             lastSyncStartedAt: null,
             lastSyncedAt: accountChanged ? null : existing.lastSyncedAt,
-            lastSyncStatus: recoveredSyncStatus,
+            lastSyncStatus: this.recoverSyncStatus(
+              accountChanged,
+              existing.lastSyncedAt,
+              existing.lastSyncStatus as InsightsConnectionRecord['lastSyncStatus'],
+            ),
             lastSyncError: null,
           },
         });
       }
-
       return tx.artistPlatformInsightsConnection.create({
         data: {
           artistId,
@@ -788,12 +606,10 @@ export class InsightsService {
         platform: 'soundcloud',
         externalAccountId: validation.externalAccountId,
         externalHandle: validation.externalHandle,
-        externalUrl: validation.externalUrl,
         accountChanged,
       },
       ipAddress,
     });
-
     return this.mapConnection(savedConnection as InsightsConnectionRecord)!;
   }
 
@@ -805,43 +621,159 @@ export class InsightsService {
     await this.membershipService.validateAccess(userId, artistId, 'write');
     await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
 
-    const connection = await this.prisma.artistPlatformInsightsConnection.findFirst({
-      where: { artistId, platform: 'soundcloud' },
-    });
+    const connection = await this.findConnectedConnection(artistId, 'soundcloud');
+    const { connection: conn, snapshot } = await this.syncConnectionCore(
+      connection,
+      this.soundCloudProvider,
+      userId,
+      ipAddress,
+    );
+    return {
+      ok: true,
+      platform: 'soundcloud',
+      message: 'SoundCloud Insights synced successfully',
+      connection: conn,
+      snapshot,
+    };
+  }
 
-    if (!connection || !connection.externalAccountId) {
-      throw new BadRequestException('Connect a SoundCloud profile before syncing insights');
+  // =========================================================================
+  // Scheduled-sync entry points (called by InsightsSyncScheduler)
+  // =========================================================================
+
+  /**
+   * Returns all connected insights connections across all artists that are due
+   * for a scheduled sync (lastSyncedAt is null or older than SYNC_SCHEDULED_MIN_INTERVAL_MS).
+   */
+  async findConnectionsDueForScheduledSync(): Promise<InsightsConnectionRecord[]> {
+    const threshold = new Date(Date.now() - SYNC_SCHEDULED_MIN_INTERVAL_MS);
+    const connections = await this.prisma.artistPlatformInsightsConnection.findMany({
+      where: {
+        status: 'connected',
+        externalAccountId: { not: null },
+        OR: [{ lastSyncedAt: null }, { lastSyncedAt: { lt: threshold } }],
+      },
+      orderBy: [{ lastSyncedAt: 'asc' }],
+    });
+    return connections as InsightsConnectionRecord[];
+  }
+
+  /**
+   * Sync a single connection by its record — used by the scheduler.
+   * Bypasses membership + billing checks (system-level operation).
+   * Errors are swallowed and logged so the scheduler continues the batch.
+   */
+  async syncConnectionByRecord(connection: InsightsConnectionRecord): Promise<void> {
+    const provider = this.providers[connection.platform];
+    if (!provider) {
+      this.logger.warn(`[scheduler] No provider for platform ${connection.platform} — skipping`);
+      return;
+    }
+    try {
+      await this.syncConnectionCore(connection, provider, null, undefined);
+      this.logger.log(
+        `[scheduler] Synced ${connection.platform} for artist ${connection.artistId}`,
+      );
+    } catch (error) {
+      // Errors are already persisted to DB inside syncConnectionCore.
+      this.logger.warn(
+        `[scheduler] Sync failed for ${connection.platform}/${connection.artistId}: ${String(error)}`,
+      );
+    }
+  }
+
+  // =========================================================================
+  // Core sync engine
+  // =========================================================================
+
+  /**
+   * Single source of truth for all sync operations across all platforms.
+   *
+   * Guards:
+   *   - Concurrent sync: blocks if lastSyncStatus='pending' within SYNC_CONCURRENT_GUARD_MS
+   *   - Timeout: cancels provider call after SYNC_PROVIDER_TIMEOUT_MS
+   *
+   * Status logic:
+   *   - 'success'  → metrics OK AND topContent present
+   *   - 'partial'  → metrics OK BUT topContent empty (provider best-effort failed)
+   *   - 'error'    → exception thrown (snapshot NOT stored, error written to connection)
+   *
+   * @param actorId  User ID for audit logging; null for scheduled syncs
+   */
+  private async syncConnectionCore(
+    connection: InsightsConnectionRecord,
+    provider: PlatformInsightsProvider,
+    actorId: string | null,
+    ipAddress?: string,
+  ): Promise<{ connection: StageLinkInsightsConnection; snapshot: StageLinkInsightsSnapshot }> {
+    const platformLabel = connection.platform;
+    // Human-readable name for user-facing messages (e.g. 'Spotify' not 'spotify')
+    const platformDisplayName: Record<StageLinkInsightsPlatform, string> = {
+      spotify: 'Spotify',
+      youtube: 'YouTube',
+      soundcloud: 'SoundCloud',
+    };
+    const platformName = platformDisplayName[platformLabel] ?? platformLabel;
+
+    // 1. Concurrent sync guard
+    if (connection.lastSyncStatus === 'pending' && connection.lastSyncStartedAt) {
+      const msSinceStart = Date.now() - connection.lastSyncStartedAt.getTime();
+      if (msSinceStart < SYNC_CONCURRENT_GUARD_MS) {
+        throw new ConflictException(
+          `A sync is already in progress for this ${platformName} connection. ` +
+            `Wait a moment before trying again.`,
+        );
+      }
     }
 
+    // 2. Mark pending
     const startedAt = new Date();
     await this.prisma.artistPlatformInsightsConnection.update({
       where: { id: connection.id },
-      data: {
-        lastSyncStartedAt: startedAt,
-        lastSyncStatus: 'pending',
-        lastSyncError: null,
-      },
+      data: { lastSyncStartedAt: startedAt, lastSyncStatus: 'pending', lastSyncError: null },
     });
 
     try {
-      const snapshot = await this.soundCloudProvider.syncLatestSnapshot({
-        externalAccountId: connection.externalAccountId,
-        externalHandle: connection.externalHandle,
-        externalUrl: connection.externalUrl,
-        metadata: this.readJsonObject(connection.metadata),
-      });
+      // 3. Provider call with hard timeout
+      const snapshot = await this.fetchWithTimeout(
+        provider.syncLatestSnapshot({
+          externalAccountId: connection.externalAccountId,
+          externalHandle: connection.externalHandle,
+          externalUrl: connection.externalUrl,
+          metadata: this.readJsonObject(connection.metadata),
+        }),
+        SYNC_PROVIDER_TIMEOUT_MS,
+        `${platformName} sync timed out after ${SYNC_PROVIDER_TIMEOUT_MS / 1000}s`,
+      );
 
       const capturedAt = new Date(snapshot.capturedAt);
       if (Number.isNaN(capturedAt.getTime())) {
-        throw new ServiceUnavailableException('SoundCloud returned an invalid snapshot timestamp');
+        throw new ServiceUnavailableException(
+          `${platformName} returned an invalid snapshot timestamp`,
+        );
       }
 
+      // 4. Partial-sync detection
+      // All providers silently degrade topContent to [] on fetch errors.
+      // An empty topContent with valid metrics → 'partial' (best-effort failure).
+      const hasMetrics = Object.keys(snapshot.metrics).length > 0;
+      const hasTopContent = snapshot.topContent.length > 0;
+      const syncStatus: 'success' | 'partial' =
+        hasMetrics && !hasTopContent ? 'partial' : 'success';
+
+      if (syncStatus === 'partial') {
+        this.logger.warn(
+          `[sync] Partial sync for ${platformLabel}/${connection.artistId}: metrics OK, topContent empty`,
+        );
+      }
+
+      // 5. Atomic persist
       const result = await this.prisma.$transaction(async (tx) => {
         const savedSnapshot = await tx.artistPlatformInsightsSnapshot.create({
           data: {
-            artistId,
+            artistId: connection.artistId,
             connectionId: connection.id,
-            platform: 'soundcloud',
+            platform: connection.platform,
             capturedAt,
             profile: snapshot.profile as Prisma.InputJsonValue,
             metrics: snapshot.metrics as Prisma.InputJsonValue,
@@ -858,7 +790,7 @@ export class InsightsService {
             externalUrl: snapshot.profile.externalUrl,
             lastSyncStartedAt: startedAt,
             lastSyncedAt: capturedAt,
-            lastSyncStatus: 'success',
+            lastSyncStatus: syncStatus,
             lastSyncError: null,
             metadata: {
               ...(this.readJsonObject(connection.metadata) ?? {}),
@@ -873,35 +805,38 @@ export class InsightsService {
         };
       });
 
-      this.auditService.log({
-        actorId: userId,
-        action: 'insights.soundcloud_connection.sync',
-        entityType: 'artist_platform_insights_connection',
-        entityId: connection.id,
-        metadata: {
-          artistId,
-          platform: 'soundcloud',
-          capturedAt: snapshot.capturedAt,
-        },
-        ipAddress,
-      });
+      // 6. Audit (skipped for scheduled syncs to avoid log noise)
+      if (actorId) {
+        this.auditService.log({
+          actorId,
+          action: `insights.${platformLabel}_connection.sync`,
+          entityType: 'artist_platform_insights_connection',
+          entityId: connection.id,
+          metadata: {
+            artistId: connection.artistId,
+            platform: platformLabel,
+            capturedAt: snapshot.capturedAt,
+            syncStatus,
+          },
+          ipAddress,
+        });
+      }
 
       return {
-        ok: true,
-        platform: 'soundcloud',
-        message: 'SoundCloud Insights synced successfully',
         connection: this.mapConnection(result.connection)!,
         snapshot: this.mapSnapshot(result.snapshot)!,
       };
     } catch (error) {
+      // 7. Error path — persist failure, re-throw
       const normalizedError =
         error instanceof HttpException
           ? error
-          : new ServiceUnavailableException('Could not sync SoundCloud insights right now');
+          : new ServiceUnavailableException(`Could not sync ${platformName} insights right now`);
       const message =
         normalizedError instanceof Error
           ? normalizedError.message
-          : 'Could not sync SoundCloud insights right now';
+          : `Could not sync ${platformLabel} insights right now`;
+      const storedMessage = message.slice(0, 500);
 
       await this.prisma.artistPlatformInsightsConnection.update({
         where: { id: connection.id },
@@ -909,25 +844,73 @@ export class InsightsService {
           status: 'connected',
           lastSyncStartedAt: startedAt,
           lastSyncStatus: 'error',
-          lastSyncError: message,
+          lastSyncError: storedMessage,
         },
       });
 
-      this.auditService.log({
-        actorId: userId,
-        action: 'insights.soundcloud_connection.sync_failed',
-        entityType: 'artist_platform_insights_connection',
-        entityId: connection.id,
-        metadata: {
-          artistId,
-          platform: 'soundcloud',
-          message,
-        },
-        ipAddress,
-      });
+      if (actorId) {
+        this.auditService.log({
+          actorId,
+          action: `insights.${platformLabel}_connection.sync_failed`,
+          entityType: 'artist_platform_insights_connection',
+          entityId: connection.id,
+          metadata: {
+            artistId: connection.artistId,
+            platform: platformLabel,
+            message: storedMessage,
+          },
+          ipAddress,
+        });
+      }
 
       throw normalizedError;
     }
+  }
+
+  // =========================================================================
+  // Private helpers
+  // =========================================================================
+
+  private async findConnectedConnection(
+    artistId: string,
+    platform: StageLinkInsightsPlatform,
+  ): Promise<InsightsConnectionRecord> {
+    const connection = await this.prisma.artistPlatformInsightsConnection.findFirst({
+      where: { artistId, platform },
+    });
+    if (!connection || !connection.externalAccountId) {
+      const displayNames: Record<StageLinkInsightsPlatform, string> = {
+        spotify: 'Spotify',
+        youtube: 'YouTube',
+        soundcloud: 'SoundCloud',
+      };
+      throw new BadRequestException(
+        `Connect a ${displayNames[platform] ?? platform} account before syncing insights`,
+      );
+    }
+    return connection as InsightsConnectionRecord;
+  }
+
+  private fetchWithTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+    return Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        // .unref() prevents this timer from keeping the Node.js event loop alive
+        // during tests and graceful shutdowns.
+        const timer = setTimeout(() => reject(new ServiceUnavailableException(message)), ms);
+        timer.unref();
+      }),
+    ]);
+  }
+
+  private recoverSyncStatus(
+    accountChanged: boolean,
+    lastSyncedAt: Date | null,
+    currentSyncStatus: InsightsConnectionRecord['lastSyncStatus'],
+  ): InsightsConnectionRecord['lastSyncStatus'] {
+    if (accountChanged || !lastSyncedAt) return 'never';
+    if (currentSyncStatus === 'error') return 'success';
+    return currentSyncStatus;
   }
 
   private async resolveProfileYouTubeChannel(
@@ -937,13 +920,11 @@ export class InsightsService {
       where: { id: artistId },
       select: { youtubeUrl: true },
     });
-
     if (!artist.youtubeUrl) {
       throw new BadRequestException(
         'Add your YouTube channel to your artist profile before using YouTube Insights',
       );
     }
-
     try {
       return await this.youTubeProvider.validateChannelReference(artist.youtubeUrl);
     } catch (error) {
@@ -952,7 +933,6 @@ export class InsightsService {
           'Update the YouTube URL in your artist profile before using YouTube Insights',
         );
       }
-
       throw error;
     }
   }
@@ -974,18 +954,20 @@ export class InsightsService {
   ) {
     if (connection.externalAccountId !== expected.externalAccountId) {
       throw new BadRequestException(
-        'Your connected YouTube channel no longer matches the one saved in your artist profile. Update the connection from your profile link and try again.',
+        'Your connected YouTube channel no longer matches the one saved in your artist profile. ' +
+          'Update the connection from your profile link and try again.',
       );
     }
   }
 
+  // =========================================================================
+  // Mapping helpers
+  // =========================================================================
+
   private mapConnection(
     connection: InsightsConnectionRecord | null,
   ): StageLinkInsightsConnection | null {
-    if (!connection) {
-      return null;
-    }
-
+    if (!connection) return null;
     return {
       artistId: connection.artistId,
       platform: connection.platform,
@@ -1009,10 +991,7 @@ export class InsightsService {
   }
 
   private mapSnapshot(snapshot: InsightsSnapshotRecord | null): StageLinkInsightsSnapshot | null {
-    if (!snapshot) {
-      return null;
-    }
-
+    if (!snapshot) return null;
     return {
       platform: snapshot.platform,
       capturedAt: snapshot.capturedAt.toISOString(),
@@ -1030,43 +1009,29 @@ export class InsightsService {
   }
 
   private readStringArray(value: Prisma.JsonValue): string[] {
-    if (!Array.isArray(value)) {
-      return [];
-    }
-
+    if (!Array.isArray(value)) return [];
     return value.filter((item): item is string => typeof item === 'string');
   }
 
   private readJsonObject(value: Prisma.JsonValue): Record<string, unknown> | null {
-    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-      return null;
-    }
-
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
     return value as Record<string, unknown>;
   }
 
   private readProfile(value: Prisma.JsonValue): StageLinkInsightsSnapshot['profile'] {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-      return {
-        displayName: null,
-        imageUrl: null,
-        externalUrl: null,
-      };
+      return { displayName: null, imageUrl: null, externalUrl: null };
     }
-
-    const profile = value as Record<string, unknown>;
+    const p = value as Record<string, unknown>;
     return {
-      displayName: typeof profile['displayName'] === 'string' ? profile['displayName'] : null,
-      imageUrl: typeof profile['imageUrl'] === 'string' ? profile['imageUrl'] : null,
-      externalUrl: typeof profile['externalUrl'] === 'string' ? profile['externalUrl'] : null,
+      displayName: typeof p['displayName'] === 'string' ? p['displayName'] : null,
+      imageUrl: typeof p['imageUrl'] === 'string' ? p['imageUrl'] : null,
+      externalUrl: typeof p['externalUrl'] === 'string' ? p['externalUrl'] : null,
     };
   }
 
   private readMetrics(value: Prisma.JsonValue): Record<string, string | number | boolean | null> {
-    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-      return {};
-    }
-
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return {};
     return Object.entries(value as Record<string, unknown>).reduce<
       Record<string, string | number | boolean | null>
     >((acc, [key, item]) => {
@@ -1086,33 +1051,21 @@ export class InsightsService {
     value: Prisma.JsonValue,
     platform: StageLinkInsightsPlatform,
   ): StageLinkInsightsTopContentItem[] {
-    if (!Array.isArray(value)) {
-      return [];
-    }
-
+    if (!Array.isArray(value)) return [];
     return value.reduce<StageLinkInsightsTopContentItem[]>((acc, item) => {
-      if (typeof item !== 'object' || item === null || Array.isArray(item)) {
-        return acc;
-      }
-
-      const candidate = item as Record<string, unknown>;
-      if (typeof candidate['externalId'] !== 'string' || typeof candidate['title'] !== 'string') {
-        return acc;
-      }
-
+      if (typeof item !== 'object' || item === null || Array.isArray(item)) return acc;
+      const c = item as Record<string, unknown>;
+      if (typeof c['externalId'] !== 'string' || typeof c['title'] !== 'string') return acc;
       acc.push({
         platform,
-        externalId: candidate['externalId'],
-        title: candidate['title'],
-        subtitle: typeof candidate['subtitle'] === 'string' ? candidate['subtitle'] : null,
-        metricLabel:
-          typeof candidate['metricLabel'] === 'string' ? candidate['metricLabel'] : 'Metric',
+        externalId: c['externalId'],
+        title: c['title'],
+        subtitle: typeof c['subtitle'] === 'string' ? c['subtitle'] : null,
+        metricLabel: typeof c['metricLabel'] === 'string' ? c['metricLabel'] : 'Metric',
         metricValue:
-          typeof candidate['metricValue'] === 'string'
-            ? candidate['metricValue']
-            : String(candidate['metricValue'] ?? ''),
-        imageUrl: typeof candidate['imageUrl'] === 'string' ? candidate['imageUrl'] : null,
-        externalUrl: typeof candidate['externalUrl'] === 'string' ? candidate['externalUrl'] : null,
+          typeof c['metricValue'] === 'string' ? c['metricValue'] : String(c['metricValue'] ?? ''),
+        imageUrl: typeof c['imageUrl'] === 'string' ? c['imageUrl'] : null,
+        externalUrl: typeof c['externalUrl'] === 'string' ? c['externalUrl'] : null,
       });
       return acc;
     }, []);
@@ -1127,29 +1080,15 @@ export class InsightsService {
     ) {
       return raw as StageLinkInsightsDateRange;
     }
-
     return DEFAULT_INSIGHTS_RANGE;
   }
 
   private resolveRangeStart(range: StageLinkInsightsDateRange): Date | null {
-    if (range === 'all') {
-      return null;
-    }
-
-    const now = new Date();
-    const start = new Date(now);
-
-    if (range === '7d') {
-      start.setDate(start.getDate() - 7);
-      return start;
-    }
-
-    if (range === '30d') {
-      start.setDate(start.getDate() - 30);
-      return start;
-    }
-
-    start.setDate(start.getDate() - 90);
+    if (range === 'all') return null;
+    const start = new Date();
+    if (range === '7d') start.setDate(start.getDate() - 7);
+    else if (range === '30d') start.setDate(start.getDate() - 30);
+    else start.setDate(start.getDate() - 90);
     return start;
   }
 }
