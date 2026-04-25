@@ -279,10 +279,12 @@ export function LandingPage({ locale }: LandingPageProps) {
             </div>
             <p className="landing-small mt-3 text-white/88">{t.hero.ctaNote}</p>
             <p className="landing-small mt-1 text-white/80">{t.hero.ctaSubnote}</p>
+            <div className="mt-6 max-w-xl rounded-[1.4rem] border border-primary/30 bg-[linear-gradient(135deg,rgba(155,48,208,0.18),rgba(255,255,255,0.06))] px-4 py-4 shadow-[0_20px_48px_rgba(155,48,208,0.16)] backdrop-blur-md sm:px-5">
+              <p className="text-base leading-7 font-semibold text-white sm:text-[1.05rem]">
+                {t.hero.socialProof}
+              </p>
+            </div>
             <p className="landing-small mt-5 max-w-xl text-white/88">{t.hero.supportingText}</p>
-            <p className="landing-small mt-3 font-semibold tracking-[0.01em] text-white/92">
-              {t.hero.socialProof}
-            </p>
           </div>
 
           <div id="preview" className="relative">
