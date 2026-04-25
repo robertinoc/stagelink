@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getEpkPublishReadiness } from '@stagelink/types';
@@ -44,6 +44,29 @@ function dedupeLinks(items: EpkFeaturedLinkItem[]): EpkFeaturedLinkItem[] {
     seen.add(item.url);
     return true;
   });
+}
+
+function normalizeFeaturedLinksForProfile(
+  items: EpkFeaturedLinkItem[],
+  availableLinks: { label: string; url: string }[],
+): EpkFeaturedLinkItem[] {
+  const labelByUrl = new Map(availableLinks.map((item) => [item.url, item.label]));
+
+  return dedupeLinks(items)
+    .filter((item) => labelByUrl.has(item.url))
+    .map((item) => ({
+      ...item,
+      label: labelByUrl.get(item.url) ?? item.label,
+    }));
+}
+
+function areFeaturedLinksEqual(a: EpkFeaturedLinkItem[], b: EpkFeaturedLinkItem[]) {
+  if (a.length !== b.length) return false;
+
+  return a.every(
+    (item, index) =>
+      item.id === b[index]?.id && item.label === b[index]?.label && item.url === b[index]?.url,
+  );
 }
 
 export function EpkEditor({
@@ -154,8 +177,22 @@ export function EpkEditor({
       ),
     [profileLinkShortcuts, smartLinks],
   );
+  const normalizedFeaturedLinks = useMemo(
+    () => normalizeFeaturedLinksForProfile(watchedFeaturedLinks, profileAndSmartLinks),
+    [profileAndSmartLinks, watchedFeaturedLinks],
+  );
   const sectionCardClass =
     'border-white/10 bg-white/[0.04] shadow-[0_18px_65px_rgba(10,7,20,0.18)] transition duration-200 hover:border-primary/30 hover:bg-primary/[0.04] hover:shadow-[0_18px_80px_rgba(155,48,208,0.14)]';
+
+  useEffect(() => {
+    const current = getValues('featuredLinks') ?? [];
+    if (!areFeaturedLinksEqual(current, normalizedFeaturedLinks)) {
+      setValue('featuredLinks', normalizedFeaturedLinks, {
+        shouldDirty: false,
+        shouldTouch: false,
+      });
+    }
+  }, [getValues, normalizedFeaturedLinks, setValue]);
 
   function buildLocalizedFieldMap(
     values: Record<'en' | 'es', string | null | undefined>,
@@ -251,7 +288,7 @@ export function EpkEditor({
         heroImageUrl: values.heroImageUrl || null,
         galleryImageUrls: values.galleryImageUrls,
         featuredMedia: values.featuredMedia,
-        featuredLinks: values.featuredLinks,
+        featuredLinks: normalizeFeaturedLinksForProfile(values.featuredLinks, profileAndSmartLinks),
         highlights: values.highlights.map((item) => item.trim()).filter(Boolean),
         riderInfo: values.riderInfo || null,
         techRequirements: values.techRequirements || null,
@@ -354,7 +391,10 @@ export function EpkEditor({
   }
 
   function toggleFeaturedLinkVisibility(link: { label: string; url: string }) {
-    const currentLinks = getValues('featuredLinks') ?? [];
+    const currentLinks = normalizeFeaturedLinksForProfile(
+      getValues('featuredLinks') ?? [],
+      profileAndSmartLinks,
+    );
     const exists = currentLinks.some((item) => item.url === link.url);
     if (exists) {
       setValue(
@@ -367,20 +407,26 @@ export function EpkEditor({
 
     setValue(
       'featuredLinks',
-      dedupeLinks([
-        ...currentLinks,
-        {
-          id: crypto.randomUUID(),
-          label: link.label,
-          url: link.url,
-        },
-      ]),
+      normalizeFeaturedLinksForProfile(
+        [
+          ...currentLinks,
+          {
+            id: crypto.randomUUID(),
+            label: link.label,
+            url: link.url,
+          },
+        ],
+        profileAndSmartLinks,
+      ),
       { shouldDirty: true, shouldTouch: true },
     );
   }
 
   function setHighlightedLink(url: string) {
-    const currentLinks = getValues('featuredLinks') ?? [];
+    const currentLinks = normalizeFeaturedLinksForProfile(
+      getValues('featuredLinks') ?? [],
+      profileAndSmartLinks,
+    );
     const existing = currentLinks.find((item) => item.url === url);
     const next = existing
       ? [existing, ...currentLinks.filter((item) => item.url !== url)]
@@ -392,7 +438,10 @@ export function EpkEditor({
           },
           ...currentLinks,
         ];
-    setValue('featuredLinks', dedupeLinks(next), { shouldDirty: true, shouldTouch: true });
+    setValue('featuredLinks', normalizeFeaturedLinksForProfile(next, profileAndSmartLinks), {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   }
 
   const sharePath = `/${locale}/${username}/epk`;
