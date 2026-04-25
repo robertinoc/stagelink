@@ -35,6 +35,16 @@
 :root {
   --radius: 0.625rem;
 
+  /* Landing-specific experience tokens */
+  --landing-bg: #0b0b0f;
+  --landing-surface: rgba(255, 255, 255, 0.06);
+  --landing-surface-strong: rgba(255, 255, 255, 0.08);
+  --landing-border: rgba(255, 255, 255, 0.14);
+  --landing-text-primary: #ffffff;
+  --landing-text-secondary: #cfcfcf;
+  --landing-text-muted: #a8a8b3;
+  --landing-text-subtle: #8f8f9c;
+
   /* Backgrounds */
   --background: #0e021d;
   --sidebar: #130329;
@@ -79,6 +89,10 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 }
 
 h1,
@@ -88,6 +102,19 @@ h4,
 h5,
 h6 {
   font-family: var(--font-heading);
+}
+
+a,
+button,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid rgba(232, 121, 249, 0.9);
+  outline-offset: 3px;
 }
 
 /* ── Custom utilities ───────────────────────────────────────────────── */
@@ -113,6 +140,125 @@ h6 {
 
 @utility border-brand {
   border-color: #9b30d0;
+}
+
+.landing-shell {
+  background:
+    radial-gradient(circle at top, rgba(155, 48, 208, 0.16), transparent 28%),
+    radial-gradient(circle at 85% 18%, rgba(232, 121, 249, 0.09), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 18%),
+    var(--landing-bg);
+  color: var(--landing-text-primary);
+}
+
+.landing-section {
+  padding-inline: 1.5rem;
+  padding-block: 4rem;
+}
+
+.landing-section-compact {
+  padding-inline: 1.5rem;
+  padding-block: 2.25rem;
+}
+
+.landing-eyebrow {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.landing-h1,
+.landing-h2,
+.landing-h3 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.landing-h1 {
+  max-width: 14ch;
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+.landing-h2 {
+  max-width: 18ch;
+  font-size: 1.625rem;
+  line-height: 1.25;
+}
+
+.landing-h3 {
+  font-size: 1.375rem;
+  line-height: 1.3;
+}
+
+.landing-body {
+  max-width: 37.5rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--landing-text-secondary);
+  text-wrap: pretty;
+}
+
+.landing-body-compact {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  text-wrap: pretty;
+}
+
+.landing-small {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--landing-text-muted);
+}
+
+.landing-surface {
+  border: 1px solid var(--landing-border);
+  background: var(--landing-surface);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 24px 60px rgba(9, 8, 15, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.landing-button-primary,
+.landing-button-secondary {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  line-height: 1.2;
+  font-weight: 600;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.landing-button-primary {
+  color: #ffffff;
+  box-shadow: 0 20px 45px rgba(155, 48, 208, 0.24);
+}
+
+.landing-button-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.landing-button-primary:hover,
+.landing-button-secondary:hover {
+  transform: translateY(-1px);
 }
 
 @keyframes landing-marquee {
@@ -177,4 +323,53 @@ h6 {
 
 .landing-surface-glow:hover::before {
   opacity: 1;
+}
+
+@media (min-width: 40rem) {
+  .landing-section {
+    padding-block: 5rem;
+  }
+
+  .landing-section-compact {
+    padding-block: 2.75rem;
+  }
+
+  .landing-h1 {
+    font-size: 3rem;
+  }
+
+  .landing-h2 {
+    font-size: 2.25rem;
+  }
+
+  .landing-h3 {
+    font-size: 1.75rem;
+  }
+
+  .landing-body {
+    font-size: 1.125rem;
+  }
+
+  .landing-body-compact {
+    font-size: 1.0625rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-platform-track {
+    animation: none;
+  }
+
+  .landing-hover-card,
+  .landing-surface-glow::before,
+  .landing-button-primary,
+  .landing-button-secondary {
+    transition: none;
+  }
+
+  .landing-hover-card:hover,
+  .landing-button-primary:hover,
+  .landing-button-secondary:hover {
+    transform: none;
+  }
 }
