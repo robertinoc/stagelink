@@ -8,7 +8,7 @@ export function Footer({ locale }: { locale: string }) {
   const homePath = `/${locale}`;
 
   return (
-    <footer className="border-t border-white/10 py-12">
+    <footer className="border-t border-white/12 bg-[#0b0b0f] py-12">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           {/* Brand */}
@@ -20,45 +20,45 @@ export function Footer({ locale }: { locale: string }) {
               <span className="text-white">Stage</span>
               <span className="text-gradient-brand">Link</span>
             </Link>
-            <p className="mt-3 text-sm leading-6 text-white/40">{t.footer.description}</p>
+            <p className="mt-3 max-w-sm text-base leading-7 text-white/76">{t.footer.description}</p>
           </div>
 
           {/* Links */}
-          <nav className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
+          <nav className="flex flex-wrap gap-x-8 gap-y-3 text-base">
             <Link
               href={`${homePath}#product`}
-              className="text-white/40 transition-colors hover:text-white/70"
+              className="text-white/72 transition-colors hover:text-white"
             >
               {t.footer.links.product}
             </Link>
             <Link
               href={`${homePath}#features`}
-              className="text-white/40 transition-colors hover:text-white/70"
+              className="text-white/72 transition-colors hover:text-white"
             >
               {t.footer.links.features}
             </Link>
             <Link
               href={`${homePath}#how-it-works`}
-              className="text-white/40 transition-colors hover:text-white/70"
+              className="text-white/72 transition-colors hover:text-white"
             >
               {t.footer.links.howItWorks}
             </Link>
             <Link
               href={`/${locale}/pricing`}
-              className="text-white/40 transition-colors hover:text-white/70"
+              className="text-white/72 transition-colors hover:text-white"
             >
               {t.footer.links.pricing}
             </Link>
             <Link
               href={`${homePath}#contact`}
-              className="text-white/40 transition-colors hover:text-white/70"
+              className="text-white/72 transition-colors hover:text-white"
             >
               {t.footer.links.contact}
             </Link>
           </nav>
         </div>
 
-        <div className="mt-10 border-t border-white/5 pt-6 text-xs text-white/30">{copyright}</div>
+        <div className="mt-10 border-t border-white/8 pt-6 text-sm text-white/52">{copyright}</div>
       </div>
     </footer>
   );

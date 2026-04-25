@@ -29,8 +29,8 @@ export function Navbar({ locale }: NavbarProps) {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/75 shadow-[0_18px_50px_rgba(13,10,25,0.35)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
+    <header className="sticky top-0 z-50 w-full border-b border-white/12 bg-[#0b0b0f]/88 shadow-[0_18px_50px_rgba(8,8,12,0.34)] backdrop-blur-xl supports-[backdrop-filter]:bg-[#0b0b0f]/76">
+      <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link
           href={`/${locale}`}
@@ -46,7 +46,7 @@ export function Navbar({ locale }: NavbarProps) {
             <Link
               key={link.href}
               href={link.href}
-              className="text-white/60 transition-colors hover:text-white"
+              className="text-white/74 transition-colors hover:text-white"
             >
               {link.label}
             </Link>
@@ -58,7 +58,7 @@ export function Navbar({ locale }: NavbarProps) {
           {/* Language switcher */}
           <Link
             href={switchPath}
-            className="hidden rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/50 transition-colors hover:border-white/20 hover:text-white/80 sm:flex"
+            className="hidden min-h-11 items-center rounded-full border border-white/14 bg-white/5 px-4 py-2 text-sm font-medium text-white/76 transition-colors hover:border-white/24 hover:text-white sm:flex"
             aria-label={`${t.nav.languageLabel}: ${otherLocale.toUpperCase()}`}
           >
             {otherLocale.toUpperCase()}
@@ -66,14 +66,14 @@ export function Navbar({ locale }: NavbarProps) {
 
           <Link
             href={`/${locale}/login`}
-            className="hidden rounded-full px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:text-white sm:block"
+            className="hidden min-h-11 items-center rounded-full px-4 py-2 text-sm font-medium text-white/78 transition-colors hover:text-white sm:inline-flex"
           >
             {t.nav.login}
           </Link>
 
           <Link
             href="/api/auth/signin"
-            className="rounded-full bg-brand-gradient px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            className="landing-button-primary rounded-full bg-brand-gradient px-5 text-center text-white transition-opacity hover:opacity-95"
           >
             <span className="hidden sm:inline">{t.nav.cta}</span>
             <span className="sm:hidden">Get started</span>
@@ -83,7 +83,7 @@ export function Navbar({ locale }: NavbarProps) {
           <button
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle menu"
-            className="ml-1 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/60 hover:text-white md:hidden"
+            className="ml-1 flex h-12 w-12 items-center justify-center rounded-full border border-white/14 bg-white/5 text-white/76 hover:text-white md:hidden"
           >
             {mobileOpen ? (
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -110,25 +110,25 @@ export function Navbar({ locale }: NavbarProps) {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="border-t border-white/10 bg-background/95 px-4 py-4 md:hidden">
+        <div className="border-t border-white/12 bg-[#0b0b0f]/96 px-4 py-4 md:hidden">
           <nav className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
-                className="rounded-xl px-3 py-2.5 text-sm text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+                className="rounded-xl px-4 py-3 text-base text-white/82 transition-colors hover:bg-white/5 hover:text-white"
               >
                 {link.label}
               </Link>
             ))}
             <div className="mt-3 flex items-center gap-3 border-t border-white/10 pt-3">
-              <Link href={`/${locale}/login`} className="text-sm text-white/60 hover:text-white">
+              <Link href={`/${locale}/login`} className="text-base text-white/78 hover:text-white">
                 {t.nav.login}
               </Link>
               <Link
                 href={switchPath}
-                className="ml-auto rounded-full border border-white/10 px-3 py-1 text-xs font-medium text-white/50 hover:text-white/80"
+                className="ml-auto inline-flex min-h-11 items-center rounded-full border border-white/14 px-4 py-2 text-sm font-medium text-white/76 hover:text-white"
               >
                 {otherLocale.toUpperCase()}
               </Link>
