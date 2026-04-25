@@ -257,9 +257,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             <div className="landing-eyebrow mb-4 inline-flex items-center rounded-full border border-primary/35 bg-primary/12 px-3.5 py-1.5 text-primary/95 sm:mb-5">
               {t.badge}
             </div>
-            <h1 className="landing-h1 max-w-3xl">
-              {t.hero.headline}
-            </h1>
+            <h1 className="landing-h1 max-w-3xl">{t.hero.headline}</h1>
             <p className="landing-body mt-5 max-w-2xl text-white/98 sm:mt-6">
               {t.hero.subheadline}
             </p>
@@ -463,9 +461,7 @@ export function LandingPage({ locale }: LandingPageProps) {
         <div className="landing-surface mx-auto max-w-7xl rounded-[2rem] p-6 md:p-8">
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-4">
-              <p className="landing-eyebrow text-white/78">
-                {t.strip.label}
-              </p>
+              <p className="landing-eyebrow text-white/78">{t.strip.label}</p>
               <p className="landing-body-compact max-w-3xl text-white/90">{t.strip.socialProof}</p>
               <div className="flex flex-wrap gap-3">
                 {t.strip.items.map((item) => (
@@ -480,9 +476,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             </div>
 
             <div className="flex flex-col gap-4">
-              <p className="landing-eyebrow text-white/78">
-                {t.strip.platformsLabel}
-              </p>
+              <p className="landing-eyebrow text-white/78">{t.strip.platformsLabel}</p>
               <p className="landing-body-compact max-w-3xl text-white/88">
                 {t.strip.platformsDescription}
               </p>
@@ -514,12 +508,8 @@ export function LandingPage({ locale }: LandingPageProps) {
 
       <section className="landing-section">
         <div className="landing-surface mx-auto max-w-7xl rounded-[2rem] p-8 md:p-14">
-          <p className="landing-eyebrow text-primary">
-            {t.problem.eyebrow}
-          </p>
-          <h2 className="landing-h2 mt-3 max-w-4xl">
-            {t.problem.headline}
-          </h2>
+          <p className="landing-eyebrow text-primary">{t.problem.eyebrow}</p>
+          <h2 className="landing-h2 mt-3 max-w-4xl">{t.problem.headline}</h2>
           <p className="landing-body mt-6 max-w-3xl text-white/92">{t.problem.intro}</p>
 
           <div className="mt-10 grid gap-6 lg:grid-cols-2">
@@ -558,12 +548,8 @@ export function LandingPage({ locale }: LandingPageProps) {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(155,48,208,0.16),transparent_28%),radial-gradient(circle_at_82%_75%,rgba(232,121,249,0.12),transparent_30%)]" />
         <div className="relative mx-auto max-w-7xl">
           <div className="max-w-3xl">
-            <p className="landing-eyebrow text-primary">
-              {t.features.eyebrow}
-            </p>
-            <h2 className="landing-h2 mt-3">
-              {t.features.headline}
-            </h2>
+            <p className="landing-eyebrow text-primary">{t.features.eyebrow}</p>
+            <h2 className="landing-h2 mt-3">{t.features.headline}</h2>
             <p className="landing-body mt-5 text-white/88">{t.features.intro}</p>
           </div>
 
@@ -577,7 +563,9 @@ export function LandingPage({ locale }: LandingPageProps) {
                   {featureNumbers[index] ?? '00'}
                 </div>
                 <h3 className="landing-h3 mt-4">{feature.title}</h3>
-                <p className="mt-3 text-[1.0625rem] leading-7 text-white/90">{feature.description}</p>
+                <p className="mt-3 text-[1.0625rem] leading-7 text-white/90">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
@@ -587,12 +575,8 @@ export function LandingPage({ locale }: LandingPageProps) {
       <section id="how-it-works" className="landing-section">
         <div className="landing-surface mx-auto max-w-7xl rounded-[2rem] p-8 md:p-12">
           <div className="max-w-3xl">
-            <p className="landing-eyebrow text-white/70">
-              {t.howItWorks.eyebrow}
-            </p>
-            <h2 className="landing-h2 mt-3">
-              {t.howItWorks.headline}
-            </h2>
+            <p className="landing-eyebrow text-white/70">{t.howItWorks.eyebrow}</p>
+            <h2 className="landing-h2 mt-3">{t.howItWorks.headline}</h2>
             <p className="landing-body mt-5 text-white/92">{t.howItWorks.intro}</p>
           </div>
 
@@ -614,12 +598,8 @@ export function LandingPage({ locale }: LandingPageProps) {
       <section id="for-artists" className="landing-section">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-3xl">
-            <p className="landing-eyebrow text-primary">
-              {t.forArtists.eyebrow}
-            </p>
-            <h2 className="landing-h2 mt-3">
-              {t.forArtists.headline}
-            </h2>
+            <p className="landing-eyebrow text-primary">{t.forArtists.eyebrow}</p>
+            <h2 className="landing-h2 mt-3">{t.forArtists.headline}</h2>
             <p className="landing-body mt-5 text-white/92">{t.forArtists.body}</p>
           </div>
 
@@ -630,7 +610,9 @@ export function LandingPage({ locale }: LandingPageProps) {
                 className="rounded-[1.8rem] border border-white/10 bg-white/5 p-6 transition-colors hover:border-primary/30 hover:bg-primary/5"
               >
                 <h3 className="landing-h3">{segment.label}</h3>
-                <p className="mt-3 text-[1.0625rem] leading-7 text-white/90">{segment.description}</p>
+                <p className="mt-3 text-[1.0625rem] leading-7 text-white/90">
+                  {segment.description}
+                </p>
               </div>
             ))}
           </div>
@@ -642,12 +624,8 @@ export function LandingPage({ locale }: LandingPageProps) {
         <div className="landing-surface relative mx-auto max-w-7xl rounded-[2rem] p-8 md:p-12">
           <div className="grid gap-10 lg:grid-cols-[1fr_1.05fr]">
             <div>
-              <p className="landing-eyebrow text-white/82">
-                {t.monetization.eyebrow}
-              </p>
-              <h2 className="landing-h2 mt-3">
-                {t.monetization.headline}
-              </h2>
+              <p className="landing-eyebrow text-white/82">{t.monetization.eyebrow}</p>
+              <h2 className="landing-h2 mt-3">{t.monetization.headline}</h2>
               <p className="landing-body mt-5 text-white/92">{t.monetization.body}</p>
 
               <div className="mt-8 space-y-3">
@@ -662,7 +640,9 @@ export function LandingPage({ locale }: LandingPageProps) {
               </div>
 
               <blockquote className="mt-8 rounded-[1.7rem] border border-primary/20 bg-primary/8 px-5 py-5">
-                <p className="landing-small font-medium text-primary/95">{t.monetization.founderSupport}</p>
+                <p className="landing-small font-medium text-primary/95">
+                  {t.monetization.founderSupport}
+                </p>
                 <p className="mt-3 text-[1.2rem] leading-8 text-white/95 sm:text-[1.35rem]">
                   {t.monetization.founderQuote}
                 </p>
@@ -682,7 +662,9 @@ export function LandingPage({ locale }: LandingPageProps) {
                     {pillarNumbers[index] ?? 'A'}
                   </div>
                   <h3 className="landing-h3 mt-4">{pillar.title}</h3>
-                  <p className="mt-3 text-[1.0625rem] leading-7 text-white/90">{pillar.description}</p>
+                  <p className="mt-3 text-[1.0625rem] leading-7 text-white/90">
+                    {pillar.description}
+                  </p>
                 </div>
               ))}
             </div>
@@ -692,12 +674,8 @@ export function LandingPage({ locale }: LandingPageProps) {
 
       <section className="landing-section-compact px-6">
         <div className="landing-surface mx-auto max-w-5xl rounded-[2rem] border-primary/20 bg-primary/[0.06] p-8 text-center md:p-14">
-          <p className="landing-eyebrow text-primary">
-            {t.cta.eyebrow}
-          </p>
-          <h2 className="landing-h2 mx-auto mt-3 max-w-3xl">
-            {t.cta.headline}
-          </h2>
+          <p className="landing-eyebrow text-primary">{t.cta.eyebrow}</p>
+          <h2 className="landing-h2 mx-auto mt-3 max-w-3xl">{t.cta.headline}</h2>
           <p className="landing-body mx-auto mt-5 max-w-2xl text-white/92">{t.cta.body}</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
             <Link
@@ -721,12 +699,8 @@ export function LandingPage({ locale }: LandingPageProps) {
       <section id="contact" className="landing-section">
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto max-w-3xl">
-            <p className="landing-eyebrow text-primary">
-              {t.contact.eyebrow}
-            </p>
-            <h2 className="landing-h2 mt-3">
-              {t.contact.headline}
-            </h2>
+            <p className="landing-eyebrow text-primary">{t.contact.eyebrow}</p>
+            <h2 className="landing-h2 mt-3">{t.contact.headline}</h2>
             <p className="landing-body mt-4 text-white/92">{t.contact.body}</p>
 
             {contactState === 'success' ? (

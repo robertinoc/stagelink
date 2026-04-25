@@ -123,7 +123,10 @@ export function Navbar({ locale }: NavbarProps) {
               </Link>
             ))}
             <div className="mt-3 flex items-center gap-3 border-t border-white/10 pt-3">
-              <Link href={`/${locale}/login`} className="text-base font-medium text-white/84 hover:text-white">
+              <Link
+                href={`/${locale}/login`}
+                className="text-base font-medium text-white/84 hover:text-white"
+              >
                 {t.nav.login}
               </Link>
               <Link

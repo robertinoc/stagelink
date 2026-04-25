@@ -18,8 +18,12 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body className={`${inter.className} ${spaceGrotesk.variable} ${inter.variable} antialiased`}>
+    <html
+      lang={locale}
+      suppressHydrationWarning
+      className={`${spaceGrotesk.variable} ${inter.variable}`}
+    >
+      <body className="antialiased">
         <NextIntlClientProvider messages={messages}>
           <PostHogProvider>{children}</PostHogProvider>
         </NextIntlClientProvider>

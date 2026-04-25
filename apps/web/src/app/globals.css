@@ -41,9 +41,9 @@
   --landing-surface-strong: rgba(255, 255, 255, 0.08);
   --landing-border: rgba(255, 255, 255, 0.14);
   --landing-text-primary: #ffffff;
-  --landing-text-secondary: #e0e0e6;
-  --landing-text-muted: #c5c5cf;
-  --landing-text-subtle: #b0b0bc;
+  --landing-text-secondary: #ebebf0;
+  --landing-text-muted: #d4d4de;
+  --landing-text-subtle: #c0c0cc;
 
   /* Backgrounds */
   --background: #0e021d;
@@ -147,8 +147,7 @@ textarea {
   background:
     radial-gradient(circle at top, rgba(155, 48, 208, 0.16), transparent 28%),
     radial-gradient(circle at 85% 18%, rgba(232, 121, 249, 0.09), transparent 24%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 18%),
-    var(--landing-bg);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 18%), var(--landing-bg);
   color: var(--landing-text-primary);
 }
 
@@ -163,6 +162,7 @@ textarea {
 }
 
 .landing-eyebrow {
+  font-family: var(--font-sans);
   font-size: 0.8125rem;
   line-height: 1.45;
   font-weight: 700;
@@ -195,28 +195,33 @@ textarea {
 .landing-h3 {
   font-size: clamp(1.4rem, 2.4vw, 1.85rem);
   line-height: 1.18;
+  font-weight: 600;
+  letter-spacing: -0.018em;
 }
 
 .landing-body {
+  font-family: var(--font-sans);
   max-width: 37.5rem;
   font-size: 1.0625rem;
   line-height: 1.72;
-  color: var(--landing-text-secondary);
+  color: rgba(255, 255, 255, 0.92);
   font-weight: 400;
   text-wrap: pretty;
 }
 
 .landing-body-compact {
+  font-family: var(--font-sans);
   font-size: 1.03125rem;
   line-height: 1.68;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.92);
   text-wrap: pretty;
 }
 
 .landing-small {
+  font-family: var(--font-sans);
   font-size: 0.9375rem;
   line-height: 1.6;
-  color: var(--landing-text-muted);
+  color: rgba(255, 255, 255, 0.82);
 }
 
 .landing-surface {

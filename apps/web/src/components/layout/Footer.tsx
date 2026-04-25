@@ -20,7 +20,9 @@ export function Footer({ locale }: { locale: string }) {
               <span className="text-white">Stage</span>
               <span className="text-gradient-brand">Link</span>
             </Link>
-            <p className="mt-3 max-w-sm text-[1.02rem] leading-7 text-white/84">{t.footer.description}</p>
+            <p className="mt-3 max-w-sm text-[1.02rem] leading-7 text-white/84">
+              {t.footer.description}
+            </p>
           </div>
 
           {/* Links */}
