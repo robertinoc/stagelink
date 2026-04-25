@@ -4,6 +4,7 @@ import { FeatureLockCta } from '@/components/billing/FeatureLockCta';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { SpotifyInsightsCard } from '@/features/insights/components/SpotifyInsightsCard';
 import { YouTubeInsightsCard } from '@/features/insights/components/YouTubeInsightsCard';
 import type { Artist } from '@/lib/api/artists';
@@ -76,64 +77,79 @@ export async function InsightsConnectionsSettingsCard({
             ) : null}
 
             {spotifySummary ? (
-              <section className="space-y-3">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h3 className="text-base font-semibold">{t('spotify.title')}</h3>
-                    <p className="text-sm text-muted-foreground">{t('spotify.description')}</p>
+              <>
+                <Separator className="opacity-10" />
+                <section className="space-y-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t('spotify.title')}
+                      </h3>
+                      <p className="mt-0.5 text-base font-medium text-foreground">
+                        {t('spotify.subtitle')}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{t('spotify.description')}</p>
+                    </div>
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={analyticsHref}>{t('actions.view_analytics')}</Link>
+                    </Button>
                   </div>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={analyticsHref}>{t('actions.view_analytics')}</Link>
-                  </Button>
-                </div>
-                <SpotifyInsightsCard
-                  artistId={artistId}
-                  artistSpotifyUrl={artist?.spotifyUrl ?? null}
-                  summary={spotifySummary}
-                  mode="settings"
-                  analyticsHref={analyticsHref}
-                />
-              </section>
+                  <SpotifyInsightsCard
+                    artistId={artistId}
+                    artistSpotifyUrl={artist?.spotifyUrl ?? null}
+                    summary={spotifySummary}
+                    mode="settings"
+                    analyticsHref={analyticsHref}
+                  />
+                </section>
+              </>
             ) : null}
 
             {youtubeSummary ? (
-              <section className="space-y-3">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h3 className="text-base font-semibold">{t('youtube.title')}</h3>
-                    <p className="text-sm text-muted-foreground">{t('youtube.description')}</p>
+              <>
+                <Separator className="opacity-10" />
+                <section className="space-y-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t('youtube.title')}
+                      </h3>
+                      <p className="mt-0.5 text-base font-medium text-foreground">
+                        {t('youtube.subtitle')}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{t('youtube.description')}</p>
+                    </div>
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={profileHref}>{t('actions.open_profile')}</Link>
+                    </Button>
                   </div>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={profileHref}>{t('actions.open_profile')}</Link>
-                  </Button>
-                </div>
-                <YouTubeInsightsCard
-                  artistId={artistId}
-                  artistYouTubeUrl={artist?.youtubeUrl ?? null}
-                  summary={youtubeSummary}
-                  mode="settings"
-                  analyticsHref={analyticsHref}
-                />
-              </section>
+                  <YouTubeInsightsCard
+                    artistId={artistId}
+                    artistYouTubeUrl={artist?.youtubeUrl ?? null}
+                    summary={youtubeSummary}
+                    mode="settings"
+                    analyticsHref={analyticsHref}
+                  />
+                </section>
+              </>
             ) : null}
 
+            <Separator className="opacity-10" />
             <section className="space-y-3">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h3 className="text-base font-semibold">{t('soundcloud.title')}</h3>
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t('soundcloud.title')}
+                  </h3>
+                  <p className="mt-0.5 text-base font-medium text-foreground">
+                    {t('soundcloud.subtitle')}
+                  </p>
                   <p className="text-sm text-muted-foreground">{t('soundcloud.description')}</p>
                 </div>
                 <Badge variant="outline">{t('soundcloud.badges.coming_soon')}</Badge>
               </div>
               <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-muted-foreground">
                 <p>{t('soundcloud.copy')}</p>
-                {artist?.soundcloudUrl ? (
-                  <p className="mt-2 font-medium text-foreground">
-                    {t('soundcloud.profile_detected', { url: artist.soundcloudUrl })}
-                  </p>
-                ) : (
-                  <p className="mt-2">{t('soundcloud.profile_missing')}</p>
-                )}
               </div>
             </section>
           </>

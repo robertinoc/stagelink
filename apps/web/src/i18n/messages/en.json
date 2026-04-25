@@ -934,19 +934,20 @@
           "open_profile": "Open Profile"
         },
         "spotify": {
-          "title": "Spotify connection",
-          "description": "Choose which Spotify artist StageLink should validate and sync for public profile signals."
+          "title": "Spotify",
+          "subtitle": "Artist profile",
+          "description": "Select which Spotify artist StageLink should validate and track. Syncs public follower count, monthly listeners, and top markets."
         },
         "youtube": {
-          "title": "YouTube connection",
-          "description": "YouTube Insights uses the channel saved in your artist profile as the trusted source of truth."
+          "title": "YouTube",
+          "subtitle": "Channel connection",
+          "description": "StageLink reads your YouTube channel to track subscribers, views, and video performance over time."
         },
         "soundcloud": {
           "title": "SoundCloud",
-          "description": "SoundCloud support is planned next. We keep the connection slot here so setup stays in Settings when that flow lands.",
-          "copy": "For now, keep your public SoundCloud URL updated in Profile. That gives StageLink the right identity reference for the future SoundCloud sync flow.",
-          "profile_detected": "Profile link detected: {url}",
-          "profile_missing": "No SoundCloud URL is saved in your artist profile yet.",
+          "subtitle": "Coming in v2",
+          "description": "Full SoundCloud sync is on the roadmap. When it lands, you'll connect and manage it right here.",
+          "copy": "In the meantime, keep your public SoundCloud URL updated in your artist Profile so StageLink has the right reference ready when the integration goes live.",
           "badges": {
             "coming_soon": "Coming soon",
             "public_profile": "Profile reference"
