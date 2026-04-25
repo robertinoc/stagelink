@@ -4,7 +4,6 @@ import { FeatureLockCta } from '@/components/billing/FeatureLockCta';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { SoundCloudInsightsCard } from '@/features/insights/components/SoundCloudInsightsCard';
 import { SpotifyInsightsCard } from '@/features/insights/components/SpotifyInsightsCard';
 import { YouTubeInsightsCard } from '@/features/insights/components/YouTubeInsightsCard';
 import type { Artist } from '@/lib/api/artists';
@@ -36,8 +35,6 @@ export async function InsightsConnectionsSettingsCard({
     data?.platforms.find((platform) => platform.platform === 'spotify') ?? null;
   const youtubeSummary =
     data?.platforms.find((platform) => platform.platform === 'youtube') ?? null;
-  const soundcloudSummary =
-    data?.platforms.find((platform) => platform.platform === 'soundcloud') ?? null;
 
   return (
     <Card id="insights-connections">
@@ -120,26 +117,25 @@ export async function InsightsConnectionsSettingsCard({
               </section>
             ) : null}
 
-            {soundcloudSummary ? (
-              <section className="space-y-3">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h3 className="text-base font-semibold">{t('soundcloud.title')}</h3>
-                    <p className="text-sm text-muted-foreground">{t('soundcloud.description')}</p>
-                  </div>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={analyticsHref}>{t('actions.view_analytics')}</Link>
-                  </Button>
+            <section className="space-y-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-base font-semibold">{t('soundcloud.title')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('soundcloud.description')}</p>
                 </div>
-                <SoundCloudInsightsCard
-                  artistId={artistId}
-                  artistSoundCloudUrl={artist?.soundcloudUrl ?? null}
-                  summary={soundcloudSummary}
-                  mode="settings"
-                  analyticsHref={analyticsHref}
-                />
-              </section>
-            ) : null}
+                <Badge variant="outline">{t('soundcloud.badges.coming_soon')}</Badge>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-muted-foreground">
+                <p>{t('soundcloud.copy')}</p>
+                {artist?.soundcloudUrl ? (
+                  <p className="mt-2 font-medium text-foreground">
+                    {t('soundcloud.profile_detected', { url: artist.soundcloudUrl })}
+                  </p>
+                ) : (
+                  <p className="mt-2">{t('soundcloud.profile_missing')}</p>
+                )}
+              </div>
+            </section>
           </>
         ) : null}
       </CardContent>
