@@ -20,7 +20,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { BillingEntitlementsResponse } from '@/lib/api/billing';
 import type { StageLinkInsightsLockPayload } from '@/lib/api/insights';
 import type { StageLinkInsightsDashboard as StageLinkInsightsDashboardData } from '@stagelink/types';
-import { SoundCloudInsightsCard } from './SoundCloudInsightsCard';
 import { SpotifyInsightsCard } from './SpotifyInsightsCard';
 import { YouTubeInsightsCard } from './YouTubeInsightsCard';
 
@@ -394,37 +393,21 @@ export function InsightsDashboard({
                 <CardHeader className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <CardTitle>{t(`platforms.${platform.platform}.title`)}</CardTitle>
+                      <CardTitle>{t('platforms.soundcloud.title')}</CardTitle>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {t(`platforms.${platform.platform}.description`)}
+                        {t('platforms.soundcloud.description')}
                       </p>
                     </div>
-                    <Badge
-                      variant={resolveStatusTone(platform.connection?.status ?? 'disconnected')}
-                    >
-                      {t(`status.${platform.connection?.status ?? 'disconnected'}`)}
-                    </Badge>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">
-                      {t(`connection_methods.${platform.capabilities.connectionMethod}`)}
-                    </Badge>
-                    <Badge variant="outline">
-                      {t(`support.${platform.capabilities.profileBasics}`)}
-                    </Badge>
+                    <Badge variant="outline">{t('soundcloud.coming_soon_badge')}</Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <SoundCloudInsightsCard
-                    artistId={artistId}
-                    artistSoundCloudUrl={artistSoundCloudUrl}
-                    summary={platform}
-                    mode="analytics"
-                    settingsHref={resolvedSettingsHref}
-                  />
-                  <p className="text-xs leading-5 text-muted-foreground">
-                    {t(`platforms.${platform.platform}.limitations`)}
-                  </p>
+                <CardContent>
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-center text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground">
+                      {t('platforms.soundcloud.title')} · v2
+                    </p>
+                    <p className="mt-1">{t('platforms.soundcloud.coming_soon')}</p>
+                  </div>
                 </CardContent>
               </Card>
             );

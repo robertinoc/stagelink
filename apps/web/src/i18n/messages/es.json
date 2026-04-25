@@ -496,7 +496,8 @@
         "soundcloud": {
           "title": "SoundCloud",
           "description": "Encaja mejor para datos básicos del perfil y summary data pública bien acotada.",
-          "limitations": "El acceso a analytics en SoundCloud es más limitado. El MVP solo debería prometer summary data pública segura salvo que aparezca un owner flow documentado."
+          "limitations": "El acceso a analytics en SoundCloud es más limitado. El MVP solo debería prometer summary data pública segura salvo que aparezca un owner flow documentado.",
+          "coming_soon": "La integración completa con SoundCloud llega en la v2. Dejamos este espacio listo para cuando haya una solución estable."
         }
       },
       "foundation_scope": {
@@ -580,7 +581,8 @@
           "no_connection_title": "SoundCloud aún no está conectado",
           "no_connection_description": "Abre Configuración para conectar tu perfil de SoundCloud antes de ver métricas aquí."
         },
-        "empty_synced": "SoundCloud está conectado, pero aún no se ha guardado ningún snapshot. Ejecuta una sincronización para obtener tu primer conjunto de métricas."
+        "empty_synced": "SoundCloud está conectado, pero aún no se ha guardado ningún snapshot. Ejecuta una sincronización para obtener tu primer conjunto de métricas.",
+        "coming_soon_badge": "Próximamente · v2"
       }
     },
     "profile": {
