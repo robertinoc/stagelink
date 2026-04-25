@@ -3,12 +3,16 @@ import type {
   BillingSubscriptionStatus,
   FeatureKey,
   PlanCode,
+  SoundCloudInsightsConnectionValidationResult,
+  SoundCloudInsightsSyncResult,
   SpotifyInsightsConnectionValidationResult,
   SpotifyInsightsSyncResult,
   StageLinkInsightsDateRange,
   StageLinkInsightsConnection,
   StageLinkInsightsDashboard,
+  UpdateSoundCloudInsightsConnectionPayload,
   UpdateYouTubeInsightsConnectionPayload,
+  ValidateSoundCloudInsightsConnectionPayload,
   ValidateYouTubeInsightsConnectionPayload,
   UpdateSpotifyInsightsConnectionPayload,
   ValidateSpotifyInsightsConnectionPayload,
@@ -176,4 +180,44 @@ export async function syncYouTubeInsightsConnection(
   });
 
   return readJsonOrThrow<YouTubeInsightsSyncResult>(res, 'Could not sync YouTube insights');
+}
+
+export async function validateSoundCloudInsightsConnection(
+  artistId: string,
+  payload: ValidateSoundCloudInsightsConnectionPayload,
+): Promise<SoundCloudInsightsConnectionValidationResult> {
+  const res = await fetch(`/api/insights/${artistId}/soundcloud/validate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  return readJsonOrThrow<SoundCloudInsightsConnectionValidationResult>(
+    res,
+    'Could not validate SoundCloud connection',
+  );
+}
+
+export async function saveSoundCloudInsightsConnection(
+  artistId: string,
+  payload: UpdateSoundCloudInsightsConnectionPayload,
+): Promise<StageLinkInsightsConnection> {
+  const res = await fetch(`/api/insights/${artistId}/soundcloud`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  return readJsonOrThrow<StageLinkInsightsConnection>(res, 'Could not save SoundCloud connection');
+}
+
+export async function syncSoundCloudInsightsConnection(
+  artistId: string,
+): Promise<SoundCloudInsightsSyncResult> {
+  const res = await fetch(`/api/insights/${artistId}/soundcloud/sync`, {
+    method: 'POST',
+    cache: 'no-store',
+  });
+
+  return readJsonOrThrow<SoundCloudInsightsSyncResult>(res, 'Could not sync SoundCloud insights');
 }
