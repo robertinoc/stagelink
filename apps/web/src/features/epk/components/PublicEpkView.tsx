@@ -26,8 +26,26 @@ export async function PublicEpkView({
     ? 'border-zinc-200 bg-zinc-50 text-zinc-900'
     : 'border-white/10 bg-white/5 text-white';
   const softCardClass = printMode ? 'border-zinc-200 bg-zinc-50' : 'border-white/10 bg-black/20';
+  const headerArtistImageUrl = epk.galleryImageUrls[1] ?? artist.avatarUrl;
   const highlightedLink = epk.featuredLinks[0] ?? null;
   const featuredLinks = highlightedLink ? epk.featuredLinks.slice(1) : epk.featuredLinks;
+  let renderableGalleryImages = epk.galleryImageUrls.filter(Boolean);
+
+  if (
+    renderableGalleryImages[0] &&
+    epk.heroImageUrl &&
+    renderableGalleryImages[0] === epk.heroImageUrl
+  ) {
+    renderableGalleryImages = renderableGalleryImages.slice(1);
+  }
+
+  if (
+    renderableGalleryImages[0] &&
+    headerArtistImageUrl &&
+    renderableGalleryImages[0] === headerArtistImageUrl
+  ) {
+    renderableGalleryImages = renderableGalleryImages.slice(1);
+  }
 
   return (
     <div className={printMode ? 'bg-white text-zinc-900' : 'min-h-screen bg-zinc-950 text-white'}>
@@ -48,10 +66,10 @@ export async function PublicEpkView({
             <header className="grid gap-8 md:grid-cols-[1.5fr,0.9fr]">
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  {artist.avatarUrl ? (
+                  {headerArtistImageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={artist.avatarUrl}
+                      src={headerArtistImageUrl}
                       alt={artist.displayName}
                       className="h-20 w-20 rounded-full object-cover ring-4 ring-white/10 print:ring-zinc-200"
                     />
@@ -166,14 +184,18 @@ export async function PublicEpkView({
                   href={highlightedLink.url}
                   target="_blank"
                   rel="noreferrer"
-                  className={`block rounded-2xl border px-4 py-4 transition ${cardClass} hover:border-white/30 print:hover:border-zinc-300`}
+                  className={`group block rounded-2xl border px-4 py-4 transition ${
+                    printMode
+                      ? `${cardClass} hover:border-zinc-300`
+                      : 'border-fuchsia-400/25 bg-[linear-gradient(135deg,rgba(168,85,247,0.18),rgba(34,211,238,0.1))] text-white shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_18px_48px_rgba(120,32,255,0.18)] hover:border-fuchsia-300/45 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_22px_60px_rgba(120,32,255,0.24)]'
+                  }`}
                 >
                   <div className="flex items-start gap-3">
                     <div
                       className={`rounded-full border p-2 ${
                         printMode
                           ? 'border-zinc-300 bg-white text-zinc-700'
-                          : 'border-white/10 bg-white/10 text-zinc-200'
+                          : 'border-white/15 bg-black/20 text-fuchsia-100 shadow-[0_0_20px_rgba(168,85,247,0.18)]'
                       }`}
                     >
                       <Globe2 className="h-4 w-4" />
@@ -184,7 +206,7 @@ export async function PublicEpkView({
                       </p>
                       <p
                         className={`mt-1 break-all text-xs ${
-                          printMode ? 'text-zinc-700' : 'text-zinc-400'
+                          printMode ? 'text-zinc-700' : 'text-zinc-200/80'
                         }`}
                       >
                         {highlightedLink.url}
@@ -219,7 +241,7 @@ export async function PublicEpkView({
                         href={item.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm transition hover:border-white/30"
+                        className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm transition hover:border-fuchsia-300/35 hover:bg-fuchsia-500/10 hover:text-white hover:shadow-[0_0_24px_rgba(168,85,247,0.14)]"
                       >
                         {item.label}
                       </a>
@@ -229,7 +251,7 @@ export async function PublicEpkView({
               </section>
             ) : null}
 
-            {epk.galleryImageUrls.length > 0 ? (
+            {renderableGalleryImages.length > 0 ? (
               <section className="space-y-4 print:break-inside-avoid">
                 <h2
                   className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
@@ -237,7 +259,7 @@ export async function PublicEpkView({
                   {t('sections.gallery')}
                 </h2>
                 <div className="grid gap-3 md:grid-cols-3 print:grid-cols-2">
-                  {epk.galleryImageUrls.map((imageUrl) => (
+                  {renderableGalleryImages.map((imageUrl) => (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       key={imageUrl}
