@@ -934,19 +934,20 @@
           "open_profile": "Abrir Perfil"
         },
         "spotify": {
-          "title": "Conexión de Spotify",
-          "description": "Elegí qué artista de Spotify debe validar y sincronizar StageLink para señales públicas de perfil."
+          "title": "Spotify",
+          "subtitle": "Perfil de artista",
+          "description": "Seleccioná qué artista de Spotify debe validar y seguir StageLink. Sincroniza seguidores, oyentes mensuales y mercados principales."
         },
         "youtube": {
-          "title": "Conexión de YouTube",
-          "description": "YouTube Insights usa el canal guardado en tu perfil de artista como fuente de verdad confiable."
+          "title": "YouTube",
+          "subtitle": "Conexión de canal",
+          "description": "StageLink lee tu canal de YouTube para hacer seguimiento de suscriptores, vistas y rendimiento de videos a lo largo del tiempo."
         },
         "soundcloud": {
           "title": "SoundCloud",
-          "description": "El soporte para SoundCloud viene después. Dejamos el lugar de conexión acá para que el setup siga viviendo en Settings cuando llegue ese flujo.",
-          "copy": "Por ahora, mantené actualizada tu URL pública de SoundCloud en Perfil. Eso le da a StageLink la referencia correcta para el futuro flujo de sync.",
-          "profile_detected": "Link detectado en Perfil: {url}",
-          "profile_missing": "Todavía no hay una URL de SoundCloud guardada en tu perfil de artista.",
+          "subtitle": "Llega en v2",
+          "description": "La sincronización completa con SoundCloud está en el roadmap. Cuando esté lista, podrás conectar y gestionarla acá mismo.",
+          "copy": "Mientras tanto, mantené actualizada tu URL pública de SoundCloud en tu Perfil de artista para que StageLink tenga la referencia correcta lista cuando salga la integración.",
           "badges": {
             "coming_soon": "Próximamente",
             "public_profile": "Referencia de perfil"
