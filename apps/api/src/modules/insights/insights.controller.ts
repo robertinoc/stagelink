@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from
 import type { Request } from 'express';
 import type { User } from '@prisma/client';
 import type {
+  InsightsSyncHealth,
   SoundCloudInsightsConnectionValidationResult,
   SoundCloudInsightsSyncResult,
   SpotifyInsightsConnectionValidationResult,
@@ -33,6 +34,21 @@ export class InsightsController {
     @Query('range') range?: string,
   ): Promise<StageLinkInsightsDashboard> {
     return this.insightsService.getDashboard(artistId, range);
+  }
+
+  /**
+   * GET /:artistId/sync-health
+   *
+   * Returns a lightweight sync-health summary for all connected platform
+   * connections owned by the artist. Useful for debugging stale data,
+   * checking which connections have errors, and monitoring sync freshness
+   * without triggering an actual sync.
+   */
+  @Get(':artistId/sync-health')
+  @CheckOwnership('artist', 'artistId', 'read')
+  @UseGuards(OwnershipGuard)
+  getSyncHealth(@Param('artistId') artistId: string): Promise<InsightsSyncHealth> {
+    return this.insightsService.getSyncHealth(artistId);
   }
 
   @Post(':artistId/spotify/validate')

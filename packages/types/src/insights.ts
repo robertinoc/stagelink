@@ -201,3 +201,27 @@ export interface SoundCloudInsightsSyncResult {
   connection: StageLinkInsightsConnection;
   snapshot: StageLinkInsightsSnapshot;
 }
+
+// ---------------------------------------------------------------------------
+// Sync health / admin types
+// ---------------------------------------------------------------------------
+
+export interface InsightsSyncHealthItem {
+  artistId: string;
+  connectionId: string;
+  platform: StageLinkInsightsPlatform;
+  connectionStatus: StageLinkInsightsConnectionStatus;
+  lastSyncStatus: StageLinkInsightsSyncStatus;
+  lastSyncedAt: string | null;
+  lastSyncError: string | null;
+  /** true when lastSyncedAt is null or older than 25 hours */
+  isStale: boolean;
+}
+
+export interface InsightsSyncHealth {
+  artistId: string;
+  checkedAt: string;
+  items: InsightsSyncHealthItem[];
+  staleCount: number;
+  errorCount: number;
+}
