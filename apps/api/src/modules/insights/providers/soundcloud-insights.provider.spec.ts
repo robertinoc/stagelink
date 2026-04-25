@@ -88,8 +88,8 @@ describe('SoundCloudInsightsProvider', () => {
       const fetchMock = jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => MOCK_USER,
-      } as Response);
+        text: async () => JSON.stringify(MOCK_USER),
+      } as unknown as Response);
 
       const result = await provider.validateProfileReference('https://soundcloud.com/theweeknd');
 
@@ -126,8 +126,8 @@ describe('SoundCloudInsightsProvider', () => {
       jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({ id: 999, kind: 'track', title: 'Some Track' }),
-      } as Response);
+        text: async () => JSON.stringify({ id: 999, kind: 'track', title: 'Some Track' }),
+      } as unknown as Response);
 
       await expect(
         provider.validateProfileReference('https://soundcloud.com/theweeknd/blinding-lights'),
@@ -165,13 +165,13 @@ describe('SoundCloudInsightsProvider', () => {
         .mockResolvedValueOnce({
           ok: true,
           status: 200,
-          json: async () => MOCK_USER,
-        } as Response)
+          text: async () => JSON.stringify(MOCK_USER),
+        } as unknown as Response)
         .mockResolvedValueOnce({
           ok: true,
           status: 200,
-          json: async () => ({ collection: [MOCK_TRACK] }),
-        } as Response);
+          text: async () => JSON.stringify({ collection: [MOCK_TRACK] }),
+        } as unknown as Response);
 
       const snapshot = await provider.syncLatestSnapshot({ externalAccountId: '1234567' });
 
@@ -194,8 +194,8 @@ describe('SoundCloudInsightsProvider', () => {
         .mockResolvedValueOnce({
           ok: true,
           status: 200,
-          json: async () => MOCK_USER,
-        } as Response)
+          text: async () => JSON.stringify(MOCK_USER),
+        } as unknown as Response)
         .mockRejectedValueOnce(new Error('tracks unavailable'));
 
       const snapshot = await provider.syncLatestSnapshot({ externalAccountId: '1234567' });

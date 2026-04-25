@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import type {
   SoundCloudInsightsConnectionValidationResult,
   StageLinkInsightsPlatformCapabilities,
@@ -59,8 +64,24 @@ interface SoundCloudUserSummary {
   trackCount: number | null;
 }
 
+/**
+ * Headers that mimic a browser request to SoundCloud.
+ * SoundCloud's API v2 is undocumented and may reject server-side requests
+ * that lack these headers, returning an empty body or silent 401.
+ */
+const SOUNDCLOUD_BROWSER_HEADERS: Record<string, string> = {
+  Accept: 'application/json, text/plain, */*',
+  'Accept-Language': 'en-US,en;q=0.9',
+  Origin: 'https://soundcloud.com',
+  Referer: 'https://soundcloud.com/',
+  'User-Agent':
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+};
+
 @Injectable()
 export class SoundCloudInsightsProvider implements PlatformInsightsProvider {
+  private readonly logger = new Logger(SoundCloudInsightsProvider.name);
+
   readonly platform = 'soundcloud' as const;
   readonly connectionMethod = 'reference' as const;
 
@@ -157,21 +178,43 @@ export class SoundCloudInsightsProvider implements PlatformInsightsProvider {
   }
 
   /**
-   * Resolves a SoundCloud profile URL via the /resolve endpoint.
-   * This is the preferred lookup method as it handles any valid permalink URL.
+   * Centralized fetch helper for all SoundCloud API v2 requests.
+   * Includes browser-like headers required to avoid silent rejections,
+   * and handles the empty-body case (SoundCloud's way of refusing bad client_ids).
    */
-  private async resolveProfile(profileUrl: string): Promise<SoundCloudUserResponse> {
-    const clientId = this.getClientId();
-    const resolveUrl = `https://api-v2.soundcloud.com/resolve?url=${encodeURIComponent(profileUrl)}&client_id=${encodeURIComponent(clientId)}`;
-
+  private async scFetch(url: string): Promise<unknown> {
     let response: Response;
     try {
-      response = await fetch(resolveUrl, {
+      response = await fetch(url, {
         method: 'GET',
-        headers: { Accept: 'application/json' },
+        headers: SOUNDCLOUD_BROWSER_HEADERS,
       });
-    } catch {
+    } catch (err) {
+      this.logger.error(`SoundCloud fetch network error: ${String(err)}`);
       throw new ServiceUnavailableException('Could not reach SoundCloud right now');
+    }
+
+    // Read body as text first so we can inspect it before parsing
+    let text: string;
+    try {
+      text = await response.text();
+    } catch {
+      throw new ServiceUnavailableException('Could not read SoundCloud response');
+    }
+
+    this.logger.debug(
+      `SoundCloud ${response.status} ${url.replace(/client_id=[^&]+/, 'client_id=***')} — body length: ${text.length}`,
+    );
+
+    // An empty body with any status code means the client_id is rejected.
+    // SoundCloud returns HTTP 200 + empty body for invalid/cloud-blocked client_ids
+    // instead of a proper 401, so we must check before response.ok.
+    if (!text.trim()) {
+      throw new ServiceUnavailableException(
+        'SoundCloud rejected the request (empty response). ' +
+          'The SOUNDCLOUD_CLIENT_ID may be invalid, revoked, or blocked for server-side use. ' +
+          'Extract a fresh client_id from soundcloud.com and update the env var.',
+      );
     }
 
     if (response.status === 404) {
@@ -185,18 +228,29 @@ export class SoundCloudInsightsProvider implements PlatformInsightsProvider {
     }
 
     if (!response.ok) {
-      const body = await response.text().catch(() => '');
       throw new ServiceUnavailableException(
-        `SoundCloud API request failed (${response.status})${body ? `: ${body}` : ''}`,
+        `SoundCloud API request failed (${response.status}): ${text.slice(0, 200)}`,
       );
     }
 
-    let data: unknown;
     try {
-      data = await response.json();
+      return JSON.parse(text) as unknown;
     } catch {
-      throw new ServiceUnavailableException('SoundCloud returned an unreadable response');
+      throw new ServiceUnavailableException(
+        `SoundCloud returned an unreadable response: ${text.slice(0, 100)}`,
+      );
     }
+  }
+
+  /**
+   * Resolves a SoundCloud profile URL via the /resolve endpoint.
+   * This is the preferred lookup method as it handles any valid permalink URL.
+   */
+  private async resolveProfile(profileUrl: string): Promise<SoundCloudUserResponse> {
+    const clientId = this.getClientId();
+    const resolveUrl = `https://api-v2.soundcloud.com/resolve?url=${encodeURIComponent(profileUrl)}&client_id=${encodeURIComponent(clientId)}`;
+
+    const data = await this.scFetch(resolveUrl);
 
     if (!this.isUserResponse(data)) {
       throw new BadRequestException(
@@ -211,60 +265,16 @@ export class SoundCloudInsightsProvider implements PlatformInsightsProvider {
     const clientId = this.getClientId();
     const url = `https://api-v2.soundcloud.com/users/${encodeURIComponent(accountId)}?client_id=${encodeURIComponent(clientId)}`;
 
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-      });
-    } catch {
-      throw new ServiceUnavailableException('Could not reach SoundCloud right now');
-    }
-
-    if (response.status === 404) {
-      throw new BadRequestException('SoundCloud profile could not be found');
-    }
-
-    if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      throw new ServiceUnavailableException(
-        `SoundCloud API request failed (${response.status})${body ? `: ${body}` : ''}`,
-      );
-    }
-
-    try {
-      return (await response.json()) as SoundCloudUserResponse;
-    } catch {
-      throw new ServiceUnavailableException('SoundCloud returned an unreadable response');
-    }
+    const data = await this.scFetch(url);
+    return data as SoundCloudUserResponse;
   }
 
   private async fetchTracks(accountId: string): Promise<SoundCloudTracksCollection> {
     const clientId = this.getClientId();
     const url = `https://api-v2.soundcloud.com/users/${encodeURIComponent(accountId)}/tracks?client_id=${encodeURIComponent(clientId)}&limit=${SOUNDCLOUD_INSIGHTS_TOP_TRACKS_LIMIT}&linked_partitioning=1`;
 
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-      });
-    } catch {
-      throw new ServiceUnavailableException('Could not reach SoundCloud right now');
-    }
-
-    if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      throw new ServiceUnavailableException(
-        `SoundCloud tracks request failed (${response.status})${body ? `: ${body}` : ''}`,
-      );
-    }
-
-    try {
-      return (await response.json()) as SoundCloudTracksCollection;
-    } catch {
-      throw new ServiceUnavailableException('SoundCloud returned an unreadable response');
-    }
+    const data = await this.scFetch(url);
+    return data as SoundCloudTracksCollection;
   }
 
   private async fetchTracksSafe(accountId: string): Promise<SoundCloudTracksCollection> {
