@@ -129,7 +129,7 @@ export async function DashboardWelcome({ artist, billingSummary }: DashboardWelc
               <Badge variant="outline">{resolvePlanLabel(effectivePlan)}</Badge>
               <Badge variant="secondary">{t('intro.badge')}</Badge>
             </div>
-            <h1 className="text-2xl font-bold text-white">{t('intro.title')}</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-white">{t('intro.title')}</h1>
             <p className="max-w-3xl text-sm text-white/60">{t('intro.description')}</p>
           </div>
           <div className="rounded-xl border border-white/10 bg-black/10 px-4 py-3 text-sm">
