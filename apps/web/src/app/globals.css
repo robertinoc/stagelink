@@ -41,9 +41,9 @@
   --landing-surface-strong: rgba(255, 255, 255, 0.08);
   --landing-border: rgba(255, 255, 255, 0.14);
   --landing-text-primary: #ffffff;
-  --landing-text-secondary: #cfcfcf;
-  --landing-text-muted: #a8a8b3;
-  --landing-text-subtle: #8f8f9c;
+  --landing-text-secondary: #e0e0e6;
+  --landing-text-muted: #c5c5cf;
+  --landing-text-subtle: #b0b0bc;
 
   /* Backgrounds */
   --background: #0e021d;
@@ -200,13 +200,14 @@ textarea {
   font-size: 1rem;
   line-height: 1.6;
   color: var(--landing-text-secondary);
+  font-weight: 400;
   text-wrap: pretty;
 }
 
 .landing-body-compact {
   font-size: 1rem;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 255, 255, 0.88);
   text-wrap: pretty;
 }
 
@@ -251,14 +252,20 @@ textarea {
 }
 
 .landing-button-secondary {
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.96);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .landing-button-primary:hover,
 .landing-button-secondary:hover {
   transform: translateY(-1px);
+}
+
+.landing-button-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.38);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 @keyframes landing-marquee {

@@ -260,7 +260,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             <h1 className="landing-h1 max-w-3xl">
               {t.hero.headline}
             </h1>
-            <p className="landing-body mt-5 max-w-2xl text-white/94 sm:mt-6">
+            <p className="landing-body mt-5 max-w-2xl text-white/96 sm:mt-6">
               {t.hero.subheadline}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:gap-4">
@@ -277,10 +277,10 @@ export function LandingPage({ locale }: LandingPageProps) {
                 {t.hero.ctaSecondary}
               </a>
             </div>
-            <p className="landing-small mt-3 text-white/82">{t.hero.ctaNote}</p>
-            <p className="landing-small mt-1 text-white/66">{t.hero.ctaSubnote}</p>
-            <p className="landing-small mt-5 max-w-xl text-white/76">{t.hero.supportingText}</p>
-            <p className="landing-small mt-3 text-white/74">{t.hero.socialProof}</p>
+            <p className="landing-small mt-3 text-white/84">{t.hero.ctaNote}</p>
+            <p className="landing-small mt-1 text-white/76">{t.hero.ctaSubnote}</p>
+            <p className="landing-small mt-5 max-w-xl text-white/84">{t.hero.supportingText}</p>
+            <p className="landing-small mt-3 font-medium text-white/88">{t.hero.socialProof}</p>
           </div>
 
           <div id="preview" className="relative">
@@ -462,7 +462,7 @@ export function LandingPage({ locale }: LandingPageProps) {
               <p className="landing-eyebrow text-white/68">
                 {t.strip.label}
               </p>
-              <p className="landing-body-compact max-w-3xl text-white/84">{t.strip.socialProof}</p>
+              <p className="landing-body-compact max-w-3xl text-white/88">{t.strip.socialProof}</p>
               <div className="flex flex-wrap gap-3">
                 {t.strip.items.map((item) => (
                   <span
@@ -479,7 +479,7 @@ export function LandingPage({ locale }: LandingPageProps) {
               <p className="landing-eyebrow text-white/68">
                 {t.strip.platformsLabel}
               </p>
-              <p className="landing-body-compact max-w-3xl text-white/78">
+              <p className="landing-body-compact max-w-3xl text-white/84">
                 {t.strip.platformsDescription}
               </p>
             </div>
@@ -516,7 +516,7 @@ export function LandingPage({ locale }: LandingPageProps) {
           <h2 className="landing-h2 mt-3 max-w-4xl">
             {t.problem.headline}
           </h2>
-          <p className="landing-body mt-6 max-w-3xl text-white/84">{t.problem.intro}</p>
+          <p className="landing-body mt-6 max-w-3xl text-white/88">{t.problem.intro}</p>
 
           <div className="mt-10 grid gap-6 lg:grid-cols-2">
             <div className="landing-hover-card rounded-[1.8rem] border border-rose-900/55 bg-[linear-gradient(180deg,rgba(62,18,31,0.5),rgba(26,10,18,0.82))] p-6 shadow-[0_22px_48px_rgba(34,8,16,0.24)]">
@@ -560,7 +560,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             <h2 className="landing-h2 mt-3">
               {t.features.headline}
             </h2>
-            <p className="landing-body mt-5 text-white/84">{t.features.intro}</p>
+            <p className="landing-body mt-5 text-white/88">{t.features.intro}</p>
           </div>
 
           <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -573,7 +573,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                   {featureNumbers[index] ?? '00'}
                 </div>
                 <h3 className="landing-h3 mt-4">{feature.title}</h3>
-                <p className="mt-3 text-base leading-7 text-white/82">{feature.description}</p>
+                <p className="mt-3 text-base leading-7 text-white/86">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -589,7 +589,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             <h2 className="landing-h2 mt-3">
               {t.howItWorks.headline}
             </h2>
-            <p className="landing-body mt-5 text-white/84">{t.howItWorks.intro}</p>
+            <p className="landing-body mt-5 text-white/88">{t.howItWorks.intro}</p>
           </div>
 
           <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -600,7 +600,7 @@ export function LandingPage({ locale }: LandingPageProps) {
               >
                 <div className="landing-small font-semibold text-primary">{item.step}</div>
                 <h3 className="landing-h3 mt-3">{item.title}</h3>
-                <p className="mt-3 text-base leading-7 text-white/82">{item.text}</p>
+                <p className="mt-3 text-base leading-7 text-white/86">{item.text}</p>
               </div>
             ))}
           </div>
@@ -616,7 +616,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             <h2 className="landing-h2 mt-3">
               {t.forArtists.headline}
             </h2>
-            <p className="landing-body mt-5 text-white/84">{t.forArtists.body}</p>
+            <p className="landing-body mt-5 text-white/88">{t.forArtists.body}</p>
           </div>
 
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -626,7 +626,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                 className="rounded-[1.8rem] border border-white/10 bg-white/5 p-6 transition-colors hover:border-primary/30 hover:bg-primary/5"
               >
                 <h3 className="landing-h3">{segment.label}</h3>
-                <p className="mt-3 text-base leading-7 text-white/82">{segment.description}</p>
+                <p className="mt-3 text-base leading-7 text-white/86">{segment.description}</p>
               </div>
             ))}
           </div>
@@ -644,7 +644,7 @@ export function LandingPage({ locale }: LandingPageProps) {
               <h2 className="landing-h2 mt-3">
                 {t.monetization.headline}
               </h2>
-              <p className="landing-body mt-5 text-white/84">{t.monetization.body}</p>
+              <p className="landing-body mt-5 text-white/88">{t.monetization.body}</p>
 
               <div className="mt-8 space-y-3">
                 {t.monetization.points.map((point) => (
@@ -678,7 +678,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                     {pillarNumbers[index] ?? 'A'}
                   </div>
                   <h3 className="landing-h3 mt-4">{pillar.title}</h3>
-                  <p className="mt-3 text-base leading-7 text-white/82">{pillar.description}</p>
+                  <p className="mt-3 text-base leading-7 text-white/86">{pillar.description}</p>
                 </div>
               ))}
             </div>
@@ -694,7 +694,7 @@ export function LandingPage({ locale }: LandingPageProps) {
           <h2 className="landing-h2 mx-auto mt-3 max-w-3xl">
             {t.cta.headline}
           </h2>
-          <p className="landing-body mx-auto mt-5 max-w-2xl text-white/84">{t.cta.body}</p>
+          <p className="landing-body mx-auto mt-5 max-w-2xl text-white/88">{t.cta.body}</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
             <Link
               href="/api/auth/signin"
@@ -709,8 +709,8 @@ export function LandingPage({ locale }: LandingPageProps) {
               {t.cta.secondary}
             </a>
           </div>
-          <p className="landing-small mt-3 text-white/82">{t.cta.note}</p>
-          <p className="landing-small mt-1 text-white/66">{t.cta.subnote}</p>
+          <p className="landing-small mt-3 text-white/84">{t.cta.note}</p>
+          <p className="landing-small mt-1 text-white/76">{t.cta.subnote}</p>
         </div>
       </section>
 
@@ -723,7 +723,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             <h2 className="landing-h2 mt-3">
               {t.contact.headline}
             </h2>
-            <p className="landing-body mt-4 text-white/84">{t.contact.body}</p>
+            <p className="landing-body mt-4 text-white/88">{t.contact.body}</p>
 
             {contactState === 'success' ? (
               <div className="mt-10 rounded-[2rem] border border-primary/30 bg-primary/10 p-10 text-center">
