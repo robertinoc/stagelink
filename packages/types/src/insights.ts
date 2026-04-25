@@ -172,3 +172,32 @@ export interface YouTubeInsightsSyncResult {
   connection: StageLinkInsightsConnection;
   snapshot: StageLinkInsightsSnapshot;
 }
+
+export interface ValidateSoundCloudInsightsConnectionPayload {
+  profileInput: string;
+}
+
+export interface UpdateSoundCloudInsightsConnectionPayload {
+  profileInput: string;
+}
+
+export interface SoundCloudInsightsConnectionValidationResult {
+  ok: true;
+  platform: 'soundcloud';
+  externalAccountId: string;
+  externalHandle: string;
+  displayName: string;
+  externalUrl: string;
+  imageUrl: string | null;
+  followersCount: number | null;
+  trackCount: number | null;
+  message: string;
+}
+
+export interface SoundCloudInsightsSyncResult {
+  ok: true;
+  platform: 'soundcloud';
+  message: string;
+  connection: StageLinkInsightsConnection;
+  snapshot: StageLinkInsightsSnapshot;
+}

@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import type {
+  SoundCloudInsightsConnectionValidationResult,
+  SoundCloudInsightsSyncResult,
   SpotifyInsightsConnectionValidationResult,
   SpotifyInsightsSyncResult,
   StageLinkInsightsConnection,
@@ -24,7 +26,11 @@ import { PrismaService } from '../../lib/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { MembershipService } from '../membership/membership.service';
-import { SpotifyInsightsConnectionDto, YouTubeInsightsConnectionDto } from './dto';
+import {
+  SoundCloudInsightsConnectionDto,
+  SpotifyInsightsConnectionDto,
+  YouTubeInsightsConnectionDto,
+} from './dto';
 import { SoundCloudInsightsProvider } from './providers/soundcloud-insights.provider';
 import type { PlatformInsightsProvider } from './providers/insights-provider.interface';
 import { SpotifyInsightsProvider } from './providers/spotify-insights.provider';
@@ -75,12 +81,12 @@ export class InsightsService {
     private readonly billingEntitlementsService: BillingEntitlementsService,
     private readonly spotifyProvider: SpotifyInsightsProvider,
     private readonly youTubeProvider: YouTubeInsightsProvider,
-    soundCloudProvider: SoundCloudInsightsProvider,
+    private readonly soundCloudProvider: SoundCloudInsightsProvider,
   ) {
     this.providers = {
       spotify: this.spotifyProvider,
       youtube: this.youTubeProvider,
-      soundcloud: soundCloudProvider,
+      soundcloud: this.soundCloudProvider,
     };
   }
 
@@ -671,6 +677,250 @@ export class InsightsService {
         metadata: {
           artistId,
           platform: 'youtube',
+          message,
+        },
+        ipAddress,
+      });
+
+      throw normalizedError;
+    }
+  }
+
+  async validateSoundCloudConnection(
+    artistId: string,
+    dto: SoundCloudInsightsConnectionDto,
+    userId: string,
+  ): Promise<SoundCloudInsightsConnectionValidationResult> {
+    await this.membershipService.validateAccess(userId, artistId, 'write');
+    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
+
+    return this.soundCloudProvider.validateProfileReference(dto.profileInput);
+  }
+
+  async updateSoundCloudConnection(
+    artistId: string,
+    dto: SoundCloudInsightsConnectionDto,
+    userId: string,
+    ipAddress?: string,
+  ): Promise<StageLinkInsightsConnection> {
+    await this.membershipService.validateAccess(userId, artistId, 'write');
+    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
+
+    const validation = await this.soundCloudProvider.validateProfileReference(dto.profileInput);
+    const existing = await this.prisma.artistPlatformInsightsConnection.findFirst({
+      where: { artistId, platform: 'soundcloud' },
+    });
+
+    const accountChanged = existing?.externalAccountId !== validation.externalAccountId;
+    const metadata = {
+      imageUrl: validation.imageUrl,
+      followersCount: validation.followersCount,
+      trackCount: validation.trackCount,
+      source: 'soundcloud-public-api-v2',
+    } satisfies Record<string, unknown>;
+
+    const savedConnection = await this.prisma.$transaction(async (tx) => {
+      if (existing && accountChanged) {
+        await tx.artistPlatformInsightsSnapshot.deleteMany({
+          where: { connectionId: existing.id },
+        });
+      }
+
+      if (existing) {
+        const recoveredSyncStatus =
+          accountChanged || !existing.lastSyncedAt
+            ? 'never'
+            : existing.lastSyncStatus === 'error'
+              ? 'success'
+              : existing.lastSyncStatus;
+
+        return tx.artistPlatformInsightsConnection.update({
+          where: { id: existing.id },
+          data: {
+            connectionMethod: 'reference',
+            status: 'connected',
+            displayName: validation.displayName,
+            externalAccountId: validation.externalAccountId,
+            externalHandle: validation.externalHandle,
+            externalUrl: validation.externalUrl,
+            accessToken: null,
+            refreshToken: null,
+            tokenExpiresAt: null,
+            scopes: [],
+            metadata: metadata as Prisma.InputJsonValue,
+            lastSyncStartedAt: null,
+            lastSyncedAt: accountChanged ? null : existing.lastSyncedAt,
+            lastSyncStatus: recoveredSyncStatus,
+            lastSyncError: null,
+          },
+        });
+      }
+
+      return tx.artistPlatformInsightsConnection.create({
+        data: {
+          artistId,
+          platform: 'soundcloud',
+          connectionMethod: 'reference',
+          status: 'connected',
+          displayName: validation.displayName,
+          externalAccountId: validation.externalAccountId,
+          externalHandle: validation.externalHandle,
+          externalUrl: validation.externalUrl,
+          accessToken: null,
+          refreshToken: null,
+          tokenExpiresAt: null,
+          scopes: [],
+          metadata: metadata as Prisma.InputJsonValue,
+          lastSyncStatus: 'never',
+        },
+      });
+    });
+
+    this.auditService.log({
+      actorId: userId,
+      action: existing
+        ? 'insights.soundcloud_connection.update'
+        : 'insights.soundcloud_connection.create',
+      entityType: 'artist_platform_insights_connection',
+      entityId: savedConnection.id,
+      metadata: {
+        artistId,
+        platform: 'soundcloud',
+        externalAccountId: validation.externalAccountId,
+        externalHandle: validation.externalHandle,
+        externalUrl: validation.externalUrl,
+        accountChanged,
+      },
+      ipAddress,
+    });
+
+    return this.mapConnection(savedConnection as InsightsConnectionRecord)!;
+  }
+
+  async syncSoundCloudConnection(
+    artistId: string,
+    userId: string,
+    ipAddress?: string,
+  ): Promise<SoundCloudInsightsSyncResult> {
+    await this.membershipService.validateAccess(userId, artistId, 'write');
+    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'stage_link_insights');
+
+    const connection = await this.prisma.artistPlatformInsightsConnection.findFirst({
+      where: { artistId, platform: 'soundcloud' },
+    });
+
+    if (!connection || !connection.externalAccountId) {
+      throw new BadRequestException('Connect a SoundCloud profile before syncing insights');
+    }
+
+    const startedAt = new Date();
+    await this.prisma.artistPlatformInsightsConnection.update({
+      where: { id: connection.id },
+      data: {
+        lastSyncStartedAt: startedAt,
+        lastSyncStatus: 'pending',
+        lastSyncError: null,
+      },
+    });
+
+    try {
+      const snapshot = await this.soundCloudProvider.syncLatestSnapshot({
+        externalAccountId: connection.externalAccountId,
+        externalHandle: connection.externalHandle,
+        externalUrl: connection.externalUrl,
+        metadata: this.readJsonObject(connection.metadata),
+      });
+
+      const capturedAt = new Date(snapshot.capturedAt);
+      if (Number.isNaN(capturedAt.getTime())) {
+        throw new ServiceUnavailableException('SoundCloud returned an invalid snapshot timestamp');
+      }
+
+      const result = await this.prisma.$transaction(async (tx) => {
+        const savedSnapshot = await tx.artistPlatformInsightsSnapshot.create({
+          data: {
+            artistId,
+            connectionId: connection.id,
+            platform: 'soundcloud',
+            capturedAt,
+            profile: snapshot.profile as Prisma.InputJsonValue,
+            metrics: snapshot.metrics as Prisma.InputJsonValue,
+            topContent: snapshot.topContent as unknown as Prisma.InputJsonValue,
+            notes: [],
+          },
+        });
+
+        const updatedConnection = await tx.artistPlatformInsightsConnection.update({
+          where: { id: connection.id },
+          data: {
+            status: 'connected',
+            displayName: snapshot.profile.displayName,
+            externalUrl: snapshot.profile.externalUrl,
+            lastSyncStartedAt: startedAt,
+            lastSyncedAt: capturedAt,
+            lastSyncStatus: 'success',
+            lastSyncError: null,
+            metadata: {
+              ...(this.readJsonObject(connection.metadata) ?? {}),
+              imageUrl: snapshot.profile.imageUrl,
+            } as Prisma.InputJsonValue,
+          },
+        });
+
+        return {
+          connection: updatedConnection as InsightsConnectionRecord,
+          snapshot: savedSnapshot as InsightsSnapshotRecord,
+        };
+      });
+
+      this.auditService.log({
+        actorId: userId,
+        action: 'insights.soundcloud_connection.sync',
+        entityType: 'artist_platform_insights_connection',
+        entityId: connection.id,
+        metadata: {
+          artistId,
+          platform: 'soundcloud',
+          capturedAt: snapshot.capturedAt,
+        },
+        ipAddress,
+      });
+
+      return {
+        ok: true,
+        platform: 'soundcloud',
+        message: 'SoundCloud Insights synced successfully',
+        connection: this.mapConnection(result.connection)!,
+        snapshot: this.mapSnapshot(result.snapshot)!,
+      };
+    } catch (error) {
+      const normalizedError =
+        error instanceof HttpException
+          ? error
+          : new ServiceUnavailableException('Could not sync SoundCloud insights right now');
+      const message =
+        normalizedError instanceof Error
+          ? normalizedError.message
+          : 'Could not sync SoundCloud insights right now';
+
+      await this.prisma.artistPlatformInsightsConnection.update({
+        where: { id: connection.id },
+        data: {
+          status: 'connected',
+          lastSyncStartedAt: startedAt,
+          lastSyncStatus: 'error',
+          lastSyncError: message,
+        },
+      });
+
+      this.auditService.log({
+        actorId: userId,
+        action: 'insights.soundcloud_connection.sync_failed',
+        entityType: 'artist_platform_insights_connection',
+        entityId: connection.id,
+        metadata: {
+          artistId,
+          platform: 'soundcloud',
           message,
         },
         ipAddress,

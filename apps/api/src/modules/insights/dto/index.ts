@@ -18,3 +18,10 @@ export class YouTubeInsightsConnectionDto {
   @MaxLength(255)
   channelInput!: string;
 }
+
+export class SoundCloudInsightsConnectionDto {
+  @Transform(({ value }) => trimString(value))
+  @IsString()
+  @MaxLength(255)
+  profileInput!: string;
+}

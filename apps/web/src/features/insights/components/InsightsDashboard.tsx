@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { BillingEntitlementsResponse } from '@/lib/api/billing';
 import type { StageLinkInsightsLockPayload } from '@/lib/api/insights';
 import type { StageLinkInsightsDashboard as StageLinkInsightsDashboardData } from '@stagelink/types';
+import { SoundCloudInsightsCard } from './SoundCloudInsightsCard';
 import { SpotifyInsightsCard } from './SpotifyInsightsCard';
 import { YouTubeInsightsCard } from './YouTubeInsightsCard';
 
@@ -27,6 +28,7 @@ interface InsightsDashboardProps {
   artistId: string;
   artistSpotifyUrl: string | null;
   artistYouTubeUrl: string | null;
+  artistSoundCloudUrl?: string | null;
   data: StageLinkInsightsDashboardData | null;
   entitlements: BillingEntitlementsResponse | null;
   lockedPayload?: StageLinkInsightsLockPayload | null;
@@ -242,6 +244,7 @@ export function InsightsDashboard({
   artistId,
   artistSpotifyUrl,
   artistYouTubeUrl,
+  artistSoundCloudUrl = null,
   data,
   entitlements,
   lockedPayload,
@@ -385,6 +388,49 @@ export function InsightsDashboard({
             );
           }
 
+          if (platform.platform === 'soundcloud') {
+            return (
+              <Card key={platform.platform} id="soundcloud-insights" className="xl:col-span-3">
+                <CardHeader className="space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <CardTitle>{t(`platforms.${platform.platform}.title`)}</CardTitle>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {t(`platforms.${platform.platform}.description`)}
+                      </p>
+                    </div>
+                    <Badge
+                      variant={resolveStatusTone(platform.connection?.status ?? 'disconnected')}
+                    >
+                      {t(`status.${platform.connection?.status ?? 'disconnected'}`)}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">
+                      {t(`connection_methods.${platform.capabilities.connectionMethod}`)}
+                    </Badge>
+                    <Badge variant="outline">
+                      {t(`support.${platform.capabilities.profileBasics}`)}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <SoundCloudInsightsCard
+                    artistId={artistId}
+                    artistSoundCloudUrl={artistSoundCloudUrl}
+                    summary={platform}
+                    mode="analytics"
+                    settingsHref={resolvedSettingsHref}
+                  />
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    {t(`platforms.${platform.platform}.limitations`)}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          }
+
+          // Generic fallback for any future platforms not yet fully wired up
           const effectiveStatus = platform.connection?.status ?? 'disconnected';
           const formattedLastSynced = formatDate(platform.connection?.lastSyncedAt ?? null, locale);
 
@@ -412,31 +458,6 @@ export function InsightsDashboard({
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2 text-sm">
-                  <p className="font-medium text-foreground">{t('capabilities.title')}</p>
-                  <div className="grid gap-2">
-                    {(
-                      [
-                        'profileBasics',
-                        'audienceMetrics',
-                        'topContent',
-                        'historicalSnapshots',
-                        'scheduledSync',
-                      ] as const
-                    ).map((key) => (
-                      <div
-                        key={key}
-                        className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2"
-                      >
-                        <span className="text-muted-foreground">{t(`capabilities.${key}`)}</span>
-                        <Badge variant="outline">
-                          {t(`support.${platform.capabilities[key]}`)}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
                 <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm">
                   <p className="font-medium text-foreground">
                     {t('platform_card.connection_title')}

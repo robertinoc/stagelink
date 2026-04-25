@@ -503,6 +503,84 @@
         "title": "What is live in this phase",
         "description": "Spotify and YouTube now run on the real Insights foundation: provider abstraction, normalized snapshots, date-range filters, sync state, and a protected PRO+ dashboard ready to grow platform by platform.",
         "current_plan": "You are viewing StageLink Insights with the current effective plan: {plan}."
+      },
+      "soundcloud": {
+        "setup_required": "SoundCloud Insights needs `SOUNDCLOUD_CLIENT_ID` configured on this deployment before artists can connect their profiles.",
+        "fields": {
+          "profile_input": "SoundCloud profile URL or username",
+          "profile_input_placeholder": "https://soundcloud.com/yourname or yourname",
+          "profile_input_hint": "Paste your SoundCloud profile URL or just your username slug (e.g. artistname)."
+        },
+        "actions": {
+          "validate": "Validate profile",
+          "validating": "Validating…",
+          "connect": "Connect SoundCloud",
+          "connecting": "Connecting…",
+          "update": "Update connection",
+          "sync": "Sync now",
+          "syncing": "Syncing…",
+          "open_soundcloud": "Open on SoundCloud",
+          "view_analytics": "View analytics",
+          "view_scope": "What this includes",
+          "view_history": "View snapshot history",
+          "manage_connection": "Manage connection",
+          "open_settings": "Open settings"
+        },
+        "messages": {
+          "connected": "SoundCloud profile connected successfully.",
+          "validate_error": "Could not validate the SoundCloud profile right now.",
+          "connect_error": "Could not save the SoundCloud connection right now.",
+          "sync_error": "Could not sync SoundCloud insights right now."
+        },
+        "connected": {
+          "unknown_artist": "Connected SoundCloud profile",
+          "last_sync": "Last sync: {value}"
+        },
+        "metrics": {
+          "followers_count": "Followers",
+          "track_count": "Tracks",
+          "top_tracks_count": "Top tracks",
+          "plays": "Plays"
+        },
+        "top_tracks": {
+          "title": "Recent tracks",
+          "empty": "SoundCloud did not return public tracks for this profile right now.",
+          "open_track": "Open track on SoundCloud"
+        },
+        "history": {
+          "title": "Snapshot history",
+          "description": "StageLink stores each sync as a lightweight snapshot so you can see how your SoundCloud presence changes over time.",
+          "empty": "You need at least two snapshots in this range before StageLink can show changes over time.",
+          "followers_change": "Follower change in range",
+          "tracks_synced": "Tracks in last sync"
+        },
+        "scope": {
+          "title": "What linking SoundCloud gives you right now",
+          "description": "StageLink reads public profile data from SoundCloud using its public API. No OAuth or account ownership is required.",
+          "includes_title": "Available now",
+          "includes": {
+            "profile": "Display name, avatar, and public profile URL",
+            "followers": "Public follower count",
+            "track_count": "Total public track count",
+            "top_tracks": "Recent public tracks with play counts"
+          },
+          "not_included_title": "Not included",
+          "not_included": {
+            "play_history": "Detailed play history or per-stream breakdowns",
+            "demographics": "Audience geography or demographic data",
+            "revenue": "Monetization or revenue reports",
+            "private_stats": "Private analytics only accessible through the SoundCloud for Artists dashboard"
+          }
+        },
+        "settings": {
+          "helper_title": "Configure here, read metrics in Analytics",
+          "helper_description": "Use Settings to connect your public SoundCloud profile. Then open Analytics to sync snapshots and track follower and play count changes over time."
+        },
+        "analytics": {
+          "no_connection_title": "SoundCloud is not connected yet",
+          "no_connection_description": "Open Settings to connect your SoundCloud profile before you expect metrics here."
+        },
+        "empty_synced": "SoundCloud is connected, but no snapshot has been stored yet. Run a sync to pull your first set of metrics."
       }
     },
     "profile": {
