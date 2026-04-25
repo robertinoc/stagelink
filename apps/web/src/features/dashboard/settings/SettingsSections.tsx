@@ -71,7 +71,7 @@ export function SettingsOverviewGrid({
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         {items.map((section) => (
           <Link
             key={section.slug}
@@ -207,7 +207,7 @@ export function PlansBillingSection({
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         {plans.map((plan) => {
           const isCurrent = plan.planCode === summary.billingPlan;
           const isEffective = plan.planCode === summary.effectivePlan;

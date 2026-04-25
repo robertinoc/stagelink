@@ -852,8 +852,8 @@
       "navigation": {
         "title": "Settings sections",
         "description": "Open the part of Settings you want to configure.",
-        "plans_billing": "Plans and billing",
-        "insights_connections": "Insights connections",
+        "plans_billing": "Plans & Billing",
+        "insights_connections": "Insights Connections",
         "shopify_store": "Shopify Store",
         "smart_merch": "Smart Merch (Printful)"
       },
@@ -876,11 +876,11 @@
         "cta": "Contact support center"
       },
       "summary": {
-        "title": "Plan capabilities",
-        "description": "StageLink currently resolves this tenant as {plan}. Backend gating uses this effective plan, not only the billing UI.",
-        "backend_source": "The backend is the source of truth for feature authorization.",
-        "webhook_note": "Plan changes take effect after Stripe webhooks synchronize the tenant subscription.",
-        "syncing_note": "Stripe billing is still syncing. Product gating stays conservative until the latest billing state is confirmed.",
+        "title": "Billing overview",
+        "description": "Your workspace is on {plan}.",
+        "backend_source": "All features are automatically enabled or restricted based on your effective plan.",
+        "webhook_note": "Plan changes may take a moment to reflect after checkout completes.",
+        "syncing_note": "Your billing is still syncing — feature access will update in a few moments.",
         "cta": "Open billing",
         "portal_cta": "Open billing portal"
       },
@@ -893,12 +893,12 @@
         },
         "current_description": "This is the plan currently attached to your billing.",
         "access_description": "This plan is currently granting product access while billing finishes syncing.",
-        "available_description": "Upgrade here when you want to unlock more of StageLink.",
+        "available_description": "Ready when you are. Upgrade to unlock more of StageLink.",
         "upgrade_cta": "Upgrade to {plan}",
         "current_cta": "Current plan",
         "included_cta": "Managed from billing",
         "manage_title": "Need to downgrade, cancel, or return to Free?",
-        "manage_description": "Use the billing portal for plan changes that are better handled directly in Stripe. You can still open the full billing screen anytime.",
+        "manage_description": "Use the billing portal to downgrade, cancel, or review your invoices. You can also open the full billing page anytime.",
         "manage_cta": "Manage billing",
         "legacy_cta": "Open detailed billing"
       },
@@ -954,8 +954,8 @@
         }
       },
       "shopify": {
-        "title": "Shopify storefront",
-        "description": "Connect a Shopify store, validate credentials, and choose what merch to show on your public page.",
+        "title": "Shopify store",
+        "description": "Connect your Shopify store and choose which products to show on your public page.",
         "status": {
           "connected": "Connected",
           "not_connected": "Not connected"
@@ -968,7 +968,7 @@
         "fields": {
           "store_domain": "Store domain",
           "storefront_token": "Storefront token",
-          "selection_mode": "What should StageLink show?",
+          "selection_mode": "What to display on your page",
           "collection_handle": "Collection handle",
           "product_handles": "Product handles"
         },
@@ -979,7 +979,7 @@
         "actions_card": {
           "validate": "Validate connection",
           "validating": "Validating...",
-          "save": "Save Shopify settings",
+          "save": "Save settings",
           "saving": "Saving...",
           "disconnect": "Disconnect store",
           "disconnecting": "Disconnecting..."
@@ -995,7 +995,7 @@
           "saved": "Shopify settings saved.",
           "save_error": "Could not save Shopify settings.",
           "validate_error": "Could not validate this Shopify connection.",
-          "no_preview": "No preview products were returned for the current selection.",
+          "no_preview": "No products found for this selection. Check the handle and try again.",
           "disconnected": "Shopify store disconnected.",
           "disconnect_error": "Could not disconnect this Shopify store."
         }
@@ -1019,13 +1019,13 @@
         "actions_card": {
           "validate": "Validate connection",
           "validating": "Validating...",
-          "save": "Save Smart Merch settings",
+          "save": "Save settings",
           "saving": "Saving...",
           "disconnect": "Disconnect Printful",
           "disconnecting": "Disconnecting..."
         },
         "hints": {
-          "provider": "Printful is the first Smart Merch provider. Printify can plug into the same architecture later.",
+          "provider": "Printful is the connected provider for this workspace.",
           "api_token": "Stored on the backend and never exposed on your public page.",
           "token_saved": "Leave blank to keep the saved token"
         },
