@@ -20,45 +20,47 @@ export function Footer({ locale }: { locale: string }) {
               <span className="text-white">Stage</span>
               <span className="text-gradient-brand">Link</span>
             </Link>
-            <p className="mt-3 max-w-sm text-base leading-7 text-white/76">{t.footer.description}</p>
+            <p className="mt-3 max-w-sm text-[1.02rem] leading-7 text-white/84">
+              {t.footer.description}
+            </p>
           </div>
 
           {/* Links */}
-          <nav className="flex flex-wrap gap-x-8 gap-y-3 text-base">
+          <nav className="flex flex-wrap gap-x-8 gap-y-3 text-[1.02rem]">
             <Link
               href={`${homePath}#product`}
-              className="text-white/72 transition-colors hover:text-white"
+              className="font-medium text-white/82 transition-colors hover:text-white"
             >
               {t.footer.links.product}
             </Link>
             <Link
               href={`${homePath}#features`}
-              className="text-white/72 transition-colors hover:text-white"
+              className="font-medium text-white/82 transition-colors hover:text-white"
             >
               {t.footer.links.features}
             </Link>
             <Link
               href={`${homePath}#how-it-works`}
-              className="text-white/72 transition-colors hover:text-white"
+              className="font-medium text-white/82 transition-colors hover:text-white"
             >
               {t.footer.links.howItWorks}
             </Link>
             <Link
               href={`/${locale}/pricing`}
-              className="text-white/72 transition-colors hover:text-white"
+              className="font-medium text-white/82 transition-colors hover:text-white"
             >
               {t.footer.links.pricing}
             </Link>
             <Link
               href={`${homePath}#contact`}
-              className="text-white/72 transition-colors hover:text-white"
+              className="font-medium text-white/82 transition-colors hover:text-white"
             >
               {t.footer.links.contact}
             </Link>
           </nav>
         </div>
 
-        <div className="mt-10 border-t border-white/8 pt-6 text-sm text-white/52">{copyright}</div>
+        <div className="mt-10 border-t border-white/8 pt-6 text-sm text-white/68">{copyright}</div>
       </div>
     </footer>
   );

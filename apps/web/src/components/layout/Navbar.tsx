@@ -41,12 +41,12 @@ export function Navbar({ locale }: NavbarProps) {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-6 text-sm md:flex">
+        <nav className="hidden items-center gap-6 text-[0.95rem] md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-white/74 transition-colors hover:text-white"
+              className="font-medium text-white/84 transition-colors hover:text-white"
             >
               {link.label}
             </Link>
@@ -58,7 +58,7 @@ export function Navbar({ locale }: NavbarProps) {
           {/* Language switcher */}
           <Link
             href={switchPath}
-            className="hidden min-h-11 items-center rounded-full border border-white/14 bg-white/5 px-4 py-2 text-sm font-medium text-white/76 transition-colors hover:border-white/24 hover:text-white sm:flex"
+            className="hidden min-h-11 items-center rounded-full border border-white/16 bg-white/6 px-4 py-2 text-sm font-medium text-white/84 transition-colors hover:border-white/24 hover:text-white sm:flex"
             aria-label={`${t.nav.languageLabel}: ${otherLocale.toUpperCase()}`}
           >
             {otherLocale.toUpperCase()}
@@ -66,7 +66,7 @@ export function Navbar({ locale }: NavbarProps) {
 
           <Link
             href={`/${locale}/login`}
-            className="hidden min-h-11 items-center rounded-full px-4 py-2 text-sm font-medium text-white/78 transition-colors hover:text-white sm:inline-flex"
+            className="hidden min-h-11 items-center rounded-full px-4 py-2 text-sm font-medium text-white/84 transition-colors hover:text-white sm:inline-flex"
           >
             {t.nav.login}
           </Link>
@@ -117,18 +117,21 @@ export function Navbar({ locale }: NavbarProps) {
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
-                className="rounded-xl px-4 py-3 text-base text-white/82 transition-colors hover:bg-white/5 hover:text-white"
+                className="rounded-xl px-4 py-3 text-base font-medium text-white/88 transition-colors hover:bg-white/5 hover:text-white"
               >
                 {link.label}
               </Link>
             ))}
             <div className="mt-3 flex items-center gap-3 border-t border-white/10 pt-3">
-              <Link href={`/${locale}/login`} className="text-base text-white/78 hover:text-white">
+              <Link
+                href={`/${locale}/login`}
+                className="text-base font-medium text-white/84 hover:text-white"
+              >
                 {t.nav.login}
               </Link>
               <Link
                 href={switchPath}
-                className="ml-auto inline-flex min-h-11 items-center rounded-full border border-white/14 px-4 py-2 text-sm font-medium text-white/76 hover:text-white"
+                className="ml-auto inline-flex min-h-11 items-center rounded-full border border-white/16 px-4 py-2 text-sm font-medium text-white/84 hover:text-white"
               >
                 {otherLocale.toUpperCase()}
               </Link>
