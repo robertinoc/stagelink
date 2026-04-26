@@ -504,6 +504,30 @@
       "sync_overview": {
         "title": "Data freshness"
       },
+      "callouts": {
+        "section_title": "Insights",
+        "fastest_growing": {
+          "title": "Fastest growing",
+          "body": "Your {platform} audience grew by {delta} ({pct}) during this period."
+        },
+        "top_content": {
+          "title": "Top content on {platform}",
+          "view_link": "View on platform"
+        },
+        "momentum_building": {
+          "title": "Momentum building",
+          "body": "Your {platform} growth is accelerating — {delta} new in the latest period."
+        },
+        "growth_flattening": {
+          "title": "Growth flattening",
+          "body": "Growth on {platform} has slowed down recently. Consider a fresh campaign."
+        },
+        "newly_connected": {
+          "title": "New platform connected",
+          "body": "You connected {platform} {days, plural, =0 {today} one {# day ago} other {# days ago}}. First sync data is now live.",
+          "today": "today"
+        }
+      },
       "foundation_scope": {
         "title": "What is live in this phase",
         "description": "Spotify and YouTube now run on the real Insights foundation: provider abstraction, normalized snapshots, date-range filters, sync state, and a protected PRO+ dashboard ready to grow platform by platform.",
