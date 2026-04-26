@@ -303,7 +303,8 @@
         "never": "Never synced",
         "pending": "Syncing",
         "success": "Sync successful",
-        "partial": "Partial sync",
+        "partial": "Metrics only",
+        "partial_hint": "Main metrics synced · top content unavailable from platform",
         "error": "Sync failed"
       },
       "capabilities": {

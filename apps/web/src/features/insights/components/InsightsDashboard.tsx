@@ -524,9 +524,9 @@ export function InsightsDashboard({
                   return (
                     <div
                       key={p.platform}
-                      className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3"
+                      className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3"
                     >
-                      <div className={`h-2 w-2 shrink-0 rounded-full ${dotColor}`} />
+                      <div className={`mt-1 h-2 w-2 shrink-0 rounded-full ${dotColor}`} />
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-medium capitalize">{p.platform}</p>
                         <p className="truncate text-xs text-muted-foreground">
@@ -535,6 +535,11 @@ export function InsightsDashboard({
                               p.connection.lastSyncedAt)
                             : t('never_synced')}
                         </p>
+                        {syncStatus === 'partial' ? (
+                          <p className="mt-0.5 text-xs text-amber-400/70">
+                            {t('sync_status.partial_hint')}
+                          </p>
+                        ) : null}
                       </div>
                       <Badge
                         variant="outline"
