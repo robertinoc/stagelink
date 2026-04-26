@@ -88,4 +88,11 @@ export const validationSchema = Joi.object({
   // E-commerce — Plan Pro only (T6)
   SHOPIFY_STOREFRONT_TOKEN: optionalString,
   SHOPIFY_STORE_DOMAIN: optionalString,
+
+  // StageLink Insights — optional, each key enables a specific platform provider
+  SPOTIFY_CLIENT_ID: optionalString,
+  SPOTIFY_CLIENT_SECRET: optionalString,
+  SPOTIFY_TOP_TRACKS_MARKET: Joi.string().default('US'),
+  YOUTUBE_DATA_API_KEY: optionalString,
+  SOUNDCLOUD_CLIENT_ID: optionalString,
 });
