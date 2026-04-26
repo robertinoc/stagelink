@@ -504,6 +504,30 @@
       "sync_overview": {
         "title": "Frescura de datos"
       },
+      "callouts": {
+        "section_title": "Insights",
+        "fastest_growing": {
+          "title": "Mayor crecimiento",
+          "body": "Tu audiencia en {platform} creció {delta} ({pct}) durante este período."
+        },
+        "top_content": {
+          "title": "Top contenido en {platform}",
+          "view_link": "Ver en la plataforma"
+        },
+        "momentum_building": {
+          "title": "Momento en alza",
+          "body": "Tu crecimiento en {platform} se está acelerando — {delta} nuevos en el último período."
+        },
+        "growth_flattening": {
+          "title": "Crecimiento estancado",
+          "body": "El crecimiento en {platform} se ha desacelerado recientemente. Considera una nueva campaña."
+        },
+        "newly_connected": {
+          "title": "Nueva plataforma conectada",
+          "body": "Conectaste {platform} {days, plural, =0 {hoy} one {hace # día} other {hace # días}}. Los datos del primer sync ya están disponibles.",
+          "today": "hoy"
+        }
+      },
       "foundation_scope": {
         "title": "Qué está activo en esta fase",
         "description": "Spotify y YouTube ya están conectados a la base real de Insights: capa de providers, snapshots normalizados, filtros por rango temporal, estado de sync y un dashboard PRO+ protegido listo para crecer plataforma por plataforma.",
