@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { StageLinkInsightsDateRange } from '@stagelink/types';
 import { getArtist } from '@/lib/api/artists';
@@ -12,6 +13,7 @@ import {
   getAnalyticsProTrends,
   getAnalyticsSmartLinkPerformance,
   type AnalyticsFeatureLockPayload,
+  type AnalyticsProtectedResult,
   type AnalyticsRange,
 } from '@/lib/api/analytics';
 import { AnalyticsDashboard } from '@/features/analytics/components/AnalyticsDashboard';
@@ -22,6 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 interface PageProps {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ range?: string; insightsRange?: StageLinkInsightsDateRange }>;
 }
 
@@ -35,6 +38,18 @@ function parseRange(raw: string | undefined): AnalyticsRange {
 }
 
 /**
+ * Type predicate: narrows an AnalyticsProtectedResult to session_expired.
+ * Using a type predicate (not plain boolean) lets TypeScript exclude the
+ * session_expired variant after the guard redirect, preventing false TS
+ * errors on `.message` access in the non-expired branches.
+ */
+function isSessionExpired<T>(
+  result: AnalyticsProtectedResult<T>,
+): result is { kind: 'session_expired' } {
+  return result.kind === 'session_expired';
+}
+
+/**
  * DashboardAnalyticsPage — server component.
  *
  * Fetches analytics data server-side so the initial render is complete
@@ -44,8 +59,11 @@ function parseRange(raw: string | undefined): AnalyticsRange {
  * Authentication is guaranteed by the parent (app) layout.
  * artistId is resolved from the session via getAuthMe.
  */
-export default async function DashboardAnalyticsPage({ searchParams }: PageProps) {
-  const { range: rawRange, insightsRange } = await searchParams;
+export default async function DashboardAnalyticsPage({ params, searchParams }: PageProps) {
+  const [{ locale }, { range: rawRange, insightsRange }] = await Promise.all([
+    params,
+    searchParams,
+  ]);
   const range = parseRange(rawRange);
 
   const session = await getSession();
@@ -84,6 +102,10 @@ export default async function DashboardAnalyticsPage({ searchParams }: PageProps
   let fanInsightsErrorMessage: string | null = null;
 
   const result = await getAnalyticsOverview(artistId, session.accessToken, range);
+  if (isSessionExpired(result)) {
+    // Access token rejected — clear the stale WorkOS session and force re-auth.
+    redirect(`/${locale}/login`);
+  }
   if (result.kind === 'ok') {
     data = result.data;
   } else if (result.kind === 'locked') {
@@ -99,11 +121,15 @@ export default async function DashboardAnalyticsPage({ searchParams }: PageProps
         getAnalyticsSmartLinkPerformance(artistId, session.accessToken, range),
       ]);
 
+      if (isSessionExpired(trendsResult) || isSessionExpired(smartLinksResult)) {
+        redirect(`/${locale}/login`);
+      }
+
       if (trendsResult.kind === 'ok') {
         proTrends = trendsResult.data;
       } else if (trendsResult.kind === 'locked') {
         analyticsProLockPayload = trendsResult.payload;
-      } else {
+      } else if (trendsResult.kind === 'error') {
         analyticsProErrorMessage = trendsResult.message;
       }
 
@@ -111,7 +137,7 @@ export default async function DashboardAnalyticsPage({ searchParams }: PageProps
         smartLinkPerformance = smartLinksResult.data;
       } else if (smartLinksResult.kind === 'locked') {
         analyticsProLockPayload = smartLinksResult.payload;
-      } else {
+      } else if (smartLinksResult.kind === 'error') {
         analyticsProErrorMessage ??= smartLinksResult.message;
       }
     } else {
@@ -119,6 +145,10 @@ export default async function DashboardAnalyticsPage({ searchParams }: PageProps
         getAnalyticsProTrends(artistId, session.accessToken, range),
         getAnalyticsSmartLinkPerformance(artistId, session.accessToken, range),
       ]);
+
+      if (isSessionExpired(trendsResult) || isSessionExpired(smartLinksResult)) {
+        redirect(`/${locale}/login`);
+      }
 
       if (trendsResult.kind === 'locked') {
         analyticsProLockPayload = trendsResult.payload;
@@ -135,15 +165,21 @@ export default async function DashboardAnalyticsPage({ searchParams }: PageProps
 
     if (advancedFanInsightsEnabled) {
       const fanInsightsResult = await getAnalyticsFanInsights(artistId, session.accessToken, range);
+      if (isSessionExpired(fanInsightsResult)) {
+        redirect(`/${locale}/login`);
+      }
       if (fanInsightsResult.kind === 'ok') {
         fanInsights = fanInsightsResult.data;
       } else if (fanInsightsResult.kind === 'locked') {
         fanInsightsLockPayload = fanInsightsResult.payload;
-      } else {
+      } else if (fanInsightsResult.kind === 'error') {
         fanInsightsErrorMessage = fanInsightsResult.message;
       }
     } else {
       const fanInsightsResult = await getAnalyticsFanInsights(artistId, session.accessToken, range);
+      if (isSessionExpired(fanInsightsResult)) {
+        redirect(`/${locale}/login`);
+      }
       if (fanInsightsResult.kind === 'locked') {
         fanInsightsLockPayload = fanInsightsResult.payload;
       } else if (fanInsightsResult.kind === 'error') {
