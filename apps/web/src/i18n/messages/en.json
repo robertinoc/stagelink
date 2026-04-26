@@ -5,11 +5,11 @@
     "login": "Log in",
     "signup": "Get started",
     "dashboard": "Dashboard",
-    "my_page": "My Page Builder",
-    "epk": "My Press Kit (EPK)",
-    "analytics": "My Analytics",
+    "my_page": "My Page",
+    "epk": "Press Kit",
+    "analytics": "Analytics",
     "insights": "Insights",
-    "profile": "My Profile",
+    "profile": "Profile",
     "billing": "Billing",
     "settings": "Settings",
     "logout": "Log out",
@@ -131,7 +131,7 @@
     },
     "analytics": {
       "title": "Analytics",
-      "description": "Track how your page is performing.",
+      "description": "See your page views, link clicks, and fan captures in one place.",
       "range": {
         "7d": "Last 7 days",
         "30d": "Last 30 days",
@@ -148,7 +148,7 @@
       "top_links": {
         "title": "Top links",
         "description": "See which tracked links people are clicking the most in this period.",
-        "scope_note": "This currently covers tracked clicks from page-builder links, profile links, and smart links. Broader event tracking for merch, purchases, and more lands in a future version.",
+        "scope_note": "Covers clicks from page blocks, profile links, and smart links.",
         "rank": "#",
         "label": "Link",
         "source": "Source",
@@ -172,14 +172,14 @@
       },
       "locked": {
         "title": "Advanced analytics are locked",
-        "description": "Your current plan is {currentPlan}. Upgrade to {requiredPlan} to unlock a full 365-day view and advanced analytics features as they ship.",
+        "description": "Upgrade to {requiredPlan} to unlock the 365-day view and advanced analytics.",
         "cta": "Upgrade plan",
         "secondary_cta": "Manage page",
-        "one_tier_away": "You're one tier away from unlocking this section in Pro+."
+        "one_tier_away": "This section is available on Pro+."
       },
       "pro": {
-        "title": "Analytics Pro",
-        "description": "Richer trends and smart link performance built on the same clean analytics source of truth.",
+        "title": "Advanced analytics",
+        "description": "Trend charts and smart link performance for a deeper look at your audience.",
         "locked_title": "Unlock advanced analytics",
         "locked_description": "Your current plan is {currentPlan}. Advanced analytics are included in {requiredPlan}, while Free and Pro keep the basic overview. Upgrade to unlock richer trends and smart link performance.",
         "trends": {
@@ -195,7 +195,7 @@
         "smart_links": {
           "title": "Smart link performance",
           "description": "This only counts Smart Links. It shows which ones got the most clicks, and how many people continued through their destination routing.",
-          "scope_note": "Profile links and regular page-builder links are not counted here. This table is only for Smart Links.",
+          "scope_note": "Only Smart Links are counted here — page blocks and profile links are excluded.",
           "label": "Smart link",
           "clicks": "Clicks",
           "resolutions": "Resolutions",
@@ -205,7 +205,7 @@
       "fan_insights": {
         "title": "Fan insights",
         "description": "These numbers come from your fan capture forms. They show how many people submitted the form, not who they were.",
-        "setup_note": "Fan insights only work when you have at least one fan capture block published on your page.",
+        "setup_note": "Add a Fan Capture block to your page to start collecting data here.",
         "locked_title": "Unlock fan insights",
         "locked_description": "Your current plan is {currentPlan}. Fan insights are included in {requiredPlan}, while Free and Pro keep the basic analytics view. Upgrade to unlock fan capture trends and top capture blocks.",
         "summary": {
@@ -223,11 +223,11 @@
         "top_blocks_description": "Which published fan capture blocks are bringing in the most successful signups.",
         "top_blocks_empty": "No capture blocks have generated signups in this range yet.",
         "captures_label": "captures",
-        "formula_note": "Capture rate is shown as an approximation using the formula fan_capture_submit / page_view."
+        "formula_note": "Capture rate is an approximation: signups ÷ page views."
       },
       "notes": {
-        "basic_quality": "Basic analytics · Bot filtering applied at ingestion · Unique visitor deduplication coming soon",
-        "standard_quality": "Bot & QA traffic excluded · Production events only · Unique visitor deduplication coming soon"
+        "basic_quality": "Basic analytics · Bot filtering applied · Unique visitor deduplication coming soon",
+        "standard_quality": "Bot traffic filtered · Unique visitor deduplication coming soon"
       },
       "insights_section": {
         "title": "StageLink Insights",
@@ -615,13 +615,13 @@
     },
     "profile": {
       "title": "Profile",
-      "description": "Manage the core artist identity StageLink reuses across your public page, Press Kit (EPK), platform references, analytics connections, and SEO.",
+      "description": "Your artist identity in one place — page, Press Kit, and Insights all pull from here.",
       "sections": {
         "images": "Images",
         "images_hint": "Changes are saved immediately after uploading.",
-        "basic": "Basic Info",
+        "basic": "Artist identity",
         "social": "Social & Contact",
-        "social_hint": "Add your links so fans can find you everywhere. Leave blank to hide.",
+        "social_hint": "Links left blank won't appear on your page.",
         "seo": "SEO & Discoverability",
         "seo_hint": "Control how your page appears in search results."
       },
@@ -642,7 +642,7 @@
         "seo_title_hint": "Recommended: 50–60 characters",
         "seo_description": "Meta description",
         "seo_description_hint": "Recommended: 120–160 characters",
-        "username_readonly_hint": "Username changes require identity verification and are not available yet."
+        "username_readonly_hint": "Your username isn't editable yet — changes will require identity verification."
       },
       "placeholders": {
         "display_name": "e.g. The Midnight, DJ Snake, Rosalía…",
@@ -669,7 +669,7 @@
       },
       "descriptors": {
         "title": "Descriptors",
-        "hint": "Add up to 6 descriptors like genres, niches, or vibes.",
+        "hint": "Add up to 6 tags — genres, styles, or niches.",
         "selected": "Descriptors",
         "empty": "Add descriptors such as Hard Techno, Alternative Rock, or Educational.",
         "placeholder": "Type a genre, niche, or style…",
@@ -685,11 +685,11 @@
         "fallback_note": "{locale} visitors will see this copy when it exists. Otherwise StageLink falls back to your base content.",
         "base_edit_title": "This is your base content locale",
         "base_edit_description": "Edit the main profile fields above to update {locale}. Additional locale tabs are only for translated variants.",
-        "copy_from_base": "✨ Auto-translate content",
+        "copy_from_base": "Auto-translate",
         "copy_from_base_description": "Fill these fields with an automatic translation from {sourceLocale} to {locale}. You can edit everything after the translation is inserted.",
         "auto_translate_loading": "Translating…",
         "auto_translate_success": "Automatic translation inserted. You can edit any field before saving.",
-        "auto_translate_error": "Automatic translation failed. Check your translation setup and try again in a moment.",
+        "auto_translate_error": "Auto-translation failed. Try again in a moment.",
         "lock_badge": "Pro+",
         "lock_title": "Unlock multi-language pages",
         "lock_description": "Additional locales are available on Pro+. You can keep editing your base profile, but translated public content needs the multi-language pages feature.",
@@ -717,8 +717,8 @@
       "cover": "Cover image",
       "avatar": "Profile picture",
       "gallery": {
-        "title": "My gallery",
-        "description": "Upload up to 6 artist photos here. You can reuse them later inside an Image Gallery block on your page.",
+        "title": "Photo gallery",
+        "description": "Upload up to 6 artist photos. Reuse them in an Image Gallery block on your page.",
         "count": "{current}/{max} images uploaded",
         "add_image": "Add image",
         "uploading": "Uploading…",
@@ -749,9 +749,9 @@
         "copy_from_base_description": "Fill these fields with an automatic translation from {sourceLocale} to {locale}. You can edit everything after the translation is inserted.",
         "auto_translate_loading": "Translating…",
         "auto_translate_success": "Automatic translation inserted. You can edit any field before saving.",
-        "auto_translate_error": "Automatic translation failed. Check your translation setup and try again in a moment.",
+        "auto_translate_error": "Auto-translation failed. Try again in a moment.",
         "lock_badge": "Pro+",
-        "lock_title": "Unlock localized EPK copy",
+        "lock_title": "Unlock multi-language Press Kit",
         "lock_description": "Additional locales are available on Pro+. Your base EPK stays available, but locale-specific public EPK content needs the multi-language pages feature.",
         "lock_cta": "Upgrade plan",
         "locales": {
@@ -1126,7 +1126,7 @@
   },
   "blocks": {
     "title": "My Page",
-    "description": "Build your artist page with blocks.",
+    "description": "Add, arrange, and publish blocks to build your public artist page.",
     "add_block": "Add block",
     "empty_title": "No blocks yet",
     "empty_description": "Add your first block to start building your page.",
@@ -1156,8 +1156,8 @@
       "music_embed": "Embed a track or playlist from Spotify, SoundCloud and more.",
       "video_embed": "Embed a video from YouTube, Vimeo or TikTok.",
       "email_capture": "Collect fan signups from your page and feed StageLink fan insights.",
-      "text": "Add a text block for a bio, technical rider, artist requirements, or any public info you already have ready.",
-      "image_gallery": "Show a gallery using images you already uploaded in My gallery.",
+      "text": "A free-text area — bio, rider, press note, or anything you want to say.",
+      "image_gallery": "Show a gallery using images from your Profile gallery.",
       "shopify_store": "Show selected merch from your connected Shopify storefront.",
       "smart_merch": "Pick real products from Printful and attach an external purchase link for each one."
     },
@@ -1198,14 +1198,14 @@
       "consent_label": "Consent label text",
       "consent_label_placeholder": "e.g. I agree to receive updates from this artist.",
       "body": "Body",
-      "body_placeholder": "Write a short bio, press note, technical rider, or any public text you want to show on the page…",
+      "body_placeholder": "Write anything you want to show on your page…",
       "reuse_section_title": "Use information already available",
       "reuse_section_hint": "Pull saved text from Profile or Press Kit instead of rewriting it here.",
       "body_locale_hint": "Text blocks currently use your base language. If you need different copy by language, duplicate the block for now.",
-      "image_gallery_title": "Choose images from My gallery",
+      "image_gallery_title": "Choose images from your gallery",
       "image_gallery_hint": "Pick the profile gallery images you want to show in this block.",
-      "image_gallery_empty": "Add gallery images in My Profile first",
-      "image_gallery_from_profile": "This block only uses images already uploaded in My gallery.",
+      "image_gallery_empty": "Add photos in Profile first",
+      "image_gallery_from_profile": "This block only uses images uploaded in your Profile gallery.",
       "image_gallery_use_all": "Use all images",
       "image_gallery_selected": "Selected",
       "image_gallery_select": "Select",
@@ -1245,7 +1245,7 @@
       "smart_merch_products_title": "Products to show",
       "smart_merch_products_hint": "Choose the Printful products you want to feature and add the external link where fans can buy each one.",
       "smart_merch_products_loading": "Loading merch products…",
-      "smart_merch_products_empty": "No Printful products are available yet. Connect the provider in Settings and sync at least one product first.",
+      "smart_merch_products_empty": "No products yet. Connect Printful in Settings first.",
       "smart_merch_products_error": "Could not load Printful products right now.",
       "smart_merch_products_missing_artist": "Select an artist page before configuring Smart Merch.",
       "smart_merch_purchase_url": "External purchase URL",
