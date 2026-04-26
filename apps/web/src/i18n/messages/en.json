@@ -33,13 +33,13 @@
       },
       "pro": {
         "name": "Pro",
-        "price": "$5/mo",
+        "price": "$9/mo",
         "description": "For growing artists",
         "cta": "Upgrade to Pro"
       },
       "pro_plus": {
         "name": "Pro+",
-        "price": "$9/mo",
+        "price": "$19/mo",
         "description": "For serious professionals",
         "cta": "Upgrade to Pro+"
       }
