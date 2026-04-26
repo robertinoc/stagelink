@@ -486,8 +486,13 @@ export function SpotifyInsightsCard({
                 variant="outline"
                 className={
                   summary.connection.lastSyncStatus === 'partial'
-                    ? 'border-amber-500/30 bg-amber-500/10 text-amber-400'
+                    ? 'cursor-help border-amber-500/30 bg-amber-500/10 text-amber-400'
                     : ''
+                }
+                title={
+                  summary.connection.lastSyncStatus === 'partial'
+                    ? commonT('sync_status.partial_hint')
+                    : undefined
                 }
               >
                 {commonT(`sync_status.${summary.connection.lastSyncStatus}`)}
