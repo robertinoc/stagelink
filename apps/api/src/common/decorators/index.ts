@@ -48,7 +48,7 @@ export const Roles = (...roles: string[]) => SetMetadata(ROLES_KEY, roles);
 export const OWNERSHIP_KEY = 'ownership';
 
 export interface OwnershipMeta {
-  resource: 'artist' | 'page' | 'block';
+  resource: 'artist' | 'page' | 'block' | 'smartLink';
   param: string;
   access?: 'read' | 'write' | 'admin' | 'owner';
 }

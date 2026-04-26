@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import type { User } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators';
+import { UploadRateLimitGuard } from '../../common/guards';
 import { AssetsService } from './assets.service';
 import { CreateUploadIntentDto } from './dto';
 
@@ -28,7 +29,10 @@ export class AssetsController {
    * Request a presigned PUT URL for a direct browser → S3 upload.
    * Backend validates ownership, mime type, and size.
    * Returns an Asset record (status: pending) + presigned URL.
+   *
+   * Rate-limited: 20 intents / 60 s per user to prevent presigned-URL abuse.
    */
+  @UseGuards(UploadRateLimitGuard)
   @Post('upload-intent')
   createUploadIntent(@Body() dto: CreateUploadIntentDto, @CurrentUser() user: User) {
     return this.assetsService.createUploadIntent(dto, user);
