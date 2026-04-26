@@ -47,6 +47,9 @@ function mapInheritedArtist(artist: Artist) {
     contactEmail: artist.contactEmail,
     category: artist.category,
     secondaryCategories: artist.secondaryCategories,
+    // Expose the artist's profile gallery so the EPK editor can show a
+    // "pick from your gallery" source without an extra API round-trip.
+    profileGalleryUrls: (artist.galleryImageUrls as unknown as string[]) ?? [],
   };
 }
 

@@ -127,6 +127,10 @@ export interface EpkInheritedArtistSnapshot {
   contactEmail: string | null;
   category: string;
   secondaryCategories: string[];
+  /** Images uploaded to the artist's profile gallery — surfaced here so the
+   *  EPK editor can offer them as a pick-from-gallery source without a
+   *  separate API call. Up to 6 items, same limit as ProfileGallerySection. */
+  profileGalleryUrls: string[];
 }
 
 export interface EpkEditorResponse {

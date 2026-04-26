@@ -39,7 +39,8 @@ export const epkFormSchema = z
     managementContact: z.string().trim().max(200).optional().nullable(),
     pressContact: z.string().trim().max(200).optional().nullable(),
     heroImageUrl: optionalUrl,
-    galleryImageUrls: z.array(z.string().trim().url().max(2048)).max(6),
+    // 2 reserved slots (hero + portrait at indices 0/1) + up to 6 extra gallery photos = 8 max.
+    galleryImageUrls: z.array(z.string().trim().url().max(2048)).max(8),
     featuredMedia: z.array(epkFeaturedMediaSchema).max(6),
     featuredLinks: z.array(epkFeaturedLinkSchema).max(8),
     highlights: z.array(z.string().trim().max(160)).max(8),

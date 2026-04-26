@@ -737,6 +737,24 @@
         "rider": "Requerimientos del artista",
         "tech_requirements": "Technical rider"
       },
+      "gallery": {
+        "title": "Galería de fotos",
+        "description": "Agregá fotos a tu Press Kit. Elegí de tu galería de perfil o subí imágenes nuevas.",
+        "count": "{current} de {max} fotos",
+        "pick_title": "Elegir de tu galería",
+        "pick_hint": "Seleccioná fotos de tu galería de perfil para incluir en tu Press Kit.",
+        "pick_selected_count": "{selected} de {total} seleccionadas",
+        "pick_use_all": "Agregar todas",
+        "pick_empty": "Sin fotos en la galería",
+        "pick_empty_hint": "Subí fotos en Perfil → Galería primero y luego volvé para agregarlas acá.",
+        "pick_selected": "Agregada",
+        "pick_select": "Agregar",
+        "image_alt": "Foto de galería {index}",
+        "upload_new": "Subir foto nueva",
+        "upload_hint": "JPEG, PNG o WebP · máx 8 MB",
+        "uploading": "Subiendo…",
+        "remove": "Quitar"
+      },
       "translations": {
         "title": "Contenido localizado del EPK",
         "description": "Agregá textos específicos por idioma para las rutas públicas del EPK. Los campos base de arriba siguen funcionando como fallback.",
