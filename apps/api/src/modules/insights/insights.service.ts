@@ -40,6 +40,7 @@ import {
   SYNC_CONCURRENT_GUARD_MS,
   SYNC_PROVIDER_TIMEOUT_MS,
   SYNC_SCHEDULED_MIN_INTERVAL_MS,
+  SYNC_STALE_THRESHOLD_MS,
 } from './insights-metrics.constants';
 import type { PlatformInsightsProvider } from './providers/insights-provider.interface';
 import { SoundCloudInsightsProvider } from './providers/soundcloud-insights.provider';
@@ -88,8 +89,7 @@ type InsightsSnapshotRecord = {
 const DEFAULT_INSIGHTS_RANGE: StageLinkInsightsDateRange = '30d';
 const MAX_INSIGHTS_HISTORY_POINTS = 180;
 
-/** Data is considered stale when it's older than this threshold. */
-const STALE_THRESHOLD_MS = 25 * 60 * 60 * 1000; // 25 hours
+// STALE_THRESHOLD_MS is imported as SYNC_STALE_THRESHOLD_MS from insights-metrics.constants
 
 // Re-export for use by scheduler (avoids importing constants directly)
 export { SYNC_BATCH_STAGGER_MS, SYNC_SCHEDULED_MIN_INTERVAL_MS };
@@ -214,7 +214,7 @@ export class InsightsService {
     const now = Date.now();
     const items: InsightsSyncHealthItem[] = connections.map((conn) => {
       const lastSyncedMs = conn.lastSyncedAt ? conn.lastSyncedAt.getTime() : null;
-      const isStale = lastSyncedMs === null || now - lastSyncedMs > STALE_THRESHOLD_MS;
+      const isStale = lastSyncedMs === null || now - lastSyncedMs > SYNC_STALE_THRESHOLD_MS;
       return {
         artistId: conn.artistId,
         connectionId: conn.id,
@@ -836,6 +836,9 @@ export class InsightsService {
         normalizedError instanceof Error
           ? normalizedError.message
           : `Could not sync ${platformLabel} insights right now`;
+      // Truncate before DB storage to prevent large stack traces from bloating
+      // the connection record. The full error is already captured by the NestJS
+      // logger above and is available in the server log stream for debugging.
       const storedMessage = message.slice(0, 500);
 
       await this.prisma.artistPlatformInsightsConnection.update({

@@ -130,6 +130,14 @@ export const SYNC_PROVIDER_TIMEOUT_MS = 30 * 1000; // 30 seconds
  *  Avoids thundering-herd API bursts when many artists sync simultaneously. */
 export const SYNC_BATCH_STAGGER_MS = 2000; // 2 seconds
 
+/**
+ * How old a connection's lastSyncedAt must be before getSyncHealth() marks it
+ * as stale. Set 2 hours above SYNC_SCHEDULED_MIN_INTERVAL_MS (23 h) to give
+ * the daily cron a comfortable buffer for clock drift and slow batches without
+ * producing false-positive stale alerts.
+ */
+export const SYNC_STALE_THRESHOLD_MS = 25 * 60 * 60 * 1000; // 25 hours
+
 // ---------------------------------------------------------------------------
 // Normalization rules summary (human-readable, not executable)
 // ---------------------------------------------------------------------------
