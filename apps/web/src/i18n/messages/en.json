@@ -33,13 +33,13 @@
       },
       "pro": {
         "name": "Pro",
-        "price": "$5/mo",
+        "price": "$9/mo",
         "description": "For growing artists",
         "cta": "Upgrade to Pro"
       },
       "pro_plus": {
         "name": "Pro+",
-        "price": "$9/mo",
+        "price": "$19/mo",
         "description": "For serious professionals",
         "cta": "Upgrade to Pro+"
       }
@@ -736,6 +736,24 @@
         "availability": "Availability and logistics",
         "rider": "Artist requirements",
         "tech_requirements": "Technical rider"
+      },
+      "gallery": {
+        "title": "Photo gallery",
+        "description": "Add photos to your Press Kit. Pick from your profile gallery or upload new images.",
+        "count": "{current} of {max} photos",
+        "pick_title": "Pick from your gallery",
+        "pick_hint": "Select photos from your profile gallery to include in your Press Kit.",
+        "pick_selected_count": "{selected} of {total} selected",
+        "pick_use_all": "Add all",
+        "pick_empty": "No gallery photos yet",
+        "pick_empty_hint": "Upload photos in Profile → Gallery first, then come back to add them here.",
+        "pick_selected": "Added",
+        "pick_select": "Add",
+        "image_alt": "Gallery photo {index}",
+        "upload_new": "Upload new photo",
+        "upload_hint": "JPEG, PNG or WebP · max 8 MB",
+        "uploading": "Uploading…",
+        "remove": "Remove"
       },
       "translations": {
         "title": "Localized EPK content",

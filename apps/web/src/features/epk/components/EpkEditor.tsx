@@ -18,6 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { publishArtistEpk, unpublishArtistEpk, updateArtistEpk } from '@/lib/api/epk';
+import { EpkGallerySection } from './EpkGallerySection';
 import { EpkImageUploader } from './EpkImageUploader';
 import { LocalizedEpkContentSection } from './LocalizedEpkContentSection';
 import { epkFormSchema, type EpkFormValues } from '../schemas/epk.schema';
@@ -374,7 +375,15 @@ export function EpkEditor({
   function setGalleryImageAt(index: number, url: string) {
     const next = [...watchedGallery];
     next[index] = url;
-    setValue('galleryImageUrls', next.filter(Boolean).slice(0, 2), { shouldDirty: true });
+    // Preserve existing extra gallery photos at indices 2+ while updating the
+    // system slot (0 = hero, 1 = portrait).
+    setValue('galleryImageUrls', next.filter(Boolean), { shouldDirty: true });
+  }
+
+  /** Replace extra gallery photos (indices 2+) while keeping the hero/portrait slots. */
+  function setExtraGalleryImages(urls: string[]) {
+    const systemSlots = watchedGallery.slice(0, 2);
+    setValue('galleryImageUrls', [...systemSlots, ...urls].filter(Boolean), { shouldDirty: true });
   }
 
   function setHeroImage(url: string) {
@@ -676,6 +685,25 @@ export function EpkEditor({
               />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className={sectionCardClass}>
+        <CardHeader>
+          <CardTitle>Photo gallery</CardTitle>
+          <CardDescription>
+            Add photos to your Press Kit. Pick from your profile gallery or upload new images. These
+            appear in the Gallery section of your public Press Kit.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EpkGallerySection
+            artistId={artistId}
+            extraImageUrls={watchedGallery.slice(2)}
+            profileGalleryUrls={inherited.profileGalleryUrls}
+            onChange={setExtraGalleryImages}
+            disabled={formDisabled}
+          />
         </CardContent>
       </Card>
 

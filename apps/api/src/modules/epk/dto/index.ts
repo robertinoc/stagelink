@@ -106,7 +106,8 @@ export class UpdateEpkDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayMaxSize(6)
+  // 2 reserved slots (hero + portrait) + up to 6 extra gallery photos = 8 max.
+  @ArrayMaxSize(8)
   @IsUrl({ require_protocol: true }, { each: true })
   galleryImageUrls?: string[];
 
