@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { InsightsDetailDialog } from '@/features/insights/components/InsightsDetailDialog';
+import { MetricSparkline } from '@/features/insights/components/MetricSparkline';
 import {
   saveYouTubeInsightsConnection,
   syncYouTubeInsightsConnection,
@@ -497,7 +498,14 @@ export function YouTubeInsightsCard({
               })}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Badge variant="outline">
+              <Badge
+                variant="outline"
+                className={
+                  summary.connection.lastSyncStatus === 'partial'
+                    ? 'border-amber-500/30 bg-amber-500/10 text-amber-400'
+                    : ''
+                }
+              >
                 {commonT(`sync_status.${summary.connection.lastSyncStatus}`)}
               </Badge>
             </div>
@@ -635,6 +643,18 @@ export function YouTubeInsightsCard({
                 </CardHeader>
                 <CardContent>
                   <p className="text-2xl font-bold">{subscriberCount ?? '—'}</p>
+                  {subscribersDelta ? (
+                    <p
+                      className={`mt-1 text-xs font-medium ${subscribersDelta.startsWith('+') ? 'text-emerald-400' : 'text-destructive'}`}
+                    >
+                      {subscribersDelta}
+                    </p>
+                  ) : null}
+                  <MetricSparkline
+                    history={history}
+                    metricKey="subscriber_count"
+                    strokeColor="#4ade80"
+                  />
                 </CardContent>
               </Card>
 
@@ -646,6 +666,18 @@ export function YouTubeInsightsCard({
                 </CardHeader>
                 <CardContent>
                   <p className="text-2xl font-bold">{totalViews ?? '—'}</p>
+                  {totalViewsDelta ? (
+                    <p
+                      className={`mt-1 text-xs font-medium ${totalViewsDelta.startsWith('+') ? 'text-emerald-400' : 'text-destructive'}`}
+                    >
+                      {totalViewsDelta}
+                    </p>
+                  ) : null}
+                  <MetricSparkline
+                    history={history}
+                    metricKey="total_views"
+                    strokeColor="#60a5fa"
+                  />
                 </CardContent>
               </Card>
 

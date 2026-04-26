@@ -494,19 +494,61 @@ export function InsightsDashboard({
         })}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('foundation_scope.title')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>{t('foundation_scope.description')}</p>
-          <p>
-            {t('foundation_scope.current_plan', {
-              plan: resolvePlanLabel(entitlements?.effectivePlan ?? 'free'),
-            })}
-          </p>
-        </CardContent>
-      </Card>
+      {data && data.platforms.some((p) => p.connection?.status === 'connected') ? (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="text-sm font-medium">{t('sync_overview.title')}</CardTitle>
+              {data.lastUpdatedAt ? (
+                <p className="text-xs text-muted-foreground">
+                  {t('last_updated_label')}:{' '}
+                  {formatDate(data.lastUpdatedAt, locale) ?? data.lastUpdatedAt}
+                </p>
+              ) : null}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {data.platforms
+                .filter((p) => p.connection?.status === 'connected')
+                .map((p) => {
+                  const syncStatus = p.connection?.lastSyncStatus ?? 'never';
+                  const dotColor =
+                    syncStatus === 'success'
+                      ? 'bg-emerald-400'
+                      : syncStatus === 'partial'
+                        ? 'bg-amber-400'
+                        : syncStatus === 'error'
+                          ? 'bg-destructive'
+                          : 'bg-muted-foreground';
+                  return (
+                    <div
+                      key={p.platform}
+                      className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3"
+                    >
+                      <div className={`h-2 w-2 shrink-0 rounded-full ${dotColor}`} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium capitalize">{p.platform}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {p.connection?.lastSyncedAt
+                            ? (formatDate(p.connection.lastSyncedAt, locale) ??
+                              p.connection.lastSyncedAt)
+                            : t('never_synced')}
+                        </p>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className={`shrink-0 text-xs ${syncStatus === 'partial' ? 'border-amber-500/30 bg-amber-500/10 text-amber-400' : ''}`}
+                      >
+                        {t(`sync_status.${syncStatus}`)}
+                      </Badge>
+                    </div>
+                  );
+                })}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }
