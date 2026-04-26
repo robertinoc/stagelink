@@ -100,6 +100,12 @@ export interface AnalyticsFeatureLockPayload {
 export type AnalyticsProtectedResult<T> =
   | { kind: 'ok'; data: T }
   | { kind: 'locked'; payload: AnalyticsFeatureLockPayload }
+  /**
+   * session_expired — the WorkOS access token was rejected with 401.
+   * The caller (server component) should redirect to sign-out to clear the
+   * stale session cookie and force the user to authenticate again.
+   */
+  | { kind: 'session_expired' }
   | { kind: 'error'; message: string };
 
 async function fetchAnalyticsResource<T>(
@@ -114,6 +120,13 @@ async function fetchAnalyticsResource<T>(
 
     if (res.ok) {
       return { kind: 'ok', data: (await res.json()) as T };
+    }
+
+    // 401 → access token rejected by the API (expired or invalidated session).
+    // Return a typed sentinel so callers can redirect to re-auth instead of
+    // showing a raw "Invalid or expired token" error message in the UI.
+    if (res.status === 401) {
+      return { kind: 'session_expired' };
     }
 
     const payload = (await res.json().catch(() => ({}))) as Partial<AnalyticsFeatureLockPayload> & {
