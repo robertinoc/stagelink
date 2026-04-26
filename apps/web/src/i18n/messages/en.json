@@ -82,11 +82,19 @@
     },
     "home": {
       "intro": {
-        "badge": "Workspace map",
-        "title": "Everything you can manage in StageLink, in one place",
-        "description": "Use this dashboard as your action hub: build your page, connect platform insights, publish your EPK, tune settings, and upgrade features as your artist project grows.",
-        "workspace_label": "Current workspace",
-        "workspace_fallback": "Your artist workspace"
+        "description": "Everything you can manage in StageLink, in one place.",
+        "greeting_0": "Welcome back, {name}. Your stage is waiting.",
+        "greeting_1": "Good to see you, {name}. Let's make something great today.",
+        "greeting_2": "Hey {name}, you're back. Time to build.",
+        "greeting_3": "Welcome back, {name}. The internet missed your art.",
+        "greeting_4": "Oh look who's back. We kept your stage warm, {name}.",
+        "greeting_5": "{name} is in the building. Fans, take your seats.",
+        "greeting_6": "Finally, {name}. The dashboard was getting lonely.",
+        "greeting_7": "Back again, {name}? We love the dedication.",
+        "greeting_8": "Welcome back, {name}. Your rivals didn't rest — but neither did we.",
+        "greeting_9": "The legend returns. Hey {name}, ready to outshine everyone?",
+        "greeting_10": "{name} has entered the chat. Let's get to work.",
+        "greeting_11": "Ah, {name}. We knew you'd be back. The art doesn't make itself."
       },
       "ready_badge": "Ready",
       "locked_badge": "{plan} feature",
