@@ -9,6 +9,7 @@ import type {
   AssetDto,
   EpkEditorResponse,
   EpkFeaturedLinkItem,
+  EpkFeaturedMediaItem,
   SmartLink,
   UpdateEpkPayload,
 } from '@stagelink/types';
@@ -83,6 +84,11 @@ export function EpkEditor({
   void initialAssets;
   const [editorData, setEditorData] = useState(initialData);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [draftMedia, setDraftMedia] = useState<{
+    title: string;
+    url: string;
+    provider: EpkFeaturedMediaItem['provider'];
+  } | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [publishBusy, setPublishBusy] = useState<'publish' | 'unpublish' | null>(null);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
@@ -151,6 +157,7 @@ export function EpkEditor({
   const watchedHeroImageUrl = watch('heroImageUrl');
   const watchedHighlights = watch('highlights');
   const watchedFeaturedLinks = watch('featuredLinks');
+  const watchedFeaturedMedia = watch('featuredMedia');
   const watchedFormValues = watch();
   const inherited = editorData.inherited;
   const displayedCoverImage =
@@ -453,6 +460,30 @@ export function EpkEditor({
     });
   }
 
+  function detectMediaProvider(url: string): EpkFeaturedMediaItem['provider'] {
+    if (url.includes('spotify.com')) return 'spotify';
+    if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+    if (url.includes('soundcloud.com')) return 'soundcloud';
+    return 'other';
+  }
+
+  function removeFeaturedMediaItem(index: number) {
+    setValue(
+      'featuredMedia',
+      (getValues('featuredMedia') ?? []).filter((_, i) => i !== index),
+      { shouldDirty: true },
+    );
+  }
+
+  function confirmDraftMedia() {
+    if (!draftMedia || !draftMedia.title.trim() || !draftMedia.url.trim()) return;
+    const current = getValues('featuredMedia') ?? [];
+    setValue('featuredMedia', [...current, { id: crypto.randomUUID(), ...draftMedia }], {
+      shouldDirty: true,
+    });
+    setDraftMedia(null);
+  }
+
   const sharePath = `/${locale}/${username}/epk`;
   const printPath = `/${locale}/${username}/epk/print`;
   const publicRoutesEnabled = editorData.epk.isPublished;
@@ -709,6 +740,132 @@ export function EpkEditor({
 
       <Card className={sectionCardClass}>
         <CardHeader>
+          <CardTitle>Featured media</CardTitle>
+          <CardDescription>
+            Add music, video, or audio links from Spotify, YouTube, SoundCloud, or any other
+            platform. These appear in the Media section of your public Press Kit.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {watchedFeaturedMedia.length > 0 ? (
+            <div className="space-y-3">
+              {watchedFeaturedMedia.map((item, index) => (
+                <div
+                  key={item.id}
+                  className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+                >
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <p className="truncate text-sm font-medium text-white">{item.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">{item.url}</p>
+                    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium capitalize text-muted-foreground">
+                      {item.provider === 'soundcloud'
+                        ? 'SoundCloud'
+                        : item.provider === 'youtube'
+                          ? 'YouTube'
+                          : item.provider.charAt(0).toUpperCase() + item.provider.slice(1)}
+                    </span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={formDisabled}
+                    onClick={() => removeFeaturedMediaItem(index)}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {draftMedia !== null ? (
+            <div className="space-y-4 rounded-2xl border border-primary/20 bg-primary/[0.04] p-4">
+              <p className="text-sm font-medium text-white">New media link</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground">Title</label>
+                  <Input
+                    placeholder="New Single, Live Set, Album…"
+                    value={draftMedia.title}
+                    onChange={(e) => setDraftMedia({ ...draftMedia, title: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground">URL</label>
+                  <Input
+                    placeholder="https://open.spotify.com/…"
+                    value={draftMedia.url}
+                    onChange={(e) => {
+                      const url = e.target.value;
+                      setDraftMedia({ ...draftMedia, url, provider: detectMediaProvider(url) });
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted-foreground">Platform</p>
+                <div className="flex flex-wrap gap-2">
+                  {(['spotify', 'youtube', 'soundcloud', 'other'] as const).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setDraftMedia({ ...draftMedia, provider: p })}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                        draftMedia.provider === p
+                          ? 'border-primary/40 bg-primary/15 text-white shadow-[0_0_14px_rgba(155,48,208,0.12)]'
+                          : 'border-white/10 bg-white/[0.03] text-muted-foreground hover:border-primary/30 hover:text-white'
+                      }`}
+                    >
+                      {p === 'soundcloud'
+                        ? 'SoundCloud'
+                        : p === 'youtube'
+                          ? 'YouTube'
+                          : p.charAt(0).toUpperCase() + p.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={!draftMedia.title.trim() || !draftMedia.url.trim()}
+                  onClick={confirmDraftMedia}
+                >
+                  Add
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDraftMedia(null)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
+          {watchedFeaturedMedia.length < 6 && draftMedia === null && !formDisabled ? (
+            <button
+              type="button"
+              onClick={() => setDraftMedia({ title: '', url: '', provider: 'other' })}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] text-sm text-muted-foreground transition hover:border-primary/40 hover:bg-primary/[0.05] hover:text-white"
+            >
+              <span className="text-base leading-none">+</span>
+              Add media link
+            </button>
+          ) : null}
+
+          <p className="text-xs text-muted-foreground">
+            {watchedFeaturedMedia.length} of 6 media links added
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className={sectionCardClass}>
+        <CardHeader>
           <CardTitle>Bio</CardTitle>
           <CardDescription>
             The short bio can stay close to your profile. The full bio is for press-ready context.
@@ -881,6 +1038,17 @@ export function EpkEditor({
                 </div>
               ))}
             </div>
+          ) : null}
+          {watchedHighlights.length < 8 && !formDisabled ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                setValue('highlights', [...watchedHighlights, ''], { shouldDirty: true })
+              }
+            >
+              {watchedHighlights.length === 0 ? 'Add highlight' : 'Add another highlight'}
+            </Button>
           ) : null}
         </CardContent>
       </Card>

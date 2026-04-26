@@ -272,6 +272,42 @@ export async function PublicEpkView({
               </section>
             ) : null}
 
+            {epk.featuredMedia.length > 0 ? (
+              <section className="space-y-4 print:break-inside-avoid">
+                <h2
+                  className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
+                >
+                  {t('sections.featured_media')}
+                </h2>
+                <div className="grid gap-3 md:grid-cols-2 print:grid-cols-1">
+                  {epk.featuredMedia.map((item) => (
+                    <a
+                      key={item.id}
+                      href={item.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`group block rounded-2xl border px-4 py-3 transition ${
+                        printMode
+                          ? `${cardClass} hover:border-zinc-300`
+                          : 'border-white/10 bg-white/[0.04] hover:border-primary/35 hover:bg-primary/[0.05]'
+                      }`}
+                    >
+                      <p className={`truncate text-sm font-medium ${bodyTextClass}`}>
+                        {item.title}
+                      </p>
+                      <p className={`mt-0.5 text-xs ${mutedHeadingClass}`}>
+                        {item.provider === 'soundcloud'
+                          ? 'SoundCloud'
+                          : item.provider === 'youtube'
+                            ? 'YouTube'
+                            : item.provider.charAt(0).toUpperCase() + item.provider.slice(1)}
+                      </p>
+                    </a>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
             {epk.riderInfo || epk.techRequirements || epk.availabilityNotes ? (
               <section className="grid gap-4 md:grid-cols-3 print:grid-cols-1">
                 {epk.availabilityNotes ? (
