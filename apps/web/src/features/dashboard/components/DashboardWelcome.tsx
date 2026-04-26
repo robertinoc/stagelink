@@ -5,7 +5,6 @@ import {
   BarChart3,
   ExternalLink,
   FileText,
-  LayoutDashboard,
   Lock,
   Settings,
   Sparkles,
@@ -50,7 +49,11 @@ interface ActionCardConfig {
 export async function DashboardWelcome({ artist, billingSummary }: DashboardWelcomeProps) {
   const t = await getTranslations('dashboard.home');
   const locale = await getLocale();
-  const effectivePlan = billingSummary?.effectivePlan ?? 'free';
+  const GREETING_COUNT = 12;
+  const greetingIndex = Math.floor(Math.random() * GREETING_COUNT);
+  const artistName = artist?.displayName ?? artist?.username ?? 'Artist';
+  const greeting = t(`intro.greeting_${greetingIndex}`, { name: artistName });
+
   const entitlements = billingSummary?.entitlements ?? {
     remove_stagelink_branding: false,
     custom_domain: false,
@@ -123,24 +126,9 @@ export async function DashboardWelcome({ artist, billingSummary }: DashboardWelc
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline">{resolvePlanLabel(effectivePlan)}</Badge>
-              <Badge variant="secondary">{t('intro.badge')}</Badge>
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">{t('intro.title')}</h1>
-            <p className="max-w-3xl text-sm text-white/60">{t('intro.description')}</p>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-black/10 px-4 py-3 text-sm">
-            <div className="flex items-center gap-2 text-white/60">
-              <LayoutDashboard className="h-4 w-4" />
-              <span>{t('intro.workspace_label')}</span>
-            </div>
-            <p className="mt-1 font-medium text-white">
-              {artist?.displayName ?? artist?.username ?? t('intro.workspace_fallback')}
-            </p>
-          </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold tracking-tight text-white">{greeting}</h1>
+          <p className="max-w-3xl text-sm text-white/60">{t('intro.description')}</p>
         </div>
       </div>
 
