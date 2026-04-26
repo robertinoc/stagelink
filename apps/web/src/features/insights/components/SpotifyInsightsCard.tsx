@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { InsightsDetailDialog } from '@/features/insights/components/InsightsDetailDialog';
+import { MetricSparkline } from '@/features/insights/components/MetricSparkline';
 import {
   saveSpotifyInsightsConnection,
   syncSpotifyInsightsConnection,
@@ -481,7 +482,14 @@ export function SpotifyInsightsCard({
               })}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Badge variant="outline">
+              <Badge
+                variant="outline"
+                className={
+                  summary.connection.lastSyncStatus === 'partial'
+                    ? 'border-amber-500/30 bg-amber-500/10 text-amber-400'
+                    : ''
+                }
+              >
                 {commonT(`sync_status.${summary.connection.lastSyncStatus}`)}
               </Badge>
             </div>
@@ -619,6 +627,18 @@ export function SpotifyInsightsCard({
                 </CardHeader>
                 <CardContent>
                   <p className="text-2xl font-bold">{followersTotal ?? '—'}</p>
+                  {followersDelta ? (
+                    <p
+                      className={`mt-1 text-xs font-medium ${followersDelta.startsWith('+') ? 'text-emerald-400' : 'text-destructive'}`}
+                    >
+                      {followersDelta}
+                    </p>
+                  ) : null}
+                  <MetricSparkline
+                    history={history}
+                    metricKey="followers_total"
+                    strokeColor="#4ade80"
+                  />
                 </CardContent>
               </Card>
 
@@ -630,6 +650,14 @@ export function SpotifyInsightsCard({
                 </CardHeader>
                 <CardContent>
                   <p className="text-2xl font-bold">{popularity ?? '—'}</p>
+                  {popularityDelta ? (
+                    <p
+                      className={`mt-1 text-xs font-medium ${popularityDelta.startsWith('+') ? 'text-emerald-400' : 'text-destructive'}`}
+                    >
+                      {popularityDelta}
+                    </p>
+                  ) : null}
+                  <MetricSparkline history={history} metricKey="popularity" strokeColor="#60a5fa" />
                 </CardContent>
               </Card>
 

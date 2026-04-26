@@ -500,6 +500,9 @@
           "coming_soon": "La integración completa con SoundCloud llega en la v2. Dejamos este espacio listo para cuando haya una solución estable."
         }
       },
+      "sync_overview": {
+        "title": "Frescura de datos"
+      },
       "foundation_scope": {
         "title": "Qué está activo en esta fase",
         "description": "Spotify y YouTube ya están conectados a la base real de Insights: capa de providers, snapshots normalizados, filtros por rango temporal, estado de sync y un dashboard PRO+ protegido listo para crecer plataforma por plataforma.",

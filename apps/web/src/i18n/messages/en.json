@@ -500,6 +500,9 @@
           "coming_soon": "Full SoundCloud integration is coming in v2. We’re keeping this slot ready for when a stable solution is available."
         }
       },
+      "sync_overview": {
+        "title": "Data freshness"
+      },
       "foundation_scope": {
         "title": "What is live in this phase",
         "description": "Spotify and YouTube now run on the real Insights foundation: provider abstraction, normalized snapshots, date-range filters, sync state, and a protected PRO+ dashboard ready to grow platform by platform.",
