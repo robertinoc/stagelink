@@ -5,11 +5,11 @@
     "login": "Iniciar sesión",
     "signup": "Comenzar",
     "dashboard": "Panel",
-    "my_page": "Mi constructor de página",
-    "epk": "Mi Press Kit (EPK)",
-    "analytics": "Mis analíticas",
+    "my_page": "Mi página",
+    "epk": "Press Kit",
+    "analytics": "Analíticas",
     "insights": "Insights",
-    "profile": "Mi perfil",
+    "profile": "Perfil",
     "billing": "Facturación",
     "settings": "Configuración",
     "logout": "Cerrar sesión",
@@ -131,7 +131,7 @@
     },
     "analytics": {
       "title": "Analíticas",
-      "description": "Seguí el rendimiento de tu página.",
+      "description": "Mirá tus visitas, clicks en links y capturas de fans en un solo lugar.",
       "range": {
         "7d": "Últimos 7 días",
         "30d": "Últimos 30 días",
@@ -148,7 +148,7 @@
       "top_links": {
         "title": "Top links",
         "description": "Mirá qué links trackeados están atrayendo más clicks en este período.",
-        "scope_note": "Hoy esto cubre clicks trackeados desde links del page builder, links del perfil y smart links. El tracking más amplio para merch, compras y otros eventos queda anotado para una próxima versión.",
+        "scope_note": "Cubre clicks desde bloques de página, links del perfil y smart links.",
         "rank": "#",
         "label": "Link",
         "source": "Origen",
@@ -172,14 +172,14 @@
       },
       "locked": {
         "title": "Las analíticas avanzadas están bloqueadas",
-        "description": "Tu plan actual es {currentPlan}. Actualizá a {requiredPlan} para desbloquear la vista de 365 días y las capacidades avanzadas de analytics a medida que se publiquen.",
+        "description": "Actualizá a {requiredPlan} para desbloquear la vista de 365 días y las analíticas avanzadas.",
         "cta": "Actualizar plan",
         "secondary_cta": "Gestionar página",
-        "one_tier_away": "Estás a un solo nivel de desbloquear esta sección en Pro+."
+        "one_tier_away": "Esta sección está disponible en Pro+."
       },
       "pro": {
-        "title": "Analytics Pro",
-        "description": "Tendencias más ricas y rendimiento de smart links construidos sobre la misma fuente de datos limpia.",
+        "title": "Analíticas avanzadas",
+        "description": "Gráficos de tendencias y rendimiento de smart links para un análisis más profundo de tu audiencia.",
         "locked_title": "Desbloqueá analytics avanzadas",
         "locked_description": "Tu plan actual es {currentPlan}. Las analytics avanzadas están incluidas en {requiredPlan}; Free y Pro mantienen la vista básica. Actualizá para desbloquear tendencias más ricas y rendimiento de smart links.",
         "trends": {
@@ -195,7 +195,7 @@
         "smart_links": {
           "title": "Rendimiento de smart links",
           "description": "Esto solo cuenta Smart Links. Muestra cuáles recibieron más clicks y cuántas personas siguieron por su ruteo de destinos.",
-          "scope_note": "Los links del perfil y los links normales del page builder no entran acá. Esta tabla es solo para Smart Links.",
+          "scope_note": "Solo se cuentan Smart Links acá — los bloques de página y links del perfil no están incluidos.",
           "label": "Smart link",
           "clicks": "Clicks",
           "resolutions": "Resoluciones",
@@ -205,7 +205,7 @@
       "fan_insights": {
         "title": "Insights de fans",
         "description": "Estos números salen de tus formularios de captura de fans. Muestran cuántas personas enviaron el formulario, no quiénes fueron.",
-        "setup_note": "Los insights de fans solo funcionan cuando tenés al menos un bloque de captura de fans publicado en tu página.",
+        "setup_note": "Agregá un bloque de Fan Capture a tu página para empezar a ver datos acá.",
         "locked_title": "Desbloqueá insights de fans",
         "locked_description": "Tu plan actual es {currentPlan}. Los insights de fans están incluidos en {requiredPlan}; Free y Pro mantienen la vista básica. Actualizá para desbloquear tendencias de captación y top capture blocks.",
         "summary": {
@@ -223,11 +223,11 @@
         "top_blocks_description": "Qué bloques publicados de captura de fans están trayendo más registros exitosos.",
         "top_blocks_empty": "Ningún bloque de captura generó registros en este rango todavía.",
         "captures_label": "capturas",
-        "formula_note": "La tasa de captura se muestra como una aproximación usando la fórmula fan_capture_submit / page_view."
+        "formula_note": "La tasa de captura es una aproximación: registros ÷ visitas a la página."
       },
       "notes": {
-        "basic_quality": "Analíticas básicas · Filtrado de bots aplicado en la ingesta · Deduplicación de visitantes únicos próximamente",
-        "standard_quality": "Tráfico de bots y QA excluido · Solo eventos de producción · Deduplicación de visitantes únicos próximamente"
+        "basic_quality": "Analíticas básicas · Filtrado de bots aplicado · Deduplicación de visitantes únicos próximamente",
+        "standard_quality": "Tráfico de bots filtrado · Deduplicación de visitantes únicos próximamente"
       },
       "insights_section": {
         "title": "StageLink Insights",
@@ -615,13 +615,13 @@
     },
     "profile": {
       "title": "Perfil",
-      "description": "Gestioná la identidad base de artista que StageLink reutiliza en tu página pública, tu Press Kit (EPK), las referencias de plataforma, las conexiones de analytics y el SEO.",
+      "description": "Tu identidad artística en un solo lugar — tu página, Press Kit e Insights se nutren de acá.",
       "sections": {
         "images": "Imágenes",
         "images_hint": "Los cambios se guardan inmediatamente al subir.",
-        "basic": "Información básica",
+        "basic": "Identidad artística",
         "social": "Redes y contacto",
-        "social_hint": "Agregá tus links para que los fans te encuentren. Dejá en blanco para ocultar.",
+        "social_hint": "Los links en blanco no aparecen en tu página.",
         "seo": "SEO y visibilidad",
         "seo_hint": "Controlá cómo aparece tu página en resultados de búsqueda."
       },
@@ -642,7 +642,7 @@
         "seo_title_hint": "Recomendado: 50–60 caracteres",
         "seo_description": "Meta descripción",
         "seo_description_hint": "Recomendado: 120–160 caracteres",
-        "username_readonly_hint": "El cambio de username requiere verificación de identidad y no está disponible aún."
+        "username_readonly_hint": "Tu nombre de usuario todavía no es editable — los cambios van a requerir verificación de identidad."
       },
       "placeholders": {
         "display_name": "ej. The Midnight, DJ Snake, Rosalía…",
@@ -669,7 +669,7 @@
       },
       "descriptors": {
         "title": "Descriptores",
-        "hint": "Agregá hasta 6 descriptores como géneros, nichos o estilos.",
+        "hint": "Agregá hasta 6 etiquetas — géneros, estilos o nichos.",
         "selected": "Descriptores",
         "empty": "Sumá descriptores como Hard Techno, Rock Alternativo o Educativo.",
         "placeholder": "Escribí un género, nicho o estilo…",
@@ -685,11 +685,11 @@
         "fallback_note": "Los visitantes en {locale} verán este texto cuando exista. Si falta, StageLink usará tu contenido base.",
         "base_edit_title": "Este es tu idioma base",
         "base_edit_description": "Editá los campos principales del perfil de arriba para actualizar {locale}. Las tabs adicionales son solo para versiones traducidas.",
-        "copy_from_base": "✨ Traducir contenido",
+        "copy_from_base": "Traducir automáticamente",
         "copy_from_base_description": "Completá estos campos con una traducción automática desde {sourceLocale} hacia {locale}. Después podés editar todo antes de guardar.",
         "auto_translate_loading": "Traduciendo…",
         "auto_translate_success": "La traducción automática ya se insertó. Podés editar cualquier campo antes de guardar.",
-        "auto_translate_error": "La traducción automática falló. Revisá la configuración de traducción e intentá de nuevo en un momento.",
+        "auto_translate_error": "La traducción automática falló. Intentá de nuevo en un momento.",
         "lock_badge": "Pro+",
         "lock_title": "Desbloqueá páginas multi-idioma",
         "lock_description": "Los idiomas adicionales están disponibles en Pro+. Podés seguir editando tu perfil base, pero el contenido público traducido requiere la feature de multi-language pages.",
@@ -717,8 +717,8 @@
       "cover": "Imagen de portada",
       "avatar": "Foto de perfil",
       "gallery": {
-        "title": "Mi galería",
-        "description": "Subí hasta 6 fotos del artista acá. Después podés reutilizarlas dentro de un bloque Image Gallery en tu página.",
+        "title": "Galería de fotos",
+        "description": "Subí hasta 6 fotos artísticas. Reutilizalas en un bloque Image Gallery en tu página.",
         "count": "{current}/{max} imágenes cargadas",
         "add_image": "Agregar imagen",
         "uploading": "Subiendo…",
@@ -745,13 +745,13 @@
         "fallback_note": "Los visitantes en {locale} van a ver este texto cuando exista. Si falta, StageLink usará tu contenido base del EPK.",
         "base_edit_title": "Este es tu idioma base del EPK",
         "base_edit_description": "Editá los campos principales del EPK de arriba para actualizar {locale}. Las tabs adicionales son solo para versiones traducidas.",
-        "copy_from_base": "✨ Traducir contenido",
+        "copy_from_base": "Traducir automáticamente",
         "copy_from_base_description": "Completá estos campos con una traducción automática desde {sourceLocale} hacia {locale}. Después podés editar todo antes de guardar.",
         "auto_translate_loading": "Traduciendo…",
         "auto_translate_success": "La traducción automática ya se insertó. Podés editar cualquier campo antes de guardar.",
-        "auto_translate_error": "La traducción automática falló. Revisá la configuración de traducción e intentá de nuevo en un momento.",
+        "auto_translate_error": "La traducción automática falló. Intentá de nuevo en un momento.",
         "lock_badge": "Pro+",
-        "lock_title": "Desbloqueá contenido localizado del EPK",
+        "lock_title": "Desbloqueá Press Kit multi-idioma",
         "lock_description": "Los idiomas adicionales están disponibles en Pro+. Tu EPK base sigue estando disponible, pero el contenido público específico por idioma necesita la feature de multi-language pages.",
         "lock_cta": "Actualizar plan",
         "locales": {
@@ -1126,7 +1126,7 @@
   },
   "blocks": {
     "title": "Mi Página",
-    "description": "Construí tu página de artista con bloques.",
+    "description": "Agregá, organizá y publicá bloques para construir tu página pública de artista.",
     "add_block": "Agregar bloque",
     "empty_title": "Todavía no hay bloques",
     "empty_description": "Agregá tu primer bloque para empezar a construir tu página.",
@@ -1156,8 +1156,8 @@
       "music_embed": "Incrustá una canción o playlist de Spotify, SoundCloud y más.",
       "video_embed": "Incrustá un video de YouTube, Vimeo o TikTok.",
       "email_capture": "Capturá registros de fans desde tu página y alimentá los fan insights de StageLink.",
-      "text": "Agregá un bloque de texto para una bio, technical rider, requerimientos del artista o cualquier información pública que ya tengas lista.",
-      "image_gallery": "Mostrá una galería usando imágenes que ya subiste en Mi galería.",
+      "text": "Área de texto libre — bio, rider, nota de prensa o lo que quieras decir.",
+      "image_gallery": "Mostrá una galería usando imágenes de tu galería de Perfil.",
       "shopify_store": "Mostrá merch seleccionada desde tu storefront conectado de Shopify.",
       "smart_merch": "Elegí productos reales desde Printful y agregá un link externo de compra para cada uno."
     },
@@ -1198,14 +1198,14 @@
       "consent_label": "Texto del consentimiento",
       "consent_label_placeholder": "ej. Acepto recibir novedades de este artista.",
       "body": "Contenido",
-      "body_placeholder": "Escribí una bio corta, nota de prensa, technical rider o cualquier texto público que quieras mostrar en la página…",
+      "body_placeholder": "Escribí lo que quieras mostrar en tu página…",
       "reuse_section_title": "Usar información ya disponible",
-      "reuse_section_hint": "Traé texto guardado desde My Profile o My Press Kit (EPK) en lugar de escribirlo otra vez.",
+      "reuse_section_hint": "Traé texto guardado desde Perfil o Press Kit en lugar de escribirlo otra vez.",
       "body_locale_hint": "Por ahora los bloques de texto usan tu idioma base. Si necesitás copy distinto por idioma, duplicá el bloque.",
-      "image_gallery_title": "Elegí imágenes desde Mi galería",
+      "image_gallery_title": "Elegí imágenes desde tu galería",
       "image_gallery_hint": "Seleccioná las imágenes de perfil que querés mostrar en este bloque.",
-      "image_gallery_empty": "Primero agregá imágenes en My Profile",
-      "image_gallery_from_profile": "Este bloque solo usa imágenes ya subidas en Mi galería.",
+      "image_gallery_empty": "Primero agregá fotos en Perfil",
+      "image_gallery_from_profile": "Este bloque solo usa imágenes subidas en tu galería de Perfil.",
       "image_gallery_use_all": "Usar todas",
       "image_gallery_selected": "Seleccionada",
       "image_gallery_select": "Seleccionar",
@@ -1245,7 +1245,7 @@
       "smart_merch_products_title": "Productos a mostrar",
       "smart_merch_products_hint": "Elegí los productos de Printful que querés destacar y agregá el link externo donde tus fans pueden comprar cada uno.",
       "smart_merch_products_loading": "Cargando productos de merch…",
-      "smart_merch_products_empty": "Todavía no hay productos disponibles en Printful. Conectá el proveedor en Settings y sincronizá al menos un producto primero.",
+      "smart_merch_products_empty": "Todavía no hay productos. Conectá Printful en Settings primero.",
       "smart_merch_products_error": "No se pudieron cargar los productos de Printful en este momento.",
       "smart_merch_products_missing_artist": "Seleccioná una página de artista antes de configurar Smart Merch.",
       "smart_merch_purchase_url": "URL externa de compra",
