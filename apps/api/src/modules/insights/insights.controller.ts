@@ -52,6 +52,8 @@ export class InsightsController {
   }
 
   @Post(':artistId/spotify/validate')
+  @CheckOwnership('artist', 'artistId', 'write')
+  @UseGuards(OwnershipGuard)
   validateSpotifyConnection(
     @Param('artistId') artistId: string,
     @Body() dto: SpotifyInsightsConnectionDto,
@@ -61,6 +63,8 @@ export class InsightsController {
   }
 
   @Patch(':artistId/spotify')
+  @CheckOwnership('artist', 'artistId', 'write')
+  @UseGuards(OwnershipGuard)
   updateSpotifyConnection(
     @Param('artistId') artistId: string,
     @Body() dto: SpotifyInsightsConnectionDto,
@@ -76,6 +80,8 @@ export class InsightsController {
   }
 
   @Post(':artistId/spotify/sync')
+  @CheckOwnership('artist', 'artistId', 'write')
+  @UseGuards(OwnershipGuard)
   syncSpotifyConnection(
     @Param('artistId') artistId: string,
     @CurrentUser() user: User,
@@ -85,6 +91,8 @@ export class InsightsController {
   }
 
   @Post(':artistId/youtube/validate')
+  @CheckOwnership('artist', 'artistId', 'write')
+  @UseGuards(OwnershipGuard)
   validateYouTubeConnection(
     @Param('artistId') artistId: string,
     @Body() dto: YouTubeInsightsConnectionDto,
@@ -94,6 +102,8 @@ export class InsightsController {
   }
 
   @Patch(':artistId/youtube')
+  @CheckOwnership('artist', 'artistId', 'write')
+  @UseGuards(OwnershipGuard)
   updateYouTubeConnection(
     @Param('artistId') artistId: string,
     @Body() dto: YouTubeInsightsConnectionDto,
@@ -109,6 +119,8 @@ export class InsightsController {
   }
 
   @Post(':artistId/youtube/sync')
+  @CheckOwnership('artist', 'artistId', 'write')
+  @UseGuards(OwnershipGuard)
   syncYouTubeConnection(
     @Param('artistId') artistId: string,
     @CurrentUser() user: User,
@@ -118,6 +130,8 @@ export class InsightsController {
   }
 
   @Post(':artistId/soundcloud/validate')
+  @CheckOwnership('artist', 'artistId', 'write')
+  @UseGuards(OwnershipGuard)
   validateSoundCloudConnection(
     @Param('artistId') artistId: string,
     @Body() dto: SoundCloudInsightsConnectionDto,
@@ -127,6 +141,8 @@ export class InsightsController {
   }
 
   @Patch(':artistId/soundcloud')
+  @CheckOwnership('artist', 'artistId', 'write')
+  @UseGuards(OwnershipGuard)
   updateSoundCloudConnection(
     @Param('artistId') artistId: string,
     @Body() dto: SoundCloudInsightsConnectionDto,
@@ -142,6 +158,8 @@ export class InsightsController {
   }
 
   @Post(':artistId/soundcloud/sync')
+  @CheckOwnership('artist', 'artistId', 'write')
+  @UseGuards(OwnershipGuard)
   syncSoundCloudConnection(
     @Param('artistId') artistId: string,
     @CurrentUser() user: User,

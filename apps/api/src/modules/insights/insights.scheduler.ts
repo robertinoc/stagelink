@@ -48,7 +48,17 @@ export class InsightsSyncScheduler {
     const batchStart = Date.now();
 
     try {
-      const connections = await this.insightsService.findConnectionsDueForScheduledSync();
+      let connections: Awaited<
+        ReturnType<typeof this.insightsService.findConnectionsDueForScheduledSync>
+      >;
+      try {
+        connections = await this.insightsService.findConnectionsDueForScheduledSync();
+      } catch (lookupError) {
+        this.logger.error(
+          `[scheduler] Failed to load connections due for sync — aborting batch: ${String(lookupError)}`,
+        );
+        return;
+      }
 
       if (connections.length === 0) {
         this.logger.log('[scheduler] No connections due for sync — nothing to do');

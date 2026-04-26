@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { BillingEntitlementsResponse } from '@/lib/api/billing';
 import type { StageLinkInsightsLockPayload } from '@/lib/api/insights';
 import type { StageLinkInsightsDashboard as StageLinkInsightsDashboardData } from '@stagelink/types';
+import { InsightsCallouts } from './InsightsCallouts';
 import { SpotifyInsightsCard } from './SpotifyInsightsCard';
 import { YouTubeInsightsCard } from './YouTubeInsightsCard';
 
@@ -296,6 +297,8 @@ export function InsightsDashboard({
       <SummaryCards data={data} />
 
       <RangeFilters selectedRange={data.selectedRange} rangeParamName={rangeParamName} />
+
+      <InsightsCallouts data={data} />
 
       {!data.hasAnyConnectedPlatforms ? (
         <EmptyState mode={mode} settingsHref={resolvedSettingsHref} />
