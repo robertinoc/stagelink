@@ -9,6 +9,7 @@ import {
 import type { Request, Response } from 'express';
 
 interface ErrorBody {
+  requestId: string;
   statusCode: number;
   error: string;
   message: string | string[];
@@ -34,6 +35,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+
+    // X-Request-ID is set by RequestIdMiddleware; fall back gracefully if
+    // the middleware hasn't run (e.g. in unit tests or early bootstrap errors).
+    const requestId =
+      typeof request.headers['x-request-id'] === 'string'
+        ? request.headers['x-request-id']
+        : 'unknown';
 
     const status =
       exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
@@ -72,15 +80,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(
-        `${request.method} ${request.url} → ${status}`,
+        `[${requestId}] ${request.method} ${request.url} → ${status}`,
         exception instanceof Error ? exception.stack : String(exception),
       );
     } else {
       const printableMessage = Array.isArray(message) ? message.join(', ') : message;
-      this.logger.warn(`${request.method} ${request.url} → ${status} (${printableMessage})`);
+      this.logger.warn(
+        `[${requestId}] ${request.method} ${request.url} → ${status} (${printableMessage})`,
+      );
     }
 
     const body: ErrorBody = {
+      requestId,
       statusCode: status,
       error,
       message,

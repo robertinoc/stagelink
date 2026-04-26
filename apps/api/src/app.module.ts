@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
+import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { ConfigModule } from '@nestjs/config';
 import { JwtAuthGuard } from './common/guards';
 import configuration from './config/configuration';
@@ -66,4 +67,9 @@ import { TenantModule } from './modules/tenant/tenant.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    // Attach X-Request-ID to every incoming request for log correlation.
+    consumer.apply(RequestIdMiddleware).forRoutes('*');
+  }
+}

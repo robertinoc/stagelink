@@ -208,6 +208,7 @@ export class OwnershipGuard implements CanActivate {
 // ─── re-exports ──────────────────────────────────────────────────────────────
 
 export { PublicRateLimitGuard } from './public-rate-limit.guard';
+export { UploadRateLimitGuard } from './upload-rate-limit.guard';
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 

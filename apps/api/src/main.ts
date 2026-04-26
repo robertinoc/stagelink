@@ -70,7 +70,8 @@ async function bootstrap(): Promise<void> {
   app.enableCors({
     origin: buildCorsOriginHandler(frontendUrl, extraOrigins, nodeEnv),
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Request-ID'],
+    exposedHeaders: ['X-Request-ID'],
     credentials: true,
   });
 

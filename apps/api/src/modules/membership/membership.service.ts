@@ -66,7 +66,7 @@ export class MembershipService {
    * Returns null if resource not found (guard will throw 404).
    */
   async resolveArtistIdForResource(
-    resource: 'artist' | 'page' | 'block',
+    resource: 'artist' | 'page' | 'block' | 'smartLink',
     id: string,
   ): Promise<string | null> {
     switch (resource) {
@@ -87,6 +87,14 @@ export class MembershipService {
           select: { page: { select: { artistId: true } } },
         });
         return block?.page.artistId ?? null;
+      }
+
+      case 'smartLink': {
+        const smartLink = await this.prisma.smartLink.findUnique({
+          where: { id },
+          select: { artistId: true },
+        });
+        return smartLink?.artistId ?? null;
       }
 
       default:

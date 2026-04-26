@@ -9,12 +9,14 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import type { User } from '@prisma/client';
 import { SmartLinksService } from './smart-links.service';
 import { CreateSmartLinkDto, UpdateSmartLinkDto } from './dto';
-import { CurrentUser } from '../../common/decorators';
+import { CurrentUser, CheckOwnership } from '../../common/decorators';
+import { OwnershipGuard } from '../../common/guards';
 import { extractClientIp } from '../../common/utils/request.utils';
 
 /**
@@ -52,6 +54,8 @@ export class SmartLinksController {
   }
 
   /** PATCH /api/smart-links/:id */
+  @CheckOwnership('smartLink', 'id', 'write')
+  @UseGuards(OwnershipGuard)
   @Patch('smart-links/:id')
   update(
     @Param('id') id: string,
@@ -63,6 +67,8 @@ export class SmartLinksController {
   }
 
   /** DELETE /api/smart-links/:id */
+  @CheckOwnership('smartLink', 'id', 'write')
+  @UseGuards(OwnershipGuard)
   @Delete('smart-links/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string, @CurrentUser() user: User, @Req() req: Request) {
