@@ -732,9 +732,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                     </svg>
                   </span>
                 </button>
-                {openFaq === i && (
-                  <p className="landing-body pb-5 text-white/70">{item.answer}</p>
-                )}
+                {openFaq === i && <p className="landing-body pb-5 text-white/70">{item.answer}</p>}
               </div>
             ))}
           </div>
