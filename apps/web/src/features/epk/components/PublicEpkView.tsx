@@ -146,7 +146,7 @@ export async function PublicEpkView({
             {/* ── Press quote ── */}
             {epk.pressQuote ? (
               <section className={`rounded-3xl border p-6 italic ${cardClass} print:rounded-2xl`}>
-                "{epk.pressQuote}"
+                &ldquo;{epk.pressQuote}&rdquo;
               </section>
             ) : null}
 
