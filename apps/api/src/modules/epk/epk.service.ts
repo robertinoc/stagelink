@@ -5,6 +5,7 @@ import {
   type EpkEditorResponse,
   type EpkFeaturedLinkItem,
   type EpkFeaturedMediaItem,
+  type EpkGenerateBioResponse,
   type EpkTranslations,
   type SupportedLocale,
   type UpdateEpkPayload,
@@ -13,7 +14,8 @@ import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
-import { UpdateEpkDto } from './dto';
+import { AiService } from '../../lib/ai.service';
+import { GenerateBioDto, UpdateEpkDto } from './dto';
 import {
   buildPublishedEpkSnapshot,
   getEpkPublishValidation,
@@ -92,6 +94,7 @@ export class EpkService {
     private readonly membershipService: MembershipService,
     private readonly auditService: AuditService,
     private readonly billingEntitlementsService: BillingEntitlementsService,
+    private readonly aiService: AiService,
   ) {}
 
   async getEditorData(artistId: string, userId: string): Promise<EpkEditorResponse> {
@@ -279,6 +282,77 @@ export class EpkService {
     return {
       epk: mapEpk(updated),
       inherited: mapInheritedArtist(artist),
+    };
+  }
+
+  async generateBio(
+    artistId: string,
+    dto: GenerateBioDto,
+    userId: string,
+  ): Promise<EpkGenerateBioResponse> {
+    await this.membershipService.validateAccess(userId, artistId, 'read');
+    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'epk_builder');
+
+    const artist = await this.prisma.artist.findUnique({
+      where: { id: artistId },
+      select: { displayName: true },
+    });
+    if (!artist) throw new NotFoundException('Artist not found');
+
+    const toneInstructions: Record<string, string> = {
+      professional:
+        'Use a polished, press-ready tone — clear, authoritative, third-person. Suitable for industry contacts and media.',
+      casual:
+        'Use a warm, approachable, conversational tone — first or third person. Suitable for fan-facing pages.',
+      creative:
+        'Use an evocative, artistic tone — metaphors and vivid language are welcome. Suitable for artists with a strong aesthetic identity.',
+    };
+
+    const highlightLines =
+      dto.highlights
+        ?.filter(Boolean)
+        .map((h) => `- ${h}`)
+        .join('\n') ?? '';
+
+    const systemPrompt = `You are a professional music publicist and copywriter.
+Generate concise, compelling artist copy in JSON format.
+${toneInstructions[dto.tone] ?? toneInstructions.professional}
+Always write in third person. Do not fabricate specific dates, chart positions, or awards not provided.
+Respond ONLY with valid JSON — no markdown fences, no extra text.`;
+
+    const userMessage = `Artist name: ${artist.displayName}
+Genre / Style: ${dto.genre}
+${dto.influences ? `Key influences / similar artists: ${dto.influences}` : ''}
+${highlightLines ? `Career highlights:\n${highlightLines}` : ''}
+
+Generate the following fields:
+- headline: punchy single line, max 120 characters
+- shortBio: 2–3 sentences, max 400 characters
+- fullBio: 3–5 paragraphs, press-ready, max 1800 characters
+- pressQuote: one vivid sentence that could appear as a pull quote, max 200 characters
+
+Return JSON with keys: headline, shortBio, fullBio, pressQuote`;
+
+    const raw = await this.aiService.complete(systemPrompt, userMessage);
+
+    let parsed: EpkGenerateBioResponse;
+    try {
+      parsed = JSON.parse(raw) as EpkGenerateBioResponse;
+    } catch {
+      // Try to extract JSON from the response in case there is surrounding text
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('AI returned an unexpected response format.');
+      }
+      parsed = JSON.parse(jsonMatch[0]) as EpkGenerateBioResponse;
+    }
+
+    // Enforce character limits before returning
+    return {
+      headline: (parsed.headline ?? '').slice(0, 140),
+      shortBio: (parsed.shortBio ?? '').slice(0, 500),
+      fullBio: (parsed.fullBio ?? '').slice(0, 5000),
+      pressQuote: (parsed.pressQuote ?? '').slice(0, 280),
     };
   }
 
