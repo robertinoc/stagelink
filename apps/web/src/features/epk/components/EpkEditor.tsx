@@ -10,6 +10,7 @@ import type {
   EpkEditorResponse,
   EpkFeaturedLinkItem,
   EpkFeaturedMediaItem,
+  EpkGenerateBioResponse,
   SmartLink,
   UpdateEpkPayload,
 } from '@stagelink/types';
@@ -19,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { publishArtistEpk, unpublishArtistEpk, updateArtistEpk } from '@/lib/api/epk';
+import { EpkBioGenerator } from './EpkBioGenerator';
 import { EpkGallerySection } from './EpkGallerySection';
 import { EpkImageUploader } from './EpkImageUploader';
 import { LocalizedEpkContentSection } from './LocalizedEpkContentSection';
@@ -772,10 +774,29 @@ export function EpkEditor({
       {/* ── Bio ── */}
       <Card className={sectionCardClass}>
         <CardHeader>
-          <CardTitle>Bio</CardTitle>
-          <CardDescription>
-            The short bio can stay close to your profile. The full bio is for press-ready context.
-          </CardDescription>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle>Bio</CardTitle>
+              <CardDescription>
+                The short bio can stay close to your profile. The full bio is for press-ready
+                context.
+              </CardDescription>
+            </div>
+            {!formDisabled ? (
+              <div className="shrink-0">
+                <EpkBioGenerator
+                  artistId={artistId}
+                  existingHighlights={watchedHighlights.filter(Boolean)}
+                  onApply={(generated: EpkGenerateBioResponse) => {
+                    setValue('headline', generated.headline, { shouldDirty: true });
+                    setValue('shortBio', generated.shortBio, { shouldDirty: true });
+                    setValue('fullBio', generated.fullBio, { shouldDirty: true });
+                    setValue('pressQuote', generated.pressQuote, { shouldDirty: true });
+                  }}
+                />
+              </div>
+            ) : null}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">

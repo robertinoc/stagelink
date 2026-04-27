@@ -180,3 +180,28 @@ export interface PublicEpkResponse {
   locale?: SupportedLocale;
   contentLocale?: SupportedLocale;
 }
+
+// ---------------------------------------------------------------------------
+// AI Bio Generation
+// ---------------------------------------------------------------------------
+
+export const EPK_AI_TONES = ['professional', 'casual', 'creative'] as const;
+export type EpkAiTone = (typeof EPK_AI_TONES)[number];
+
+export interface EpkGenerateBioRequest {
+  /** Artist genre or style, e.g. "Indie pop / dream pop" */
+  genre: string;
+  /** Optional: comma-separated key influences or similar artists */
+  influences?: string;
+  /** Optional: notable career moments, releases, venues */
+  highlights?: string[];
+  /** Tone for the generated copy */
+  tone: EpkAiTone;
+}
+
+export interface EpkGenerateBioResponse {
+  headline: string;
+  shortBio: string;
+  fullBio: string;
+  pressQuote: string;
+}

@@ -11,7 +11,12 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { SUPPORTED_LOCALES, type SupportedLocale } from '@stagelink/types';
+import {
+  EPK_AI_TONES,
+  SUPPORTED_LOCALES,
+  type EpkAiTone,
+  type SupportedLocale,
+} from '@stagelink/types';
 
 function emptyStringToNull(value: unknown) {
   return typeof value === 'string' && value.trim() === '' ? null : value;
@@ -161,4 +166,25 @@ export class UpdateEpkDto {
   @IsString()
   @MaxLength(500)
   recordLabels?: string | null;
+}
+
+export class GenerateBioDto {
+  @IsString()
+  @MaxLength(200)
+  genre!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  influences?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(8)
+  @IsString({ each: true })
+  @MaxLength(160, { each: true })
+  highlights?: string[];
+
+  @IsIn(EPK_AI_TONES)
+  tone!: EpkAiTone;
 }

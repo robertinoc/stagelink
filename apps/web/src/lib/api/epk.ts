@@ -2,6 +2,8 @@ import { apiFetch } from '@/lib/auth';
 import {
   DEFAULT_LOCALE,
   type EpkEditorResponse,
+  type EpkGenerateBioRequest,
+  type EpkGenerateBioResponse,
   type PublicEpkResponse,
   type SupportedLocale,
   type UpdateEpkPayload,
@@ -77,6 +79,28 @@ export async function unpublishArtistEpk(artistId: string): Promise<EpkEditorRes
   }
 
   return res.json() as Promise<EpkEditorResponse>;
+}
+
+export async function generateEpkBio(
+  artistId: string,
+  payload: EpkGenerateBioRequest,
+): Promise<EpkGenerateBioResponse> {
+  const res = await fetch(`/api/artists/${artistId}/epk/generate-bio`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { message?: string | string[] };
+    const message = Array.isArray(err.message)
+      ? err.message.join(', ')
+      : (err.message ?? `AI generation failed (${res.status})`);
+    throw new Error(message);
+  }
+
+  return res.json() as Promise<EpkGenerateBioResponse>;
 }
 
 export async function fetchPublicEpk(

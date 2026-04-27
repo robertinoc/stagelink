@@ -4,7 +4,7 @@ import type { User } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators';
 import { extractClientIp } from '../../common/utils/request.utils';
 import { EpkService } from './epk.service';
-import { UpdateEpkDto } from './dto';
+import { GenerateBioDto, UpdateEpkDto } from './dto';
 
 @Controller('artists/:artistId/epk')
 export class EpkController {
@@ -33,5 +33,14 @@ export class EpkController {
   @Post('unpublish')
   unpublish(@Param('artistId') artistId: string, @CurrentUser() user: User, @Req() req: Request) {
     return this.epkService.unpublish(artistId, user.id, extractClientIp(req));
+  }
+
+  @Post('generate-bio')
+  generateBio(
+    @Param('artistId') artistId: string,
+    @Body() dto: GenerateBioDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.epkService.generateBio(artistId, dto, user.id);
   }
 }
