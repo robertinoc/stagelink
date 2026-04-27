@@ -21,12 +21,13 @@ export function FaqItem({ question, answer }: FaqItemProps) {
       >
         <span>{question}</span>
         <ChevronDown
-          className={cn('h-4 w-4 flex-shrink-0 text-white/50 transition-transform duration-200', open && 'rotate-180')}
+          className={cn(
+            'h-4 w-4 flex-shrink-0 text-white/50 transition-transform duration-200',
+            open && 'rotate-180',
+          )}
         />
       </button>
-      {open && (
-        <p className="pb-4 text-sm leading-relaxed text-white/60">{answer}</p>
-      )}
+      {open && <p className="pb-4 text-sm leading-relaxed text-white/60">{answer}</p>}
     </div>
   );
 }

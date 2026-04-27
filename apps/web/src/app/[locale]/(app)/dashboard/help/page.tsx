@@ -31,7 +31,6 @@ export default async function DashboardHelpPage({
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 py-6">
-      {/* Header */}
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <HelpCircle className="h-5 w-5 text-white/50" />
@@ -40,7 +39,6 @@ export default async function DashboardHelpPage({
         <p className="text-sm text-white/50">{t('subtitle')}</p>
       </div>
 
-      {/* FAQ sections */}
       <div className="space-y-6">
         {sectionKeys.map((sectionKey) => {
           const items = t.raw(`sections.${sectionKey}.items`) as Array<{
@@ -49,7 +47,10 @@ export default async function DashboardHelpPage({
           }>;
 
           return (
-            <div key={sectionKey} className="rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-2">
+            <div
+              key={sectionKey}
+              className="rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-2"
+            >
               <h2 className="py-4 text-xs font-semibold uppercase tracking-widest text-white/40">
                 {t(`sections.${sectionKey}.title`)}
               </h2>
