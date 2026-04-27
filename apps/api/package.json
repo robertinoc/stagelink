@@ -15,6 +15,7 @@
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
     "db:reset": "prisma migrate reset",
+    "db:seed": "ts-node -r tsconfig-paths/register prisma/seed.ts",
     "seed:demo-analytics": "ts-node -r tsconfig-paths/register src/scripts/seed-demo-analytics.ts",
     "seed:demo-analytics:cleanup": "ts-node -r tsconfig-paths/register src/scripts/cleanup-demo-analytics.ts"
   },
@@ -34,7 +35,6 @@
     "joi": "^17.13.3",
     "jose": "^6.2.2",
     "posthog-node": "^5.28.9",
-    "prisma": "^5.22.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
     "stripe": "^21.0.1"
