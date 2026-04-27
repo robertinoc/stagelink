@@ -13,7 +13,8 @@
     "billing": "Facturación",
     "settings": "Configuración",
     "logout": "Cerrar sesión",
-    "view_page": "Ver mi página"
+    "view_page": "Ver mi página",
+    "help": "Ayuda"
   },
   "marketing": {
     "hero": {
@@ -1146,6 +1147,80 @@
           "title": "Insights avanzados de fans",
           "description": "Accedé a señales de audiencia más profundas y reportes premium futuros.",
           "note": "Los insights avanzados todavía no están implementados. Esta capability queda reservada para Pro+."
+        }
+      }
+    },
+    "help": {
+      "title": "Ayuda y FAQ",
+      "subtitle": "Respuestas rápidas a las preguntas más comunes sobre StageLink.",
+      "sections": {
+        "getting_started": {
+          "title": "Primeros pasos",
+          "items": [
+            {
+              "question": "¿Qué es StageLink?",
+              "answer": "StageLink es tu hub digital todo en uno como músico. Un solo link para tu música, videos, merch y más — compartible en cualquier lugar."
+            },
+            {
+              "question": "¿Para quién es?",
+              "answer": "Para artistas independientes, bandas y creadores de música que quieren una presencia online profesional sin complicaciones técnicas."
+            },
+            {
+              "question": "¿Necesito conocimientos técnicos para empezar?",
+              "answer": "Para nada. StageLink está pensado para ser simple. Si podés llenar un formulario, podés tener tu página lista en minutos."
+            }
+          ]
+        },
+        "profile": {
+          "title": "Tu perfil y página",
+          "items": [
+            {
+              "question": "¿Para qué sirve mi perfil?",
+              "answer": "Tu perfil es tu página pública como artista — el link que compartís con fans, sellos y colaboradores. Muestra tu música, bio, links y mucho más."
+            },
+            {
+              "question": "¿Por qué debería completarlo del todo?",
+              "answer": "Un perfil completo se ve más profesional y ayuda a fans y contactos de la industria a conocerte mejor. Además, desbloquea mejores estadísticas."
+            },
+            {
+              "question": "¿Qué es la Galería de Fotos?",
+              "answer": "La Galería de Fotos te permite subir y mostrar imágenes — fotos de shows, fotos de prensa o lo que quieras compartir con tus fans. Disponible en los planes Pro y Pro+."
+            }
+          ]
+        },
+        "plans": {
+          "title": "Planes y Pro+",
+          "items": [
+            {
+              "question": "¿Cuál es la diferencia entre Free, Pro y Pro+?",
+              "answer": "Free te da lo esencial: una página, links y estadísticas básicas. Pro desbloquea el Press Kit, dominio personalizado y más. Pro+ suma insights de fans, analytics avanzados y páginas en múltiples idiomas."
+            },
+            {
+              "question": "¿Puedo cancelar cuando quiera?",
+              "answer": "Sí. No hay contratos ni cláusulas. Podés cancelar o cambiar tu plan cuando quieras desde Configuración → Planes y Facturación."
+            },
+            {
+              "question": "¿Qué pasa si hago downgrade?",
+              "answer": "Tu página y datos siempre están seguros. Las funciones que requieren un plan superior se bloquean, pero nada se elimina. Podés volver a subir de plan cuando estés listo."
+            }
+          ]
+        },
+        "analytics": {
+          "title": "Estadísticas",
+          "items": [
+            {
+              "question": "¿Qué rastrea StageLink?",
+              "answer": "StageLink rastrea visitas a tu página, clics en links e interacciones de fans — para que sepas de dónde viene tu audiencia y qué les llama más la atención."
+            },
+            {
+              "question": "¿Por qué mis números no coinciden con los de redes sociales?",
+              "answer": "Las plataformas sociales miden cosas distintas, muchas veces incluyendo bots y tráfico interno. StageLink se enfoca en interacciones reales e intencionales con tu página."
+            },
+            {
+              "question": "¿Qué es el CTR?",
+              "answer": "CTR significa Tasa de Clics — es el porcentaje de visitantes que hicieron clic en al menos un link de tu página. Un CTR más alto significa que tu página está haciendo su trabajo."
+            }
+          ]
         }
       }
     }

@@ -12,6 +12,7 @@ import {
   FileText,
   Settings,
   ExternalLink,
+  HelpCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -34,6 +35,7 @@ const NAV_ITEMS: NavItem[] = [
   { icon: BarChart2, labelKey: 'nav.analytics', href: 'dashboard/analytics', exact: true },
   { icon: FileText, labelKey: 'nav.epk', href: 'dashboard/epk' },
   { icon: Settings, labelKey: 'nav.settings', href: 'dashboard/settings' },
+  { icon: HelpCircle, labelKey: 'nav.help', href: 'dashboard/help' },
 ];
 
 interface AppSidebarProps {

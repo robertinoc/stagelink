@@ -13,7 +13,8 @@
     "billing": "Billing",
     "settings": "Settings",
     "logout": "Log out",
-    "view_page": "View my page"
+    "view_page": "View my page",
+    "help": "Help"
   },
   "marketing": {
     "hero": {
@@ -1146,6 +1147,80 @@
           "title": "Advanced fan insights",
           "description": "Access deeper audience signals and future premium reporting.",
           "note": "Advanced fan insights are not implemented yet. This capability is reserved for Pro+."
+        }
+      }
+    },
+    "help": {
+      "title": "Help & FAQ",
+      "subtitle": "Quick answers to the most common questions about StageLink.",
+      "sections": {
+        "getting_started": {
+          "title": "Getting Started",
+          "items": [
+            {
+              "question": "What is StageLink?",
+              "answer": "StageLink is your all-in-one digital hub as a musician. One link for your music, videos, merch, and more — shareable anywhere."
+            },
+            {
+              "question": "Who is it for?",
+              "answer": "Independent artists, bands, and music creators who want a professional online presence without the tech headache."
+            },
+            {
+              "question": "Do I need technical skills to get started?",
+              "answer": "Not at all. StageLink is built to be simple. If you can fill out a form, you can set up your page in minutes."
+            }
+          ]
+        },
+        "profile": {
+          "title": "Your Profile & Page",
+          "items": [
+            {
+              "question": "What is my profile for?",
+              "answer": "Your profile is your public artist page — the link you share with fans, labels, and collaborators. It shows your music, bio, links, and more."
+            },
+            {
+              "question": "Why should I fill it out completely?",
+              "answer": "A complete profile looks more professional and helps fans and industry contacts get a full picture of who you are. It also unlocks better analytics."
+            },
+            {
+              "question": "What is the Photo Gallery?",
+              "answer": "The Photo Gallery lets you upload and showcase images — live shots, press photos, or anything you want fans to see. Available on Pro and Pro+ plans."
+            }
+          ]
+        },
+        "plans": {
+          "title": "Plans & Pro+",
+          "items": [
+            {
+              "question": "What's the difference between Free, Pro, and Pro+?",
+              "answer": "Free gives you the essentials: a page, links, and basic analytics. Pro unlocks the Press Kit, custom domain, and more. Pro+ adds deep fan insights, advanced analytics, and multi-language pages."
+            },
+            {
+              "question": "Can I cancel anytime?",
+              "answer": "Yes. There are no contracts or lock-ins. You can cancel or downgrade your plan at any time from Settings → Plans & Billing."
+            },
+            {
+              "question": "What happens if I downgrade?",
+              "answer": "Your page and data are always safe. Features that require a higher plan will be locked, but nothing is deleted. You can upgrade again whenever you're ready."
+            }
+          ]
+        },
+        "analytics": {
+          "title": "Analytics",
+          "items": [
+            {
+              "question": "What does StageLink track?",
+              "answer": "StageLink tracks page views, link clicks, and fan interactions on your page — so you know where your audience is coming from and what they engage with most."
+            },
+            {
+              "question": "Why don't my numbers match what I see on social media?",
+              "answer": "Social platforms track different things, often including bots and internal traffic. StageLink focuses on real, intentional interactions with your page."
+            },
+            {
+              "question": "What is CTR?",
+              "answer": "CTR stands for Click-Through Rate — it's the percentage of visitors who clicked at least one link on your page. A higher CTR means your page is doing its job."
+            }
+          ]
         }
       }
     }
