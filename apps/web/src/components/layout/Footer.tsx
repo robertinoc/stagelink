@@ -26,38 +26,67 @@ export function Footer({ locale }: { locale: string }) {
           </div>
 
           {/* Links */}
-          <nav className="flex flex-wrap gap-x-8 gap-y-3 text-[1.02rem]">
-            <Link
-              href={`${homePath}#product`}
-              className="font-medium text-white/82 transition-colors hover:text-white"
-            >
-              {t.footer.links.product}
-            </Link>
-            <Link
-              href={`${homePath}#features`}
-              className="font-medium text-white/82 transition-colors hover:text-white"
-            >
-              {t.footer.links.features}
-            </Link>
-            <Link
-              href={`${homePath}#how-it-works`}
-              className="font-medium text-white/82 transition-colors hover:text-white"
-            >
-              {t.footer.links.howItWorks}
-            </Link>
-            <Link
-              href={`/${locale}/pricing`}
-              className="font-medium text-white/82 transition-colors hover:text-white"
-            >
-              {t.footer.links.pricing}
-            </Link>
-            <Link
-              href={`${homePath}#contact`}
-              className="font-medium text-white/82 transition-colors hover:text-white"
-            >
-              {t.footer.links.contact}
-            </Link>
-          </nav>
+          <div className="flex flex-col gap-6 sm:flex-row sm:gap-16">
+            {/* Product */}
+            <div className="flex flex-col gap-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/36">
+                Product
+              </p>
+              <nav className="flex flex-col gap-2 text-[1.02rem]">
+                <Link
+                  href={`${homePath}#product`}
+                  className="font-medium text-white/72 transition-colors hover:text-white"
+                >
+                  {t.footer.links.product}
+                </Link>
+                <Link
+                  href={`${homePath}#features`}
+                  className="font-medium text-white/72 transition-colors hover:text-white"
+                >
+                  {t.footer.links.features}
+                </Link>
+                <Link
+                  href={`${homePath}#how-it-works`}
+                  className="font-medium text-white/72 transition-colors hover:text-white"
+                >
+                  {t.footer.links.howItWorks}
+                </Link>
+                <Link
+                  href={`/${locale}/pricing`}
+                  className="font-medium text-white/72 transition-colors hover:text-white"
+                >
+                  {t.footer.links.pricing}
+                </Link>
+                <Link
+                  href={`${homePath}#contact`}
+                  className="font-medium text-white/72 transition-colors hover:text-white"
+                >
+                  {t.footer.links.contact}
+                </Link>
+              </nav>
+            </div>
+
+            {/* Resources */}
+            <div className="flex flex-col gap-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/36">
+                Resources
+              </p>
+              <nav className="flex flex-col gap-2 text-[1.02rem]">
+                <Link
+                  href={`/${locale}/blog`}
+                  className="font-medium text-white/72 transition-colors hover:text-white"
+                >
+                  {t.footer.links.blog}
+                </Link>
+                <Link
+                  href={`/${locale}/docs`}
+                  className="font-medium text-white/72 transition-colors hover:text-white"
+                >
+                  {t.footer.links.docs}
+                </Link>
+              </nav>
+            </div>
+          </div>
         </div>
 
         <div className="mt-10 border-t border-white/8 pt-6 text-sm text-white/68">{copyright}</div>

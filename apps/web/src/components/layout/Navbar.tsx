@@ -28,6 +28,8 @@ export function Navbar({ locale }: NavbarProps) {
     { label: t.nav.contact, href: navHref('#contact') },
   ];
 
+  const resourceLinks = [{ label: t.nav.blog, href: `/${locale}/blog` }];
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/12 bg-[#0b0b0f]/88 shadow-[0_18px_50px_rgba(8,8,12,0.34)] backdrop-blur-xl supports-[backdrop-filter]:bg-[#0b0b0f]/76">
       <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between px-4 md:px-6">
@@ -47,6 +49,16 @@ export function Navbar({ locale }: NavbarProps) {
               key={link.href}
               href={link.href}
               className="font-medium text-white/84 transition-colors hover:text-white"
+            >
+              {link.label}
+            </Link>
+          ))}
+          <span className="h-4 w-px bg-white/16" aria-hidden />
+          {resourceLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="font-medium text-white/60 transition-colors hover:text-white"
             >
               {link.label}
             </Link>
@@ -118,6 +130,17 @@ export function Navbar({ locale }: NavbarProps) {
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
                 className="rounded-xl px-4 py-3 text-base font-medium text-white/88 transition-colors hover:bg-white/5 hover:text-white"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <div className="my-1 border-t border-white/8" />
+            {resourceLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className="rounded-xl px-4 py-3 text-base font-medium text-white/64 transition-colors hover:bg-white/5 hover:text-white"
               >
                 {link.label}
               </Link>
