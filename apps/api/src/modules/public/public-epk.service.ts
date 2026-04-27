@@ -61,6 +61,7 @@ export class PublicEpkService {
         techRequirements: true,
         location: true,
         availabilityNotes: true,
+        recordLabels: true,
         artist: {
           select: {
             id: true,
@@ -211,6 +212,7 @@ export class PublicEpkService {
         contentLocale,
         baseLocale,
       ),
+      recordLabels: epk.recordLabels,
       locale,
       contentLocale,
     };

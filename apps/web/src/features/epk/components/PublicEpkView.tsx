@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Globe2 } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { DEFAULT_LOCALE, type PublicEpkResponse, type SupportedLocale } from '@stagelink/types';
 
@@ -16,6 +15,8 @@ export async function PublicEpkView({
 }: PublicEpkViewProps) {
   const t = await getTranslations({ locale, namespace: 'public_epk' });
   const { artist } = epk;
+
+  // ── Style tokens ────────────────────────────────────────────────────────────
   const surfaceClass = printMode
     ? 'border-zinc-200 bg-white text-zinc-900 shadow-sm'
     : 'border-white/10 bg-white/5 text-white';
@@ -26,11 +27,15 @@ export async function PublicEpkView({
     ? 'border-zinc-200 bg-zinc-50 text-zinc-900'
     : 'border-white/10 bg-white/5 text-white';
   const softCardClass = printMode ? 'border-zinc-200 bg-zinc-50' : 'border-white/10 bg-black/20';
-  const headerArtistImageUrl = epk.galleryImageUrls[1] ?? artist.avatarUrl;
-  const highlightedLink = epk.featuredLinks[0] ?? null;
-  const featuredLinks = highlightedLink ? epk.featuredLinks.slice(1) : epk.featuredLinks;
-  let renderableGalleryImages = epk.galleryImageUrls.filter(Boolean);
 
+  // ── Derived data ─────────────────────────────────────────────────────────────
+  const headerArtistImageUrl = epk.galleryImageUrls[1] ?? artist.avatarUrl;
+
+  // All featured links are shown equally — no "highlighted" concept.
+  const allFeaturedLinks = epk.featuredLinks;
+
+  // Strip system slots (hero + portrait) from gallery so they don't repeat.
+  let renderableGalleryImages = epk.galleryImageUrls.filter(Boolean);
   if (
     renderableGalleryImages[0] &&
     epk.heroImageUrl &&
@@ -38,7 +43,6 @@ export async function PublicEpkView({
   ) {
     renderableGalleryImages = renderableGalleryImages.slice(1);
   }
-
   if (
     renderableGalleryImages[0] &&
     headerArtistImageUrl &&
@@ -53,6 +57,7 @@ export async function PublicEpkView({
         <div
           className={`overflow-hidden rounded-[32px] border ${surfaceClass} print:rounded-none print:border-0 print:bg-transparent`}
         >
+          {/* ── Hero image ── */}
           {epk.heroImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -63,6 +68,7 @@ export async function PublicEpkView({
           ) : null}
 
           <div className="space-y-10 p-8 print:space-y-8 print:p-0">
+            {/* ── Header: identity + contacts ── */}
             <header className="grid gap-8 md:grid-cols-[1.5fr,0.9fr]">
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
@@ -95,49 +101,56 @@ export async function PublicEpkView({
                 ) : null}
               </div>
 
-              <div
-                className={`space-y-3 rounded-3xl border p-5 ${softCardClass} print:rounded-2xl`}
-              >
-                <h2
-                  className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
+              {/* Contacts sidebar */}
+              {epk.bookingEmail || epk.managementContact || epk.pressContact || epk.location ? (
+                <div
+                  className={`space-y-3 rounded-3xl border p-5 ${softCardClass} print:rounded-2xl`}
                 >
-                  {t('sections.contacts')}
-                </h2>
-                {epk.bookingEmail ? (
-                  <p className="text-sm">
-                    <span className={`block ${mutedHeadingClass}`}>{t('contact.booking')}</span>
-                    <a href={`mailto:${epk.bookingEmail}`} className={bodyTextClass}>
-                      {epk.bookingEmail}
-                    </a>
-                  </p>
-                ) : null}
-                {epk.managementContact ? (
-                  <p className="text-sm">
-                    <span className={`block ${mutedHeadingClass}`}>{t('contact.management')}</span>
-                    <span className={bodyTextClass}>{epk.managementContact}</span>
-                  </p>
-                ) : null}
-                {epk.pressContact ? (
-                  <p className="text-sm">
-                    <span className={`block ${mutedHeadingClass}`}>{t('contact.press')}</span>
-                    <span className={bodyTextClass}>{epk.pressContact}</span>
-                  </p>
-                ) : null}
-                {epk.location ? (
-                  <p className="text-sm">
-                    <span className={`block ${mutedHeadingClass}`}>{t('contact.base')}</span>
-                    <span className={bodyTextClass}>{epk.location}</span>
-                  </p>
-                ) : null}
-              </div>
+                  <h2
+                    className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
+                  >
+                    {t('sections.contacts')}
+                  </h2>
+                  {epk.bookingEmail ? (
+                    <p className="text-sm">
+                      <span className={`block ${mutedHeadingClass}`}>{t('contact.booking')}</span>
+                      <a href={`mailto:${epk.bookingEmail}`} className={bodyTextClass}>
+                        {epk.bookingEmail}
+                      </a>
+                    </p>
+                  ) : null}
+                  {epk.managementContact ? (
+                    <p className="text-sm">
+                      <span className={`block ${mutedHeadingClass}`}>
+                        {t('contact.management')}
+                      </span>
+                      <span className={bodyTextClass}>{epk.managementContact}</span>
+                    </p>
+                  ) : null}
+                  {epk.pressContact ? (
+                    <p className="text-sm">
+                      <span className={`block ${mutedHeadingClass}`}>{t('contact.press')}</span>
+                      <span className={bodyTextClass}>{epk.pressContact}</span>
+                    </p>
+                  ) : null}
+                  {epk.location ? (
+                    <p className="text-sm">
+                      <span className={`block ${mutedHeadingClass}`}>{t('contact.base')}</span>
+                      <span className={bodyTextClass}>{epk.location}</span>
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </header>
 
+            {/* ── Press quote ── */}
             {epk.pressQuote ? (
               <section className={`rounded-3xl border p-6 italic ${cardClass} print:rounded-2xl`}>
-                “{epk.pressQuote}”
+                "{epk.pressQuote}"
               </section>
             ) : null}
 
+            {/* ── Full bio ── */}
             {epk.fullBio ? (
               <section className="space-y-3">
                 <h2
@@ -153,6 +166,7 @@ export async function PublicEpkView({
               </section>
             ) : null}
 
+            {/* ── Highlights ── */}
             {epk.highlights.length > 0 ? (
               <section className="space-y-4">
                 <h2
@@ -173,84 +187,7 @@ export async function PublicEpkView({
               </section>
             ) : null}
 
-            {highlightedLink ? (
-              <section className="space-y-4">
-                <h2
-                  className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
-                >
-                  {t('sections.highlighted_link')}
-                </h2>
-                <a
-                  href={highlightedLink.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`group block rounded-2xl border px-4 py-4 transition ${
-                    printMode
-                      ? `${cardClass} hover:border-zinc-300`
-                      : 'border-fuchsia-400/25 bg-[linear-gradient(135deg,rgba(168,85,247,0.18),rgba(34,211,238,0.1))] text-white shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_18px_48px_rgba(120,32,255,0.18)] hover:border-fuchsia-300/45 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_22px_60px_rgba(120,32,255,0.24)]'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`rounded-full border p-2 ${
-                        printMode
-                          ? 'border-zinc-300 bg-white text-zinc-700'
-                          : 'border-white/15 bg-black/20 text-fuchsia-100 shadow-[0_0_20px_rgba(168,85,247,0.18)]'
-                      }`}
-                    >
-                      <Globe2 className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className={`text-sm font-semibold ${bodyTextClass}`}>
-                        {highlightedLink.label}
-                      </p>
-                      <p
-                        className={`mt-1 break-all text-xs ${
-                          printMode ? 'text-zinc-700' : 'text-zinc-200/80'
-                        }`}
-                      >
-                        {highlightedLink.url}
-                      </p>
-                    </div>
-                  </div>
-                </a>
-              </section>
-            ) : null}
-
-            {featuredLinks.length > 0 ? (
-              <section className="space-y-4">
-                <h2
-                  className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
-                >
-                  {t('sections.featured_links')}
-                </h2>
-                {printMode ? (
-                  <div className="space-y-3">
-                    {featuredLinks.map((item) => (
-                      <div key={item.id} className={`rounded-2xl border px-4 py-3 ${cardClass}`}>
-                        <p className={`text-sm font-semibold ${bodyTextClass}`}>{item.label}</p>
-                        <p className="mt-1 break-all text-xs text-zinc-700">{item.url}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-3">
-                    {featuredLinks.map((item) => (
-                      <a
-                        key={item.id}
-                        href={item.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm transition hover:border-fuchsia-300/35 hover:bg-fuchsia-500/10 hover:text-white hover:shadow-[0_0_24px_rgba(168,85,247,0.14)]"
-                      >
-                        {item.label}
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </section>
-            ) : null}
-
+            {/* ── Gallery ── */}
             {renderableGalleryImages.length > 0 ? (
               <section className="space-y-4 print:break-inside-avoid">
                 <h2
@@ -272,6 +209,42 @@ export async function PublicEpkView({
               </section>
             ) : null}
 
+            {/* ── Links (all equal pills) ── */}
+            {allFeaturedLinks.length > 0 ? (
+              <section className="space-y-4">
+                <h2
+                  className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
+                >
+                  {t('sections.links')}
+                </h2>
+                {printMode ? (
+                  <div className="space-y-3">
+                    {allFeaturedLinks.map((item) => (
+                      <div key={item.id} className={`rounded-2xl border px-4 py-3 ${cardClass}`}>
+                        <p className={`text-sm font-semibold ${bodyTextClass}`}>{item.label}</p>
+                        <p className="mt-1 break-all text-xs text-zinc-600">{item.url}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-3">
+                    {allFeaturedLinks.map((item) => (
+                      <a
+                        key={item.id}
+                        href={item.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm transition hover:border-fuchsia-300/35 hover:bg-fuchsia-500/10 hover:text-white hover:shadow-[0_0_24px_rgba(168,85,247,0.14)]"
+                      >
+                        {item.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </section>
+            ) : null}
+
+            {/* ── Featured media ── */}
             {epk.featuredMedia.length > 0 ? (
               <section className="space-y-4 print:break-inside-avoid">
                 <h2
@@ -308,6 +281,19 @@ export async function PublicEpkView({
               </section>
             ) : null}
 
+            {/* ── Record labels ── */}
+            {epk.recordLabels ? (
+              <section className="space-y-3">
+                <h2
+                  className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
+                >
+                  {t('sections.record_labels')}
+                </h2>
+                <p className={`text-sm leading-7 ${bodyTextClass}`}>{epk.recordLabels}</p>
+              </section>
+            ) : null}
+
+            {/* ── Availability / Rider sections ── */}
             {epk.riderInfo || epk.techRequirements || epk.availabilityNotes ? (
               <section className="grid gap-4 md:grid-cols-3 print:grid-cols-1">
                 {epk.availabilityNotes ? (
@@ -349,10 +335,36 @@ export async function PublicEpkView({
               </section>
             ) : null}
 
+            {/* ── Book CTA ── */}
+            {epk.bookingEmail && !printMode ? (
+              <section className="flex justify-center">
+                <a
+                  href={`mailto:${epk.bookingEmail}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-fuchsia-400/30 bg-[linear-gradient(135deg,rgba(168,85,247,0.22),rgba(34,211,238,0.12))] px-8 py-3 text-sm font-semibold text-white shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_14px_40px_rgba(120,32,255,0.22)] transition hover:border-fuchsia-300/50 hover:shadow-[0_14px_50px_rgba(120,32,255,0.32)]"
+                >
+                  {t('book_cta')}
+                </a>
+              </section>
+            ) : null}
+
+            {/* ── Footer ── */}
             {!printMode ? (
-              <footer className="flex items-center justify-between border-t border-white/10 pt-6 text-xs text-zinc-500">
-                <span>{t('footer.shared_via')}</span>
-                <Link href={`/${locale}/${artist.username}/epk/print`} className="hover:text-white">
+              <footer className="flex flex-col gap-3 border-t border-white/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1">
+                  <p className="text-xs text-zinc-500">{t('footer.shared_via')}</p>
+                  <a
+                    href="https://stagelink.io"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-zinc-400 transition hover:text-white"
+                  >
+                    {t('footer.create_your_epk')} →
+                  </a>
+                </div>
+                <Link
+                  href={`/${locale}/${artist.username}/epk/print`}
+                  className="text-xs text-zinc-500 hover:text-white"
+                >
                   {t('footer.print_view')}
                 </Link>
               </footer>

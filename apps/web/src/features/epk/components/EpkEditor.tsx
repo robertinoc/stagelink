@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getEpkPublishReadiness } from '@stagelink/types';
-import { ChevronDown, ChevronUp, Star } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import type {
   AssetDto,
   EpkEditorResponse,
@@ -113,6 +113,7 @@ export function EpkEditor({
       techRequirements: editorData.epk.techRequirements ?? '',
       location: editorData.epk.location ?? '',
       availabilityNotes: editorData.epk.availabilityNotes ?? '',
+      recordLabels: editorData.epk.recordLabels ?? '',
       translations: {
         en: {
           headline: editorData.epk.translations?.headline?.en ?? '',
@@ -302,6 +303,7 @@ export function EpkEditor({
         techRequirements: values.techRequirements || null,
         location: values.location || null,
         availabilityNotes: values.availabilityNotes || null,
+        recordLabels: values.recordLabels || null,
         ...(hasMultiLanguageAccess && {
           translations: buildTranslationsPayload(values),
         }),
@@ -326,6 +328,7 @@ export function EpkEditor({
         techRequirements: normalizeNullable(updated.epk.techRequirements),
         location: normalizeNullable(updated.epk.location),
         availabilityNotes: normalizeNullable(updated.epk.availabilityNotes),
+        recordLabels: normalizeNullable(updated.epk.recordLabels),
         translations: {
           en: {
             headline: updated.epk.translations?.headline?.en ?? '',
@@ -355,6 +358,11 @@ export function EpkEditor({
     }
   }
 
+  /**
+   * Fix: save current form state first, then publish.
+   * Previously, publish called publishArtistEpk() directly without saving,
+   * which meant any unsaved form changes (e.g. newly added media) were lost.
+   */
   async function togglePublish(nextPublished: boolean) {
     if (nextPublished) {
       const readiness = getEpkPublishReadiness(getValues());
@@ -364,7 +372,22 @@ export function EpkEditor({
         );
         return;
       }
+
+      // Save first so all unsaved changes (including featuredMedia) reach the DB
+      // before the publish call reads the stored record.
+      const saveOk = await new Promise<boolean>((resolve) => {
+        handleSubmit(
+          async (values) => {
+            await onSubmit(values);
+            resolve(true);
+          },
+          () => resolve(false),
+        )();
+      });
+
+      if (!saveOk) return;
     }
+
     setPublishBusy(nextPublished ? 'publish' : 'unpublish');
     setSaveError(null);
     try {
@@ -382,8 +405,6 @@ export function EpkEditor({
   function setGalleryImageAt(index: number, url: string) {
     const next = [...watchedGallery];
     next[index] = url;
-    // Preserve existing extra gallery photos at indices 2+ while updating the
-    // system slot (0 = hero, 1 = portrait).
     setValue('galleryImageUrls', next.filter(Boolean), { shouldDirty: true });
   }
 
@@ -438,28 +459,6 @@ export function EpkEditor({
     );
   }
 
-  function setHighlightedLink(url: string) {
-    const currentLinks = normalizeFeaturedLinksForProfile(
-      getValues('featuredLinks') ?? [],
-      profileAndSmartLinks,
-    );
-    const existing = currentLinks.find((item) => item.url === url);
-    const next = existing
-      ? [existing, ...currentLinks.filter((item) => item.url !== url)]
-      : [
-          {
-            id: crypto.randomUUID(),
-            label: profileAndSmartLinks.find((item) => item.url === url)?.label ?? 'Link',
-            url,
-          },
-          ...currentLinks,
-        ];
-    setValue('featuredLinks', normalizeFeaturedLinksForProfile(next, profileAndSmartLinks), {
-      shouldDirty: true,
-      shouldTouch: true,
-    });
-  }
-
   function detectMediaProvider(url: string): EpkFeaturedMediaItem['provider'] {
     if (url.includes('spotify.com')) return 'spotify';
     if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
@@ -490,6 +489,7 @@ export function EpkEditor({
 
   return (
     <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
+      {/* ── Status ── */}
       <Card className={sectionCardClass}>
         <CardHeader className="space-y-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -560,6 +560,7 @@ export function EpkEditor({
         </CardHeader>
       </Card>
 
+      {/* ── How it works ── */}
       <Card className={sectionCardClass}>
         <CardHeader
           className="cursor-pointer"
@@ -590,6 +591,7 @@ export function EpkEditor({
         ) : null}
       </Card>
 
+      {/* ── Header and identity ── */}
       <Card className={sectionCardClass}>
         <CardHeader>
           <CardTitle>Header and identity</CardTitle>
@@ -719,6 +721,122 @@ export function EpkEditor({
         </CardContent>
       </Card>
 
+      {/* ── Contacts and practical info ── */}
+      <Card className={sectionCardClass}>
+        <CardHeader>
+          <CardTitle>Contacts and practical info *</CardTitle>
+          <CardDescription>
+            These fields are public in the Press Kit (EPK). Add at least one contact before
+            publishing, and only expose the information you want bookers and press contacts to see.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Booking email</label>
+            <Input
+              placeholder={inherited.contactEmail ?? 'booking@artist.com'}
+              disabled={formDisabled}
+              {...register('bookingEmail')}
+            />
+            {errors.bookingEmail ? (
+              <p className="text-xs text-destructive">{errors.bookingEmail.message}</p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Management contact</label>
+            <Input
+              placeholder="Name / email / phone"
+              disabled={formDisabled}
+              {...register('managementContact')}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Press contact</label>
+            <Input
+              placeholder="Name / email / phone"
+              disabled={formDisabled}
+              {...register('pressContact')}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Location / base</label>
+            <Input
+              placeholder="Buenos Aires, AR"
+              disabled={formDisabled}
+              {...register('location')}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Bio ── */}
+      <Card className={sectionCardClass}>
+        <CardHeader>
+          <CardTitle>Bio</CardTitle>
+          <CardDescription>
+            The short bio can stay close to your profile. The full bio is for press-ready context.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Artist name *</label>
+            <Input value={inherited.displayName} disabled />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Headline *</label>
+            <Input
+              placeholder="Genre, positioning, key context…"
+              disabled={formDisabled}
+              {...register('headline')}
+            />
+            {errors.headline ? (
+              <p className="text-xs text-destructive">{errors.headline.message}</p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Short bio *</label>
+            <Textarea
+              rows={4}
+              placeholder={inherited.bio ?? 'Short artist summary'}
+              disabled={formDisabled}
+              {...register('shortBio')}
+            />
+            {errors.shortBio ? (
+              <p className="text-xs text-destructive">{errors.shortBio.message}</p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Full bio *</label>
+            <Textarea
+              rows={8}
+              placeholder="Longer artist story, recent releases, background, positioning…"
+              disabled={formDisabled}
+              {...register('fullBio')}
+            />
+            {errors.fullBio ? (
+              <p className="text-xs text-destructive">{errors.fullBio.message}</p>
+            ) : null}
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-white">Press quote</label>
+            <Textarea
+              rows={3}
+              placeholder="Optional quote from media, curator or promoter"
+              disabled={formDisabled}
+              {...register('pressQuote')}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <LocalizedEpkContentSection
+        form={form}
+        disabled={formDisabled}
+        hasMultiLanguageAccess={hasMultiLanguageAccess}
+        billingHref={billingHref}
+      />
+
+      {/* ── Photo gallery ── */}
       <Card className={sectionCardClass}>
         <CardHeader>
           <CardTitle>Photo gallery</CardTitle>
@@ -738,6 +856,125 @@ export function EpkEditor({
         </CardContent>
       </Card>
 
+      {/* ── Highlights ── */}
+      <Card className={sectionCardClass}>
+        <CardHeader>
+          <CardTitle>Career highlights</CardTitle>
+          <CardDescription>
+            Notable releases, venues, press mentions, or milestones. Each highlight appears as a
+            card on your public EPK.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {editorLocked ? (
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+              This Press Kit is published. Click{' '}
+              <span className="font-semibold">Unpublish and edit</span> above to make changes.
+            </div>
+          ) : null}
+          {watchedHighlights.length > 0 ? (
+            <div className="space-y-3">
+              {watchedHighlights.map((_, index) => (
+                <div key={`highlight-${index}`} className="flex gap-2">
+                  <Input
+                    placeholder="Notable release, venue, quote or press mention"
+                    disabled={formDisabled}
+                    {...register(`highlights.${index}`)}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={formDisabled}
+                    onClick={() =>
+                      setValue(
+                        'highlights',
+                        watchedHighlights.filter((_, itemIndex) => itemIndex !== index),
+                        { shouldDirty: true },
+                      )
+                    }
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          {watchedHighlights.length < 8 && !formDisabled ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() =>
+                setValue('highlights', [...watchedHighlights, ''], { shouldDirty: true })
+              }
+            >
+              {watchedHighlights.length === 0 ? 'Add highlight' : 'Add another highlight'}
+            </Button>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      {/* ── Links ── */}
+      <Card className={sectionCardClass}>
+        <CardHeader>
+          <CardTitle>Links</CardTitle>
+          <CardDescription>
+            Choose which links from your profile appear in your public Press Kit. All visible links
+            are shown as equal pills — no single link is highlighted.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {editorLocked ? (
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+              This Press Kit is published. Click{' '}
+              <span className="font-semibold">Unpublish and edit</span> above to change the visible
+              links.
+            </div>
+          ) : null}
+          <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] shadow-[0_16px_50px_rgba(10,7,20,0.18)]">
+            <div className="hidden grid-cols-[minmax(0,1fr)_160px] gap-0 border-b border-white/10 bg-white/[0.04] px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/45 md:grid">
+              <span>Platform</span>
+              <span className="text-center">Visible</span>
+            </div>
+            {profileAndSmartLinks.map((link) => {
+              const visible = watchedFeaturedLinks.some((item) => item.url === link.url);
+
+              return (
+                <div
+                  key={link.url}
+                  className="grid gap-4 border-b border-white/10 px-5 py-4 transition hover:bg-white/[0.03] last:border-b-0 md:grid-cols-[minmax(0,1fr)_160px] md:items-center md:gap-0"
+                >
+                  <div className="min-w-0">
+                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35 md:hidden">
+                      Platform
+                    </p>
+                    <p className="font-medium text-white">{link.label}</p>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 md:justify-center">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35 md:hidden">
+                      Visible
+                    </p>
+                    <button
+                      type="button"
+                      disabled={formDisabled}
+                      onClick={() => toggleFeaturedLinkVisibility(link)}
+                      aria-pressed={visible}
+                      className={`inline-flex min-w-[120px] items-center justify-center rounded-full border px-3 py-2 text-xs font-medium transition ${
+                        visible
+                          ? 'border-primary/40 bg-primary/15 text-white shadow-[0_0_18px_rgba(155,48,208,0.12)]'
+                          : 'border-white/12 bg-black/10 text-white/60 hover:border-white/25 hover:text-white'
+                      } ${formDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                    >
+                      {visible ? 'Visible' : 'Hidden'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Featured media ── */}
       <Card className={sectionCardClass}>
         <CardHeader>
           <CardTitle>Featured media</CardTitle>
@@ -864,242 +1101,25 @@ export function EpkEditor({
         </CardContent>
       </Card>
 
+      {/* ── Record labels ── */}
       <Card className={sectionCardClass}>
         <CardHeader>
-          <CardTitle>Bio</CardTitle>
+          <CardTitle>Record labels</CardTitle>
           <CardDescription>
-            The short bio can stay close to your profile. The full bio is for press-ready context.
+            Optional. Add the label or labels the artist is signed to or has released through.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Artist name *</label>
-            <Input value={inherited.displayName} disabled />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Headline *</label>
-            <Input
-              placeholder="Genre, positioning, key context…"
-              disabled={formDisabled}
-              {...register('headline')}
-            />
-            {errors.headline ? (
-              <p className="text-xs text-destructive">{errors.headline.message}</p>
-            ) : null}
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Short bio *</label>
-            <Textarea
-              rows={4}
-              placeholder={inherited.bio ?? 'Short artist summary'}
-              disabled={formDisabled}
-              {...register('shortBio')}
-            />
-            {errors.shortBio ? (
-              <p className="text-xs text-destructive">{errors.shortBio.message}</p>
-            ) : null}
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Full bio *</label>
-            <Textarea
-              rows={8}
-              placeholder="Longer artist story, recent releases, background, positioning…"
-              disabled={formDisabled}
-              {...register('fullBio')}
-            />
-            {errors.fullBio ? (
-              <p className="text-xs text-destructive">{errors.fullBio.message}</p>
-            ) : null}
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Press quote</label>
-            <Textarea
-              rows={3}
-              placeholder="Optional quote from media, curator or promoter"
-              disabled={formDisabled}
-              {...register('pressQuote')}
-            />
-          </div>
+        <CardContent>
+          <Textarea
+            rows={3}
+            placeholder="e.g. Independent / Domino Records / XL Recordings…"
+            disabled={formDisabled}
+            {...register('recordLabels')}
+          />
         </CardContent>
       </Card>
 
-      <LocalizedEpkContentSection
-        form={form}
-        disabled={formDisabled}
-        hasMultiLanguageAccess={hasMultiLanguageAccess}
-        billingHref={billingHref}
-      />
-
-      <Card className={sectionCardClass}>
-        <CardHeader>
-          <CardTitle>Highlights and links</CardTitle>
-          <CardDescription>
-            Start from the links you already keep in Profile. Decide which ones stay visible here,
-            and choose one to highlight first.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {editorLocked ? (
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
-              This Press Kit is published right now. Click{' '}
-              <span className="font-semibold">Unpublish and edit</span> above to change what stays
-              visible here and which link gets highlighted first.
-            </div>
-          ) : null}
-          <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] shadow-[0_16px_50px_rgba(10,7,20,0.18)]">
-            <div className="hidden grid-cols-[minmax(0,1.4fr)_180px_180px] gap-0 border-b border-white/10 bg-white/[0.04] px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/45 md:grid">
-              <span>Platform</span>
-              <span className="text-center">Visible / Hidden</span>
-              <span className="text-center">Highlighted</span>
-            </div>
-            {profileAndSmartLinks.map((link) => {
-              const visible = watchedFeaturedLinks.some((item) => item.url === link.url);
-              const highlighted = watchedFeaturedLinks[0]?.url === link.url;
-
-              return (
-                <div
-                  key={link.url}
-                  className="grid gap-4 border-b border-white/10 px-5 py-4 transition hover:bg-white/[0.03] last:border-b-0 md:grid-cols-[minmax(0,1.4fr)_180px_180px] md:items-center md:gap-0"
-                >
-                  <div className="min-w-0">
-                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35 md:hidden">
-                      Platform
-                    </p>
-                    <p className="font-medium text-white">{link.label}</p>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 md:justify-center">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35 md:hidden">
-                      Visible / Hidden
-                    </p>
-                    <button
-                      type="button"
-                      disabled={formDisabled}
-                      onClick={() => toggleFeaturedLinkVisibility(link)}
-                      aria-pressed={visible}
-                      className={`inline-flex min-w-[132px] items-center justify-center rounded-full border px-3 py-2 text-xs font-medium transition ${
-                        visible
-                          ? 'border-primary/40 bg-primary/15 text-white shadow-[0_0_18px_rgba(155,48,208,0.12)]'
-                          : 'border-white/12 bg-black/10 text-white/60 hover:border-white/25 hover:text-white'
-                      } ${formDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
-                    >
-                      {visible ? 'Visible' : 'Hidden'}
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 md:justify-center">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35 md:hidden">
-                      Highlighted
-                    </p>
-                    <button
-                      type="button"
-                      disabled={formDisabled}
-                      onClick={() => setHighlightedLink(link.url)}
-                      aria-pressed={highlighted}
-                      className={`inline-flex h-10 min-w-[132px] items-center justify-center gap-2 rounded-full border px-3 transition ${
-                        highlighted
-                          ? 'border-amber-300/40 bg-amber-400/15 text-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.14)]'
-                          : 'border-white/15 bg-white/[0.03] text-muted-foreground hover:border-primary/30 hover:text-primary'
-                      } ${formDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
-                    >
-                      <Star className={`h-4 w-4 ${highlighted ? 'fill-current' : ''}`} />
-                      <span className="text-xs font-medium">
-                        {highlighted ? 'Highlighted' : 'Set highlight'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {watchedHighlights.length > 0 ? (
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-white">Career highlights</p>
-              {watchedHighlights.map((highlight, index) => (
-                <div key={`highlight-${index}`} className="flex gap-2">
-                  <Input
-                    placeholder="Notable release, venue, quote or press mention"
-                    disabled={formDisabled}
-                    {...register(`highlights.${index}`)}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={formDisabled}
-                    onClick={() =>
-                      setValue(
-                        'highlights',
-                        watchedHighlights.filter((_, itemIndex) => itemIndex !== index),
-                        { shouldDirty: true },
-                      )
-                    }
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
-            </div>
-          ) : null}
-          {watchedHighlights.length < 8 && !formDisabled ? (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() =>
-                setValue('highlights', [...watchedHighlights, ''], { shouldDirty: true })
-              }
-            >
-              {watchedHighlights.length === 0 ? 'Add highlight' : 'Add another highlight'}
-            </Button>
-          ) : null}
-        </CardContent>
-      </Card>
-
-      <Card className={sectionCardClass}>
-        <CardHeader>
-          <CardTitle>Contacts and practical info *</CardTitle>
-          <CardDescription>
-            These fields are public in the Press Kit (EPK). Add at least one contact before
-            publishing, and only expose the information you want bookers and press contacts to see.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Booking email</label>
-            <Input
-              placeholder={inherited.contactEmail ?? 'booking@artist.com'}
-              disabled={formDisabled}
-              {...register('bookingEmail')}
-            />
-            {errors.bookingEmail ? (
-              <p className="text-xs text-destructive">{errors.bookingEmail.message}</p>
-            ) : null}
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Management contact</label>
-            <Input
-              placeholder="Name / email / phone"
-              disabled={formDisabled}
-              {...register('managementContact')}
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Press contact</label>
-            <Input
-              placeholder="Name / email / phone"
-              disabled={formDisabled}
-              {...register('pressContact')}
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Location / base</label>
-            <Input
-              placeholder="Buenos Aires, AR"
-              disabled={formDisabled}
-              {...register('location')}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
+      {/* ── Availability, logistics, and rider ── */}
       <Card className={sectionCardClass}>
         <CardHeader>
           <CardTitle>Availability, logistics, and rider details</CardTitle>
@@ -1139,6 +1159,7 @@ export function EpkEditor({
         </CardContent>
       </Card>
 
+      {/* ── Save bar ── */}
       <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm">
           {saveStatus === 'success' ? (

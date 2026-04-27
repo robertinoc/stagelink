@@ -1502,13 +1502,11 @@
       "contacts": "Contactos",
       "bio": "Bio",
       "highlights": "Highlights",
-      "highlighted_link": "Link destacado",
+      "links": "Links",
       "featured_media": "Media destacada",
-      "featured_links": "Links destacados",
       "gallery": "Galería",
+      "record_labels": "Sellos discográficos",
       "availability": "Disponibilidad",
-      "rider": "Rider",
-      "tech": "Técnica",
       "artist_requirements": "Requerimientos del artista",
       "technical_rider": "Rider técnico"
     },
@@ -1518,9 +1516,11 @@
       "press": "Prensa",
       "base": "Base"
     },
+    "book_cta": "Contratar a este artista",
     "footer": {
       "shared_via": "Compartido con StageLink",
-      "print_view": "Abrir versión imprimible"
+      "print_view": "Abrir versión imprimible",
+      "create_your_epk": "Creá tu EPK gratis en StageLink"
     },
     "metadata": {
       "not_found": "EPK no encontrado — StageLink",

@@ -157,6 +157,7 @@ model Epk {
   techRequirements   String?  @map("tech_requirements")
   location           String?
   availabilityNotes  String?  @map("availability_notes")
+  recordLabels       String?  @map("record_labels")
   baseLocale         String   @default("en") @map("base_locale")
   translations       Json     @default("{}")
   createdAt          DateTime @default(now()) @map("created_at")

@@ -76,6 +76,7 @@ export interface Epk {
   techRequirements: string | null;
   location: string | null;
   availabilityNotes: string | null;
+  recordLabels: string | null;
   translations: EpkTranslations;
   createdAt: string;
   updatedAt: string;
@@ -109,6 +110,7 @@ export interface UpdateEpkPayload {
   techRequirements?: string | null;
   location?: string | null;
   availabilityNotes?: string | null;
+  recordLabels?: string | null;
   translations?: EpkTranslations;
 }
 
@@ -174,6 +176,7 @@ export interface PublicEpkResponse {
   techRequirements: string | null;
   location: string | null;
   availabilityNotes: string | null;
+  recordLabels: string | null;
   locale?: SupportedLocale;
   contentLocale?: SupportedLocale;
 }
