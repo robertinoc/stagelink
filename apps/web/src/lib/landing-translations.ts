@@ -34,6 +34,7 @@ export interface LandingTranslation {
     howItWorks: string;
     forArtists: string;
     contact: string;
+    blog: string;
     login: string;
     cta: string;
     languageLabel: string;
@@ -155,8 +156,24 @@ export interface LandingTranslation {
       howItWorks: string;
       pricing: string;
       contact: string;
+      blog: string;
+      docs: string;
     };
     copyright: string;
+  };
+  docs: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    comingSoon: string;
+    backLabel: string;
+  };
+  blog: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    comingSoon: string;
+    backLabel: string;
   };
 }
 
@@ -175,6 +192,7 @@ const en: LandingTranslation = {
     howItWorks: 'How it works',
     forArtists: 'For artists',
     contact: 'Contact',
+    blog: 'Blog',
     login: 'Log in',
     cta: 'Create your StageLink',
     languageLabel: 'Language',
@@ -438,8 +456,26 @@ const en: LandingTranslation = {
       howItWorks: 'How it works',
       pricing: 'Pricing',
       contact: 'Contact',
+      blog: 'Blog',
+      docs: 'Docs',
     },
     copyright: '© {year} StageLink. All rights reserved.',
+  },
+  docs: {
+    eyebrow: 'Documentation',
+    title: 'Everything you need to build your presence',
+    description:
+      'Step-by-step guides, feature references, and setup docs for artists using StageLink. Coming soon.',
+    comingSoon: 'Coming soon',
+    backLabel: 'Back to StageLink',
+  },
+  blog: {
+    eyebrow: 'Blog',
+    title: 'Stories, tips, and ideas for artists',
+    description:
+      'Guides, case studies, and ideas for independent artists building their presence. Coming soon.',
+    comingSoon: 'Coming soon',
+    backLabel: 'Back to StageLink',
   },
 };
 
@@ -458,6 +494,7 @@ const es: LandingTranslation = {
     howItWorks: 'Cómo funciona',
     forArtists: 'Para artistas',
     contact: 'Contacto',
+    blog: 'Blog',
     login: 'Iniciar sesión',
     cta: 'Crear tu StageLink',
     languageLabel: 'Idioma',
@@ -725,8 +762,26 @@ const es: LandingTranslation = {
       howItWorks: 'Cómo funciona',
       pricing: 'Precios',
       contact: 'Contacto',
+      blog: 'Blog',
+      docs: 'Docs',
     },
     copyright: '© {year} StageLink. Todos los derechos reservados.',
+  },
+  docs: {
+    eyebrow: 'Documentación',
+    title: 'Todo lo que necesitás para construir tu presencia',
+    description:
+      'Guías paso a paso, referencias de funciones y docs de configuración para artistas que usan StageLink. Próximamente.',
+    comingSoon: 'Próximamente',
+    backLabel: 'Volver a StageLink',
+  },
+  blog: {
+    eyebrow: 'Blog',
+    title: 'Historias, tips e ideas para artistas',
+    description:
+      'Guías, casos de uso e ideas para artistas independientes que están construyendo su presencia. Próximamente.',
+    comingSoon: 'Próximamente',
+    backLabel: 'Volver a StageLink',
   },
 };
 
