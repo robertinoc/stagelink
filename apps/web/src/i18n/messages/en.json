@@ -1502,13 +1502,11 @@
       "contacts": "Contacts",
       "bio": "Bio",
       "highlights": "Highlights",
-      "highlighted_link": "Highlighted link",
+      "links": "Links",
       "featured_media": "Featured media",
-      "featured_links": "Featured links",
       "gallery": "Gallery",
+      "record_labels": "Record labels",
       "availability": "Availability",
-      "rider": "Rider",
-      "tech": "Tech",
       "artist_requirements": "Artist requirements",
       "technical_rider": "Technical rider"
     },
@@ -1518,9 +1516,11 @@
       "press": "Press",
       "base": "Base"
     },
+    "book_cta": "Book this artist",
     "footer": {
       "shared_via": "Shared via StageLink",
-      "print_view": "Open print view"
+      "print_view": "Open print view",
+      "create_your_epk": "Create your free EPK on StageLink"
     },
     "metadata": {
       "not_found": "EPK not found — StageLink",

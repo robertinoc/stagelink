@@ -79,6 +79,7 @@ function mapEpk(epk: EpkRecord) {
     techRequirements: epk.techRequirements,
     location: epk.location,
     availabilityNotes: epk.availabilityNotes,
+    recordLabels: epk.recordLabels,
     createdAt: epk.createdAt.toISOString(),
     updatedAt: epk.updatedAt.toISOString(),
   };
@@ -317,6 +318,7 @@ export class EpkService {
       ...(dto.techRequirements !== undefined && { techRequirements: dto.techRequirements }),
       ...(dto.location !== undefined && { location: dto.location }),
       ...(dto.availabilityNotes !== undefined && { availabilityNotes: dto.availabilityNotes }),
+      ...(dto.recordLabels !== undefined && { recordLabels: dto.recordLabels }),
     };
 
     return {
@@ -354,6 +356,7 @@ export class EpkService {
       ...(payload.availabilityNotes !== undefined && {
         availabilityNotes: payload.availabilityNotes,
       }),
+      ...(payload.recordLabels !== undefined && { recordLabels: payload.recordLabels }),
     };
   }
 }

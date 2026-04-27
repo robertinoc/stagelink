@@ -48,6 +48,7 @@ export const epkFormSchema = z
     techRequirements: z.string().trim().max(2000).optional().nullable(),
     location: z.string().trim().max(120).optional().nullable(),
     availabilityNotes: z.string().trim().max(500).optional().nullable(),
+    recordLabels: z.string().trim().max(500).optional().nullable(),
     translations: z.object({
       en: localizedEpkFieldsSchema,
       es: localizedEpkFieldsSchema,
