@@ -186,6 +186,7 @@ export function LandingPage({ locale }: LandingPageProps) {
   const resolvedLocale: SupportedLocale = locale === 'es' ? 'es' : 'en';
   const t = getLandingT(resolvedLocale);
 
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [contactState, setContactState] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [contactError, setContactError] = useState<string | null>(null);
   const [honeypot, setHoneypot] = useState('');
@@ -693,6 +694,48 @@ export function LandingPage({ locale }: LandingPageProps) {
           </div>
           <p className="landing-small mt-3 text-white/88">{t.cta.note}</p>
           <p className="landing-small mt-1 text-white/80">{t.cta.subnote}</p>
+        </div>
+      </section>
+
+      <section id="faq" className="landing-section">
+        <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="landing-eyebrow text-primary">{t.faq.eyebrow}</p>
+            <h2 className="landing-h2 mt-3">{t.faq.headline}</h2>
+          </div>
+          <div className="mx-auto mt-12 max-w-3xl divide-y divide-white/10">
+            {t.faq.items.map((item, i) => (
+              <div key={i}>
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="flex w-full items-center justify-between gap-6 py-5 text-left transition"
+                  aria-expanded={openFaq === i}
+                >
+                  <span className="landing-body-compact font-semibold text-white">
+                    {item.question}
+                  </span>
+                  <span
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20 text-white/60 transition-transform"
+                    style={{ transform: openFaq === i ? 'rotate(45deg)' : 'rotate(0deg)' }}
+                    aria-hidden="true"
+                  >
+                    <svg
+                      viewBox="0 0 16 16"
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    >
+                      <path d="M8 3v10M3 8h10" />
+                    </svg>
+                  </span>
+                </button>
+                {openFaq === i && <p className="landing-body pb-5 text-white/70">{item.answer}</p>}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

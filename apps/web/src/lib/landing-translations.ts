@@ -142,6 +142,11 @@ export interface LandingTranslation {
     success: string;
     error: string;
   };
+  faq: {
+    eyebrow: string;
+    headline: string;
+    items: { question: string; answer: string }[];
+  };
   footer: {
     description: string;
     links: {
@@ -382,6 +387,47 @@ const en: LandingTranslation = {
     submitting: 'Sending...',
     success: "Thanks. We'll get back to you soon.",
     error: 'Something went wrong. Please try again in a minute.',
+  },
+  faq: {
+    eyebrow: 'FAQ',
+    headline: 'Questions we hear most',
+    items: [
+      {
+        question: 'What is StageLink?',
+        answer:
+          'StageLink is an artist presence platform. It gives you one page where your music, sets, links, Press Kit, merch, and social profiles all live together — so fans, bookers, and collaborators can understand who you are and what you do in seconds.',
+      },
+      {
+        question: 'Who is StageLink for?',
+        answer:
+          'StageLink is for independent music artists who want a stronger online presence: DJs, musicians, producers, bands, creators, and visual artists. If you are releasing music, playing live, or building an audience, StageLink gives you a home that feels like your identity.',
+      },
+      {
+        question: 'Is StageLink free?',
+        answer:
+          'Yes. You can create your artist profile and start building your page for free — no credit card required. Pro plans unlock additional features like the EPK builder and advanced analytics for artists who want to go further.',
+      },
+      {
+        question: 'What does the Pro plan include?',
+        answer:
+          'Pro gives you access to the full Electronic Press Kit (EPK) builder, which helps you create a professional document to share with promoters, labels, and press. It also removes StageLink branding from your page so your identity stays front and center.',
+      },
+      {
+        question: 'What is Pro+ and what does it add?',
+        answer:
+          'Pro+ includes everything in Pro, plus StageLink Insights — a dedicated analytics layer that shows you how people are finding and interacting with your page. You get a clearer picture of your audience so you can make better decisions about where to focus your energy.',
+      },
+      {
+        question: 'What does the analytics feature show me?',
+        answer:
+          'StageLink Insights (available on Pro+) shows you page views, link clicks, and audience behavior over time. You can see which parts of your page people engage with most, where your traffic comes from, and how your presence is growing — all from one dashboard.',
+      },
+      {
+        question: 'How is StageLink different from a regular link-in-bio tool?',
+        answer:
+          'Link-in-bio tools are designed to hold a list of links. StageLink is built around your artist identity. Your music, sets, visuals, Press Kit, merch, and story all live together in a way that feels intentional — not like a landing page, but like a real artist presence.',
+      },
+    ],
   },
   footer: {
     description:
@@ -628,6 +674,47 @@ const es: LandingTranslation = {
     submitting: 'Enviando...',
     success: 'Gracias. Te vamos a responder pronto.',
     error: 'Algo salió mal. Probá de nuevo en un minuto.',
+  },
+  faq: {
+    eyebrow: 'FAQ',
+    headline: 'Las preguntas que más nos hacen',
+    items: [
+      {
+        question: '¿Qué es StageLink?',
+        answer:
+          'StageLink es una plataforma de presencia artística. Te da una sola página donde conviven tu música, tus sets, tus links, tu Press Kit, tu merch y tus perfiles sociales, para que fans, bookers y colaboradores entiendan quién sos y qué hacés en segundos.',
+      },
+      {
+        question: '¿Para quién es StageLink?',
+        answer:
+          'StageLink es para artistas de música independientes que quieren una presencia digital más fuerte: DJs, músicos, productores, bandas, creadores y artistas visuales. Si estás lanzando música, tocando en vivo o construyendo una audiencia, StageLink te da un hogar que se siente como tu identidad.',
+      },
+      {
+        question: '¿StageLink es gratis?',
+        answer:
+          'Sí. Podés crear tu perfil artístico y empezar a armar tu página gratis, sin tarjeta. Los planes Pro desbloquean funciones adicionales como el EPK y analíticas avanzadas para artistas que quieren ir más lejos.',
+      },
+      {
+        question: '¿Qué incluye el plan Pro?',
+        answer:
+          'Pro te da acceso al constructor de Electronic Press Kit (EPK), que te ayuda a crear un documento profesional para compartir con promotores, sellos y prensa. También elimina el branding de StageLink de tu página para que tu identidad quede en primer plano.',
+      },
+      {
+        question: '¿Qué es Pro+ y qué agrega?',
+        answer:
+          'Pro+ incluye todo lo de Pro, más StageLink Insights: una capa de analíticas dedicada que te muestra cómo la gente encuentra e interactúa con tu página. Obtenés una imagen más clara de tu audiencia para tomar mejores decisiones sobre dónde poner tu energía.',
+      },
+      {
+        question: '¿Qué me muestra la función de analíticas?',
+        answer:
+          'StageLink Insights (disponible en Pro+) te muestra vistas de página, clics en links y comportamiento de la audiencia a lo largo del tiempo. Podés ver qué partes de tu página generan más interacción, de dónde viene tu tráfico y cómo crece tu presencia, todo desde un solo panel.',
+      },
+      {
+        question: '¿En qué se diferencia StageLink de una herramienta de link-in-bio?',
+        answer:
+          'Las herramientas de link-in-bio están pensadas para tener una lista de links. StageLink está construido alrededor de tu identidad artística. Tu música, tus sets, tus visuales, tu Press Kit, tu merch y tu historia conviven de una forma que se siente intencional, no como una landing page, sino como una presencia artística real.',
+      },
+    ],
   },
   footer: {
     description:
