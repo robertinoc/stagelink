@@ -19,8 +19,9 @@ import { ResolvedTenant } from './dto/resolved-tenant.dto';
  *   - Se busca el dominio normalizado en custom_domains con status=active
  *
  * Dominios de plataforma (nunca son custom domains):
- *   - stagelink.com, app.stagelink.com, api.stagelink.com
- *   - staging.stagelink.com, preview.stagelink.com
+ *   - stagelink.com y subdominios (app, api, staging, preview...)
+ *   - stagelink.link (canonical production), www.stagelink.link
+ *   - stagelink.art (alternate redirect), www.stagelink.art
  *   - *.vercel.app, *.railway.app
  *   - localhost, 127.0.0.1, ::1
  *   Ver: isPlatformHost()
@@ -188,6 +189,8 @@ function normalizeDomainHost(rawHost: string): string | null {
  *
  * Dominios de plataforma:
  * - stagelink.com y todos sus subdominios
+ * - stagelink.link (canonical production) y subdominios
+ * - stagelink.art (alternate, redirects to stagelink.link) y subdominios
  * - *.vercel.app (preview deploys de Vercel)
  * - *.railway.app (preview/production de Railway)
  * - localhost, 127.0.0.1, ::1 (desarrollo local)
@@ -195,10 +198,19 @@ function normalizeDomainHost(rawHost: string): string | null {
  * Nota: se espera que el host ya esté normalizado (lowercase, sin www, sin puerto).
  */
 export function isPlatformHost(host: string): boolean {
-  const PLATFORM_DOMAINS = ['stagelink.com', 'localhost', '127.0.0.1', '::1'];
+  const PLATFORM_DOMAINS = [
+    'stagelink.com',
+    'stagelink.link', // canonical production domain
+    'stagelink.art', // alternate domain (redirects to stagelink.link)
+    'localhost',
+    '127.0.0.1',
+    '::1',
+  ];
 
   const PLATFORM_SUFFIXES = [
     '.stagelink.com', // app.stagelink.com, api.stagelink.com, staging.stagelink.com, etc.
+    '.stagelink.link', // www.stagelink.link → redirects to stagelink.link
+    '.stagelink.art', // www.stagelink.art → redirects to stagelink.link
     '.vercel.app', // preview deploys: stagelink-git-feat-xxx.vercel.app
     '.railway.app', // Railway service domains
   ];
