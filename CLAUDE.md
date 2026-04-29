@@ -148,7 +148,9 @@ docs/
 ├── smart-merch-block.md           # Smart Merch block, Printful v1, gating, seguridad y extensión futura a Printify
 ├── shopify-storefront-integration.md # Shopify Storefront API por artista, gating, bloque público de merch y límites de la v1
 ├── plan-feature-gating.md         # effectivePlan, entitlements y patrón de gating por plan (T5-2)
-└── billing-ui-and-upgrade-flows.md # Billing dashboard, upgrade flows y retornos desde Stripe (T5-3)
+├── billing-ui-and-upgrade-flows.md # Billing dashboard, upgrade flows y retornos desde Stripe (T5-3)
+├── qa-testing-infrastructure.md   # Testing pyramid, scripts, CI, coverage y entorno QA base
+└── unit-testing-section-2.md      # Unit tests backend/frontend agregados en Sección 2
 ```
 
 ---
@@ -163,11 +165,16 @@ pnpm typecheck        # tsc --noEmit en todos los workspaces
 pnpm format           # Prettier write
 pnpm format:check     # Prettier check (CI)
 pnpm test             # Tests en todos los workspaces
+pnpm test:api         # Jest API unit tests
+pnpm test:web         # Vitest + React Testing Library web unit tests
+pnpm test:api:coverage # API coverage report
+pnpm test:web:coverage # Web coverage report
 
 # Por workspace:
 pnpm --filter @stagelink/web dev
 pnpm --filter @stagelink/api dev
 pnpm --filter @stagelink/web build
+pnpm --filter @stagelink/api exec jest --runInBand # API unit tests serializados
 
 # DB (requiere DB local corriendo):
 pnpm --filter @stagelink/api db:migrate      # prisma migrate dev
