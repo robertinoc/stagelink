@@ -26,12 +26,17 @@ export default async function SignupPage({ params }: SignupPageProps) {
   /**
    * Server Action: generates the WorkOS authorization URL and redirects.
    * Sign-up and sign-in both go through the same WorkOS hosted auth UI.
-   * See login/page.tsx for the full explanation of why a Server Action is used
-   * instead of a direct href to /api/auth/signin.
+   *
+   * Passing `returnTo: /${locale}/dashboard` stores the locale-aware path in the
+   * PKCE state cookie. handleAuth() reads it and redirects there after the user
+   * completes sign-up, ensuring they land on the correct locale.
+   * Dashboard will redirect to onboarding for brand-new users (no artist profile).
+   *
+   * See login/page.tsx for the full explanation of the Server Action pattern.
    */
   async function startSignIn() {
     'use server';
-    const signInUrl = await getSignInUrl();
+    const signInUrl = await getSignInUrl({ returnTo: `/${locale}/dashboard` });
     redirect(signInUrl);
   }
 

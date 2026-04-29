@@ -14,6 +14,12 @@ interface LoginFormProps {
    */
   action: () => Promise<void>;
   locale: string;
+  /**
+   * Optional error message to display above the submit button.
+   * Set by login/page.tsx when the callback redirects back with ?error=auth_failed
+   * (e.g. PKCE mismatch, missing state cookie, code-exchange failure).
+   */
+  errorMessage?: string;
 }
 
 /**
@@ -28,12 +34,20 @@ interface LoginFormProps {
  *   4. WorkOS autentica al usuario y redirige a /api/auth/callback
  *   5. El callback handler crea la sesión y redirige al dashboard
  */
-export function LoginForm({ action, locale }: LoginFormProps) {
+export function LoginForm({ action, locale, errorMessage }: LoginFormProps) {
   const t = useTranslations('auth.login');
 
   return (
     <Card>
-      <CardContent className="pt-6">
+      <CardContent className="space-y-4 pt-6">
+        {errorMessage && (
+          <div
+            role="alert"
+            className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          >
+            {errorMessage}
+          </div>
+        )}
         <form action={action}>
           <Button type="submit" className="w-full">
             {t('submit')}
