@@ -14,11 +14,7 @@ interface AvatarUploadProps {
 
 type UploadState = 'idle' | 'uploading' | 'success' | 'error';
 
-export function AvatarUpload({
-  artistId,
-  currentAvatarUrl,
-  onSuccess,
-}: AvatarUploadProps) {
+export function AvatarUpload({ artistId, currentAvatarUrl, onSuccess }: AvatarUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const blobUrlRef = useRef<string | null>(null); // tracks current blob URL for cleanup
   const [preview, setPreview] = useState<string | null>(null);
@@ -103,6 +99,9 @@ export function AvatarUpload({
         aria-label="Upload avatar"
       >
         {displayUrl ? (
+          // `displayUrl` may be a transient blob: URL (URL.createObjectURL) that
+          // next/image cannot optimize — it only handles static or CDN URLs.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={displayUrl}
             alt="Avatar preview"

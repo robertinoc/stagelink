@@ -81,6 +81,9 @@ export function StepAvatar({ artistId, onComplete, onSkip }: StepAvatarProps) {
           aria-label="Upload profile photo"
         >
           {preview ? (
+            // `preview` is always a transient blob: URL (URL.createObjectURL) that
+            // next/image cannot optimize — it only handles static or CDN URLs.
+            // eslint-disable-next-line @next/next/no-img-element
             <img src={preview} alt="Avatar preview" className="h-full w-full object-cover" />
           ) : (
             <span className="text-4xl">📷</span>
@@ -109,7 +112,9 @@ export function StepAvatar({ artistId, onComplete, onSkip }: StepAvatarProps) {
           </div>
         )}
 
-        {uploaded && <p className="text-sm font-medium text-green-600">Photo uploaded successfully</p>}
+        {uploaded && (
+          <p className="text-sm font-medium text-green-600">Photo uploaded successfully</p>
+        )}
         {error && <p className="text-center text-sm text-destructive">{error}</p>}
 
         <input
