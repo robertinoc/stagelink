@@ -1,6 +1,6 @@
 # StageLink — QA Testing Infrastructure
 
-Status: partial / needs follow-up
+Status: complete for base infrastructure
 Last checked: 2026-04-29
 
 This document tracks the actual testing infrastructure currently present in the
@@ -22,8 +22,8 @@ Original setup request:
 
 | Area              | Status                              | Notes                                                                                                                                                                       |
 | ----------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API unit tests    | Implemented and running             | NestJS/Jest suite passes locally.                                                                                                                                           |
-| Web unit tests    | Wired, no component tests yet       | `apps/web/vitest.config.ts`, `vitest.setup.ts`, scripts, and dependencies are present. `passWithNoTests` keeps this non-blocking until real component tests land.           |
+| API unit tests    | Implemented and running             | NestJS/Jest suite passes locally with service, helper, utility and error-path coverage.                                                                                     |
+| Web unit tests    | Implemented and running             | Vitest + React Testing Library are configured and now include component tests under `apps/web/src/**/__tests__`.                                                            |
 | Integration tests | Not implemented as a distinct layer | Existing Jest specs cover service/helper behavior. No DB-backed integration suite is configured yet.                                                                        |
 | E2E tests         | Wired                               | `playwright.config.ts`, `e2e/**/*.spec.ts`, root scripts, and `@playwright/test` are present. Browser binaries still need `pnpm playwright:install` in a fresh environment. |
 | Folder structure  | Partially implemented               | API specs live beside source files; E2E has `e2e/smoke`, `e2e/public`, `e2e/artist`, `e2e/auth`; web test folder convention is configured but no tests exist yet.           |
@@ -39,7 +39,7 @@ apps/api/
 apps/web/
   vitest.config.ts
   vitest.setup.ts
-  src/**/__tests__/**/*.test.{ts,tsx}  # configured convention
+  src/**/__tests__/**/*.test.{ts,tsx}
 
 e2e/
   auth/*.setup.ts
@@ -70,22 +70,16 @@ Current local command:
 pnpm --filter @stagelink/api test
 ```
 
-Last local result:
+Last local result after Section 2 unit-test expansion:
 
 ```text
-Test Suites: 22 passed, 22 total
-Tests:       213 passed, 213 total
+Test Suites: 26 passed, 26 total
+Tests:       238 passed, 238 total
 ```
-
-Known issue:
-
-- Jest reports a worker forced exit after the suite, likely from active timers
-  in scheduler-related tests. The tests pass, but this should be cleaned up
-  before treating the suite as launch-grade.
 
 ## Web Unit Testing
 
-Intended tooling:
+Tooling:
 
 - Vitest
 - React Testing Library
@@ -103,12 +97,21 @@ Configured test convention:
 apps/web/src/**/__tests__/**/*.test.{ts,tsx}
 ```
 
-Current gap:
+Current status:
 
 - `apps/web/package.json` exposes `test`, `test:coverage`, and `test:ci`.
 - Vitest, Testing Library, jsdom, and the V8 coverage provider are configured.
-- The config uses `passWithNoTests: true`, so the first phase can land before
-  component tests exist, but CI should not interpret that as real web coverage.
+- Component tests now cover shared empty states, FAQ toggles, auth form rendering
+  and onboarding form interactions.
+- The config keeps `passWithNoTests: true` so empty future slices do not block
+  the whole workspace, but web coverage is no longer an empty shell.
+
+Last local result after Section 2 unit-test expansion:
+
+```text
+Test Files: 5 passed
+Tests:      15 passed
+```
 
 ## Integration Testing
 
@@ -173,13 +176,13 @@ Recommended scripts:
 
 Commands checked on 2026-04-29:
 
-| Command                          | Result                                                                                                                          |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `CI=true pnpm test:api:coverage` | Passes and writes `apps/api/coverage/coverage-summary.json` plus `apps/api/test-results/junit.xml`.                             |
-| `CI=true pnpm test:web:coverage` | Passes with no component tests yet and writes `apps/web/coverage/coverage-summary.json` plus `apps/web/test-results/junit.xml`. |
-| `pnpm typecheck`                 | Passes.                                                                                                                         |
-| `pnpm test:e2e:smoke`            | Passes locally after `pnpm playwright:install`.                                                                                 |
-| `pnpm build`                     | Passes with CI placeholder auth environment variables.                                                                          |
+| Command                          | Result                                                                                                                     |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `CI=true pnpm test:api:coverage` | Passes and writes `apps/api/coverage/coverage-summary.json` plus `apps/api/test-results/junit.xml`.                        |
+| `CI=true pnpm test:web:coverage` | Passes with component tests and writes `apps/web/coverage/coverage-summary.json`, `coverage-final.json`, and JUnit output. |
+| `pnpm typecheck`                 | Passes.                                                                                                                    |
+| `pnpm test:e2e:smoke`            | Passes locally after `pnpm playwright:install`.                                                                            |
+| `pnpm build`                     | Passes with CI placeholder auth environment variables.                                                                     |
 
 ## Completion Criteria
 
@@ -191,3 +194,7 @@ This setup task should be considered complete only after:
 - Smoke E2E runs locally against `localhost:4000`.
 - CI passes typecheck, API tests, web tests, build, and staging E2E.
 - Integration tests have a documented scope and at least one DB-backed suite.
+
+Section 2 unit-test expansion is tracked in:
+
+- `docs/unit-testing-section-2.md`
