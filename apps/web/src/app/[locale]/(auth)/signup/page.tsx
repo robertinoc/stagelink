@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { withAuth } from '@workos-inc/authkit-nextjs';
+import { withAuth, getSignInUrl } from '@workos-inc/authkit-nextjs';
 import { SignupForm } from '@/features/auth/components/SignupForm';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -23,13 +23,25 @@ export default async function SignupPage({ params }: SignupPageProps) {
     redirect(`/${locale}/dashboard`);
   }
 
+  /**
+   * Server Action: generates the WorkOS authorization URL and redirects.
+   * Sign-up and sign-in both go through the same WorkOS hosted auth UI.
+   * See login/page.tsx for the full explanation of why a Server Action is used
+   * instead of a direct href to /api/auth/signin.
+   */
+  async function startSignIn() {
+    'use server';
+    const signInUrl = await getSignInUrl();
+    redirect(signInUrl);
+  }
+
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t('subtitle')}</p>
       </div>
-      <SignupForm signUpUrl="/api/auth/signin" locale={locale} />
+      <SignupForm action={startSignIn} locale={locale} />
     </div>
   );
 }

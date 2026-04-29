@@ -6,8 +6,13 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import Link from 'next/link';
 
 interface LoginFormProps {
-  /** URL de autorización de WorkOS (generada server-side con getSignInUrl()) */
-  signInUrl: string;
+  /**
+   * Server Action that calls getSignInUrl() and redirects to WorkOS.
+   * Using a Server Action (instead of a plain href to /api/auth/signin) keeps
+   * the raw API URL out of the address bar, which prevents Chrome SafeBrowsing
+   * from flagging the page as a dangerous credential-harvesting endpoint.
+   */
+  action: () => Promise<void>;
   locale: string;
 }
 
@@ -16,20 +21,24 @@ interface LoginFormProps {
  *
  * No maneja credenciales directamente. La autenticación ocurre en la
  * hosted UI de WorkOS:
- *   1. El botón redirige a la URL de WorkOS (signInUrl)
- *   2. WorkOS autentica al usuario (email/password, social, SSO)
- *   3. WorkOS redirige a /api/auth/callback con el authorization code
- *   4. El callback handler crea la sesión y redirige al dashboard
+ *   1. El formulario envía un POST al Server Action (no se muestra /api/* en la barra)
+ *   2. El Server Action llama a getSignInUrl() (requiere cookie — solo permitido
+ *      en Route Handlers y Server Actions en Next.js 15)
+ *   3. Next.js redirige al usuario a la URL de WorkOS (https://authkit.workos.com/...)
+ *   4. WorkOS autentica al usuario y redirige a /api/auth/callback
+ *   5. El callback handler crea la sesión y redirige al dashboard
  */
-export function LoginForm({ signInUrl, locale }: LoginFormProps) {
+export function LoginForm({ action, locale }: LoginFormProps) {
   const t = useTranslations('auth.login');
 
   return (
     <Card>
       <CardContent className="pt-6">
-        <Button className="w-full" asChild>
-          <a href={signInUrl}>{t('submit')}</a>
-        </Button>
+        <form action={action}>
+          <Button type="submit" className="w-full">
+            {t('submit')}
+          </Button>
+        </form>
       </CardContent>
       <CardFooter className="justify-center text-sm text-muted-foreground">
         {t('no_account')}&nbsp;

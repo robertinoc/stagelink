@@ -84,7 +84,7 @@ export function Navbar({ locale }: NavbarProps) {
           </Link>
 
           <Link
-            href="/api/auth/signin"
+            href={`/${locale}/login`}
             className="landing-button-primary rounded-full bg-brand-gradient px-5 text-center text-white transition-opacity hover:opacity-95"
           >
             <span className="hidden sm:inline">{t.nav.cta}</span>
