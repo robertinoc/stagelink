@@ -1,6 +1,6 @@
 # StageLink
 
-Plataforma tipo Linktree enfocada en artistas (músicos, DJs, creadores visuales). Permite crear una página pública personalizada en `stagelink.io/username` con links, embeds de música/video, analytics y tienda.
+Plataforma tipo Linktree enfocada en artistas (músicos, DJs, creadores visuales). Permite crear una página pública personalizada en `stagelink.link/username` con links, embeds de música/video, analytics y tienda.
 
 La página pública actual se apoya en una composición más rica que un simple listado de bloques:
 
