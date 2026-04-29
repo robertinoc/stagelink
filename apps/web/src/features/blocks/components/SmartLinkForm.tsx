@@ -168,6 +168,7 @@ function SmartLinkEditor({
           {
             label: label.trim(),
             // Strip the client-generated id — backend assigns stable UUIDs on create.
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             destinations: normalizedDestinations.map(({ id: _id, ...d }) => d),
           },
           accessToken,

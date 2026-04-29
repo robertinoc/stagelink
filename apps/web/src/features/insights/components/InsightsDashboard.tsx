@@ -244,9 +244,9 @@ export function InsightsDashboard({
   artistId,
   artistSpotifyUrl,
   artistYouTubeUrl,
-  artistSoundCloudUrl = null,
+  // artistSoundCloudUrl: kept in the interface for future use; not yet consumed by the UI
   data,
-  entitlements,
+  // entitlements: kept in the interface for feature-gating; not yet consumed by the UI
   lockedPayload,
   errorMessage,
   mode = 'standalone',

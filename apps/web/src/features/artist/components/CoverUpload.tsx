@@ -14,11 +14,7 @@ interface CoverUploadProps {
 
 type UploadState = 'idle' | 'uploading' | 'success' | 'error';
 
-export function CoverUpload({
-  artistId,
-  currentCoverUrl,
-  onSuccess,
-}: CoverUploadProps) {
+export function CoverUpload({ artistId, currentCoverUrl, onSuccess }: CoverUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const blobUrlRef = useRef<string | null>(null); // tracks current blob URL for cleanup
   const [preview, setPreview] = useState<string | null>(null);
@@ -95,6 +91,9 @@ export function CoverUpload({
         aria-label="Upload cover image"
       >
         {displayUrl ? (
+          // `displayUrl` may be a transient blob: URL (URL.createObjectURL) that
+          // next/image cannot optimize — it only handles static or CDN URLs.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={displayUrl}
             alt="Cover preview"

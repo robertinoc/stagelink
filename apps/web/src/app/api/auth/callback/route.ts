@@ -1,5 +1,9 @@
 import { handleAuth } from '@workos-inc/authkit-nextjs';
 
+// Force Node.js runtime — WorkOS AuthKit uses Node-only APIs (cookies, crypto)
+// that are not available in the Edge Runtime.
+export const runtime = 'nodejs';
+
 /**
  * GET /api/auth/callback
  *
