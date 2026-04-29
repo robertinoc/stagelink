@@ -6,8 +6,11 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import Link from 'next/link';
 
 interface SignupFormProps {
-  /** URL de sign-up de WorkOS (generada server-side con getSignUpUrl()) */
-  signUpUrl: string;
+  /**
+   * Server Action that calls getSignInUrl() and redirects to WorkOS.
+   * See LoginForm for the full reasoning.
+   */
+  action: () => Promise<void>;
   locale: string;
 }
 
@@ -16,21 +19,24 @@ interface SignupFormProps {
  *
  * No maneja credenciales directamente. El registro ocurre en la
  * hosted UI de WorkOS:
- *   1. El botón redirige a la URL de WorkOS (signUpUrl)
- *   2. WorkOS registra al usuario (email/password, social, SSO)
- *   3. WorkOS redirige a /api/auth/callback con el authorization code
- *   4. El callback handler crea la sesión y redirige al dashboard
- *   5. JwtAuthGuard en el backend provisiona el User interno (primer request)
+ *   1. El formulario envía un POST al Server Action (no se muestra /api/* en la barra)
+ *   2. El Server Action llama a getSignInUrl() y redirige a WorkOS
+ *   3. WorkOS registra al usuario (email/password, social, SSO)
+ *   4. WorkOS redirige a /api/auth/callback con el authorization code
+ *   5. El callback handler crea la sesión y redirige al dashboard
+ *   6. JwtAuthGuard en el backend provisiona el User interno (primer request)
  */
-export function SignupForm({ signUpUrl, locale }: SignupFormProps) {
+export function SignupForm({ action, locale }: SignupFormProps) {
   const t = useTranslations('auth.signup');
 
   return (
     <Card>
       <CardContent className="pt-6">
-        <Button className="w-full" asChild>
-          <a href={signUpUrl}>{t('submit')}</a>
-        </Button>
+        <form action={action}>
+          <Button type="submit" className="w-full">
+            {t('submit')}
+          </Button>
+        </form>
       </CardContent>
       <CardFooter className="justify-center text-sm text-muted-foreground">
         {t('have_account')}&nbsp;

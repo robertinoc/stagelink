@@ -264,7 +264,7 @@ export function LandingPage({ locale }: LandingPageProps) {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:gap-4">
               <Link
-                href="/api/auth/signin"
+                href={`/${locale}/login`}
                 className="landing-button-primary w-full rounded-full bg-brand-gradient px-6 text-center text-white transition-opacity hover:opacity-95 sm:w-auto"
               >
                 {t.hero.ctaPrimary}
@@ -680,7 +680,7 @@ export function LandingPage({ locale }: LandingPageProps) {
           <p className="landing-body mx-auto mt-5 max-w-2xl text-white/92">{t.cta.body}</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
             <Link
-              href="/api/auth/signin"
+              href={`/${locale}/login`}
               className="landing-button-primary w-full rounded-full bg-brand-gradient px-6 text-white transition-opacity hover:opacity-95 sm:w-auto"
             >
               {t.cta.primary}
