@@ -23,12 +23,12 @@
 
 ## Entornos
 
-| Entorno        | Frontend                               | Backend                           |
-| -------------- | -------------------------------------- | --------------------------------- |
-| **Production** | `stagelink.link`                       | `api.<your-domain>` o Railway URL |
-| **Staging**    | `staging.stagelink.io` (Vercel branch) | Railway staging service           |
-| **Preview**    | `stagelink-git-{branch}.vercel.app`    | — (usa API de staging)            |
-| **Local**      | `localhost:4000`                       | `localhost:4001`                  |
+| Entorno        | Frontend                                 | Backend                           |
+| -------------- | ---------------------------------------- | --------------------------------- |
+| **Production** | `stagelink.link`                         | `api.<your-domain>` o Railway URL |
+| **Staging**    | `staging.stagelink.link` (Vercel branch) | Railway staging service           |
+| **Preview**    | `stagelink-git-{branch}.vercel.app`      | — (usa API de staging)            |
+| **Local**      | `localhost:4000`                         | `localhost:4001`                  |
 
 ---
 
@@ -219,7 +219,7 @@ Esto evita que Cloudflare cachee respuestas del API (importante para CORS y auth
 
 **Vercel**:
 
-- Dashboard → Domain → Add `app.stagelink.io`
+- Dashboard → Domain → Add `stagelink.link` (and `www.stagelink.link`)
 - Vercel te dará el CNAME a apuntar (normalmente `cname.vercel-dns.com`)
 
 **Railway**:
