@@ -32,7 +32,7 @@ export default defineConfig({
         branches: 0,
         statements: 0,
       },
-      reporter: ['text', 'lcov', 'json-summary'],
+      reporter: ['text', 'lcov', 'json', 'json-summary'],
       reportsDirectory: './coverage',
     },
   },

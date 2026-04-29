@@ -144,6 +144,8 @@ jobs:
         continue-on-error: true
         with:
           json-summary-path: apps/web/coverage/coverage-summary.json
+          json-final-path: apps/web/coverage/coverage-final.json
+          vite-config-path: apps/web/vitest.config.ts
           file-coverage-mode: changes
           name: Web Coverage
 
