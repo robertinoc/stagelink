@@ -14,9 +14,23 @@ import {
 import { Check } from 'lucide-react';
 import { PageContainer } from '@/components/layout/PageContainer';
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('marketing.pricing');
-  return { title: t('title') };
+interface PricingPageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: PricingPageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'marketing.pricing' });
+  return {
+    title: t('title'),
+    alternates: {
+      canonical: `/${locale}/pricing`,
+      languages: {
+        en: '/en/pricing',
+        es: '/es/pricing',
+      },
+    },
+  };
 }
 
 const plans = [

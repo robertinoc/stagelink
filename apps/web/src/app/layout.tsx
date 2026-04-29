@@ -31,7 +31,9 @@ export const metadata: Metadata = {
     title: 'StageLink — Artist Landing Page & Link in Bio',
     description: 'A modern link-in-bio platform for musicians, DJs, producers, and creators.',
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://stagelink.app'),
+  // Always resolve relative canonical/OG URLs against the canonical production
+  // domain. The env var overrides this in staging/preview deployments if needed.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://stagelink.link'),
 };
 
 /**

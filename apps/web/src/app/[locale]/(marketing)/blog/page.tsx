@@ -27,6 +27,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${t.blog.eyebrow} — StageLink`,
     description: t.blog.description,
+    alternates: {
+      canonical: `/${locale}/blog`,
+      languages: {
+        en: '/en/blog',
+        es: '/es/blog',
+      },
+    },
   };
 }
 

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.stagelink.io';
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://stagelink.link';
 
 /**
  * Sitemap for StageLink.

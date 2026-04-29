@@ -144,6 +144,7 @@ docs/
 ├── billing-state-policy.md        # Política base de billing states y recovery
 ├── billing-state-edge-cases.md    # Effective billing state, effective plan, webhook ordering y fallbacks T6-6
 ├── multi-language-pages-and-translation-infra.md # Routing locale-aware, content translations, baseLocale, fallback coherente y gating T6-5
+├── seo-domain-configuration.md   # Dominio canónico, X-Robots-Tag, redirects, canonical por tipo de página, verificación
 ├── smart-merch-block.md           # Smart Merch block, Printful v1, gating, seguridad y extensión futura a Printify
 ├── shopify-storefront-integration.md # Shopify Storefront API por artista, gating, bloque público de merch y límites de la v1
 ├── plan-feature-gating.md         # effectivePlan, entitlements y patrón de gating por plan (T5-2)
@@ -196,6 +197,115 @@ cd infra/docker && docker compose up -d   # PostgreSQL + MinIO
 
 - Conectado a GitHub main branch
 - Auto-deploy en cada push a main
+
+---
+
+## SEO y Dominios
+
+### Dominio canónico de producción
+
+El dominio canónico es **`https://stagelink.link`**.
+
+```
+stagelink.link          → canónico, indexable                ✅
+www.stagelink.link      → 301 redirect → stagelink.link      ✅
+stagelink.art           → 301 redirect → stagelink.link      ✅
+www.stagelink.art       → 301 redirect → stagelink.link      ✅
+stagelink-omega.vercel.app → X-Robots-Tag: noindex           ✅
+```
+
+### Variable de entorno requerida en producción
+
+```
+NEXT_PUBLIC_APP_URL=https://stagelink.link
+```
+
+Sin esta variable, las páginas de artista no emiten canonical en el `<head>`. La URL de fallback en el código también es `https://stagelink.link`.
+
+### Implementación en código
+
+Toda la lógica vive en `apps/web/`:
+
+| Archivo              | Propósito                                                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `next.config.ts`     | `headers()` → `X-Robots-Tag: noindex` para el dominio de Vercel. `redirects()` → 301 permanentes para `www.*` y `.art`. Los `has.value` usan regex con puntos escapados. |
+| `src/app/layout.tsx` | `metadataBase: new URL(NEXT_PUBLIC_APP_URL ?? 'https://stagelink.link')` — resuelve URLs relativas de canonical y OG en todas las páginas.                               |
+| `src/app/robots.ts`  | `sitemap` apunta a `${appUrl}/sitemap.xml`. Fallback: `https://stagelink.link`.                                                                                          |
+| `src/app/sitemap.ts` | `appUrl` con fallback a `https://stagelink.link`.                                                                                                                        |
+
+### Canonical por tipo de página
+
+| Página                           | Implementación                                                  | Ejemplo resuelto                          |
+| -------------------------------- | --------------------------------------------------------------- | ----------------------------------------- |
+| Home (`/[locale]`)               | `alternates.canonical = '/${locale}'` relativa a `metadataBase` | `https://stagelink.link/en`               |
+| Pricing (`/[locale]/pricing`)    | `alternates.canonical = '/${locale}/pricing'`                   | `https://stagelink.link/en/pricing`       |
+| Blog (`/[locale]/blog`)          | `alternates.canonical = '/${locale}/blog'`                      | `https://stagelink.link/en/blog`          |
+| Docs (`/[locale]/docs`)          | `alternates.canonical = '/${locale}/docs'`                      | `https://stagelink.link/en/docs`          |
+| Artista (`/[locale]/[username]`) | `${NEXT_PUBLIC_APP_URL}/${locale}/${username}` (absoluta)       | `https://stagelink.link/en/robertino`     |
+| EPK (`/[locale]/[username]/epk`) | `${NEXT_PUBLIC_APP_URL}/${locale}/${username}/epk` (absoluta)   | `https://stagelink.link/en/robertino/epk` |
+| Print EPK                        | `robots: { index: false }` — intencional, no indexar            | —                                         |
+
+Todas las páginas de marketing usan URLs relativas (se resuelven contra `metadataBase`). Las páginas de artista y EPK usan URLs absolutas porque leen `NEXT_PUBLIC_APP_URL` directamente en `buildPublicArtistMetadata()` y `generateMetadata()` del EPK.
+
+### hreflang (idiomas alternativos)
+
+Todas las páginas públicas incluyen `alternates.languages` con `en` y `es`:
+
+```typescript
+alternates: {
+  canonical: `/${locale}/pricing`,
+  languages: {
+    en: '/en/pricing',
+    es: '/es/pricing',
+  },
+},
+```
+
+### robots.txt
+
+Disallows: rutas del app autenticado (`/*/dashboard`, `/*/onboarding`, `/*/login`, `/*/signup`, `/*/settings`), `/p/` (rewrite interno), `/go/` (smart links).
+
+Allow: todo lo demás (páginas de artista, EPK, landing, pricing, blog, docs).
+
+### Dominios en Vercel
+
+Para que los redirects de `.art` y `www` funcionen, los dominios deben estar asignados al proyecto en **Vercel → Project Settings → Domains**:
+
+- `stagelink.link` (primary)
+- `www.stagelink.link`
+- `stagelink.art`
+- `www.stagelink.art`
+
+Una vez asignados, `next.config.ts` maneja los redirects automáticamente sin config adicional en el dashboard.
+
+### Verificación post-deploy
+
+```bash
+# El dominio de Vercel debe tener noindex
+curl -I https://stagelink-omega.vercel.app/en | grep -i x-robots-tag
+# → X-Robots-Tag: noindex, nofollow
+
+# El dominio canónico NO debe tener noindex
+curl -I https://stagelink.link/en | grep -i x-robots-tag
+# → (vacío)
+
+# Redirect de www
+curl -I https://www.stagelink.link/en
+# → 308 Location: https://stagelink.link/en
+
+# robots.txt apunta al sitemap canónico
+curl https://stagelink.link/robots.txt | grep Sitemap
+# → Sitemap: https://stagelink.link/sitemap.xml
+
+# Canonical en el head de una página de artista
+curl https://stagelink.link/en/robertino 2>/dev/null | grep -o 'canonical.*stagelink.link[^"]*'
+```
+
+### Google Search Console
+
+1. Agregar `https://stagelink.link` como propiedad verificada
+2. Enviar sitemap: `https://stagelink.link/sitemap.xml`
+3. Confirmar que `stagelink-omega.vercel.app` no aparece en cobertura de indexación
 
 ---
 
@@ -345,7 +455,7 @@ Usar un helper centralizado tanto en backend como en frontend para verificar el 
 
 ```
 # Frontend (apps/web/.env.local)
-NEXT_PUBLIC_APP_URL=                    # http://localhost:4000 en dev
+NEXT_PUBLIC_APP_URL=                    # http://localhost:4000 en dev | https://stagelink.link en producción
 NEXT_PUBLIC_API_URL=                    # http://localhost:4001 en dev
 WORKOS_CLIENT_ID=                       # WorkOS Dashboard → API Keys
 WORKOS_API_KEY=                         # WorkOS Dashboard → API Keys (server-side)
