@@ -41,7 +41,7 @@
 │  │                                                          │  │
 │  │  Fin onboarding:                                         │  │
 │  │    → PATCH /api/pages/:pageId { is_published: true }    │  │
-│  │    → Copy to clipboard: stagelink.io/username           │  │
+│  │    → Copy to clipboard: stagelink.link/username         │  │
 │  │    → Banner: "¡Tu página está lista!"                   │  │
 │  │    → Redirect → /dashboard                             │  │
 │  └──────────────────────────────────────────────────────────┘  │
@@ -308,10 +308,10 @@ Fan completa el formulario en la página pública:
 
 ## Notas de Implementación
 
-| Área | Decisión | Justificación |
-|---|---|---|
-| Caché pública | ISR con `revalidate: 60` | Balance entre frescura y performance |
-| Analytics server-side | Endpoint propio en API (no solo PostHog) | Control de datos, dedup, plan-gating |
-| Presigned URLs | Frontend sube directo a S3 | No pasa el binario por el backend |
-| Webhook Stripe | Idempotente por `stripe_subscription_id` | Stripe puede enviar eventos duplicados |
-| Checkout redirect | Stripe Hosted Checkout (no Elements) | Más rápido de implementar, PCI-compliant |
+| Área                  | Decisión                                 | Justificación                            |
+| --------------------- | ---------------------------------------- | ---------------------------------------- |
+| Caché pública         | ISR con `revalidate: 60`                 | Balance entre frescura y performance     |
+| Analytics server-side | Endpoint propio en API (no solo PostHog) | Control de datos, dedup, plan-gating     |
+| Presigned URLs        | Frontend sube directo a S3               | No pasa el binario por el backend        |
+| Webhook Stripe        | Idempotente por `stripe_subscription_id` | Stripe puede enviar eventos duplicados   |
+| Checkout redirect     | Stripe Hosted Checkout (no Elements)     | Más rápido de implementar, PCI-compliant |

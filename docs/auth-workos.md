@@ -74,9 +74,14 @@ DATABASE_URL=postgresql://...
 1. Ir a **Authentication** → **Redirect URIs**
 2. Añadir cada URL de callback:
    - `http://localhost:4000/api/auth/callback` (local)
-   - `https://app.stagelink.io/api/auth/callback` (producción)
+   - `https://stagelink.link/api/auth/callback` (producción canónica)
+   - `https://staging.stagelink.link/api/auth/callback` (staging, si está activo)
    - `https://*.vercel.app/api/auth/callback` (preview)
 3. Configurar los **Auth Methods** que corresponda (Email + Password es suficiente para MVP)
+
+`stagelink.art` y `www.stagelink.art` son dominios de redirect hacia
+`stagelink.link`; no deberían configurarse como callback principal salvo que se
+decida permitir sesiones directas en ese host.
 
 ## Flujo login / signup / logout
 

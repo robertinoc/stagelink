@@ -1,0 +1,306 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Cancela el run previo del mismo PR/branch cuando llega un nuevo commit
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Permisos mínimos necesarios para anotaciones y PR comments
+permissions:
+  contents: read
+  checks: write # JUnit test annotations en PRs
+  pull-requests: write # Coverage comment
+
+jobs:
+  # ── 1. TypeScript ─────────────────────────────────────────────────────────
+  typecheck:
+    name: TypeScript check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build shared types
+        run: pnpm --filter @stagelink/types build
+
+      - name: Generate Prisma client
+        run: pnpm --filter @stagelink/api db:generate
+
+      - name: Typecheck all packages
+        run: pnpm typecheck
+
+  # ── 2. API unit tests (NestJS / Jest) ─────────────────────────────────────
+  api-tests:
+    name: API unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build shared types
+        run: pnpm --filter @stagelink/types build
+
+      - name: Generate Prisma client
+        run: pnpm --filter @stagelink/api db:generate
+
+      - name: Run API tests with coverage
+        run: pnpm test:api:coverage
+        env:
+          CI: true
+
+      # Anota tests fallidos en el diff del PR
+      - name: Annotate test results
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: apps/api/test-results/junit.xml
+          check_name: API Test Results
+          fail_on_failure: true
+          require_tests: true
+
+      # Comenta resumen de cobertura en el PR
+      - name: Comment API coverage
+        uses: davelosert/vitest-coverage-report-action@v2
+        if: always()
+        continue-on-error: true
+        with:
+          json-summary-path: apps/api/coverage/coverage-summary.json
+          file-coverage-mode: changes
+          name: API Coverage
+
+      - name: Upload API coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-coverage
+          path: apps/api/coverage/
+          retention-days: 14
+
+  # ── 3. Web unit tests (Next.js / Vitest) ──────────────────────────────────
+  web-tests:
+    name: Web unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build shared packages (required by web)
+        run: pnpm --filter @stagelink/types build
+
+      - name: Run web tests with coverage
+        run: pnpm test:web:coverage
+        env:
+          CI: true
+
+      # Anotaciones de JUnit para Vitest
+      - name: Annotate test results
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: apps/web/test-results/junit.xml
+          check_name: Web Test Results
+          fail_on_failure: false # no hay tests todavía — no bloquear
+          require_tests: false
+
+      # Coverage comment del frontend
+      - name: Comment web coverage
+        uses: davelosert/vitest-coverage-report-action@v2
+        if: always()
+        continue-on-error: true
+        with:
+          json-summary-path: apps/web/coverage/coverage-summary.json
+          json-final-path: apps/web/coverage/coverage-final.json
+          vite-config-path: apps/web/vitest.config.ts
+          file-coverage-mode: changes
+          name: Web Coverage
+
+      - name: Upload web coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-coverage
+          path: apps/web/coverage/
+          retention-days: 14
+
+  # ── 4. Build ──────────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [typecheck, api-tests, web-tests]
+    env:
+      # Placeholders para build time — no son secrets reales
+      WORKOS_API_KEY: placeholder
+      WORKOS_CLIENT_ID: placeholder
+      WORKOS_COOKIE_PASSWORD: placeholder_password_32_chars_minimum_ok
+      NEXT_PUBLIC_WORKOS_REDIRECT_URI: http://localhost:4000/api/auth/callback
+      NEXT_PUBLIC_APP_URL: http://localhost:4000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @stagelink/api db:generate
+
+      # Cache del build de Next.js
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: apps/web/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/web/src/**/*.ts', 'apps/web/src/**/*.tsx') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            nextjs-${{ runner.os }}-
+
+      - name: Build all
+        run: pnpm build
+
+  # ── 5. E2E — staging (solo en push a main) ───────────────────────────────
+  e2e:
+    name: E2E tests (staging)
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Cache de binarios de Playwright
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm playwright:install
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ secrets.STAGING_URL }}
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 14
+
+      # Comentario en el commit con el link al reporte
+      - name: Comment E2E report link
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const status = '${{ job.status }}' === 'success' ? '✅' : '❌';
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: `${status} **E2E report**: [Ver artefacto](${runUrl}#artifacts)`
+            });
+
+  # ── 6. Smoke — producción (solo en push a main, después de E2E) ──────────
+  smoke:
+    name: Smoke tests (production)
+    runs-on: ubuntu-latest
+    needs: [e2e]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm playwright:install
+
+      - name: Run smoke tests
+        run: pnpm test:e2e:smoke
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ secrets.PRODUCTION_URL }}
+
+      - name: Upload smoke report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-report-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 7
