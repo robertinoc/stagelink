@@ -35,6 +35,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Build shared types
+        run: pnpm --filter @stagelink/types build
+
+      - name: Generate Prisma client
+        run: pnpm --filter @stagelink/api db:generate
+
       - name: Typecheck all packages
         run: pnpm typecheck
 
@@ -55,6 +61,12 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+
+      - name: Build shared types
+        run: pnpm --filter @stagelink/types build
+
+      - name: Generate Prisma client
+        run: pnpm --filter @stagelink/api db:generate
 
       - name: Run API tests with coverage
         run: pnpm test:api:coverage
@@ -168,6 +180,9 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @stagelink/api db:generate
 
       # Cache del build de Next.js
       - name: Cache Next.js build
