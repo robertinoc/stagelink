@@ -54,7 +54,8 @@
       "password": "Contraseña",
       "submit": "Iniciar sesión",
       "no_account": "¿No tenés cuenta?",
-      "signup_link": "Registrate"
+      "signup_link": "Registrate",
+      "error_auth_failed": "Error al iniciar sesión. Por favor intentá de nuevo."
     },
     "signup": {
       "title": "Creá tu escenario",
