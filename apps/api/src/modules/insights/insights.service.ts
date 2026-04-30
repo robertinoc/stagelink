@@ -663,22 +663,24 @@ export class InsightsService {
    * Bypasses membership + billing checks (system-level operation).
    * Errors are swallowed and logged so the scheduler continues the batch.
    */
-  async syncConnectionByRecord(connection: InsightsConnectionRecord): Promise<void> {
+  async syncConnectionByRecord(connection: InsightsConnectionRecord): Promise<boolean> {
     const provider = this.providers[connection.platform];
     if (!provider) {
       this.logger.warn(`[scheduler] No provider for platform ${connection.platform} — skipping`);
-      return;
+      return false;
     }
     try {
       await this.syncConnectionCore(connection, provider, null, undefined);
       this.logger.log(
         `[scheduler] Synced ${connection.platform} for artist ${connection.artistId}`,
       );
+      return true;
     } catch (error) {
       // Errors are already persisted to DB inside syncConnectionCore.
       this.logger.warn(
         `[scheduler] Sync failed for ${connection.platform}/${connection.artistId}: ${String(error)}`,
       );
+      return false;
     }
   }
 

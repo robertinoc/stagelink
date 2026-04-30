@@ -72,8 +72,12 @@ export class InsightsSyncScheduler {
 
       for (const connection of connections) {
         try {
-          await this.insightsService.syncConnectionByRecord(connection);
-          syncedCount++;
+          const didSync = await this.insightsService.syncConnectionByRecord(connection);
+          if (didSync) {
+            syncedCount++;
+          } else {
+            errorCount++;
+          }
         } catch {
           errorCount++;
         }
