@@ -215,7 +215,7 @@ describe('public page integration flow', () => {
       'https://referrer.example/source',
       '"macOS"',
       'Mozilla/5.0',
-      undefined,
+      'true',
       'true',
       undefined,
     );
@@ -249,7 +249,7 @@ describe('public page integration flow', () => {
     await eventually(async () => {
       await expect(
         prisma.analyticsEvent.findMany({
-          where: { artistId: onboardingResult.artistId },
+          where: { artistId: onboardingResult.artistId, eventType: 'page_view' },
           orderBy: { createdAt: 'asc' },
         }),
       ).resolves.toEqual([
