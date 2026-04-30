@@ -1,6 +1,8 @@
 'use client';
 
+import { useFormStatus } from 'react-dom';
 import { useTranslations } from 'next-intl';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import Link from 'next/link';
@@ -20,6 +22,20 @@ interface LoginFormProps {
    * (e.g. PKCE mismatch, missing state cookie, code-exchange failure).
    */
   errorMessage?: string;
+}
+
+/**
+ * SubmitButton must be a child of the <form> so useFormStatus can read
+ * the pending state of the parent form's Server Action.
+ */
+function SubmitButton({ label }: { label: string }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" size="lg" className="w-full" disabled={pending} aria-disabled={pending}>
+      {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+      {label}
+    </Button>
+  );
 }
 
 /**
@@ -49,9 +65,7 @@ export function LoginForm({ action, locale, errorMessage }: LoginFormProps) {
           </div>
         )}
         <form action={action}>
-          <Button type="submit" className="w-full">
-            {t('submit')}
-          </Button>
+          <SubmitButton label={t('submit')} />
         </form>
       </CardContent>
       <CardFooter className="justify-center text-sm text-muted-foreground">
