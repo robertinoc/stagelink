@@ -215,8 +215,8 @@ describe('public page integration flow', () => {
       'https://referrer.example/source',
       '"macOS"',
       'Mozilla/5.0',
-      'true',
-      'true',
+      '1',
+      '1',
       undefined,
     );
 
@@ -276,7 +276,7 @@ describe('public page integration flow', () => {
       requestWithIp('198.51.100.9'),
       'Mozilla/5.0',
       undefined,
-      'true',
+      '1',
       undefined,
     );
 
