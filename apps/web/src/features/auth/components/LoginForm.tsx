@@ -1,6 +1,8 @@
 'use client';
 
+import { useFormStatus } from 'react-dom';
 import { useTranslations } from 'next-intl';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import Link from 'next/link';
@@ -14,6 +16,26 @@ interface LoginFormProps {
    */
   action: () => Promise<void>;
   locale: string;
+  /**
+   * Optional error message to display above the submit button.
+   * Set by login/page.tsx when the callback redirects back with ?error=auth_failed
+   * (e.g. PKCE mismatch, missing state cookie, code-exchange failure).
+   */
+  errorMessage?: string;
+}
+
+/**
+ * SubmitButton must be a child of the <form> so useFormStatus can read
+ * the pending state of the parent form's Server Action.
+ */
+function SubmitButton({ label }: { label: string }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" size="lg" className="w-full" disabled={pending} aria-disabled={pending}>
+      {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+      {label}
+    </Button>
+  );
 }
 
 /**
@@ -28,16 +50,22 @@ interface LoginFormProps {
  *   4. WorkOS autentica al usuario y redirige a /api/auth/callback
  *   5. El callback handler crea la sesión y redirige al dashboard
  */
-export function LoginForm({ action, locale }: LoginFormProps) {
+export function LoginForm({ action, locale, errorMessage }: LoginFormProps) {
   const t = useTranslations('auth.login');
 
   return (
     <Card>
-      <CardContent className="pt-6">
+      <CardContent className="space-y-4 pt-6">
+        {errorMessage && (
+          <div
+            role="alert"
+            className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          >
+            {errorMessage}
+          </div>
+        )}
         <form action={action}>
-          <Button type="submit" className="w-full">
-            {t('submit')}
-          </Button>
+          <SubmitButton label={t('submit')} />
         </form>
       </CardContent>
       <CardFooter className="justify-center text-sm text-muted-foreground">
