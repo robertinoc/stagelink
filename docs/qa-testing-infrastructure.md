@@ -121,8 +121,12 @@ Current status:
 - Integration specs use the `apps/api/src/**/*.integration-spec.ts` convention.
 - The CI workflow provisions PostgreSQL, runs Prisma migrations, and executes
   the integration suite before the build job.
-- The first suite validates onboarding, tenant resolution, public page loading,
-  localized block output, custom-domain resolution, and analytics persistence.
+- The DB-backed suite validates onboarding, tenant resolution, public page
+  loading, localized block output, custom-domain resolution, and analytics
+  persistence.
+- The API contract suite validates all current API routes for success status,
+  authentication, representative authorization, DTO validation, malformed IDs,
+  content types, and shared error-envelope consistency.
 
 Current command:
 
@@ -132,8 +136,6 @@ pnpm test:api:integration
 
 Recommended next integration targets:
 
-- Auth guard behavior.
-- Ownership checks.
 - Billing entitlement gates.
 - Subscriber writes.
 - Upload-intent validation.

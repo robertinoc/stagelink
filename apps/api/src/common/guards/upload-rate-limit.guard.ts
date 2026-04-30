@@ -36,12 +36,13 @@ const MAX_REQUESTS = 20;
 const store = new Map<string, RateLimitEntry>();
 
 // Periodic cleanup — prevents unbounded Map growth.
-setInterval(() => {
+const cleanupTimer = setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of store.entries()) {
     if (now - entry.windowStart > WINDOW_MS * 5) store.delete(key);
   }
 }, 5 * 60_000);
+cleanupTimer.unref?.();
 
 @Injectable()
 export class UploadRateLimitGuard implements CanActivate {
