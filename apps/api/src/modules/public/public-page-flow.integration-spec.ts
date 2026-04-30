@@ -207,6 +207,8 @@ describe('public page integration flow', () => {
       },
     });
 
+    posthog.capture.mockClear();
+
     const response = await publicPagesController.getByUsername(
       ' Integration-Flow ',
       requestWithIp('198.51.100.9'),
