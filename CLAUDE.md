@@ -151,7 +151,7 @@ docs/
 ├── billing-ui-and-upgrade-flows.md # Billing dashboard, upgrade flows y retornos desde Stripe (T5-3)
 ├── qa-testing-infrastructure.md   # Testing pyramid, scripts, CI, coverage y entorno QA base
 ├── unit-testing-section-2.md      # Unit tests backend/frontend agregados en Sección 2
-└── integration-api-testing-section-3.md # Integration tests API + DB agregados en Sección 3
+└── integration-api-testing-section-3.md # Integration/API contract tests agregados en Sección 3
 ```
 
 ---
@@ -177,6 +177,7 @@ pnpm --filter @stagelink/web dev
 pnpm --filter @stagelink/api dev
 pnpm --filter @stagelink/web build
 pnpm --filter @stagelink/api exec jest --runInBand # API unit tests serializados
+pnpm --filter @stagelink/api exec jest --config ./jest.integration.config.ts --runTestsByPath src/test/api-contract.integration-spec.ts --runInBand # API contract suite
 
 # DB (requiere DB local corriendo):
 pnpm --filter @stagelink/api db:migrate      # prisma migrate dev
