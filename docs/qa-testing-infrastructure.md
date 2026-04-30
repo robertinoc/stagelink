@@ -20,14 +20,14 @@ Original setup request:
 
 ## Current Status
 
-| Area              | Status                              | Notes                                                                                                                                                                       |
-| ----------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API unit tests    | Implemented and running             | NestJS/Jest suite passes locally with service, helper, utility and error-path coverage.                                                                                     |
-| Web unit tests    | Implemented and running             | Vitest + React Testing Library are configured and now include component tests under `apps/web/src/**/__tests__`.                                                            |
-| Integration tests | Not implemented as a distinct layer | Existing Jest specs cover service/helper behavior. No DB-backed integration suite is configured yet.                                                                        |
-| E2E tests         | Wired                               | `playwright.config.ts`, `e2e/**/*.spec.ts`, root scripts, and `@playwright/test` are present. Browser binaries still need `pnpm playwright:install` in a fresh environment. |
-| Folder structure  | Partially implemented               | API specs live beside source files; E2E has `e2e/smoke`, `e2e/public`, `e2e/artist`, `e2e/auth`; web test folder convention is configured but no tests exist yet.           |
-| CI                | Wired                               | `.github/workflows/ci.yml` runs typecheck, API coverage, web coverage, build, staging E2E, and production smoke using package scripts.                                      |
+| Area              | Status                             | Notes                                                                                                                                                                       |
+| ----------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API unit tests    | Implemented and running            | NestJS/Jest suite passes locally with service, helper, utility and error-path coverage.                                                                                     |
+| Web unit tests    | Implemented and running            | Vitest + React Testing Library are configured and now include component tests under `apps/web/src/**/__tests__`.                                                            |
+| Integration tests | Implemented as dedicated API layer | `pnpm test:api:integration` runs NestJS + Prisma integration specs against PostgreSQL. CI provisions a Postgres 16 service and applies migrations before the suite.         |
+| E2E tests         | Wired                              | `playwright.config.ts`, `e2e/**/*.spec.ts`, root scripts, and `@playwright/test` are present. Browser binaries still need `pnpm playwright:install` in a fresh environment. |
+| Folder structure  | Partially implemented              | API specs live beside source files; E2E has `e2e/smoke`, `e2e/public`, `e2e/artist`, `e2e/auth`; web test folder convention is configured but no tests exist yet.           |
+| CI                | Wired                              | `.github/workflows/ci.yml` runs typecheck, API coverage, web coverage, build, staging E2E, and production smoke using package scripts.                                      |
 
 ## Folder Structure
 
@@ -117,17 +117,26 @@ Tests:      15 passed
 
 Current status:
 
-- No separate integration-test command exists.
-- No test database bootstrap/reset flow is wired.
-- Existing Jest specs mock collaborators and are best classified as unit tests.
+- A separate API integration command exists: `pnpm test:api:integration`.
+- Integration specs use the `apps/api/src/**/*.integration-spec.ts` convention.
+- The CI workflow provisions PostgreSQL, runs Prisma migrations, and executes
+  the integration suite before the build job.
+- The first suite validates onboarding, tenant resolution, public page loading,
+  localized block output, custom-domain resolution, and analytics persistence.
 
-Recommended next step:
+Current command:
 
-- Add a NestJS integration layer under either `apps/api/test/integration` or
-  `apps/api/src/**/*.integration-spec.ts`.
-- Use a dedicated test database and run Prisma migrations before the suite.
-- Cover auth guard behavior, ownership checks, billing entitlement gates,
-  public page reads, subscriber writes, and upload-intent validation.
+```bash
+pnpm test:api:integration
+```
+
+Recommended next integration targets:
+
+- Auth guard behavior.
+- Ownership checks.
+- Billing entitlement gates.
+- Subscriber writes.
+- Upload-intent validation.
 
 ## E2E Testing
 
@@ -198,3 +207,7 @@ This setup task should be considered complete only after:
 Section 2 unit-test expansion is tracked in:
 
 - `docs/unit-testing-section-2.md`
+
+Section 3 integration-test expansion is tracked in:
+
+- `docs/integration-api-testing-section-3.md`

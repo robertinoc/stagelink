@@ -17,6 +17,7 @@
     "test": "pnpm --recursive test",
     "test:api": "pnpm --filter @stagelink/api test",
     "test:api:coverage": "pnpm --filter @stagelink/api test:coverage",
+    "test:api:integration": "pnpm --filter @stagelink/api test:integration",
     "test:web": "pnpm --filter @stagelink/web test",
     "test:web:coverage": "pnpm --filter @stagelink/web test:coverage",
     "test:e2e": "playwright test",

@@ -16,7 +16,7 @@ import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 import { PublicPagesService } from './public-pages.service';
 import { PublicPageResponseDto } from './dto/public-page-response.dto';
 import { Public } from '../../common/decorators';
-import { PublicRateLimitGuard } from '../../common/guards';
+import { PublicRateLimitGuard } from '../../common/guards/public-rate-limit.guard';
 import { detectLocale } from '../../common/utils/locale.util';
 import { DEFAULT_LOCALE, isSupportedLocale } from '@stagelink/types';
 import { extractClientIp } from '../../common/utils/request.utils';
