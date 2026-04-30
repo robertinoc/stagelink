@@ -20,14 +20,14 @@ Original setup request:
 
 ## Current Status
 
-| Area              | Status                             | Notes                                                                                                                                                                       |
-| ----------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API unit tests    | Implemented and running            | NestJS/Jest suite passes locally with service, helper, utility, webhook, scheduler and error-path coverage.                                                                 |
-| Web unit tests    | Implemented and running            | Vitest + React Testing Library are configured and now include component tests under `apps/web/src/**/__tests__`.                                                            |
-| Integration tests | Implemented as dedicated API layer | `pnpm test:api:integration` runs NestJS + Prisma integration specs against PostgreSQL. CI provisions a Postgres 16 service and applies migrations before the suite.         |
-| E2E tests         | Wired                              | `playwright.config.ts`, `e2e/**/*.spec.ts`, root scripts, and `@playwright/test` are present. Browser binaries still need `pnpm playwright:install` in a fresh environment. |
-| Folder structure  | Implemented                        | API specs live beside source files; web component tests live under `apps/web/src/**/__tests__`; E2E has `e2e/smoke`, `e2e/public`, `e2e/artist`, `e2e/auth`.                |
-| CI                | Wired                              | `.github/workflows/ci.yml` runs typecheck, API coverage, web coverage, build, staging E2E, and production smoke using package scripts.                                      |
+| Area              | Status                             | Notes                                                                                                                                                                                                          |
+| ----------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API unit tests    | Implemented and running            | NestJS/Jest suite passes locally with service, helper, utility, webhook, scheduler and error-path coverage.                                                                                                    |
+| Web unit tests    | Implemented and running            | Vitest + React Testing Library are configured and now include component tests under `apps/web/src/**/__tests__`.                                                                                               |
+| Integration tests | Implemented as dedicated API layer | `pnpm test:api:integration` runs NestJS + Prisma integration specs against PostgreSQL. CI provisions a Postgres 16 service and applies migrations before the suite.                                            |
+| E2E tests         | Expanded                           | Playwright now has smoke, auth UI, public business journeys, mobile public journeys and credential-gated authenticated journeys. Browser binaries still need `pnpm playwright:install` in a fresh environment. |
+| Folder structure  | Implemented                        | API specs live beside source files; web component tests live under `apps/web/src/**/__tests__`; E2E has `e2e/smoke`, `e2e/public`, `e2e/artist`, `e2e/auth`.                                                   |
+| CI                | Wired                              | `.github/workflows/ci.yml` runs typecheck, API coverage, web coverage, build, staging E2E, and production smoke using package scripts.                                                                         |
 
 ## Folder Structure
 
@@ -43,6 +43,9 @@ apps/web/
 
 e2e/
   auth/*.setup.ts
+  auth/*.spec.ts
+  business/*.spec.ts
+  critical/*.spec.ts
   smoke/*.spec.ts
   public/*.spec.ts
   artist/*.spec.ts
@@ -158,19 +161,24 @@ Intended tooling:
 Config and specs currently present:
 
 - `playwright.config.ts`
+- `e2e/auth/login-signup.spec.ts`
+- `e2e/business/public-business-journey.spec.ts`
+- `e2e/critical/artist-onboarding-upload-navigation.spec.ts`
 - `e2e/smoke/homepage.spec.ts`
 - `e2e/public/artist-page.spec.ts`
 - `e2e/artist/dashboard.spec.ts`
 - `e2e/artist/page-editor.spec.ts`
 - `e2e/auth/auth.setup.ts`
 
-Current gap:
+Current status:
 
 - Root `package.json` exposes `test:e2e`, `test:e2e:smoke`, and
   `playwright:install`.
 - `@playwright/test` is installed as a root dev dependency.
-- Auth setup is still a placeholder until staging test credentials are
-  available.
+- WorkOS-backed authenticated journeys are enabled only when `E2E_AUTH_EMAIL`
+  and `E2E_AUTH_PASSWORD` are configured.
+- Mutating onboarding/upload journeys are guarded by `E2E_RUN_ONBOARDING=true`
+  and `E2E_RUN_UPLOAD=true`.
 
 Recommended scripts:
 
@@ -222,3 +230,7 @@ Section 2 unit-test expansion is tracked in:
 Section 3 integration-test expansion is tracked in:
 
 - `docs/integration-api-testing-section-3.md`
+
+Section 4 E2E expansion is tracked in:
+
+- `docs/e2e-testing-section-4.md`
