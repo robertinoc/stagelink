@@ -56,7 +56,12 @@ export async function apiFetch(
   options: RequestInit & { accessToken: string },
 ): Promise<Response> {
   const { accessToken, ...fetchOptions } = options;
-  const apiUrl = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4001';
+  // API_URL is a private server-only variable (not exposed to the browser bundle).
+  // Prefer it over NEXT_PUBLIC_API_URL for server-side fetches so the Railway
+  // service URL never leaks into the client bundle.
+  // Falls back to NEXT_PUBLIC_API_URL for local dev parity, then localhost.
+  const apiUrl =
+    process.env['API_URL'] ?? process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4001';
 
   return fetch(`${apiUrl}${path}`, {
     ...fetchOptions,
