@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { withAuth, getSignInUrl } from '@workos-inc/authkit-nextjs';
+import { withAuth, getSignUpUrl } from '@workos-inc/authkit-nextjs';
 import { SignupForm } from '@/features/auth/components/SignupForm';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,19 +25,22 @@ export default async function SignupPage({ params }: SignupPageProps) {
 
   /**
    * Server Action: generates the WorkOS authorization URL and redirects.
-   * Sign-up and sign-in both go through the same WorkOS hosted auth UI.
    *
-   * Passing `returnTo: /${locale}/dashboard` stores the locale-aware path in the
-   * PKCE state cookie. handleAuth() reads it and redirects there after the user
-   * completes sign-up, ensuring they land on the correct locale.
+   * getSignUpUrl() sets screenHint: 'sign-up' internally, so WorkOS opens
+   * the "Create account" screen directly instead of the sign-in screen.
+   * This avoids the confusing step where a new user clicks "Create account"
+   * on StageLink but lands on the WorkOS sign-in screen first.
+   *
+   * returnTo stores the locale-aware path in the PKCE state cookie so the
+   * user lands on the correct locale after completing sign-up.
    * Dashboard will redirect to onboarding for brand-new users (no artist profile).
    *
    * See login/page.tsx for the full explanation of the Server Action pattern.
    */
-  async function startSignIn() {
+  async function startSignUp() {
     'use server';
-    const signInUrl = await getSignInUrl({ returnTo: `/${locale}/dashboard` });
-    redirect(signInUrl);
+    const signUpUrl = await getSignUpUrl({ returnTo: `/${locale}/dashboard` });
+    redirect(signUpUrl);
   }
 
   return (
@@ -46,7 +49,7 @@ export default async function SignupPage({ params }: SignupPageProps) {
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t('subtitle')}</p>
       </div>
-      <SignupForm action={startSignIn} locale={locale} />
+      <SignupForm action={startSignUp} locale={locale} />
     </div>
   );
 }
