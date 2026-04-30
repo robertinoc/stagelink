@@ -150,7 +150,8 @@ docs/
 ├── plan-feature-gating.md         # effectivePlan, entitlements y patrón de gating por plan (T5-2)
 ├── billing-ui-and-upgrade-flows.md # Billing dashboard, upgrade flows y retornos desde Stripe (T5-3)
 ├── qa-testing-infrastructure.md   # Testing pyramid, scripts, CI, coverage y entorno QA base
-└── unit-testing-section-2.md      # Unit tests backend/frontend agregados en Sección 2
+├── unit-testing-section-2.md      # Unit tests backend/frontend agregados en Sección 2
+└── integration-api-testing-section-3.md # Integration tests API + DB agregados en Sección 3
 ```
 
 ---
@@ -168,6 +169,7 @@ pnpm test             # Tests en todos los workspaces
 pnpm test:api         # Jest API unit tests
 pnpm test:web         # Vitest + React Testing Library web unit tests
 pnpm test:api:coverage # API coverage report
+pnpm test:api:integration # API integration tests contra PostgreSQL test DB
 pnpm test:web:coverage # Web coverage report
 
 # Por workspace:
