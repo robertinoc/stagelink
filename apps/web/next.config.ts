@@ -13,9 +13,9 @@ const imagesHostname = process.env.NEXT_PUBLIC_IMAGES_HOSTNAME;
 
 /**
  * Canonical production domain.
- * All other hostnames either redirect here (www, .art) or are noindexed (Vercel URL).
+ * All other hostnames either redirect here (www, .link) or are noindexed (Vercel URL).
  */
-const CANONICAL_DOMAIN = 'stagelink.link';
+const CANONICAL_DOMAIN = 'stagelink.art';
 
 /**
  * Vercel deployment URL — not the canonical domain.
@@ -58,21 +58,21 @@ const nextConfig: NextConfig = {
    * assigning the domains to the project.
    *
    * Covered:
-   *   www.stagelink.link  → stagelink.link  (naked canonical)
-   *   stagelink.art       → stagelink.link  (old domain)
-   *   www.stagelink.art   → stagelink.link  (old domain + www)
+   *   stagelink.link      → stagelink.art  (old domain → canonical)
+   *   www.stagelink.link  → stagelink.art  (old domain www → canonical)
+   *   www.stagelink.art   → stagelink.art  (naked canonical)
    */
   async redirects() {
     return [
       {
         source: '/:path*',
-        has: [{ type: 'host', value: 'www\\.stagelink\\.link' }],
+        has: [{ type: 'host', value: 'stagelink\\.link' }],
         destination: `https://${CANONICAL_DOMAIN}/:path*`,
         permanent: true,
       },
       {
         source: '/:path*',
-        has: [{ type: 'host', value: 'stagelink\\.art' }],
+        has: [{ type: 'host', value: 'www\\.stagelink\\.link' }],
         destination: `https://${CANONICAL_DOMAIN}/:path*`,
         permanent: true,
       },
