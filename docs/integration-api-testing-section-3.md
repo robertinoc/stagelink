@@ -4,7 +4,8 @@ Status: implemented
 Last checked: 2026-04-30
 
 This section adds the first dedicated API integration-test layer. The suite now
-contains both DB-backed integration tests and HTTP API contract tests.
+contains DB-backed integration tests, HTTP API contract tests and async-flow
+coverage for webhooks plus scheduled jobs.
 
 ## Scope
 
@@ -49,6 +50,29 @@ The API contract suite uses:
 - Mocked services and test guards, so the suite validates API wiring without
   network or database dependencies
 
+### 3.3 Webhooks / Async Jobs Testing
+
+Implemented test coverage:
+
+| Flow                        | File                                                       | What It Validates                                                                                                                                |
+| --------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Stripe webhook idempotency  | `apps/api/src/modules/billing/billing.service.spec.ts`     | Duplicate Stripe events are skipped by `stripe_event_id`; stale out-of-order events do not overwrite newer subscription state.                   |
+| Stripe webhook retry safety | `apps/api/src/modules/billing/billing.service.spec.ts`     | Subscription mutation failures are propagated so Stripe can retry; invoice-backed lookup failures happen before recording an event as processed. |
+| Ignored webhook events      | `apps/api/src/modules/billing/billing.service.spec.ts`     | Unsupported Stripe event types acknowledge receipt without opening a mutation transaction or writing `stripe_webhook_events`.                    |
+| Scheduled insights jobs     | `apps/api/src/modules/insights/insights.scheduler.spec.ts` | Daily batches skip overlapping runs, continue after thrown failures and continue after handled per-connection failures.                          |
+| Scheduled sync retry target | `apps/api/src/modules/insights/insights.service.spec.ts`   | Connected stale connections, including previously errored ones, are selected for scheduled retry processing.                                     |
+| Scheduled sync persistence  | `apps/api/src/modules/insights/insights.service.spec.ts`   | Successful jobs return `true`; provider failures return `false` while persisting `lastSyncStatus='error'` and a normalized error message.        |
+
+Current async architecture:
+
+- Stripe billing webhooks are the only external webhook handler in production
+  scope today.
+- StageLink Insights uses a Nest scheduler as the current background job
+  processor. It does not use Redis/BullMQ/SQS or a dedicated queue worker yet.
+- Queue-processing test coverage should be added when a real queue abstraction
+  is introduced. Until then, async coverage maps to webhook transactions,
+  scheduler batching, idempotency, retry signaling and failure persistence.
+
 ## Commands
 
 Run locally after starting/creating a local Postgres test database:
@@ -83,6 +107,16 @@ pnpm --filter @stagelink/api exec jest \
   --runInBand
 ```
 
+To run the async-flow unit coverage added for 3.3:
+
+```bash
+pnpm --filter @stagelink/api exec jest \
+  src/modules/billing/billing.service.spec.ts \
+  src/modules/insights/insights.scheduler.spec.ts \
+  src/modules/insights/insights.service.spec.ts \
+  --runInBand
+```
+
 ## CI
 
 `.github/workflows/ci.yml` now includes an `API integration tests` job that:
@@ -104,6 +138,8 @@ green if the API integration flow fails.
 Checked on 2026-04-30:
 
 - `pnpm typecheck` passes.
+- `pnpm --filter @stagelink/api exec jest src/modules/billing/billing.service.spec.ts src/modules/insights/insights.scheduler.spec.ts src/modules/insights/insights.service.spec.ts --runInBand`
+  passes with webhook, scheduler and scheduled-sync job coverage.
 - `pnpm --filter @stagelink/api exec jest --config ./jest.integration.config.ts --runTestsByPath src/test/api-contract.integration-spec.ts --runInBand`
   passes with 142 API contract tests.
 - `pnpm --filter @stagelink/api exec jest --config ./jest.integration.config.ts --listTests`

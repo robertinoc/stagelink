@@ -1122,6 +1122,154 @@ describe('InsightsService', () => {
     });
   });
 
+  describe('scheduled sync jobs', () => {
+    it('finds connected stale connections for scheduled retry processing', async () => {
+      const staleErroredConnection = {
+        id: 'conn_error',
+        artistId: 'artist_123',
+        platform: 'spotify',
+        status: 'connected',
+        externalAccountId: 'spotify_artist_123',
+        lastSyncedAt: new Date('2026-04-20T00:00:00.000Z'),
+        lastSyncStatus: 'error',
+        lastSyncError: 'Spotify API quota exceeded',
+      };
+      prisma.artistPlatformInsightsConnection.findMany.mockResolvedValue([staleErroredConnection]);
+
+      const result = await service.findConnectionsDueForScheduledSync();
+
+      expect(prisma.artistPlatformInsightsConnection.findMany).toHaveBeenCalledWith({
+        where: {
+          status: 'connected',
+          externalAccountId: { not: null },
+          OR: [{ lastSyncedAt: null }, { lastSyncedAt: { lt: expect.any(Date) } }],
+        },
+        orderBy: [{ lastSyncedAt: 'asc' }],
+      });
+      expect(result).toEqual([staleErroredConnection]);
+    });
+
+    it('returns true when the scheduled job syncs a connection successfully', async () => {
+      const connection = {
+        id: 'conn_spotify',
+        artistId: 'artist_123',
+        platform: 'spotify',
+        status: 'connected',
+        connectionMethod: 'reference',
+        displayName: 'Stage Artist',
+        externalAccountId: 'spotify_artist_123',
+        externalHandle: null,
+        externalUrl: null,
+        scopes: [],
+        accessToken: null,
+        refreshToken: null,
+        tokenExpiresAt: null,
+        metadata: {},
+        lastSyncStartedAt: null,
+        lastSyncedAt: null,
+        lastSyncStatus: 'never',
+        lastSyncError: null,
+        createdAt: new Date('2026-04-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-04-01T00:00:00.000Z'),
+      };
+
+      spotifyProvider.syncLatestSnapshot.mockResolvedValue({
+        capturedAt: '2026-04-30T10:00:00.000Z',
+        profile: {
+          displayName: 'Stage Artist',
+          externalUrl: 'https://open.spotify.com/artist/123',
+          imageUrl: 'https://cdn.example.com/artist.jpg',
+        },
+        metrics: { followers: 1000 },
+        topContent: [{ title: 'Lead Single' }],
+      });
+
+      prisma.artistPlatformInsightsSnapshot.create.mockResolvedValue({
+        id: 'snapshot_123',
+        artistId: 'artist_123',
+        connectionId: 'conn_spotify',
+        platform: 'spotify',
+        capturedAt: new Date('2026-04-30T10:00:00.000Z'),
+        profile: {},
+        metrics: {},
+        topContent: [],
+        notes: [],
+      });
+      prisma.artistPlatformInsightsConnection.update
+        .mockResolvedValueOnce({ ...connection, lastSyncStatus: 'pending' })
+        .mockResolvedValueOnce({
+          ...connection,
+          displayName: 'Stage Artist',
+          externalUrl: 'https://open.spotify.com/artist/123',
+          lastSyncedAt: new Date('2026-04-30T10:00:00.000Z'),
+          lastSyncStatus: 'success',
+          updatedAt: new Date('2026-04-30T10:00:00.000Z'),
+        });
+
+      await expect(service.syncConnectionByRecord(connection as never)).resolves.toBe(true);
+
+      expect(spotifyProvider.syncLatestSnapshot).toHaveBeenCalledWith({
+        externalAccountId: 'spotify_artist_123',
+        externalHandle: null,
+        externalUrl: null,
+        metadata: {},
+      });
+      expect(auditService.log).not.toHaveBeenCalled();
+    });
+
+    it('returns false and persists failure metadata when a scheduled provider sync fails', async () => {
+      const connection = {
+        id: 'conn_spotify',
+        artistId: 'artist_123',
+        platform: 'spotify',
+        status: 'connected',
+        externalAccountId: 'spotify_artist_123',
+        externalHandle: null,
+        externalUrl: null,
+        metadata: {},
+        lastSyncStartedAt: null,
+        lastSyncedAt: new Date('2026-04-20T00:00:00.000Z'),
+        lastSyncStatus: 'error',
+        lastSyncError: 'previous failure',
+      };
+
+      spotifyProvider.syncLatestSnapshot.mockRejectedValue(new Error('provider unavailable'));
+
+      await expect(service.syncConnectionByRecord(connection as never)).resolves.toBe(false);
+
+      expect(prisma.artistPlatformInsightsConnection.update).toHaveBeenNthCalledWith(1, {
+        where: { id: 'conn_spotify' },
+        data: {
+          lastSyncStartedAt: expect.any(Date),
+          lastSyncStatus: 'pending',
+          lastSyncError: null,
+        },
+      });
+      expect(prisma.artistPlatformInsightsConnection.update).toHaveBeenNthCalledWith(2, {
+        where: { id: 'conn_spotify' },
+        data: {
+          status: 'connected',
+          lastSyncStartedAt: expect.any(Date),
+          lastSyncStatus: 'error',
+          lastSyncError: 'Could not sync Spotify insights right now',
+        },
+      });
+      expect(auditService.log).not.toHaveBeenCalled();
+    });
+
+    it('returns false when a queued connection has no registered provider', async () => {
+      await expect(
+        service.syncConnectionByRecord({
+          id: 'conn_unknown',
+          artistId: 'artist_123',
+          platform: 'unknown',
+        } as never),
+      ).resolves.toBe(false);
+
+      expect(prisma.artistPlatformInsightsConnection.update).not.toHaveBeenCalled();
+    });
+  });
+
   describe('getSyncHealth()', () => {
     it('returns health items for all connected connections', async () => {
       billingEntitlementsService.assertFeatureAccess.mockResolvedValue(undefined);

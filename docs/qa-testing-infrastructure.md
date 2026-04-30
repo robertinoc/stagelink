@@ -1,7 +1,7 @@
 # StageLink — QA Testing Infrastructure
 
 Status: complete for base infrastructure
-Last checked: 2026-04-29
+Last checked: 2026-04-30
 
 This document tracks the actual testing infrastructure currently present in the
 repo. It is intentionally factual: it separates what runs locally today from the
@@ -22,11 +22,11 @@ Original setup request:
 
 | Area              | Status                             | Notes                                                                                                                                                                       |
 | ----------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API unit tests    | Implemented and running            | NestJS/Jest suite passes locally with service, helper, utility and error-path coverage.                                                                                     |
+| API unit tests    | Implemented and running            | NestJS/Jest suite passes locally with service, helper, utility, webhook, scheduler and error-path coverage.                                                                 |
 | Web unit tests    | Implemented and running            | Vitest + React Testing Library are configured and now include component tests under `apps/web/src/**/__tests__`.                                                            |
 | Integration tests | Implemented as dedicated API layer | `pnpm test:api:integration` runs NestJS + Prisma integration specs against PostgreSQL. CI provisions a Postgres 16 service and applies migrations before the suite.         |
 | E2E tests         | Wired                              | `playwright.config.ts`, `e2e/**/*.spec.ts`, root scripts, and `@playwright/test` are present. Browser binaries still need `pnpm playwright:install` in a fresh environment. |
-| Folder structure  | Partially implemented              | API specs live beside source files; E2E has `e2e/smoke`, `e2e/public`, `e2e/artist`, `e2e/auth`; web test folder convention is configured but no tests exist yet.           |
+| Folder structure  | Implemented                        | API specs live beside source files; web component tests live under `apps/web/src/**/__tests__`; E2E has `e2e/smoke`, `e2e/public`, `e2e/artist`, `e2e/auth`.                |
 | CI                | Wired                              | `.github/workflows/ci.yml` runs typecheck, API coverage, web coverage, build, staging E2E, and production smoke using package scripts.                                      |
 
 ## Folder Structure
@@ -70,12 +70,16 @@ Current local command:
 pnpm --filter @stagelink/api test
 ```
 
-Last local result after Section 2 unit-test expansion:
+Last local result after Section 3.3 async-flow expansion:
 
 ```text
 Test Suites: 26 passed, 26 total
-Tests:       238 passed, 238 total
+Tests:       246 passed, 246 total
 ```
+
+Section 3.3 added focused async-flow coverage for Stripe webhooks, retry
+signaling, scheduled StageLink Insights jobs and stale/error sync retry
+eligibility.
 
 ## Web Unit Testing
 
@@ -127,6 +131,10 @@ Current status:
 - The API contract suite validates all current API routes for success status,
   authentication, representative authorization, DTO validation, malformed IDs,
   content types, and shared error-envelope consistency.
+- Async-flow tests validate Stripe webhook idempotency/retry behavior and the
+  current StageLink Insights scheduler/job processor. There is no dedicated
+  queue worker yet; queue-specific tests should be added when that
+  infrastructure exists.
 
 Current command:
 
@@ -139,6 +147,7 @@ Recommended next integration targets:
 - Billing entitlement gates.
 - Subscriber writes.
 - Upload-intent validation.
+- Dedicated queue worker behavior once StageLink introduces a queue backend.
 
 ## E2E Testing
 
@@ -185,7 +194,7 @@ Recommended scripts:
 
 ## Local Run Status
 
-Commands checked on 2026-04-29:
+Commands checked on 2026-04-30:
 
 | Command                          | Result                                                                                                                     |
 | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |

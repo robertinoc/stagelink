@@ -8,7 +8,7 @@ describe('InsightsSyncScheduler', () => {
     }> = {},
   ) => ({
     findConnectionsDueForScheduledSync: jest.fn().mockResolvedValue([]),
-    syncConnectionByRecord: jest.fn().mockResolvedValue(undefined),
+    syncConnectionByRecord: jest.fn().mockResolvedValue(true),
     ...overrides,
   });
 
@@ -61,6 +61,23 @@ describe('InsightsSyncScheduler', () => {
     await expect(scheduler.runDailySync()).resolves.toBeUndefined();
 
     expect(service.syncConnectionByRecord).toHaveBeenCalledTimes(2);
+  });
+
+  it('continues batch when a queued connection returns a handled failure', async () => {
+    const connections = [
+      { id: 'conn_1', platform: 'spotify', artistId: 'artist_1' },
+      { id: 'conn_2', platform: 'youtube', artistId: 'artist_2' },
+    ];
+    const service = makeService({
+      findConnectionsDueForScheduledSync: jest.fn().mockResolvedValue(connections),
+      syncConnectionByRecord: jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true),
+    });
+    const scheduler = new InsightsSyncScheduler(service as never);
+
+    await expect(scheduler.runDailySync()).resolves.toBeUndefined();
+
+    expect(service.syncConnectionByRecord).toHaveBeenCalledTimes(2);
+    expect(service.syncConnectionByRecord).toHaveBeenNthCalledWith(2, connections[1]);
   });
 
   it('skips the batch if a previous run is still in progress', async () => {
