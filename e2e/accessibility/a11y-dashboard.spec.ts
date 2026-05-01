@@ -51,7 +51,9 @@ test.describe('A11y — Dashboard (authenticated)', () => {
   test('settings submenu items have aria-current when active', async ({ page }) => {
     await page.goto('/en/dashboard/settings/plans-billing');
 
-    const activeChild = page.locator('[aria-current="page"]');
+    const activeChild = page.locator(
+      'aside a[href$="/dashboard/settings/plans-billing"][aria-current="page"]',
+    );
     await expect(activeChild).toHaveCount(1);
   });
 

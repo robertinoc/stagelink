@@ -315,7 +315,7 @@ export function LandingPage({ locale }: LandingPageProps) {
                   </div>
 
                   <div className="mt-3 text-center sm:mt-4">
-                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/95">
+                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-fuchsia-100">
                       {t.hero.previewLabel}
                     </div>
                     <h2 className="mt-2 text-[1.375rem] leading-[1.3] font-semibold sm:mt-3 sm:text-[1.625rem]">

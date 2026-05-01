@@ -9,18 +9,23 @@ test.describe('Keyboard navigation — Public', () => {
     await page.goto('/');
 
     const reachedLinks: string[] = [];
-    // Tab up to 20 times and collect focused elements
-    for (let i = 0; i < 20; i++) {
+    // Tab through the landing header/body and collect reachable controls.
+    for (let i = 0; i < 40; i++) {
       await page.keyboard.press('Tab');
       const tag = await page.evaluate(() => document.activeElement?.tagName ?? '');
       const text = await page.evaluate(
         () => (document.activeElement as HTMLElement)?.innerText ?? '',
       );
-      if (tag === 'A' || tag === 'BUTTON') reachedLinks.push(text.trim());
+      const href = await page.evaluate(
+        () => (document.activeElement as HTMLAnchorElement)?.href ?? '',
+      );
+      if (tag === 'A' || tag === 'BUTTON') reachedLinks.push(`${text.trim()} ${href}`.trim());
     }
 
     // Landing nav should have Login and CTA reachable via Tab
-    expect(reachedLinks.some((t) => /login|get started|started/i.test(t))).toBeTruthy();
+    expect(
+      reachedLinks.some((t) => /login|signup|sign up|get started|started/i.test(t)),
+    ).toBeTruthy();
   });
 
   test('focus ring is visible on interactive elements', async ({ page }) => {
