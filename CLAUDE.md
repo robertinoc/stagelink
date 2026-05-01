@@ -1,6 +1,6 @@
 # StageLink
 
-Plataforma tipo Linktree enfocada en artistas (músicos, DJs, creadores visuales). Permite crear una página pública personalizada en `stagelink.link/username` con links, embeds de música/video, analytics y tienda.
+Plataforma tipo Linktree enfocada en artistas (músicos, DJs, creadores visuales). Permite crear una página pública personalizada en `stagelink.io/username` con links, embeds de música/video, analytics y tienda.
 
 La página pública actual se apoya en una composición más rica que un simple listado de bloques:
 
@@ -132,7 +132,6 @@ packages/
 ├── ui/                     # Wrappers shadcn + primitivos custom
 └── config/                 # ESLint, tsconfig y prettier configs compartidas
 docs/
-├── local-filesystem.md          # Organización local del repo: worktrees archivados, artifacts y archivos sueltos ignorados
 ├── multi-tenant.md              # Decisiones arquitectónicas, política de username, caching, dominios
 ├── auth-workos.md               # Flujo auth, rutas, variables, provisioning, seguridad
 ├── assets-s3.md                 # Pipeline S3, CORS, IAM, object key strategy, MinIO local, QA checklist
@@ -187,13 +186,6 @@ pnpm data:restore:dry-run # Muestra comando pg_restore + validation sin ejecutar
 pnpm --filter @stagelink/web dev
 pnpm --filter @stagelink/api dev
 pnpm --filter @stagelink/web build
-pnpm --filter @stagelink/api exec jest --runInBand # API unit tests serializados
-pnpm --filter @stagelink/api exec jest --config ./jest.integration.config.ts --runTestsByPath src/test/api-contract.integration-spec.ts --runInBand # API contract suite
-pnpm --filter @stagelink/api exec jest src/modules/billing/billing.service.spec.ts src/modules/insights/insights.scheduler.spec.ts src/modules/insights/insights.service.spec.ts --runInBand # Webhooks + async jobs 3.3
-pnpm --filter @stagelink/api exec jest --runTestsByPath src/common/guards/rate-limit.guard.spec.ts # Security Section 6 rate-limit guards
-pnpm --filter @stagelink/web exec vitest run src/lib/__tests__/rate-limit.test.ts # Security Section 6 web rate limiter
-npx playwright test --project=auth-ui # E2E login/signup UI sin credenciales WorkOS
-npx playwright test --project=public # E2E journeys públicos con E2E_DEMO_ARTIST
 
 # DB (requiere DB local corriendo):
 pnpm --filter @stagelink/api db:migrate      # prisma migrate dev
@@ -781,61 +773,63 @@ docs/brand/
 
 ## QA & Testing
 
-### Infraestructura de Testing
+### Infraestructura
 
-| Capa                | Herramienta           | Ubicación                                      |
-| ------------------- | --------------------- | ---------------------------------------------- |
-| API unit tests      | Jest + ts-jest        | `apps/api/src/**/*.spec.ts`                    |
-| Web unit tests      | Vitest + RTL          | `apps/web/src/**/__tests__/**/*.test.{ts,tsx}` |
-| E2E / Accesibilidad | Playwright + axe-core | `e2e/**/*.spec.ts`                             |
-| CI/CD               | GitHub Actions        | `.github/workflows/ci.yml`                     |
+| Capa       | Framework          | Ubicación                                   | Comando                                      |
+| ---------- | ------------------ | ------------------------------------------- | -------------------------------------------- |
+| Unit (API) | Jest 29 + ts-jest  | `apps/api/src/**/*.spec.ts`                 | `pnpm --filter @stagelink/api test`          |
+| Unit (Web) | Vitest 4 + jsdom   | `apps/web/src/__tests__/**/*.test.{ts,tsx}` | `pnpm --filter @stagelink/web test`          |
+| Todos      | —                  | Monorepo root                               | `pnpm test`                                  |
+| E2E        | Playwright         | `e2e/`                                      | `pnpm playwright test`                       |
+| Cobertura  | Vitest coverage-v8 | `apps/web/coverage/`                        | `pnpm --filter @stagelink/web test:coverage` |
 
-**Comandos:**
+### Convenciones
 
-```bash
-pnpm test                  # todos los unit tests (recursivo)
-pnpm test:api              # API unit tests
-pnpm test:web              # Web unit tests
-pnpm test:e2e              # E2E completo (requiere dev server)
-pnpm test:e2e:smoke        # Solo smoke tests (safe en producción)
-```
+- **Vitest** (Web): `src/__tests__/<mirror-de-src>/<nombre>.test.ts(x)` — sin globals, imports explícitos de `vitest`
+- **Jest** (API): `<módulo>.spec.ts` colocado junto al archivo fuente
+- Usar `vi.mock()` / `jest.mock()` para dependencias externas (APIs, red, DB)
+- Hooks de React: testear con `renderHook` + `act` + `vi.runAllTimersAsync()` cuando hay debounce/timers falsos
+- Tests de Zod schemas: siempre cubrir happy path + cada validación custom de `superRefine`
 
-### Accesibilidad (WCAG 2.1 AA)
+### Archivos de test (Web — Vitest)
 
-**Fixes aplicados (2026-05-01):**
+| Archivo                                                       | Qué cubre                                                                                                  |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `src/__tests__/lib/utils.test.ts`                             | `cn()` — clsx + tailwind-merge, falsy values, conflictos                                                   |
+| `src/__tests__/lib/detect-locale.test.ts`                     | `detectLocale()`, `resolvePreferredLocale()` — headers, cookies, fallbacks                                 |
+| `src/__tests__/lib/rate-limit.test.ts`                        | `checkRateLimit()` — ventanas, bloqueo, reset, aislamiento por namespace                                   |
+| `src/__tests__/lib/analytics/consent.test.ts`                 | `readConsentCookie()`, `isAnalyticsAllowed()`, `setConsentCookie()`, `getConsentHeaderValue()`             |
+| `src/__tests__/features/insights/computeInsights.test.ts`     | `computeInsights()` — 4 reglas (fastest_growing, top_content, momentum, newly_connected), cap MAX_CALLOUTS |
+| `src/__tests__/features/epk/epk.schema.test.ts`               | `epkFormSchema`, `epkFeaturedMediaSchema`, `epkFeaturedLinkSchema` — validación Zod + superRefine          |
+| `src/__tests__/features/onboarding/useUsernameCheck.test.tsx` | `useUsernameCheck()` — debounce, estados, mock API, normalización                                          |
 
-| Componente         | Fix                                                                                          | WCAG  |
-| ------------------ | -------------------------------------------------------------------------------------------- | ----- |
-| `LoadingState.tsx` | `role="status"` + `aria-label="Loading"` + `aria-hidden` en spinner                          | 4.1.3 |
-| `AppSidebar.tsx`   | `aria-current="page"` en link activo, `aria-hidden="true"` en iconos Lucide                  | 4.1.2 |
-| `AppSidebar.tsx`   | Settings submenu con `role="list"` + `aria-label` + `aria-current` en hijos                  | 4.1.2 |
-| `Navbar.tsx`       | `aria-expanded` + `aria-controls` en botón mobile, `id` en panel, `aria-label` en nav mobile | 4.1.2 |
-| `badge.tsx`        | Cambiado de `<div>` a `<span>` (elemento inline correcto)                                    | 1.3.1 |
-| `globals.css`      | `--muted-foreground` subido de `rgba(255,255,255,0.5)` a `0.6` para pasar ratio 4.5:1        | 1.4.3 |
+### Archivos de test (API — Jest)
 
-**Puntos fuertes existentes:**
+| Archivo                              | Qué cubre                                                                           |
+| ------------------------------------ | ----------------------------------------------------------------------------------- |
+| `common/utils/username.util.spec.ts` | `normalizeUsername()`, `validateUsernameFormat()`, `normalizeAndValidateUsername()` |
+| `common/utils/locale.util.spec.ts`   | `detectLocale()` — q-values, prefixes, fallbacks                                    |
 
-- Focus ring global (`outline: 2px fuchsia, offset: 3px`) — excelente visibilidad
-- `prefers-reduced-motion` implementado en todas las animaciones
-- HTML semántico correcto (`<header>`, `<nav>`, `<main>`, `<aside>`, `<footer>`)
-- Radix UI maneja focus trap y Escape en dialogs/sheets
-- `aria-disabled` en botones durante submit asíncrono
+### CI/CD
 
-**Tests de accesibilidad E2E:**
+Pipeline GitHub Actions en `.github/workflows/ci.yml`:
 
-- `e2e/accessibility/a11y-public.spec.ts` — landing, login, signup (axe WCAG AA)
-- `e2e/accessibility/a11y-dashboard.spec.ts` — dashboard, editor, analytics (axe WCAG AA)
-- `e2e/accessibility/a11y-keyboard.spec.ts` — navegación por Tab, focus ring, activación por teclado
+| Job         | Trigger        | Descripción                                         |
+| ----------- | -------------- | --------------------------------------------------- |
+| `typecheck` | push/PR → main | `pnpm -r typecheck` en todos los paquetes           |
+| `api-tests` | push/PR → main | Jest + reporte JUnit con anotaciones de PR          |
+| `web-tests` | push/PR → main | Vitest + coverage + comentario en PR                |
+| `build`     | push/PR → main | Next.js build (requiere que los 3 anteriores pasen) |
 
-**Documentación completa:** `docs/qa/ui-ux-accessibility-audit.md`
+### Accesibilidad (Sección 5)
 
-### Convenciones de Nomenclatura de Tests
+Tests E2E en `e2e/accessibility/`:
 
-- Unit: `src/**/__tests__/**/<subject>.test.ts` (API: `src/**/*.spec.ts`)
-- Componentes: `src/**/__tests__/**/<subject>.component.test.tsx`
-- Integration: `src/**/__tests__/**/<subject>.integration.test.ts`
-- E2E: `e2e/<dominio>/<subject>.spec.ts`
-- A11y: `e2e/accessibility/a11y-<scope>.spec.ts`
+| Archivo                  | Cobertura                                                                 |
+| ------------------------ | ------------------------------------------------------------------------- |
+| `a11y-public.spec.ts`    | Landing, login, signup — axe WCAG AA, jerarquía de headings, keyboard nav |
+| `a11y-dashboard.spec.ts` | Dashboard, page editor, analytics — axe WCAG AA, aria-current, foco móvil |
+| `a11y-keyboard.spec.ts`  | Tab navigation, focus ring, activación de menú móvil con teclado          |
 
 ---
 
