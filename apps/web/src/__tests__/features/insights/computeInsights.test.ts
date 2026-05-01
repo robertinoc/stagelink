@@ -55,6 +55,7 @@ function makePlatform(
       lastSyncStatus: 'success',
       lastSyncError: null,
       createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+      updatedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     },
     latestSnapshot: null,
     history: [],
@@ -192,9 +193,9 @@ describe('computeInsights()', () => {
       const topContent = [makeTopContent()];
       const platform = makePlatform({
         latestSnapshot: {
-          id: 'snap-1',
-          platformConnectionId: 'conn-1',
+          platform: 'spotify',
           capturedAt: new Date().toISOString(),
+          profile: { displayName: null, imageUrl: null, externalUrl: null },
           metrics: {},
           topContent,
         },
@@ -210,9 +211,9 @@ describe('computeInsights()', () => {
     it('does NOT emit top_content when topContent array is empty', () => {
       const platform = makePlatform({
         latestSnapshot: {
-          id: 'snap-1',
-          platformConnectionId: 'conn-1',
+          platform: 'spotify',
           capturedAt: new Date().toISOString(),
+          profile: { displayName: null, imageUrl: null, externalUrl: null },
           metrics: {},
           topContent: [],
         },
@@ -289,9 +290,9 @@ describe('computeInsights()', () => {
           createdAt: new Date('2024-01-30T12:00:00Z').toISOString(), // 2 days ago
         },
         latestSnapshot: {
-          id: 'snap-1',
-          platformConnectionId: 'conn-1',
+          platform: 'spotify',
           capturedAt: new Date().toISOString(),
+          profile: { displayName: null, imageUrl: null, externalUrl: null },
           metrics: {},
           topContent: [],
         },
@@ -309,9 +310,9 @@ describe('computeInsights()', () => {
           createdAt: new Date('2024-01-10T12:00:00Z').toISOString(), // 22 days ago
         },
         latestSnapshot: {
-          id: 'snap-1',
-          platformConnectionId: 'conn-1',
+          platform: 'spotify',
           capturedAt: new Date().toISOString(),
+          profile: { displayName: null, imageUrl: null, externalUrl: null },
           metrics: {},
           topContent: [],
         },
@@ -348,9 +349,9 @@ describe('computeInsights()', () => {
           createdAt: new Date('2024-01-30T12:00:00Z').toISOString(), // newly_connected
         },
         latestSnapshot: {
-          id: 'snap-1',
-          platformConnectionId: 'conn-1',
+          platform: 'spotify',
           capturedAt: new Date().toISOString(),
+          profile: { displayName: null, imageUrl: null, externalUrl: null },
           metrics: {},
           topContent: [makeTopContent()], // top_content
         },
