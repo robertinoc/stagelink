@@ -304,6 +304,26 @@ seeded with `pnpm --filter @stagelink/api db:seed`.
 
 ---
 
+## 18. Data & Reliability Probes
+
+**Goal:** Validate Section 8 data correctness and recovery readiness.
+
+1. Run data validation against local or staging:
+   `DATABASE_URL={db-url} pnpm data:validate`.
+2. ✅ Verify: The command exits `0` and reports `StageLink data integrity: pass`.
+3. If findings appear, review `docs/data-reliability-section-8.md` for severity and remediation order.
+4. Run backup dry-run:
+   `DATABASE_URL={db-url} pnpm data:backup:dry-run`.
+5. ✅ Verify: The printed command uses `pg_dump --format=custom --no-owner --no-acl`.
+6. Run backup during an approved staging window:
+   `DATABASE_URL={db-url} pnpm data:backup -- --execute --output-dir backups`.
+7. ✅ Verify: A `.dump` file is created outside git and its path/timestamp are recorded.
+8. Restore into a disposable local/approved database:
+   `TARGET_DATABASE_URL=postgresql://localhost:5432/stagelink_restore pnpm data:restore:check -- --execute --backup {dump-file}`.
+9. ✅ Verify: Restore completes, post-restore `pnpm data:validate` passes, and critical row counts match the source snapshot.
+
+---
+
 ## Critical Edge Cases Checklist
 
 - [ ] Artist with no published blocks → public page shows empty state (not 500)
@@ -318,6 +338,8 @@ seeded with `pnpm --filter @stagelink/api db:seed`.
 - [ ] Security Section 6: Review `docs/security-testing-section-6.md` and validate WorkOS brute-force settings before final launch sign-off.
 - [ ] Performance Section 7: `pnpm perf:load` passes against staging before launch sign-off.
 - [ ] Performance Section 7: `pnpm perf:stress` is never run against production without `PERF_ALLOW_PROD_STRESS=true` and an approved test window.
+- [ ] Data Section 8: `pnpm data:validate` passes against staging before launch sign-off.
+- [ ] Data Section 8: first backup/restore drill is run only after the full testing plan is complete and uses a disposable restore DB.
 
 ---
 

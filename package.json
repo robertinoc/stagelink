@@ -25,6 +25,11 @@
     "perf:load": "node scripts/performance/run-performance.mjs --profile load",
     "perf:stress": "node scripts/performance/run-performance.mjs --profile stress",
     "perf:scalability": "node scripts/performance/run-performance.mjs --profile scalability",
+    "data:validate": "node scripts/data/run-data-integrity.mjs",
+    "data:backup:dry-run": "bash scripts/data/backup-recovery.sh backup",
+    "data:backup": "bash scripts/data/backup-recovery.sh backup",
+    "data:restore:dry-run": "bash scripts/data/backup-recovery.sh restore-check",
+    "data:restore:check": "bash scripts/data/backup-recovery.sh restore-check",
     "playwright:install": "playwright install --with-deps chromium",
     "prepare": "husky"
   },

@@ -28,6 +28,7 @@ Original setup request:
 | E2E tests         | Expanded                           | Playwright now has smoke, auth UI, public business journeys, mobile public journeys and credential-gated authenticated journeys. Browser binaries still need `pnpm playwright:install` in a fresh environment. |
 | Security tests    | Implemented                        | Section 6 adds API contract security probes, API/web rate-limit regression tests, and CUID validation fixes for public SmartLinks and subscriber routes.                                                       |
 | Performance tests | Implemented as manual QA tooling   | Section 7 adds a dependency-free Node runner for load, stress and scalability profiles with thresholds, JSON output and production-stress guardrails.                                                          |
+| Data reliability  | Implemented as manual QA tooling   | Section 8 adds SQL data integrity checks, backup/restore dry-runs, restore-check validation and integration reset coverage against the Prisma schema.                                                          |
 | Folder structure  | Implemented                        | API specs live beside source files; web component tests live under `apps/web/src/**/__tests__`; E2E has `e2e/smoke`, `e2e/public`, `e2e/artist`, `e2e/auth`.                                                   |
 | CI                | Wired                              | `.github/workflows/ci.yml` runs typecheck, API coverage, web coverage, build, staging E2E, and production smoke using package scripts.                                                                         |
 
@@ -58,6 +59,9 @@ e2e/
 
 scripts/
   performance/run-performance.mjs
+  data/data-integrity.sql
+  data/run-data-integrity.mjs
+  data/backup-recovery.sh
 ```
 
 ## API Unit Testing
@@ -152,6 +156,33 @@ PERF_WEB_URL=https://staging.stagelink.link PERF_API_URL=https://staging-api.exa
 Section 7 performance testing is tracked in:
 
 - `docs/performance-testing-section-7.md`
+
+## Data Reliability Testing
+
+Current status:
+
+- Root scripts expose `pnpm data:validate`, `pnpm data:backup:dry-run`,
+  `pnpm data:backup`, `pnpm data:restore:dry-run`, and
+  `pnpm data:restore:check`.
+- `scripts/data/data-integrity.sql` checks integrity, consistency and duplicate
+  conditions across core StageLink tables.
+- `scripts/data/backup-recovery.sh` defaults to dry-run and refuses unsafe
+  restore targets unless explicitly approved.
+- Integration DB reset now truncates every mapped Prisma model table, and
+  `apps/api/src/test/integration-db.spec.ts` verifies the reset list stays
+  aligned with the schema.
+
+Current commands:
+
+```bash
+DATABASE_URL=postgresql://localhost:5432/stagelink_test pnpm data:validate
+DATABASE_URL=postgresql://localhost:5432/stagelink_test pnpm data:backup:dry-run
+TARGET_DATABASE_URL=postgresql://localhost:5432/stagelink_restore pnpm data:restore:dry-run -- --backup backups/example.dump
+```
+
+Section 8 data/reliability testing is tracked in:
+
+- `docs/data-reliability-section-8.md`
 
 ## Integration Testing
 
@@ -285,3 +316,7 @@ Section 6 security testing is tracked in:
 Section 7 performance testing is tracked in:
 
 - `docs/performance-testing-section-7.md`
+
+Section 8 data/reliability testing is tracked in:
+
+- `docs/data-reliability-section-8.md`
