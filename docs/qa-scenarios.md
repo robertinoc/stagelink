@@ -268,3 +268,10 @@ seeded with `pnpm --filter @stagelink/api db:seed`.
 - [ ] X-Request-ID: Present on every API response header
 - [ ] EPK with 0 highlights → "Add highlight" button is visible (regression check)
 - [ ] EPK with 6 media items → "Add media link" button is hidden (max reached)
+
+---
+
+## Known QA Follow-ups
+
+- [ ] Review WorkOS hosted-auth flakiness in staging E2E before final launch sign-off.
+      Current status: non-blocking. The `main` CI run after PR #213 passed staging E2E and production smoke, but Playwright reported one flaky retry in `e2e/auth/auth.setup.ts` before succeeding. If this repeats, consider replacing hosted UI login in CI with a more deterministic authenticated setup flow or increasing auth setup observability.
