@@ -19,6 +19,18 @@ const authenticatedProjects: Project[] = hasE2EAuthCredentials
         },
         dependencies: ['setup'],
       },
+      {
+        name: 'accessibility-authenticated',
+        testMatch: [
+          '**/accessibility/a11y-dashboard.spec.ts',
+          '**/accessibility/a11y-keyboard-dashboard.spec.ts',
+        ],
+        use: {
+          ...devices['Desktop Chrome'],
+          storageState: 'e2e/.auth/artist.json',
+        },
+        dependencies: ['setup'],
+      },
     ]
   : [];
 
@@ -55,7 +67,7 @@ export default defineConfig({
     {
       name: 'public',
       use: { ...devices['Desktop Chrome'] },
-      testMatch: ['**/public/**/*.spec.ts', '**/business/**/*.spec.ts'],
+      testMatch: ['**/public/**/*.spec.ts', '**/business/**/*.spec.ts', '**/uat/**/*.spec.ts'],
     },
 
     // Mobile — responsive regression on public journeys.
@@ -65,6 +77,13 @@ export default defineConfig({
         ...devices['Pixel 5'],
       },
       testMatch: ['**/public/**/*.spec.ts', '**/business/**/*.spec.ts'],
+    },
+
+    // Accessibility — public WCAG/keyboard checks that do not require auth.
+    {
+      name: 'accessibility-public',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: ['**/accessibility/a11y-public.spec.ts', '**/accessibility/a11y-keyboard.spec.ts'],
     },
 
     // Smoke tests — sin auth, safe en producción

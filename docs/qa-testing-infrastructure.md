@@ -29,6 +29,7 @@ Original setup request:
 | Security tests    | Implemented                        | Section 6 adds API contract security probes, API/web rate-limit regression tests, and CUID validation fixes for public SmartLinks and subscriber routes.                                                       |
 | Performance tests | Implemented as manual QA tooling   | Section 7 adds a dependency-free Node runner for load, stress and scalability profiles with thresholds, JSON output and production-stress guardrails.                                                          |
 | Data reliability  | Implemented as manual QA tooling   | Section 8 adds SQL data integrity checks, backup/restore dry-runs, restore-check validation and integration reset coverage against the Prisma schema.                                                          |
+| UAT / final QA    | Implemented                        | Section 9 adds public UAT journeys, accessibility Playwright projects, and final pre-release smoke commands for release readiness.                                                                             |
 | Folder structure  | Implemented                        | API specs live beside source files; web component tests live under `apps/web/src/**/__tests__`; E2E has `e2e/smoke`, `e2e/public`, `e2e/artist`, `e2e/auth`.                                                   |
 | CI                | Wired                              | `.github/workflows/ci.yml` runs typecheck, API coverage, web coverage, build, staging E2E, and production smoke using package scripts.                                                                         |
 
@@ -48,11 +49,13 @@ apps/web/
 e2e/
   auth/*.setup.ts
   auth/*.spec.ts
+  accessibility/*.spec.ts
   business/*.spec.ts
   critical/*.spec.ts
   smoke/*.spec.ts
   public/*.spec.ts
   artist/*.spec.ts
+  uat/*.spec.ts
 
 .github/workflows/
   ci.yml
@@ -184,6 +187,29 @@ Section 8 data/reliability testing is tracked in:
 
 - `docs/data-reliability-section-8.md`
 
+## UAT & Final QA Testing
+
+Current status:
+
+- Root scripts expose `pnpm test:e2e:uat` and `pnpm test:e2e:final`.
+- UAT automation lives in `e2e/uat/real-user-journey.spec.ts`.
+- Playwright now registers public and authenticated accessibility projects, so
+  the existing axe/keyboard specs are not left outside the runnable suite.
+- Final QA remains a release gate: automated checks must be paired with manual
+  UAT issue review before launch sign-off.
+
+Current commands:
+
+```bash
+E2E_DEMO_ARTIST=free-artist-qa pnpm test:e2e:uat
+PLAYWRIGHT_BASE_URL=https://stagelink.art pnpm test:e2e:final
+PLAYWRIGHT_BASE_URL=https://stagelink.art pnpm test:e2e:smoke
+```
+
+Section 9 UAT/final QA testing is tracked in:
+
+- `docs/uat-final-qa-section-9.md`
+
 ## Integration Testing
 
 Current status:
@@ -246,8 +272,8 @@ Config and specs currently present:
 
 Current status:
 
-- Root `package.json` exposes `test:e2e`, `test:e2e:smoke`, and
-  `playwright:install`.
+- Root `package.json` exposes `test:e2e`, `test:e2e:smoke`, `test:e2e:uat`,
+  `test:e2e:final`, and `playwright:install`.
 - `@playwright/test` is installed as a root dev dependency.
 - WorkOS-backed authenticated journeys are enabled only when `E2E_AUTH_EMAIL`
   and `E2E_AUTH_PASSWORD` are configured.
@@ -262,17 +288,19 @@ Recommended scripts:
   "test:web": "pnpm --filter @stagelink/web test",
   "test:e2e": "playwright test",
   "test:e2e:smoke": "playwright test --project=smoke",
+  "test:e2e:uat": "playwright test --project=auth-ui --project=public --project=mobile --project=accessibility-public",
+  "test:e2e:final": "playwright test --project=smoke --project=auth-ui --project=public --project=mobile --project=accessibility-public",
   "playwright:install": "playwright install --with-deps chromium"
 }
 ```
 
 ## Environments
 
-| Environment | Purpose               | Notes                                                                                                                            |
-| ----------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Local       | Developer feedback    | Web on `http://localhost:4000`, API on `http://localhost:4001`.                                                                  |
-| Staging     | Release candidate QA  | Should use `staging.stagelink.link` for the web app and a staging Railway API/database.                                          |
-| Production  | Smoke-only validation | Use only non-mutating smoke tests and monitoring. Canonical domain is `https://stagelink.link`; `stagelink.art` redirects to it. |
+| Environment | Purpose               | Notes                                                                                          |
+| ----------- | --------------------- | ---------------------------------------------------------------------------------------------- |
+| Local       | Developer feedback    | Web on `http://localhost:4000`, API on `http://localhost:4001`.                                |
+| Staging     | Release candidate QA  | Should use `staging.stagelink.link` for the web app and a staging Railway API/database.        |
+| Production  | Smoke-only validation | Use only non-mutating smoke tests and monitoring. Canonical domain is `https://stagelink.art`. |
 
 ## Local Run Status
 
@@ -320,3 +348,7 @@ Section 7 performance testing is tracked in:
 Section 8 data/reliability testing is tracked in:
 
 - `docs/data-reliability-section-8.md`
+
+Section 9 UAT/final QA testing is tracked in:
+
+- `docs/uat-final-qa-section-9.md`

@@ -324,6 +324,25 @@ seeded with `pnpm --filter @stagelink/api db:seed`.
 
 ---
 
+## 19. UAT & Final QA Probes
+
+**Goal:** Validate Section 9 release readiness with real-user journeys and a
+final non-mutating smoke pass.
+
+1. Confirm the target domain and environment:
+   `PLAYWRIGHT_BASE_URL=https://stagelink.art`.
+2. Run UAT automation:
+   `E2E_DEMO_ARTIST={published-demo-artist} pnpm test:e2e:uat`.
+3. ✅ Verify: landing, pricing, signup/login, public artist, mobile and public
+   accessibility checks pass.
+4. Run final pre-release smoke:
+   `PLAYWRIGHT_BASE_URL=https://stagelink.art E2E_DEMO_ARTIST={published-demo-artist} pnpm test:e2e:final`.
+5. ✅ Verify: no production-mutating project is included in the run.
+6. Complete the manual UAT issue table in `docs/uat-final-qa-section-9.md`.
+7. ✅ Verify: no open P0/P1 remains before launch sign-off.
+
+---
+
 ## Critical Edge Cases Checklist
 
 - [ ] Artist with no published blocks → public page shows empty state (not 500)
@@ -340,6 +359,9 @@ seeded with `pnpm --filter @stagelink/api db:seed`.
 - [ ] Performance Section 7: `pnpm perf:stress` is never run against production without `PERF_ALLOW_PROD_STRESS=true` and an approved test window.
 - [ ] Data Section 8: `pnpm data:validate` passes against staging before launch sign-off.
 - [ ] Data Section 8: first backup/restore drill is run only after the full testing plan is complete and uses a disposable restore DB.
+- [ ] UAT Section 9: `pnpm test:e2e:uat` passes against staging or production preview data.
+- [ ] UAT Section 9: manual UAT issue table is reviewed and has no open P0/P1.
+- [ ] Final QA Section 9: `pnpm test:e2e:final` passes against `https://stagelink.art` before launch sign-off.
 
 ---
 
