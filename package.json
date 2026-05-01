@@ -22,6 +22,8 @@
     "test:web:coverage": "pnpm --filter @stagelink/web test:coverage",
     "test:e2e": "playwright test",
     "test:e2e:smoke": "playwright test --project=smoke",
+    "test:e2e:uat": "playwright test --project=auth-ui --project=public --project=mobile --project=accessibility-public",
+    "test:e2e:final": "playwright test --project=smoke --project=auth-ui --project=public --project=mobile --project=accessibility-public",
     "perf:load": "node scripts/performance/run-performance.mjs --profile load",
     "perf:stress": "node scripts/performance/run-performance.mjs --profile stress",
     "perf:scalability": "node scripts/performance/run-performance.mjs --profile scalability",
@@ -43,9 +45,10 @@
     ]
   },
   "devDependencies": {
-    "@playwright/test": "^1.59.1",
+    "@axe-core/playwright": "^4.11.3",
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
+    "@playwright/test": "^1.59.1",
     "husky": "^9.1.0",
     "lint-staged": "^15.5.0",
     "prettier": "^3.5.0",
