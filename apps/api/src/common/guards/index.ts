@@ -94,6 +94,11 @@ export class JwtAuthGuard implements CanActivate {
    * - Si el User ya existe en DB: lookup directo (O(1), sin llamadas externas)
    * - Si no existe: primer login → fetch de perfil WorkOS + creación en DB
    *
+   * Caso especial — rotación de WorkOS User ID (ej. migración de dominio):
+   * Si el workosId no existe pero el email sí, el WorkOS ID cambió para el mismo
+   * usuario real (nueva app/org de WorkOS). En ese caso actualizamos workosId en el
+   * registro existente en lugar de crear un ghost user sin artist memberships.
+   *
    * El upsert garantiza idempotencia aunque dos requests paralelas
    * del mismo usuario nuevo lleguen simultáneamente.
    */
@@ -109,7 +114,25 @@ export class JwtAuthGuard implements CanActivate {
       const workos = getWorkOS();
       const workosUser = await workos.userManagement.getUser(workosUserId);
 
-      // Upsert para manejar race conditions (dos requests paralelas del mismo usuario nuevo)
+      // Email fallback: handles workosId rotation after domain/app migration.
+      // If a User row already exists with this email but a different workosId,
+      // reconnect it to the new workosId instead of creating a ghost user that
+      // has no ArtistMemberships and would send the user through onboarding again.
+      const byEmail = await this.prisma.user.findUnique({
+        where: { email: workosUser.email },
+      });
+      if (byEmail) {
+        this.logger.warn(
+          `WorkOS ID changed for ${workosUser.email}: ${byEmail.workosId} → ${workosUserId}. Reconnecting existing user.`,
+        );
+        return await this.prisma.user.update({
+          where: { id: byEmail.id },
+          data: { workosId: workosUserId },
+        });
+      }
+
+      // Truly new user — upsert para manejar race conditions
+      // (dos requests paralelas del mismo usuario nuevo)
       return await this.prisma.user.upsert({
         where: { workosId: workosUserId },
         create: {

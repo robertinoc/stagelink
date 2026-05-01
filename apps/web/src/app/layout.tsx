@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   },
   // Always resolve relative canonical/OG URLs against the canonical production
   // domain. The env var overrides this in staging/preview deployments if needed.
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://stagelink.link'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://stagelink.art'),
 };
 
 /**

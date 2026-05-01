@@ -1,6 +1,5 @@
 import { handleAuth } from '@workos-inc/authkit-nextjs';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
 // Force Node.js runtime — WorkOS AuthKit uses Node-only APIs (cookies, crypto)
 // that are not available in the Edge Runtime.
