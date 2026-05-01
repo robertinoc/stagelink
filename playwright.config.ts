@@ -1,10 +1,31 @@
 import { defineConfig, devices } from '@playwright/test';
+import type { Project } from '@playwright/test';
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:4000';
+const hasE2EAuthCredentials = Boolean(process.env.E2E_AUTH_EMAIL && process.env.E2E_AUTH_PASSWORD);
+
+const authenticatedProjects: Project[] = hasE2EAuthCredentials
+  ? [
+      {
+        name: 'setup',
+        testMatch: /e2e\/auth\/.*\.setup\.ts/,
+      },
+      {
+        name: 'authenticated',
+        testMatch: ['**/artist/**/*.spec.ts', '**/critical/**/*.spec.ts'],
+        use: {
+          ...devices['Desktop Chrome'],
+          storageState: 'e2e/.auth/artist.json',
+        },
+        dependencies: ['setup'],
+      },
+    ]
+  : [];
 
 export default defineConfig({
   testDir: './e2e',
   testMatch: '**/*.spec.ts',
+  outputDir: process.env.PLAYWRIGHT_OUTPUT_DIR ?? 'test-results',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -21,32 +42,29 @@ export default defineConfig({
   },
 
   projects: [
-    // Setup: crea sesiones de auth reutilizables
+    // Auth UI smoke: no credentials needed, validates StageLink-owned pages.
     {
-      name: 'setup',
-      testMatch: /e2e\/auth\/.*\.setup\.ts/,
+      name: 'auth-ui',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: '**/auth/**/*.spec.ts',
     },
 
-    // Tests autenticados — Chromium (user público / artista)
+    ...authenticatedProjects,
+
+    // Public business journeys — safe without auth, driven by staging demo data.
     {
-      name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: 'e2e/.auth/artist.json',
-      },
-      dependencies: ['setup'],
-      testIgnore: ['**/smoke/**', '**/auth/**'],
+      name: 'public',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: ['**/public/**/*.spec.ts', '**/business/**/*.spec.ts'],
     },
 
-    // Mobile — regresión responsiva en journeys clave
+    // Mobile — responsive regression on public journeys.
     {
       name: 'mobile',
       use: {
         ...devices['Pixel 5'],
-        storageState: 'e2e/.auth/artist.json',
       },
-      dependencies: ['setup'],
-      testMatch: '**/public/**/*.spec.ts',
+      testMatch: ['**/public/**/*.spec.ts', '**/business/**/*.spec.ts'],
     },
 
     // Smoke tests — sin auth, safe en producción
