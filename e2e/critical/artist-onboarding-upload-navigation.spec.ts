@@ -40,7 +40,9 @@ test.describe('Critical authenticated journeys', () => {
       .first()
       .click();
     await expect(page).toHaveURL(/\/en\/dashboard\/analytics/);
-    await expect(page.getByRole('heading', { name: /analytics/i })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Analytics' }),
+    ).toBeVisible();
   });
 
   test('new artist can complete profile creation through onboarding', async ({ page }) => {
