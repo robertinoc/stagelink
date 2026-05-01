@@ -22,6 +22,9 @@
     "test:web:coverage": "pnpm --filter @stagelink/web test:coverage",
     "test:e2e": "playwright test",
     "test:e2e:smoke": "playwright test --project=smoke",
+    "perf:load": "node scripts/performance/run-performance.mjs --profile load",
+    "perf:stress": "node scripts/performance/run-performance.mjs --profile stress",
+    "perf:scalability": "node scripts/performance/run-performance.mjs --profile scalability",
     "playwright:install": "playwright install --with-deps chromium",
     "prepare": "husky"
   },

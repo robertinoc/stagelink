@@ -27,6 +27,7 @@ Original setup request:
 | Integration tests | Implemented as dedicated API layer | `pnpm test:api:integration` runs NestJS + Prisma integration specs against PostgreSQL. CI provisions a Postgres 16 service and applies migrations before the suite.                                            |
 | E2E tests         | Expanded                           | Playwright now has smoke, auth UI, public business journeys, mobile public journeys and credential-gated authenticated journeys. Browser binaries still need `pnpm playwright:install` in a fresh environment. |
 | Security tests    | Implemented                        | Section 6 adds API contract security probes, API/web rate-limit regression tests, and CUID validation fixes for public SmartLinks and subscriber routes.                                                       |
+| Performance tests | Implemented as manual QA tooling   | Section 7 adds a dependency-free Node runner for load, stress and scalability profiles with thresholds, JSON output and production-stress guardrails.                                                          |
 | Folder structure  | Implemented                        | API specs live beside source files; web component tests live under `apps/web/src/**/__tests__`; E2E has `e2e/smoke`, `e2e/public`, `e2e/artist`, `e2e/auth`.                                                   |
 | CI                | Wired                              | `.github/workflows/ci.yml` runs typecheck, API coverage, web coverage, build, staging E2E, and production smoke using package scripts.                                                                         |
 
@@ -54,6 +55,9 @@ e2e/
 
 .github/workflows/
   ci.yml
+
+scripts/
+  performance/run-performance.mjs
 ```
 
 ## API Unit Testing
@@ -124,6 +128,30 @@ Tests:      15 passed
 
 Section 6 also adds `apps/web/src/lib/__tests__/rate-limit.test.ts` for the
 shared web limiter used by `/go/[id]` and landing contact abuse protection.
+
+## Performance Testing
+
+Current status:
+
+- Root scripts expose `pnpm perf:load`, `pnpm perf:stress`, and
+  `pnpm perf:scalability`.
+- The runner uses only Node.js built-ins and can target local, staging, or an
+  approved production window.
+- Stress/scalability profiles refuse to hit production-like URLs unless
+  `PERF_ALLOW_PROD_STRESS=true` is explicitly set.
+- JSON artifacts can be written with `PERF_OUTPUT`; `performance-results/` is
+  ignored by git.
+
+Current commands:
+
+```bash
+PERF_WEB_URL=http://localhost:4000 PERF_API_URL=http://localhost:4001 pnpm perf:load
+PERF_WEB_URL=https://staging.stagelink.link PERF_API_URL=https://staging-api.example.com pnpm perf:scalability
+```
+
+Section 7 performance testing is tracked in:
+
+- `docs/performance-testing-section-7.md`
 
 ## Integration Testing
 
@@ -249,3 +277,11 @@ Section 3 integration-test expansion is tracked in:
 Section 4 E2E expansion is tracked in:
 
 - `docs/e2e-testing-section-4.md`
+
+Section 6 security testing is tracked in:
+
+- `docs/security-testing-section-6.md`
+
+Section 7 performance testing is tracked in:
+
+- `docs/performance-testing-section-7.md`
