@@ -155,7 +155,8 @@ docs/
 ├── integration-api-testing-section-3.md # Integration/API contract + async webhook/job tests agregados en Sección 3
 ├── e2e-testing-section-4.md       # Playwright E2E crítico, auth-gated journeys y business journeys
 ├── security-testing-section-6.md  # Auth, permisos, input validation, XSS/SQLi/CSRF y rate limits
-└── performance-testing-section-7.md # Load, stress, scalability, thresholds y runner Node sin dependencias
+├── performance-testing-section-7.md # Load, stress, scalability, thresholds y runner Node sin dependencias
+└── data-reliability-section-8.md  # Data integrity, duplicates, backup y restore-check
 ```
 
 ---
@@ -178,6 +179,9 @@ pnpm test:web:coverage # Web coverage report
 pnpm perf:load        # Performance load profile
 pnpm perf:stress      # Performance stress profile (bloquea prod sin PERF_ALLOW_PROD_STRESS=true)
 pnpm perf:scalability # Performance scalability profile
+pnpm data:validate    # Data integrity/consistency/duplicate checks (requiere DATABASE_URL)
+pnpm data:backup:dry-run # Muestra comando pg_dump sin ejecutar
+pnpm data:restore:dry-run # Muestra comando pg_restore + validation sin ejecutar
 
 # Por workspace:
 pnpm --filter @stagelink/web dev

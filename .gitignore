@@ -50,6 +50,8 @@ test-results/
 playwright-report/
 e2e/.auth/*.json
 performance-results/
+data-integrity-results/
+backups/
 
 # Local planning / scratch artifacts
 STAGELINK.csv
