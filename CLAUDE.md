@@ -132,6 +132,7 @@ packages/
 ├── ui/                     # Wrappers shadcn + primitivos custom
 └── config/                 # ESLint, tsconfig y prettier configs compartidas
 docs/
+├── local-filesystem.md          # Organización local del repo: worktrees archivados, artifacts y archivos sueltos ignorados
 ├── multi-tenant.md              # Decisiones arquitectónicas, política de username, caching, dominios
 ├── auth-workos.md               # Flujo auth, rutas, variables, provisioning, seguridad
 ├── assets-s3.md                 # Pipeline S3, CORS, IAM, object key strategy, MinIO local, QA checklist
@@ -750,6 +751,66 @@ docs/brand/
 | Range selector SSR (URL params)   | `dashboard/analytics/page.tsx` + `RangeSelector` con `router.push`         | Date range pickers sin client fetch                    |
 | @CheckOwnership para analytics    | `analytics.controller.ts` + `@UseGuards(OwnershipGuard)`                   | Endpoints de lectura de datos propios                  |
 | Link click desde browser          | `track.ts` → `fetch(..., { keepalive: true })`                             | Reportar eventos del browser que sobreviven navegación |
+
+---
+
+## QA & Testing
+
+### Infraestructura de Testing
+
+| Capa                | Herramienta           | Ubicación                                      |
+| ------------------- | --------------------- | ---------------------------------------------- |
+| API unit tests      | Jest + ts-jest        | `apps/api/src/**/*.spec.ts`                    |
+| Web unit tests      | Vitest + RTL          | `apps/web/src/**/__tests__/**/*.test.{ts,tsx}` |
+| E2E / Accesibilidad | Playwright + axe-core | `e2e/**/*.spec.ts`                             |
+| CI/CD               | GitHub Actions        | `.github/workflows/ci.yml`                     |
+
+**Comandos:**
+
+```bash
+pnpm test                  # todos los unit tests (recursivo)
+pnpm test:api              # API unit tests
+pnpm test:web              # Web unit tests
+pnpm test:e2e              # E2E completo (requiere dev server)
+pnpm test:e2e:smoke        # Solo smoke tests (safe en producción)
+```
+
+### Accesibilidad (WCAG 2.1 AA)
+
+**Fixes aplicados (2026-05-01):**
+
+| Componente         | Fix                                                                                          | WCAG  |
+| ------------------ | -------------------------------------------------------------------------------------------- | ----- |
+| `LoadingState.tsx` | `role="status"` + `aria-label="Loading"` + `aria-hidden` en spinner                          | 4.1.3 |
+| `AppSidebar.tsx`   | `aria-current="page"` en link activo, `aria-hidden="true"` en iconos Lucide                  | 4.1.2 |
+| `AppSidebar.tsx`   | Settings submenu con `role="list"` + `aria-label` + `aria-current` en hijos                  | 4.1.2 |
+| `Navbar.tsx`       | `aria-expanded` + `aria-controls` en botón mobile, `id` en panel, `aria-label` en nav mobile | 4.1.2 |
+| `badge.tsx`        | Cambiado de `<div>` a `<span>` (elemento inline correcto)                                    | 1.3.1 |
+| `globals.css`      | `--muted-foreground` subido de `rgba(255,255,255,0.5)` a `0.6` para pasar ratio 4.5:1        | 1.4.3 |
+
+**Puntos fuertes existentes:**
+
+- Focus ring global (`outline: 2px fuchsia, offset: 3px`) — excelente visibilidad
+- `prefers-reduced-motion` implementado en todas las animaciones
+- HTML semántico correcto (`<header>`, `<nav>`, `<main>`, `<aside>`, `<footer>`)
+- Radix UI maneja focus trap y Escape en dialogs/sheets
+- `aria-disabled` en botones durante submit asíncrono
+
+**Tests de accesibilidad E2E:**
+
+- `e2e/accessibility/a11y-public.spec.ts` — landing, login, signup (axe WCAG AA)
+- `e2e/accessibility/a11y-dashboard.spec.ts` — dashboard, editor, analytics (axe WCAG AA)
+- `e2e/accessibility/a11y-keyboard.spec.ts` — navegación por Tab, focus ring, activación por teclado
+
+**Documentación completa:** `docs/qa/ui-ux-accessibility-audit.md`
+
+### Convenciones de Nomenclatura de Tests
+
+- Unit: `src/**/__tests__/**/<subject>.test.ts` (API: `src/**/*.spec.ts`)
+- Componentes: `src/**/__tests__/**/<subject>.component.test.tsx`
+- Integration: `src/**/__tests__/**/<subject>.integration.test.ts`
+- E2E: `e2e/<dominio>/<subject>.spec.ts`
+- A11y: `e2e/accessibility/a11y-<scope>.spec.ts`
 
 ---
 

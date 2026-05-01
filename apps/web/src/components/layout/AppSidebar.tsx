@@ -163,6 +163,7 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
               <Link
                 href={href}
                 onClick={onNavigate}
+                aria-current={active ? 'page' : undefined}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                   isDashboard &&
@@ -175,12 +176,16 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
                       : 'text-white/70 hover:bg-white/10 hover:text-white'),
                 )}
               >
-                <item.icon className="h-4 w-4 flex-shrink-0" />
+                <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                 <span>{t(item.labelKey)}</span>
               </Link>
 
               {isSettings && settingsExpanded ? (
-                <div className="mt-1 ml-6 space-y-1 border-l border-white/10 pl-3">
+                <div
+                  role="list"
+                  aria-label="Settings submenu"
+                  className="mt-1 ml-6 space-y-1 border-l border-white/10 pl-3"
+                >
                   {settingsChildren.map((child) => {
                     const childActive =
                       pathname === child.href ||
@@ -192,6 +197,8 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
                         key={child.id}
                         href={child.href}
                         onClick={onNavigate}
+                        role="listitem"
+                        aria-current={childActive ? 'page' : undefined}
                         className={cn(
                           'block rounded-md px-3 py-1.5 text-xs transition-colors',
                           childActive
