@@ -52,6 +52,31 @@ async function completeHostedAuth(page: Page) {
     .getByRole('button', { name: /sign in|log in|continue/i })
     .first()
     .click();
+
+  const invalidCredentials = page.getByText(/invalid email or password/i).first();
+  const authResult = await Promise.race([
+    page
+      .waitForURL((url) => isAuthenticatedAppUrl(url), {
+        timeout: 60_000,
+        waitUntil: 'domcontentloaded',
+      })
+      .then(() => 'authenticated' as const),
+    invalidCredentials
+      .waitFor({ state: 'visible', timeout: 10_000 })
+      .then(() => 'invalid-credentials' as const)
+      .catch(() => null),
+  ]);
+
+  if (authResult === 'invalid-credentials') {
+    await passwordInput.fill('');
+    throw new Error(
+      'WorkOS rejected E2E_AUTH_EMAIL/E2E_AUTH_PASSWORD. Update the staging GitHub environment secrets with a valid staging test user before running authenticated E2E.',
+    );
+  }
+
+  if (authResult !== 'authenticated') {
+    throw new Error('Hosted auth did not complete before timeout.');
+  }
 }
 
 setup('authenticate as artist', async ({ page }) => {
@@ -59,14 +84,6 @@ setup('authenticate as artist', async ({ page }) => {
   fs.mkdirSync(path.dirname(ARTIST_AUTH_FILE), { recursive: true });
 
   await completeHostedAuth(page);
-
-  await page.waitForURL(
-    (url) => isAuthenticatedAppUrl(url),
-    {
-      timeout: 60_000,
-      waitUntil: 'domcontentloaded',
-    },
-  );
 
   await expect(page).not.toHaveURL(/\/login|\/signup|\/api\/auth/);
   await page.context().storageState({ path: ARTIST_AUTH_FILE });
