@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Headers,
-  Param,
-  ParseUUIDPipe,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Headers, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { Public } from '../../common/decorators';
 import { PublicRateLimitGuard } from '../../common/guards/public-rate-limit.guard';
@@ -15,6 +6,7 @@ import { SmartLinksService } from '../smart-links/smart-links.service';
 import type { SmartLinkPlatform } from '@stagelink/types';
 import { SMART_LINK_PLATFORMS } from '@stagelink/types';
 import { extractClientIp } from '../../common/utils/request.utils';
+import { ParseCuidPipe } from '../../common/pipes/parse-cuid.pipe';
 
 /**
  * PublicSmartLinksController — unauthenticated resolution endpoint.
@@ -49,7 +41,7 @@ export class PublicSmartLinksController {
 
   @Get(':id/resolve')
   resolve(
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('id', ParseCuidPipe) id: string,
     @Query('platform') platform: string,
     @Query('from') from: string | undefined,
     @Req() req: Request,

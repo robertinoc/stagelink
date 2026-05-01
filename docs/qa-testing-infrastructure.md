@@ -26,6 +26,7 @@ Original setup request:
 | Web unit tests    | Implemented and running            | Vitest + React Testing Library are configured and now include component tests under `apps/web/src/**/__tests__`.                                                                                               |
 | Integration tests | Implemented as dedicated API layer | `pnpm test:api:integration` runs NestJS + Prisma integration specs against PostgreSQL. CI provisions a Postgres 16 service and applies migrations before the suite.                                            |
 | E2E tests         | Expanded                           | Playwright now has smoke, auth UI, public business journeys, mobile public journeys and credential-gated authenticated journeys. Browser binaries still need `pnpm playwright:install` in a fresh environment. |
+| Security tests    | Implemented                        | Section 6 adds API contract security probes, API/web rate-limit regression tests, and CUID validation fixes for public SmartLinks and subscriber routes.                                                       |
 | Folder structure  | Implemented                        | API specs live beside source files; web component tests live under `apps/web/src/**/__tests__`; E2E has `e2e/smoke`, `e2e/public`, `e2e/artist`, `e2e/auth`.                                                   |
 | CI                | Wired                              | `.github/workflows/ci.yml` runs typecheck, API coverage, web coverage, build, staging E2E, and production smoke using package scripts.                                                                         |
 
@@ -40,6 +41,7 @@ apps/web/
   vitest.config.ts
   vitest.setup.ts
   src/**/__tests__/**/*.test.{ts,tsx}
+  src/lib/__tests__/rate-limit.test.ts
 
 e2e/
   auth/*.setup.ts
@@ -71,13 +73,13 @@ Current local command:
 
 ```bash
 pnpm --filter @stagelink/api test
+pnpm --filter @stagelink/api exec jest --runTestsByPath src/common/guards/rate-limit.guard.spec.ts
 ```
 
-Last local result after Section 3.3 async-flow expansion:
+Last focused local result after Section 6 security expansion:
 
 ```text
-Test Suites: 26 passed, 26 total
-Tests:       246 passed, 246 total
+Rate-limit guard specs: 2 passed
 ```
 
 Section 3.3 added focused async-flow coverage for Stripe webhooks, retry
@@ -120,6 +122,9 @@ Test Files: 5 passed
 Tests:      15 passed
 ```
 
+Section 6 also adds `apps/web/src/lib/__tests__/rate-limit.test.ts` for the
+shared web limiter used by `/go/[id]` and landing contact abuse protection.
+
 ## Integration Testing
 
 Current status:
@@ -134,6 +139,9 @@ Current status:
 - The API contract suite validates all current API routes for success status,
   authentication, representative authorization, DTO validation, malformed IDs,
   content types, and shared error-envelope consistency.
+- Section 6 extends the API contract suite with security probes for malformed
+  public SmartLink IDs, XSS/SQLi-style public event payloads, and forbidden
+  fields on protected DTOs.
 - Async-flow tests validate Stripe webhook idempotency/retry behavior and the
   current StageLink Insights scheduler/job processor. There is no dedicated
   queue worker yet; queue-specific tests should be added when that
@@ -143,6 +151,13 @@ Current command:
 
 ```bash
 pnpm test:api:integration
+pnpm --filter @stagelink/api exec jest --config ./jest.integration.config.ts --runInBand src/test/api-contract.integration-spec.ts
+```
+
+Last focused local result after Section 6:
+
+```text
+API contract: 145 passed
 ```
 
 Recommended next integration targets:
