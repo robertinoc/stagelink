@@ -8,6 +8,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ARTIST_AUTH_FILE = path.join(__dirname, '../.auth/artist.json');
 const E2E_AUTH_EMAIL = process.env.E2E_AUTH_EMAIL;
 const E2E_AUTH_PASSWORD = process.env.E2E_AUTH_PASSWORD;
+const AUTH_SETUP_TIMEOUT = 90_000;
+
+function isAuthenticatedAppUrl(url: URL): boolean {
+  const pathname = url.pathname;
+  return pathname.includes('/dashboard') || pathname.includes('/onboarding');
+}
 
 async function completeHostedAuth(page: Page) {
   if (!E2E_AUTH_EMAIL || !E2E_AUTH_PASSWORD) {
@@ -49,17 +55,16 @@ async function completeHostedAuth(page: Page) {
 }
 
 setup('authenticate as artist', async ({ page }) => {
+  setup.setTimeout(AUTH_SETUP_TIMEOUT);
   fs.mkdirSync(path.dirname(ARTIST_AUTH_FILE), { recursive: true });
 
   await completeHostedAuth(page);
 
   await page.waitForURL(
-    (url) => {
-      const pathname = url.pathname;
-      return pathname.includes('/dashboard') || pathname.includes('/onboarding');
-    },
+    (url) => isAuthenticatedAppUrl(url),
     {
-      timeout: 30_000,
+      timeout: 60_000,
+      waitUntil: 'domcontentloaded',
     },
   );
 
