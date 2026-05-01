@@ -66,7 +66,8 @@
 
   /* Muted */
   --muted: rgba(255, 255, 255, 0.08);
-  --muted-foreground: rgba(255, 255, 255, 0.5);
+  /* Raised from 0.5 to 0.6 to meet WCAG AA (4.5:1) on dark backgrounds */
+  --muted-foreground: rgba(255, 255, 255, 0.6);
 
   /* Accent: soft purple tint */
   --accent: rgba(155, 48, 208, 0.2);

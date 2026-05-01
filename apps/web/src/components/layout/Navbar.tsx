@@ -95,6 +95,8 @@ export function Navbar({ locale }: NavbarProps) {
           <button
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav"
             className="ml-1 flex h-12 w-12 items-center justify-center rounded-full border border-white/14 bg-white/5 text-white/76 hover:text-white md:hidden"
           >
             {mobileOpen ? (
@@ -122,8 +124,11 @@ export function Navbar({ locale }: NavbarProps) {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="border-t border-white/12 bg-[#0b0b0f]/96 px-4 py-4 md:hidden">
-          <nav className="flex flex-col gap-1">
+        <div
+          id="mobile-nav"
+          className="border-t border-white/12 bg-[#0b0b0f]/96 px-4 py-4 md:hidden"
+        >
+          <nav aria-label="Mobile navigation" className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
