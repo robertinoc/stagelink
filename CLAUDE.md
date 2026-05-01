@@ -154,7 +154,8 @@ docs/
 ├── unit-testing-section-2.md      # Unit tests backend/frontend agregados en Sección 2
 ├── integration-api-testing-section-3.md # Integration/API contract + async webhook/job tests agregados en Sección 3
 ├── e2e-testing-section-4.md       # Playwright E2E crítico, auth-gated journeys y business journeys
-└── security-testing-section-6.md  # Auth, permisos, input validation, XSS/SQLi/CSRF y rate limits
+├── security-testing-section-6.md  # Auth, permisos, input validation, XSS/SQLi/CSRF y rate limits
+└── performance-testing-section-7.md # Load, stress, scalability, thresholds y runner Node sin dependencias
 ```
 
 ---
@@ -174,6 +175,9 @@ pnpm test:web         # Vitest + React Testing Library web unit tests
 pnpm test:api:coverage # API coverage report
 pnpm test:api:integration # API integration tests contra PostgreSQL test DB
 pnpm test:web:coverage # Web coverage report
+pnpm perf:load        # Performance load profile
+pnpm perf:stress      # Performance stress profile (bloquea prod sin PERF_ALLOW_PROD_STRESS=true)
+pnpm perf:scalability # Performance scalability profile
 
 # Por workspace:
 pnpm --filter @stagelink/web dev

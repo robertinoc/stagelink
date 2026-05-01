@@ -283,6 +283,27 @@ seeded with `pnpm --filter @stagelink/api db:seed`.
 
 ---
 
+## 17. Performance Regression Probes
+
+**Goal:** Validate Section 7 load, stress and scalability behavior after deploy.
+
+1. Confirm the test target is local or staging, not production, unless a production test window is approved.
+2. Run a dry plan:
+   `PERF_WEB_URL={web-url} PERF_API_URL={api-url} PERF_DEMO_ARTIST={username} pnpm perf:load -- --dry-run`.
+3. ✅ Verify: Route mix includes web home, public artist page, API health and public page API.
+4. Run load:
+   `PERF_WEB_URL={web-url} PERF_API_URL={api-url} PERF_DEMO_ARTIST={username} pnpm perf:load`.
+5. ✅ Verify: p95 <= 1000 ms and error rate <= 1%.
+6. Run scalability in staging:
+   `PERF_WEB_URL={web-url} PERF_API_URL={api-url} PERF_DEMO_ARTIST={username} pnpm perf:scalability`.
+7. ✅ Verify: p95 and p99 grow predictably across stages; no sustained 5xx response pattern.
+8. Run stress only during an approved staging window:
+   `PERF_WEB_URL={web-url} PERF_API_URL={api-url} PERF_DEMO_ARTIST={username} pnpm perf:stress`.
+9. ✅ Verify: first breakpoint is understood, failures are controlled, and services recover after load stops.
+10. Store JSON results outside git with `PERF_OUTPUT=performance-results/{run-name}.json`.
+
+---
+
 ## Critical Edge Cases Checklist
 
 - [ ] Artist with no published blocks → public page shows empty state (not 500)
@@ -295,6 +316,8 @@ seeded with `pnpm --filter @stagelink/api db:seed`.
 - [ ] EPK with 0 highlights → "Add highlight" button is visible (regression check)
 - [ ] EPK with 6 media items → "Add media link" button is hidden (max reached)
 - [ ] Security Section 6: Review `docs/security-testing-section-6.md` and validate WorkOS brute-force settings before final launch sign-off.
+- [ ] Performance Section 7: `pnpm perf:load` passes against staging before launch sign-off.
+- [ ] Performance Section 7: `pnpm perf:stress` is never run against production without `PERF_ALLOW_PROD_STRESS=true` and an approved test window.
 
 ---
 
