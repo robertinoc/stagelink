@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import type { User } from '@prisma/client';
 import { SubscribersService } from './subscribers.service';
@@ -6,6 +6,7 @@ import { AuditService } from '../audit/audit.service';
 import { CheckOwnership, CurrentUser } from '../../common/decorators';
 import { OwnershipGuard } from '../../common/guards';
 import { extractClientIp } from '../../common/utils/request.utils';
+import { ParseCuidPipe } from '../../common/pipes/parse-cuid.pipe';
 
 /**
  * SubscribersController — private read/export endpoints for fan subscribers.
@@ -38,7 +39,7 @@ export class SubscribersController {
   @CheckOwnership('artist', 'artistId', 'read')
   @UseGuards(OwnershipGuard)
   async list(
-    @Param('artistId', ParseUUIDPipe) artistId: string,
+    @Param('artistId', ParseCuidPipe) artistId: string,
     @CurrentUser() user: User,
     @Req() req: Request,
     @Query('page') page?: string,
@@ -73,7 +74,7 @@ export class SubscribersController {
   @CheckOwnership('artist', 'artistId', 'read')
   @UseGuards(OwnershipGuard)
   async exportCsv(
-    @Param('artistId', ParseUUIDPipe) artistId: string,
+    @Param('artistId', ParseCuidPipe) artistId: string,
     @CurrentUser() user: User,
     @Req() req: Request,
     @Res() res: Response,

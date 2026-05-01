@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 import { PublicPagesService } from './public-pages.service';
 import { PublicPageResponseDto } from './dto/public-page-response.dto';
 import { Public } from '../../common/decorators';
@@ -22,16 +22,24 @@ import { DEFAULT_LOCALE, isSupportedLocale } from '@stagelink/types';
 import { extractClientIp } from '../../common/utils/request.utils';
 
 /** DTO for POST /api/public/events/link-click */
+const CUID_PATTERN = /^c[a-z0-9]{24}$/i;
+const LINK_ITEM_ID_PATTERN = /^[\w-]+$/;
+
 class ReportLinkClickDto {
   @IsString()
+  @Matches(CUID_PATTERN, { message: 'artistId must be a valid CUID' })
   artistId!: string;
 
   @IsOptional()
   @IsString()
+  @Matches(CUID_PATTERN, { message: 'blockId must be a valid CUID' })
   blockId?: string;
 
   @IsString()
   @MaxLength(512)
+  @Matches(LINK_ITEM_ID_PATTERN, {
+    message: 'linkItemId may only contain letters, numbers, underscores and hyphens',
+  })
   linkItemId!: string;
 
   @IsOptional()
@@ -45,6 +53,7 @@ class ReportLinkClickDto {
 
   @IsOptional()
   @IsString()
+  @Matches(CUID_PATTERN, { message: 'smartLinkId must be a valid CUID' })
   smartLinkId?: string;
 }
 

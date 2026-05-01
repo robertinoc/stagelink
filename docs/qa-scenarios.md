@@ -258,16 +258,43 @@ seeded with `pnpm --filter @stagelink/api db:seed`.
 
 ---
 
+## 16. Security Regression Probes
+
+**Goal:** Validate Section 6 security basics and abuse protections after deploy.
+
+1. Call any protected API endpoint without `Authorization`.
+2. ✅ Verify: Response is `401` with the shared error envelope.
+3. Call an artist/page/block endpoint as a user who is not a member of that artist.
+4. ✅ Verify: Response is `403 Forbidden` or resource-safe `404 Not Found`.
+5. POST `/api/public/events/link-click` with `artistId="' OR 1=1 --"`.
+6. ✅ Verify: Response is `400`; no analytics event is created.
+7. POST `/api/public/events/link-click` with `<script>` in `linkItemId`.
+8. ✅ Verify: Response is `400`; no analytics event is created.
+9. GET `/api/public/smart-links/not-a-cuid/resolve?platform=ios`.
+10. ✅ Verify: Response is `400`; the service layer is not reached.
+11. Resolve a real SmartLink CUID through `/api/public/smart-links/{id}/resolve?platform=ios`.
+12. ✅ Verify: Response is `{ url }` or expected `404` if inactive/missing.
+13. Send 121 public event/resolve requests from the same IP in under 60 seconds.
+14. ✅ Verify: Requests over quota return `429`.
+15. Send 21 upload-intent requests as the same authenticated user in under 60 seconds.
+16. ✅ Verify: Requests over quota return `429`.
+17. Attempt repeated password login in WorkOS hosted auth.
+18. ✅ Verify: WorkOS applies its configured brute-force protection/challenge.
+
+---
+
 ## Critical Edge Cases Checklist
 
 - [ ] Artist with no published blocks → public page shows empty state (not 500)
 - [ ] Artist with no EPK → `/username/epk` returns 404 (not a crash)
 - [ ] Subscription `past_due` → features downgraded to free (billing guard works)
 - [ ] Upload rate limit: POST 21+ upload intents in 60s → 429 after the 20th
+- [ ] Public rate limit: POST/GET 121+ public event/resolve requests in 60s → 429 after the 120th
 - [ ] CORS: Cross-origin POST without valid Origin header → 403
 - [ ] X-Request-ID: Present on every API response header
 - [ ] EPK with 0 highlights → "Add highlight" button is visible (regression check)
 - [ ] EPK with 6 media items → "Add media link" button is hidden (max reached)
+- [ ] Security Section 6: Review `docs/security-testing-section-6.md` and validate WorkOS brute-force settings before final launch sign-off.
 
 ---
 

@@ -153,7 +153,8 @@ docs/
 ├── qa-testing-infrastructure.md   # Testing pyramid, scripts, CI, coverage y entorno QA base
 ├── unit-testing-section-2.md      # Unit tests backend/frontend agregados en Sección 2
 ├── integration-api-testing-section-3.md # Integration/API contract + async webhook/job tests agregados en Sección 3
-└── e2e-testing-section-4.md       # Playwright E2E crítico, auth-gated journeys y business journeys
+├── e2e-testing-section-4.md       # Playwright E2E crítico, auth-gated journeys y business journeys
+└── security-testing-section-6.md  # Auth, permisos, input validation, XSS/SQLi/CSRF y rate limits
 ```
 
 ---
@@ -181,6 +182,8 @@ pnpm --filter @stagelink/web build
 pnpm --filter @stagelink/api exec jest --runInBand # API unit tests serializados
 pnpm --filter @stagelink/api exec jest --config ./jest.integration.config.ts --runTestsByPath src/test/api-contract.integration-spec.ts --runInBand # API contract suite
 pnpm --filter @stagelink/api exec jest src/modules/billing/billing.service.spec.ts src/modules/insights/insights.scheduler.spec.ts src/modules/insights/insights.service.spec.ts --runInBand # Webhooks + async jobs 3.3
+pnpm --filter @stagelink/api exec jest --runTestsByPath src/common/guards/rate-limit.guard.spec.ts # Security Section 6 rate-limit guards
+pnpm --filter @stagelink/web exec vitest run src/lib/__tests__/rate-limit.test.ts # Security Section 6 web rate limiter
 npx playwright test --project=auth-ui # E2E login/signup UI sin credenciales WorkOS
 npx playwright test --project=public # E2E journeys públicos con E2E_DEMO_ARTIST
 

@@ -73,11 +73,11 @@ interface EndpointCase {
   expectText?: string;
 }
 
-const ARTIST_ID = '11111111-1111-4111-8111-111111111111';
-const PAGE_ID = '22222222-2222-4222-8222-222222222222';
-const BLOCK_ID = '33333333-3333-4333-8333-333333333333';
-const SMART_LINK_ID = '44444444-4444-4444-8444-444444444444';
-const ASSET_ID = '55555555-5555-4555-8555-555555555555';
+const ARTIST_ID = 'c111111111111111111111111';
+const PAGE_ID = 'c222222222222222222222222';
+const BLOCK_ID = 'c333333333333333333333333';
+const SMART_LINK_ID = 'c444444444444444444444444';
+const ASSET_ID = 'c555555555555555555555555';
 const CUID = 'cabcdefghijklmnopqrstuvwx';
 
 const user = {
@@ -1043,6 +1043,78 @@ describe('API contract integration coverage', () => {
       expect(response.status).toBe(400);
       expectErrorBody(body, 400, '/api/public/pages/by-username/stage-artist');
       expect(body.message).toBe('Bad public page request');
+    });
+  });
+
+  describe('security probes', () => {
+    it('rejects public link-click payloads with malformed ids before service execution', async () => {
+      const response = await request(
+        {
+          name: 'malicious public link click',
+          method: 'POST',
+          path: '/api/public/events/link-click',
+          auth: 'public',
+          body: {
+            artistId: "' OR 1=1 --",
+            blockId: '<script>alert(1)</script>',
+            linkItemId: 'spotify<script>',
+            label: '<img src=x onerror=alert(1)>',
+          },
+        },
+        { authenticated: false },
+      );
+      const body = response.body as Record<string, unknown>;
+
+      expect(response.status).toBe(400);
+      expectErrorBody(body, 400, '/api/public/events/link-click');
+      expect(mocks.publicPages.recordLinkClick).not.toHaveBeenCalledWith(
+        "' OR 1=1 --",
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('rejects malformed public SmartLink ids before hitting the service layer', async () => {
+      const response = await request(
+        {
+          name: 'malformed public smart link resolve',
+          method: 'GET',
+          path: '/api/public/smart-links/not-a-cuid/resolve?platform=ios',
+          auth: 'public',
+        },
+        { authenticated: false },
+      );
+      const body = response.body as Record<string, unknown>;
+
+      expect(response.status).toBe(400);
+      expectErrorBody(body, 400, '/api/public/smart-links/not-a-cuid/resolve?platform=ios');
+      expect(mocks.smartLinks.resolve).not.toHaveBeenCalledWith(
+        'not-a-cuid',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('rejects untrusted fields on validated protected DTOs', async () => {
+      const callsBefore = mocks.artists.create.mock.calls.length;
+
+      const response = await request({
+        name: 'artist create with unexpected field',
+        method: 'POST',
+        path: '/api/artists',
+        auth: 'protected',
+        body: {
+          username: 'secure-artist',
+          displayName: 'Secure Artist',
+          role: 'admin',
+        },
+      });
+      const body = response.body as Record<string, unknown>;
+
+      expect(response.status).toBe(400);
+      expectErrorBody(body, 400, '/api/artists');
+      expect(mocks.artists.create).toHaveBeenCalledTimes(callsBefore);
     });
   });
 
