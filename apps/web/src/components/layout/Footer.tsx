@@ -29,7 +29,7 @@ export function Footer({ locale }: { locale: string }) {
           <div className="flex flex-col gap-6 sm:flex-row sm:gap-16">
             {/* Product */}
             <div className="flex flex-col gap-3">
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/36">
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/60">
                 Product
               </p>
               <nav className="flex flex-col gap-2 text-[1.02rem]">
@@ -68,7 +68,7 @@ export function Footer({ locale }: { locale: string }) {
 
             {/* Resources */}
             <div className="flex flex-col gap-3">
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/36">
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/60">
                 Resources
               </p>
               <nav className="flex flex-col gap-2 text-[1.02rem]">

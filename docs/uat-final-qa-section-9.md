@@ -173,10 +173,11 @@ No production mutation was performed by this PR.
 
 ## Known Follow-ups
 
-| Priority | Follow-up                                                                                                                       | Reason                                                           |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| P1       | Run full staging `pnpm test:e2e` with WorkOS credentials before final launch sign-off.                                          | Authenticated projects are credential-gated.                     |
-| P1       | Run manual UAT with at least one artist/operator persona and record issues in the template.                                     | Automated checks do not fully measure friction or comprehension. |
-| P1       | Keep the Section 7 real stress test deferred until the full testing plan is complete, with approved window and monitoring open. | Avoid accidental production/staging disruption.                  |
-| P1       | Run the first Section 8 restore drill only after the full testing plan is complete and against a disposable restore DB.         | Avoid destructive recovery operations during active QA.          |
-| P2       | Add a GitHub Actions manual workflow for final QA evidence artifacts.                                                           | Simplifies release sign-off history.                             |
+| Priority | Follow-up                                                                                                                       | Reason                                                                                                  |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| P0       | Keep `main` green after the Section 9 merge.                                                                                    | Tracked in `docs/final-qa-task-1-main-green.md`; staging E2E must pass before production smoke can run. |
+| P1       | Run full staging `pnpm test:e2e` with WorkOS credentials before final launch sign-off.                                          | Authenticated projects are credential-gated.                                                            |
+| P1       | Run manual UAT with at least one artist/operator persona and record issues in the template.                                     | Automated checks do not fully measure friction or comprehension.                                        |
+| P1       | Keep the Section 7 real stress test deferred until the full testing plan is complete, with approved window and monitoring open. | Avoid accidental production/staging disruption.                                                         |
+| P1       | Run the first Section 8 restore drill only after the full testing plan is complete and against a disposable restore DB.         | Avoid destructive recovery operations during active QA.                                                 |
+| P2       | Add a GitHub Actions manual workflow for final QA evidence artifacts.                                                           | Simplifies release sign-off history.                                                                    |
