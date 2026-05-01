@@ -7,28 +7,37 @@
                            │
             ┌──────────────┼──────────────┐
             │              │              │
-    app.<your-domain> api.<your-domain> <your-domain>
+    stagelink.link  Railway API URL   stagelink.art
             │              │              │
-          Vercel        Railway         Vercel
-         (Next.js)     (NestJS)       (marketing)
+          Vercel        Railway       301 redirect
+         (Next.js)     (NestJS)       to canonical
 ```
 
-| Servicio              | Plataforma | URL de producción           |
-| --------------------- | ---------- | --------------------------- |
-| Frontend (`apps/web`) | Vercel     | `https://stagelink.link`    |
-| Backend (`apps/api`)  | Railway    | `https://<your-api-domain>` |
-| DNS / CDN / SSL       | Cloudflare | gestiona todos los dominios |
+| Servicio              | Plataforma | URL de producción                                                                            |
+| --------------------- | ---------- | -------------------------------------------------------------------------------------------- |
+| Frontend (`apps/web`) | Vercel     | `https://stagelink.link`                                                                     |
+| Backend (`apps/api`)  | Railway    | `https://stagelink-production-18c8.up.railway.app` hasta configurar un dominio custom de API |
+| DNS / CDN / SSL       | Cloudflare | gestiona todos los dominios                                                                  |
 
 ---
 
 ## Entornos
 
-| Entorno        | Frontend                                 | Backend                           |
-| -------------- | ---------------------------------------- | --------------------------------- |
-| **Production** | `stagelink.link`                         | `api.<your-domain>` o Railway URL |
-| **Staging**    | `staging.stagelink.link` (Vercel branch) | Railway staging service           |
-| **Preview**    | `stagelink-git-{branch}.vercel.app`      | — (usa API de staging)            |
-| **Local**      | `localhost:4000`                         | `localhost:4001`                  |
+| Entorno        | Frontend                                 | Backend                                                                  |
+| -------------- | ---------------------------------------- | ------------------------------------------------------------------------ |
+| **Production** | `stagelink.link`                         | `stagelink-production-18c8.up.railway.app` o futuro `api.stagelink.link` |
+| **Staging**    | `staging.stagelink.link` (Vercel branch) | Railway staging service                                                  |
+| **Preview**    | `stagelink-git-{branch}.vercel.app`      | — (usa API de staging)                                                   |
+| **Local**      | `localhost:4000`                         | `localhost:4001`                                                         |
+
+### Dominios de producción
+
+| Dominio              | Rol                                                                   |
+| -------------------- | --------------------------------------------------------------------- |
+| `stagelink.link`     | Dominio canónico de producción, indexable.                            |
+| `www.stagelink.link` | Redirect permanente a `stagelink.link`.                               |
+| `stagelink.art`      | Dominio alternativo de marca, redirect permanente a `stagelink.link`. |
+| `www.stagelink.art`  | Redirect permanente a `stagelink.link`.                               |
 
 ---
 
@@ -47,15 +56,15 @@
 
 Configurar en Vercel Dashboard → Settings → Environment Variables:
 
-| Variable                   | Production                                 | Preview                                   | Development             |
-| -------------------------- | ------------------------------------------ | ----------------------------------------- | ----------------------- |
-| `NEXT_PUBLIC_APP_URL`      | `https://stagelink.link`                   | URL de preview                            | `http://localhost:4000` |
-| `NEXT_PUBLIC_API_URL`      | `https://api.<your-domain>` o Railway URL  | `https://api.<your-domain>` o Railway URL | `http://localhost:4001` |
-| `NEXT_PUBLIC_POSTHOG_KEY`  | tu key                                     | —                                         | —                       |
-| `NEXT_PUBLIC_POSTHOG_HOST` | `https://app.posthog.com`                  | —                                         | —                       |
-| `WORKOS_CLIENT_ID`         | tu client ID                               | —                                         | —                       |
-| `WORKOS_API_KEY`           | tu API key                                 | —                                         | —                       |
-| `WORKOS_REDIRECT_URI`      | `https://stagelink.link/api/auth/callback` | —                                         | —                       |
+| Variable                   | Production                                                                               | Preview        | Development             |
+| -------------------------- | ---------------------------------------------------------------------------------------- | -------------- | ----------------------- |
+| `NEXT_PUBLIC_APP_URL`      | `https://stagelink.link`                                                                 | URL de preview | `http://localhost:4000` |
+| `NEXT_PUBLIC_API_URL`      | `https://stagelink-production-18c8.up.railway.app` o futuro `https://api.stagelink.link` | API de staging | `http://localhost:4001` |
+| `NEXT_PUBLIC_POSTHOG_KEY`  | tu key                                                                                   | —              | —                       |
+| `NEXT_PUBLIC_POSTHOG_HOST` | `https://app.posthog.com`                                                                | —              | —                       |
+| `WORKOS_CLIENT_ID`         | tu client ID                                                                             | —              | —                       |
+| `WORKOS_API_KEY`           | tu API key                                                                               | —              | —                       |
+| `WORKOS_REDIRECT_URI`      | `https://stagelink.link/api/auth/callback`                                               | —              | —                       |
 
 ### Preview deployments automáticos
 
@@ -86,9 +95,9 @@ Configurar en Railway Dashboard → Variables:
 
 ```bash
 NODE_ENV=production
-APP_URL=https://api.<your-domain>
+APP_URL=https://stagelink-production-18c8.up.railway.app
 FRONTEND_URL=https://stagelink.link
-CORS_ALLOWED_ORIGINS=https://stagelink.link
+CORS_ALLOWED_ORIGINS=https://stagelink.link,https://www.stagelink.link,https://stagelink.art,https://www.stagelink.art,https://staging.stagelink.link
 
 # PostgreSQL (Railway puede proveer una DB directamente)
 DATABASE_URL=postgresql://...      # Pooler / runtime
@@ -189,12 +198,12 @@ Railway ofrece PostgreSQL como addon:
 
 Configurar en Cloudflare Dashboard → DNS → Records:
 
-| Tipo    | Nombre    | Contenido                   | Proxy      |
-| ------- | --------- | --------------------------- | ---------- |
-| `CNAME` | `app`     | `cname.vercel-dns.com`      | ✅ Proxied |
-| `CNAME` | `api`     | `{tu-servicio}.railway.app` | ✅ Proxied |
-| `CNAME` | `staging` | `cname.vercel-dns.com`      | ✅ Proxied |
-| `A`     | `@`       | IP de Vercel (ver paso 3)   | ✅ Proxied |
+| Tipo                | Nombre    | Contenido                      | Proxy                                                |
+| ------------------- | --------- | ------------------------------ | ---------------------------------------------------- |
+| `CNAME`             | `www`     | `cname.vercel-dns.com`         | ✅ Proxied                                           |
+| `CNAME`             | `staging` | `cname.vercel-dns.com`         | ✅ Proxied                                           |
+| `CNAME`             | `api`     | `{tu-servicio}.up.railway.app` | ✅ Proxied, cuando se configure `api.stagelink.link` |
+| `A` / Vercel record | `@`       | destino indicado por Vercel    | ✅ Proxied                                           |
 
 > **Nota**: Para `@` (dominio raíz), Vercel requiere agregar el dominio en su dashboard y te dará la IP exacta.
 
@@ -219,12 +228,14 @@ Esto evita que Cloudflare cachee respuestas del API (importante para CORS y auth
 
 **Vercel**:
 
-- Dashboard → Domain → Add `stagelink.link` (and `www.stagelink.link`)
+- Dashboard → Domain → Add `stagelink.link`, `www.stagelink.link`, `stagelink.art`, and `www.stagelink.art`
 - Vercel te dará el CNAME a apuntar (normalmente `cname.vercel-dns.com`)
+- `www.stagelink.link`, `stagelink.art` y `www.stagelink.art` deben redirigir de forma permanente al dominio canónico `https://stagelink.link`
 
 **Railway**:
 
-- Dashboard → Settings → Networking → Custom Domain → Add `api.<your-domain>`
+- Actual: usar `https://stagelink-production-18c8.up.railway.app` como `NEXT_PUBLIC_API_URL`
+- Futuro: Dashboard → Settings → Networking → Custom Domain → Add `api.stagelink.link`
 - Railway te dará el CNAME a apuntar (normalmente `{service}.up.railway.app`)
 
 ---
@@ -233,11 +244,11 @@ Esto evita que Cloudflare cachee respuestas del API (importante para CORS y auth
 
 ### Regla general
 
-| Variable              | Local                   | Preview                                   | Production                                |
-| --------------------- | ----------------------- | ----------------------------------------- | ----------------------------------------- |
-| `NODE_ENV`            | `development`           | `preview`                                 | `production`                              |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:4001` | `https://api.<your-domain>` o Railway URL | `https://api.<your-domain>` o Railway URL |
-| `DATABASE_URL`        | docker local            | Railway staging DB                        | Railway prod DB                           |
+| Variable              | Local                   | Preview            | Production                                                                        |
+| --------------------- | ----------------------- | ------------------ | --------------------------------------------------------------------------------- |
+| `NODE_ENV`            | `development`           | `preview`          | `production`                                                                      |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:4001` | API de staging     | `https://stagelink-production-18c8.up.railway.app` o `https://api.stagelink.link` |
+| `DATABASE_URL`        | docker local            | Railway staging DB | Railway prod DB                                                                   |
 
 ### Nunca commitear
 

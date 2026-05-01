@@ -1,6 +1,6 @@
 # StageLink
 
-Plataforma tipo Linktree enfocada en artistas (músicos, DJs, creadores visuales). Permite crear una página pública personalizada en `stagelink.io/username` con links, embeds de música/video, analytics y tienda.
+Plataforma tipo Linktree enfocada en artistas (músicos, DJs, creadores visuales). Permite crear una página pública personalizada en `stagelink.link/username` con links, embeds de música/video, analytics y tienda.
 
 La página pública actual se apoya en una composición más rica que un simple listado de bloques:
 
@@ -148,7 +148,11 @@ docs/
 ├── smart-merch-block.md           # Smart Merch block, Printful v1, gating, seguridad y extensión futura a Printify
 ├── shopify-storefront-integration.md # Shopify Storefront API por artista, gating, bloque público de merch y límites de la v1
 ├── plan-feature-gating.md         # effectivePlan, entitlements y patrón de gating por plan (T5-2)
-└── billing-ui-and-upgrade-flows.md # Billing dashboard, upgrade flows y retornos desde Stripe (T5-3)
+├── billing-ui-and-upgrade-flows.md # Billing dashboard, upgrade flows y retornos desde Stripe (T5-3)
+├── qa-testing-infrastructure.md   # Testing pyramid, scripts, CI, coverage y entorno QA base
+├── unit-testing-section-2.md      # Unit tests backend/frontend agregados en Sección 2
+├── integration-api-testing-section-3.md # Integration/API contract + async webhook/job tests agregados en Sección 3
+└── e2e-testing-section-4.md       # Playwright E2E crítico, auth-gated journeys y business journeys
 ```
 
 ---
@@ -163,11 +167,21 @@ pnpm typecheck        # tsc --noEmit en todos los workspaces
 pnpm format           # Prettier write
 pnpm format:check     # Prettier check (CI)
 pnpm test             # Tests en todos los workspaces
+pnpm test:api         # Jest API unit tests
+pnpm test:web         # Vitest + React Testing Library web unit tests
+pnpm test:api:coverage # API coverage report
+pnpm test:api:integration # API integration tests contra PostgreSQL test DB
+pnpm test:web:coverage # Web coverage report
 
 # Por workspace:
 pnpm --filter @stagelink/web dev
 pnpm --filter @stagelink/api dev
 pnpm --filter @stagelink/web build
+pnpm --filter @stagelink/api exec jest --runInBand # API unit tests serializados
+pnpm --filter @stagelink/api exec jest --config ./jest.integration.config.ts --runTestsByPath src/test/api-contract.integration-spec.ts --runInBand # API contract suite
+pnpm --filter @stagelink/api exec jest src/modules/billing/billing.service.spec.ts src/modules/insights/insights.scheduler.spec.ts src/modules/insights/insights.service.spec.ts --runInBand # Webhooks + async jobs 3.3
+npx playwright test --project=auth-ui # E2E login/signup UI sin credenciales WorkOS
+npx playwright test --project=public # E2E journeys públicos con E2E_DEMO_ARTIST
 
 # DB (requiere DB local corriendo):
 pnpm --filter @stagelink/api db:migrate      # prisma migrate dev

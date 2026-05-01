@@ -899,4 +899,117 @@ describe('BillingService', () => {
 
     expect(prisma.subscription.upsert).not.toHaveBeenCalled();
   });
+
+  it('ignores unsupported webhook event types without recording them as processed mutations', async () => {
+    const { service, prisma, stripe } = createService();
+
+    (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
+      id: 'evt_unhandled',
+      created: 1775692800,
+      type: 'account.updated',
+      data: {
+        object: {
+          object: 'account',
+          id: 'acct_123',
+        },
+      },
+    });
+
+    const result = await service.handleWebhook({
+      headers: { 'stripe-signature': 'sig_123' },
+      rawBody: Buffer.from('{}'),
+    } as never);
+
+    expect(result.data).toEqual({
+      received: true,
+      eventId: 'evt_unhandled',
+      eventType: 'account.updated',
+    });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(prisma.stripeWebhookEvent.create).not.toHaveBeenCalled();
+    expect(prisma.subscription.upsert).not.toHaveBeenCalled();
+  });
+
+  it('propagates subscription mutation failures so Stripe can retry the webhook', async () => {
+    const { service, prisma, stripe } = createService();
+
+    (prisma.subscription.upsert as jest.Mock).mockRejectedValueOnce(new Error('database down'));
+
+    (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
+      id: 'evt_retry',
+      created: 1775692800,
+      type: 'customer.subscription.updated',
+      data: {
+        object: {
+          object: 'subscription',
+          id: 'sub_123',
+          status: 'active',
+          cancel_at_period_end: false,
+          customer: 'cus_123',
+          metadata: { artistId: 'artist_123', plan: PlanTier.pro },
+          items: {
+            data: [
+              {
+                current_period_end: 1711929600,
+                price: {
+                  id: 'price_pro_123',
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    await expect(
+      service.handleWebhook({
+        headers: { 'stripe-signature': 'sig_123' },
+        rawBody: Buffer.from('{}'),
+      } as never),
+    ).rejects.toThrow('database down');
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(prisma.stripeWebhookEvent.create).toHaveBeenCalledWith({
+      data: {
+        stripeEventId: 'evt_retry',
+        stripeEventType: 'customer.subscription.updated',
+        artistId: 'artist_123',
+        stripeEventAt: new Date('2026-04-09T00:00:00.000Z'),
+      },
+    });
+    expect(prisma.subscription.upsert).toHaveBeenCalledTimes(1);
+    expect(prisma.stripeWebhookEvent.create.mock.invocationCallOrder[0]!).toBeLessThan(
+      prisma.subscription.upsert.mock.invocationCallOrder[0]!,
+    );
+  });
+
+  it('propagates invoice subscription lookup failures before recording the event', async () => {
+    const { service, prisma, stripe } = createService();
+
+    (stripe.subscriptions.retrieve as jest.Mock).mockRejectedValueOnce(new Error('stripe timeout'));
+
+    (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
+      id: 'evt_invoice_retry',
+      created: 1775692800,
+      type: 'invoice.paid',
+      data: {
+        object: {
+          object: 'invoice',
+          id: 'in_123',
+          subscription: 'sub_123',
+        },
+      },
+    });
+
+    await expect(
+      service.handleWebhook({
+        headers: { 'stripe-signature': 'sig_123' },
+        rawBody: Buffer.from('{}'),
+      } as never),
+    ).rejects.toThrow('stripe timeout');
+
+    expect(stripe.subscriptions.retrieve).toHaveBeenCalledWith('sub_123');
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(prisma.stripeWebhookEvent.create).not.toHaveBeenCalled();
+  });
 });

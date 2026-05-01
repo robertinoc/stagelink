@@ -124,7 +124,8 @@ Add this CORS policy to your S3 bucket:
     "AllowedOrigins": [
       "http://localhost:4000",
       "https://your-vercel-domain.vercel.app",
-      "https://app.stagelink.io"
+      "https://stagelink.link",
+      "https://staging.stagelink.link"
     ],
     "ExposeHeaders": ["ETag"],
     "MaxAgeSeconds": 3000
