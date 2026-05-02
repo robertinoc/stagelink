@@ -33,41 +33,31 @@ export default async function AdminLayout({ children, params }: AdminLayoutProps
   }
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
-    >
-      {/* Top bar */}
-      <header
-        className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 sm:px-6"
-        style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--sidebar)' }}
-      >
-        <div>
-          <p
-            className="text-xs font-semibold tracking-widest uppercase"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
-          >
-            StageLink
-          </p>
-          <h1
-            className="text-base font-semibold leading-tight font-[family-name:var(--font-heading)]"
-            style={{ color: 'var(--foreground)' }}
-          >
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Top bar — matches AppTopbar/AppSidebar height and border treatment */}
+      <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-white/10 bg-sidebar px-4 sm:px-6">
+        <div className="flex items-center gap-3">
+          {/* Logo — same text treatment as AppSidebar */}
+          <span className="font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight">
+            <span className="text-white">Stage</span>
+            <span className="bg-gradient-to-r from-fuchsia-400 to-purple-500 bg-clip-text text-transparent">
+              Link
+            </span>
+          </span>
+          <span className="text-white/20">·</span>
+          <span className="font-[family-name:var(--font-heading)] text-sm font-medium text-white/50">
             Behind the Stage
-          </h1>
+          </span>
         </div>
-        <p className="hidden text-xs sm:block" style={{ color: 'rgba(255,255,255,0.5)' }}>
-          Internal control panel · {session.user.email}
-        </p>
+        <p className="hidden text-xs text-white/40 sm:block">{session.user.email}</p>
       </header>
 
       <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
         {/* Section nav */}
-        <nav className="flex gap-1 border-b py-2" style={{ borderColor: 'var(--border)' }}>
+        <nav className="flex gap-1 border-b border-white/10 py-2">
           <Link
             href={`/${locale}/behind`}
-            className="rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
-            style={{ color: 'var(--foreground)', backgroundColor: 'rgba(255,255,255,0.08)' }}
+            className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-white shadow-[0_0_12px_rgba(155,48,208,0.15)] transition-colors font-[family-name:var(--font-heading)]"
           >
             Users
           </Link>
