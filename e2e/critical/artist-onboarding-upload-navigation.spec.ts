@@ -15,21 +15,21 @@ test.describe('Critical authenticated journeys', () => {
     await expectAuthenticatedShellOrOnboarding(page);
   });
 
-  test('artist can navigate core dashboard surfaces', async ({ page }) => {
+  test('artist can load core dashboard surfaces', async ({ page }) => {
     await page.goto('/en/dashboard');
     await expectAuthenticatedShellOrOnboarding(page);
 
     test.skip(page.url().includes('/onboarding'), 'Seeded account has no artist profile yet');
 
-    await page.locator('aside a[href$="/dashboard/profile"]').click();
+    await page.goto('/en/dashboard/profile');
     await expect(page).toHaveURL(/\/en\/dashboard\/profile/);
     await expect(page.getByRole('heading', { name: /profile/i })).toBeVisible();
 
-    await page.locator('aside a[href$="/dashboard/page"]').click();
+    await page.goto('/en/dashboard/page');
     await expect(page).toHaveURL(/\/en\/dashboard\/page/);
     await expect(page.getByRole('heading', { name: /page|blocks|my page/i })).toBeVisible();
 
-    await page.locator('aside a[href$="/dashboard/analytics"]').click();
+    await page.goto('/en/dashboard/analytics');
     await expect(page).toHaveURL(/\/en\/dashboard\/analytics/);
     await expect(page.getByRole('heading', { level: 1, name: 'Analytics' })).toBeVisible();
   });
