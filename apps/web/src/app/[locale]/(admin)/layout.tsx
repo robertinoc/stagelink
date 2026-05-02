@@ -13,9 +13,17 @@ export default async function AdminLayout({ children, params }: AdminLayoutProps
 
   const session = await getSession();
 
-  // Not authenticated → send to the existing login flow.
+  // Not authenticated → trigger WorkOS sign-in.
+  //
+  // Redirect to /api/auth/signin rather than /${locale}/login so this works on
+  // both stagelink.art and behind.stagelink.art without hitting the host-rewrite
+  // loop (/${locale}/login on the subdomain rewrites to /en/behind/en/login).
+  //
+  // After auth WorkOS returns to WORKOS_REDIRECT_URI (stagelink.art).
+  // With WORKOS_COOKIE_DOMAIN=.stagelink.art that session cookie is automatically
+  // valid on behind.stagelink.art on the next visit — no second login required.
   if (!session) {
-    redirect(`/${locale}/login`);
+    redirect('/api/auth/signin');
   }
 
   // Authenticated but not the owner → silent redirect to main site.

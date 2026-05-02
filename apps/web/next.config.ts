@@ -18,6 +18,13 @@ const imagesHostname = process.env.NEXT_PUBLIC_IMAGES_HOSTNAME;
 const CANONICAL_DOMAIN = 'stagelink.art';
 
 /**
+ * Behind the Stage admin subdomain.
+ * Served by this same deployment via middleware host rewrite.
+ * Must never be indexed by search engines.
+ */
+const BEHIND_HOST = 'behind\\.stagelink\\.art';
+
+/**
  * Vercel deployment URL — not the canonical domain.
  * Search engines must not index it; it exists only for Vercel infrastructure.
  *
@@ -45,6 +52,11 @@ const nextConfig: NextConfig = {
       {
         source: '/(.*)',
         has: [{ type: 'host', value: VERCEL_DEPLOYMENT_HOST }],
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+      {
+        source: '/(.*)',
+        has: [{ type: 'host', value: BEHIND_HOST }],
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
     ];
