@@ -289,7 +289,11 @@ export function LandingPage({ locale }: LandingPageProps) {
           <div id="preview" className="relative">
             <div className="landing-surface mx-auto max-w-[22rem] rounded-[1.65rem] p-3 shadow-[0_30px_80px_rgba(155,48,208,0.18)] sm:max-w-xl sm:rounded-[2rem] sm:p-4">
               <div className="rounded-[1.35rem] border border-white/10 bg-sidebar p-3 sm:rounded-[1.6rem] sm:p-4">
-                <div className="max-h-[31rem] overflow-y-auto rounded-[1.15rem] border border-white/10 bg-[#140a22] p-2.5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 sm:max-h-[40rem] sm:rounded-[1.35rem] sm:p-3">
+                <div
+                  tabIndex={0}
+                  aria-label={t.hero.previewLabel}
+                  className="max-h-[31rem] overflow-y-auto rounded-[1.15rem] border border-white/10 bg-[#140a22] p-2.5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 sm:max-h-[40rem] sm:rounded-[1.35rem] sm:p-3"
+                >
                   <div className="relative h-32 overflow-hidden rounded-[1rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(155,48,208,0.4),rgba(64,18,108,0.86)_58%,rgba(18,11,28,0.98)_100%)] sm:h-40 sm:rounded-[1.2rem]">
                     <Image
                       src={demoCoverImageSrc}
@@ -799,10 +803,14 @@ export function LandingPage({ locale }: LandingPageProps) {
                   </div>
                 </div>
                 <div>
-                  <label className="landing-small mb-2 block font-medium text-white/92">
+                  <label
+                    htmlFor="landing-contact-artist-type"
+                    className="landing-small mb-2 block font-medium text-white/92"
+                  >
                     {t.contact.artistType}
                   </label>
                   <select
+                    id="landing-contact-artist-type"
                     name="artistType"
                     required
                     value={form.artistType}

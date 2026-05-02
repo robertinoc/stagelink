@@ -14,14 +14,20 @@ After PR #220 was merged, GitHub Actions run `25234917477` on `main` passed
 TypeScript, API unit tests, web unit tests, API integration tests and build.
 The staging E2E job failed, which caused production smoke tests to be skipped.
 
+After PR #221 was merged, GitHub Actions run `25237213383` confirmed the base
+checks and build were green, but staging E2E still failed. Production smoke was
+skipped again because it depends on staging E2E.
+
 ## Failed Checks And Resolutions
 
-| Area                        | Failure                                                                                        | Resolution                                                                                                        |
-| --------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Authenticated accessibility | Settings route had two `[aria-current="page"]` links, one parent and one active child.         | Narrowed the assertion to the active plans/billing sidebar link.                                                  |
-| UAT public artist journey   | Demo artist page could render without published public links.                                  | Kept the real-user coverage but skips only the link assertion when the selected demo profile has no public links. |
-| Public keyboard navigation  | Landing keyboard test did not tab far enough to reach login/signup targets.                    | Expanded focus traversal and validated both label text and `href` targets.                                        |
-| Public WCAG AA              | Axe reported color contrast violations in footer section labels and the landing preview label. | Raised footer label contrast and changed the preview label to an accessible foreground color.                     |
+| Area                        | Failure                                                                                                   | Resolution                                                                                                           |
+| --------------------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Authenticated accessibility | Settings route had two `[aria-current="page"]` links, one parent and one active child.                    | Narrowed the assertion to the active plans/billing sidebar link.                                                     |
+| UAT public artist journey   | Demo artist page could render without published public links.                                             | Kept the real-user coverage but skips only the link assertion when the selected demo profile has no public links.    |
+| Public keyboard navigation  | Landing keyboard test did not tab far enough to reach login/signup targets.                               | Expanded focus traversal and validated both label text and `href` targets.                                           |
+| Public WCAG AA              | Axe reported color contrast violations in footer section labels and the landing preview label.            | Raised footer label contrast and changed the preview label to an accessible foreground color.                        |
+| Public WCAG AA              | Axe reported a scrollable landing preview without keyboard focus and a select without an accessible name. | Made the scrollable preview focusable with an accessible label and associated the artist type label with its select. |
+| Authenticated navigation    | Dashboard navigation used broad role/name locators that could hit content links instead of the sidebar.   | Scoped navigation clicks to sidebar links by route.                                                                  |
 
 ## Validation
 
