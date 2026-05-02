@@ -42,7 +42,7 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
 
   // Suspension guard: isSuspended is checked here, after session resolution,
   // so WorkOS login itself is unaffected.
-  if (me?.isSuspended) {
+  if (me?.isSuspended || me?.isDeleted) {
     redirect(`/${locale}/suspended`);
   }
   const artistId = getCurrentArtistId(me);

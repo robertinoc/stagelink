@@ -16,5 +16,6 @@ export interface AuthenticatedUser {
   /** IDs de los artistas administrados por este usuario */
   artistIds: string[];
   isSuspended: boolean;
+  isDeleted: boolean;
   createdAt: Date;
 }

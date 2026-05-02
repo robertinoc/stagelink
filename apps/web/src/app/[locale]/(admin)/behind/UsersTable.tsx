@@ -11,6 +11,8 @@ interface AdminUser {
   id: string;
   email: string;
   name: string | null;
+  firstName: string | null;
+  lastName: string | null;
   artistUsernames: string[];
   isSuspended: boolean;
   createdAt: string;
@@ -35,11 +37,68 @@ function truncateId(id: string): string {
   return id.length > 12 ? `${id.slice(0, 8)}…` : id;
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Shared field ─────────────────────────────────────────────────────────────
 
 function Dash() {
   return <span style={{ color: 'rgba(255,255,255,0.25)' }}>—</span>;
 }
+
+function ModalField({
+  label,
+  id,
+  value,
+  onChange,
+  placeholder,
+  readOnly,
+  hint,
+}: {
+  label: string;
+  id: string;
+  value: string;
+  onChange?: (v: string) => void;
+  placeholder?: string;
+  readOnly?: boolean;
+  hint?: string;
+}) {
+  return (
+    <div>
+      <label
+        htmlFor={id}
+        className="mb-1.5 block text-xs font-medium"
+        style={{ color: readOnly ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.6)' }}
+      >
+        {label}
+        {readOnly && (
+          <span className="ml-2 text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            (read-only)
+          </span>
+        )}
+      </label>
+      <input
+        id={id}
+        type="text"
+        readOnly={readOnly}
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-md px-3 py-2 text-sm outline-none focus:ring-2"
+        style={{
+          backgroundColor: readOnly ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)',
+          border: `1px solid ${readOnly ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)'}`,
+          color: readOnly ? 'rgba(255,255,255,0.35)' : 'var(--foreground)',
+          cursor: readOnly ? 'not-allowed' : undefined,
+        }}
+      />
+      {hint && (
+        <p className="mt-1 text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          {hint}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── Loading / error / empty rows ─────────────────────────────────────────────
 
 function LoadingRows() {
   return (
@@ -91,12 +150,18 @@ function EmptyRow() {
   );
 }
 
+// ─── User row ─────────────────────────────────────────────────────────────────
+
 function UserRow({
   user,
   onStatusChange,
+  onEdit,
+  onDelete,
 }: {
   user: AdminUser;
   onStatusChange: (id: string, isSuspended: boolean) => void;
+  onEdit: (user: AdminUser) => void;
+  onDelete: (user: AdminUser) => void;
 }) {
   const handle = user.artistUsernames[0] ?? null;
   const [suspending, setSuspending] = useState(false);
@@ -130,7 +195,6 @@ function UserRow({
       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '')}
     >
-      {/* ID */}
       <td className="px-4 py-3">
         <code
           className="rounded px-1.5 py-0.5 text-xs"
@@ -141,32 +205,26 @@ function UserRow({
         </code>
       </td>
 
-      {/* Handle */}
       <td className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
         {handle ? <span style={{ color: 'var(--foreground)' }}>@{handle}</span> : <Dash />}
       </td>
 
-      {/* Name */}
       <td className="px-4 py-3 text-sm" style={{ color: 'var(--foreground)' }}>
         {user.name ?? <Dash />}
       </td>
 
-      {/* Email */}
       <td className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
         {user.email}
       </td>
 
-      {/* Joined */}
       <td className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
         {formatDate(user.createdAt)}
       </td>
 
-      {/* Last login — not in schema yet */}
       <td className="px-4 py-3 text-sm">
         <Dash />
       </td>
 
-      {/* Status */}
       <td className="px-4 py-3">
         {user.isSuspended ? (
           <Badge variant="destructive">suspended</Badge>
@@ -175,9 +233,11 @@ function UserRow({
         )}
       </td>
 
-      {/* Actions */}
       <td className="px-4 py-3">
         <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" onClick={() => onEdit(user)}>
+            Edit
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -191,13 +251,267 @@ function UserRow({
           >
             {suspending ? '…' : user.isSuspended ? 'Unsuspend' : 'Suspend'}
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete(user)}
+            className="text-red-400 hover:text-red-300"
+          >
+            Delete
+          </Button>
         </div>
       </td>
     </tr>
   );
 }
 
-// ─── Invite Modal ─────────────────────────────────────────────────────────────
+// ─── Edit modal ───────────────────────────────────────────────────────────────
+
+function EditModal({
+  user,
+  onClose,
+  onSaved,
+}: {
+  user: AdminUser;
+  onClose: () => void;
+  onSaved: (updated: AdminUser) => void;
+}) {
+  const [firstName, setFirstName] = useState(user.firstName ?? '');
+  const [lastName, setLastName] = useState(user.lastName ?? '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const firstRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    firstRef.current?.focus();
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName: firstName.trim(), lastName: lastName.trim() }),
+      });
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { message?: string };
+        setError(body.message ?? 'Could not save changes.');
+        return;
+      }
+
+      const { user: updated } = (await res.json()) as { user: AdminUser };
+      onSaved(updated);
+      onClose();
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="w-full max-w-sm rounded-xl p-6"
+        style={{ backgroundColor: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)' }}
+      >
+        <h3 className="mb-4 text-base font-semibold" style={{ color: 'var(--foreground)' }}>
+          Edit user
+        </h3>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <ModalField
+            id="edit-first"
+            label="First name"
+            value={firstName}
+            onChange={setFirstName}
+            placeholder="First name"
+          />
+          <ModalField
+            id="edit-last"
+            label="Last name"
+            value={lastName}
+            onChange={setLastName}
+            placeholder="Last name"
+          />
+          <ModalField
+            id="edit-email"
+            label="Email"
+            value={user.email}
+            readOnly
+            hint="Managed by WorkOS — changes here would desync identity."
+          />
+          <ModalField
+            id="edit-handle"
+            label="Handle"
+            value={user.artistUsernames[0] ? `@${user.artistUsernames[0]}` : '—'}
+            readOnly
+            hint="Immutable in V1."
+          />
+
+          {error && (
+            <p className="text-xs" style={{ color: 'rgba(255,80,80,0.9)' }}>
+              {error}
+            </p>
+          )}
+
+          <div className="flex gap-2 pt-1">
+            <Button
+              type="button"
+              variant="ghost"
+              className="flex-1"
+              onClick={onClose}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" className="flex-1" disabled={saving}>
+              {saving ? 'Saving…' : 'Save'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── Delete confirmation modal ────────────────────────────────────────────────
+
+function DeleteModal({
+  user,
+  onClose,
+  onDeleted,
+}: {
+  user: AdminUser;
+  onClose: () => void;
+  onDeleted: (id: string) => void;
+}) {
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
+
+  async function handleDelete() {
+    setDeleting(true);
+    setError('');
+
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}`, { method: 'DELETE' });
+
+      if (res.status === 204) {
+        onDeleted(user.id);
+        onClose();
+        return;
+      }
+
+      const body = (await res.json().catch(() => ({}))) as { message?: string };
+      setError(body.message ?? 'Could not delete user.');
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="w-full max-w-sm rounded-xl p-6"
+        style={{ backgroundColor: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)' }}
+      >
+        <div
+          className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full"
+          style={{ backgroundColor: 'rgba(239,68,68,0.12)' }}
+        >
+          <svg
+            className="h-5 w-5"
+            style={{ color: 'rgba(239,68,68,0.8)' }}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+            />
+          </svg>
+        </div>
+
+        <h3
+          className="mb-1 text-center text-base font-semibold"
+          style={{ color: 'var(--foreground)' }}
+        >
+          Delete user?
+        </h3>
+        <p className="mb-1 text-center text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
+          <strong style={{ color: 'var(--foreground)' }}>{user.name ?? user.email}</strong>
+        </p>
+        <p className="mb-5 text-center text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          This is a soft delete — the user&apos;s data is preserved but they lose access
+          immediately. Their WorkOS identity remains active (hard delete deferred to V2).
+        </p>
+
+        {error && (
+          <p className="mb-3 text-center text-xs" style={{ color: 'rgba(255,80,80,0.9)' }}>
+            {error}
+          </p>
+        )}
+
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="flex-1"
+            onClick={onClose}
+            disabled={deleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            onClick={handleDelete}
+            disabled={deleting}
+          >
+            {deleting ? 'Deleting…' : 'Delete'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Invite modal ─────────────────────────────────────────────────────────────
 
 type InviteState = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -209,7 +523,6 @@ function InviteModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     inputRef.current?.focus();
-
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
     }
@@ -277,8 +590,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
               Invite user
             </h3>
             <p className="mb-5 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-              WorkOS will email them a sign-up link. They must use that link to create their
-              account.
+              WorkOS will email them a sign-up link.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -341,9 +653,15 @@ function InviteModal({ onClose }: { onClose: () => void }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
+type ActiveModal =
+  | { type: 'invite' }
+  | { type: 'edit'; user: AdminUser }
+  | { type: 'delete'; user: AdminUser }
+  | null;
+
 export function UsersTable() {
   const [state, setState] = useState<FetchState>({ status: 'loading' });
-  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [modal, setModal] = useState<ActiveModal>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -373,6 +691,23 @@ export function UsersTable() {
     };
   }, []);
 
+  function updateUser(updated: AdminUser) {
+    setState((prev) => {
+      if (prev.status !== 'ok') return prev;
+      return {
+        ...prev,
+        users: prev.users.map((u) => (u.id === updated.id ? { ...u, ...updated } : u)),
+      };
+    });
+  }
+
+  function removeUser(id: string) {
+    setState((prev) => {
+      if (prev.status !== 'ok') return prev;
+      return { ...prev, users: prev.users.filter((u) => u.id !== id) };
+    });
+  }
+
   function handleStatusChange(id: string, isSuspended: boolean) {
     setState((prev) => {
       if (prev.status !== 'ok') return prev;
@@ -387,7 +722,13 @@ export function UsersTable() {
 
   return (
     <>
-      {showInviteModal && <InviteModal onClose={() => setShowInviteModal(false)} />}
+      {modal?.type === 'invite' && <InviteModal onClose={() => setModal(null)} />}
+      {modal?.type === 'edit' && (
+        <EditModal user={modal.user} onClose={() => setModal(null)} onSaved={updateUser} />
+      )}
+      {modal?.type === 'delete' && (
+        <DeleteModal user={modal.user} onClose={() => setModal(null)} onDeleted={removeUser} />
+      )}
 
       <Card>
         <CardHeader>
@@ -401,7 +742,7 @@ export function UsersTable() {
                   `${userCount} ${userCount === 1 ? 'user' : 'users'} registered`}
               </CardDescription>
             </div>
-            <Button size="sm" onClick={() => setShowInviteModal(true)}>
+            <Button size="sm" onClick={() => setModal({ type: 'invite' })}>
               Invite user
             </Button>
           </div>
@@ -440,7 +781,13 @@ export function UsersTable() {
                 {state.status === 'ok' && state.users.length === 0 && <EmptyRow />}
                 {state.status === 'ok' &&
                   state.users.map((u) => (
-                    <UserRow key={u.id} user={u} onStatusChange={handleStatusChange} />
+                    <UserRow
+                      key={u.id}
+                      user={u}
+                      onStatusChange={handleStatusChange}
+                      onEdit={(user) => setModal({ type: 'edit', user })}
+                      onDelete={(user) => setModal({ type: 'delete', user })}
+                    />
                   ))}
               </tbody>
             </table>

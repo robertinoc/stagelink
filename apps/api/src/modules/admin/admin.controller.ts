@@ -1,7 +1,17 @@
-import { Controller, Get, Patch, Post, Param, Body, UseGuards, HttpCode } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  HttpCode,
+} from '@nestjs/common';
 import { AdminOwnerGuard } from './admin-owner.guard';
 import { AdminService } from './admin.service';
-import { UpdateUserStatusDto, SendInvitationDto } from './dto';
+import { UpdateUserStatusDto, SendInvitationDto, UpdateUserDto } from './dto';
 
 /**
  * AdminController — Behind the Stage internal endpoints.
@@ -10,9 +20,11 @@ import { UpdateUserStatusDto, SendInvitationDto } from './dto';
  * AdminOwnerGuard (applied at controller level).
  *
  * Routes:
- *   GET   /api/admin/users             → list all registered users
- *   PATCH /api/admin/users/:id/status  → suspend or unsuspend a user
- *   POST  /api/admin/invitations       → send WorkOS invitation email
+ *   GET    /api/admin/users             → list registered users (excludes soft-deleted)
+ *   PATCH  /api/admin/users/:id         → update firstName / lastName
+ *   DELETE /api/admin/users/:id         → soft-delete (sets deletedAt)
+ *   PATCH  /api/admin/users/:id/status  → suspend or unsuspend a user
+ *   POST   /api/admin/invitations       → send WorkOS invitation email
  */
 @Controller('admin')
 @UseGuards(AdminOwnerGuard)
@@ -24,6 +36,32 @@ export class AdminController {
   async listUsers() {
     const users = await this.adminService.listUsers();
     return { users };
+  }
+
+  /**
+   * PATCH /api/admin/users/:id
+   *
+   * Editable: firstName, lastName.
+   * Not editable: email (WorkOS identity), handle (Artist.username — immutable).
+   */
+  @Patch('users/:id')
+  @HttpCode(200)
+  async updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    const user = await this.adminService.updateUser(id, dto.firstName, dto.lastName);
+    return { user };
+  }
+
+  /**
+   * DELETE /api/admin/users/:id
+   *
+   * Soft-delete: sets deletedAt = now(). User disappears from default list.
+   * Hard delete is deferred to V2 due to FK constraints on Asset.createdByUserId.
+   * WorkOS identity remains; auth layers (layout + onboarding) block access.
+   */
+  @Delete('users/:id')
+  @HttpCode(204)
+  async deleteUser(@Param('id') id: string) {
+    await this.adminService.softDeleteUser(id);
   }
 
   /**

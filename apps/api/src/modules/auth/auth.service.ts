@@ -33,6 +33,7 @@ export class AuthService {
       avatarUrl: user.avatarUrl,
       artistIds,
       isSuspended: user.isSuspended,
+      isDeleted: user.deletedAt !== null,
       createdAt: user.createdAt,
     };
   }

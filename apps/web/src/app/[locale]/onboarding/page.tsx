@@ -34,7 +34,7 @@ export default async function OnboardingPage({ params }: OnboardingPageProps) {
   // If the user already has an artist, skip onboarding (e.g. back-navigation).
   const me = await getAuthMe(accessToken);
 
-  if (me?.isSuspended) {
+  if (me?.isSuspended || me?.isDeleted) {
     redirect(`/${locale}/suspended`);
   }
 

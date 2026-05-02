@@ -17,6 +17,8 @@ export interface AdminUserDto {
   artistUsernames: string[];
   isSuspended: boolean;
   createdAt: Date;
+  firstName: string | null;
+  lastName: string | null;
 }
 
 @Injectable()
@@ -29,6 +31,7 @@ export class AdminService {
    */
   async listUsers(): Promise<AdminUserDto[]> {
     const rows = await this.prisma.user.findMany({
+      where: { deletedAt: null },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
@@ -36,6 +39,7 @@ export class AdminService {
         firstName: true,
         lastName: true,
         isSuspended: true,
+        deletedAt: true,
         createdAt: true,
         artists: { select: { username: true } },
       },
@@ -55,10 +59,10 @@ export class AdminService {
   async updateUserStatus(targetId: string, isSuspended: boolean): Promise<AdminUserDto> {
     const existing = await this.prisma.user.findUnique({
       where: { id: targetId },
-      select: { id: true, email: true },
+      select: { id: true, email: true, deletedAt: true },
     });
 
-    if (!existing) {
+    if (!existing || existing.deletedAt !== null) {
       throw new NotFoundException(`User ${targetId} not found`);
     }
 
@@ -75,12 +79,86 @@ export class AdminService {
         firstName: true,
         lastName: true,
         isSuspended: true,
+        deletedAt: true,
         createdAt: true,
         artists: { select: { username: true } },
       },
     });
 
     return toDto(updated);
+  }
+
+  /**
+   * Updates mutable profile fields for a user.
+   *
+   * Only firstName and lastName are editable via admin:
+   *   - email syncs from WorkOS on login — editing locally would desync identity
+   *   - handle lives on Artist.username — immutable by design
+   *   - isSuspended is handled by updateUserStatus()
+   *   - deletedAt is handled by softDeleteUser()
+   */
+  async updateUser(targetId: string, firstName?: string, lastName?: string): Promise<AdminUserDto> {
+    const existing = await this.prisma.user.findUnique({
+      where: { id: targetId },
+      select: { id: true, deletedAt: true },
+    });
+
+    if (!existing || existing.deletedAt !== null) {
+      throw new NotFoundException(`User ${targetId} not found`);
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: targetId },
+      data: {
+        ...(firstName !== undefined && { firstName: firstName.trim() || null }),
+        ...(lastName !== undefined && { lastName: lastName.trim() || null }),
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        isSuspended: true,
+        deletedAt: true,
+        createdAt: true,
+        artists: { select: { username: true } },
+      },
+    });
+
+    return toDto(updated);
+  }
+
+  /**
+   * Soft-deletes a user by setting deletedAt = now().
+   *
+   * Hard delete is intentionally deferred (V2):
+   *   - Asset.createdByUserId has no onDelete clause → Postgres Restrict
+   *     would block deletion for any user with uploaded assets.
+   *   - Soft delete is safe, reversible, and preserves audit history.
+   *   - WorkOS identity remains active; future V2 will call
+   *     wos.userManagement.deleteUser() to fully revoke access.
+   *
+   * The user's data (artists, pages, subscribers) is preserved in DB.
+   * Auth enforcement in layout.tsx and onboarding/page.tsx blocks access.
+   */
+  async softDeleteUser(targetId: string): Promise<void> {
+    const existing = await this.prisma.user.findUnique({
+      where: { id: targetId },
+      select: { id: true, email: true, deletedAt: true },
+    });
+
+    if (!existing || existing.deletedAt !== null) {
+      throw new NotFoundException(`User ${targetId} not found`);
+    }
+
+    if (BEHIND_OWNER_EMAILS.includes(existing.email.toLowerCase())) {
+      throw new ForbiddenException('Owner accounts cannot be deleted');
+    }
+
+    await this.prisma.user.update({
+      where: { id: targetId },
+      data: { deletedAt: new Date() },
+    });
   }
 
   /**
@@ -120,6 +198,7 @@ type UserRow = {
   firstName: string | null;
   lastName: string | null;
   isSuspended: boolean;
+  deletedAt: Date | null;
   createdAt: Date;
   artists: { username: string }[];
 };
@@ -129,6 +208,8 @@ function toDto(u: UserRow): AdminUserDto {
     id: u.id,
     email: u.email,
     name: formatName(u.firstName, u.lastName),
+    firstName: u.firstName,
+    lastName: u.lastName,
     artistUsernames: u.artists.map((a) => a.username),
     isSuspended: u.isSuspended,
     createdAt: u.createdAt,

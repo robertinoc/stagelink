@@ -14,6 +14,7 @@ describe('OnboardingService', () => {
     lastName: 'User',
     avatarUrl: null,
     isSuspended: false,
+    deletedAt: null,
     createdAt: new Date('2025-01-01T00:00:00.000Z'),
     updatedAt: new Date('2025-01-01T00:00:00.000Z'),
   } satisfies User;
