@@ -26,6 +26,7 @@ import { ShopifyModule } from './modules/shopify/shopify.module';
 import { SmartLinksModule } from './modules/smart-links/smart-links.module';
 import { SubscribersModule } from './modules/subscribers/subscribers.module';
 import { TenantModule } from './modules/tenant/tenant.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { TenantModule } from './modules/tenant/tenant.module';
     SubscribersModule,
     EpkModule,
     ShopifyModule,
+    AdminModule,
   ],
   providers: [
     {

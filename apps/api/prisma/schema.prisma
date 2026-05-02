@@ -66,6 +66,7 @@ model User {
   firstName   String?  @map("first_name")
   lastName    String?  @map("last_name")
   avatarUrl   String?  @map("avatar_url")
+  isSuspended Boolean  @default(false) @map("is_suspended")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 

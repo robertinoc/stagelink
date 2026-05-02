@@ -15,5 +15,6 @@ export interface AuthenticatedUser {
   avatarUrl: string | null;
   /** IDs de los artistas administrados por este usuario */
   artistIds: string[];
+  isSuspended: boolean;
   createdAt: Date;
 }

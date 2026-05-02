@@ -53,8 +53,15 @@ performance-results/
 data-integrity-results/
 backups/
 
+# Test reports / generated artifacts
+test-results/
+playwright-report/
+apps/**/test-results/
+
 # Local planning / scratch artifacts
 STAGELINK.csv
 index.js
 index.mjs
 docs/brand/
+local/
+.claude/memory/

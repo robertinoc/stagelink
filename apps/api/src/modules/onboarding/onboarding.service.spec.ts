@@ -13,6 +13,7 @@ describe('OnboardingService', () => {
     firstName: 'Artist',
     lastName: 'User',
     avatarUrl: null,
+    isSuspended: false,
     createdAt: new Date('2025-01-01T00:00:00.000Z'),
     updatedAt: new Date('2025-01-01T00:00:00.000Z'),
   } satisfies User;

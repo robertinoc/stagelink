@@ -54,7 +54,8 @@ export default async function middleware(request: NextRequest) {
     pathname.startsWith('/api/insights/') ||
     pathname.startsWith('/api/artists/') ||
     pathname.startsWith('/api/pages/') ||
-    pathname.startsWith('/api/blocks/')
+    pathname.startsWith('/api/blocks/') ||
+    pathname.startsWith('/api/admin/')
   ) {
     const { headers: authkitHeaders } = await authkit(request);
     const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
@@ -131,6 +132,7 @@ export const config = {
     '/api/artists/:path*',
     '/api/pages/:path*',
     '/api/blocks/:path*',
+    '/api/admin/:path*',
     '/((?!api|_next|_vercel|.*\\..*).*)',
   ],
 };
