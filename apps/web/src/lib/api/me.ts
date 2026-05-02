@@ -7,6 +7,8 @@ import { apiFetch } from '@/lib/auth';
  */
 export interface AuthMeResponse {
   artistIds: string[];
+  isSuspended?: boolean;
+  isDeleted?: boolean;
 }
 
 export function getCurrentArtistId(me: AuthMeResponse | null): string | null {

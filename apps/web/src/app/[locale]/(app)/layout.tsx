@@ -39,6 +39,12 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
   let artist = null;
   let effectivePlan = null;
   const me = await getAuthMe(accessToken);
+
+  // Suspension guard: isSuspended is checked here, after session resolution,
+  // so WorkOS login itself is unaffected.
+  if (me?.isSuspended || me?.isDeleted) {
+    redirect(`/${locale}/suspended`);
+  }
   const artistId = getCurrentArtistId(me);
   if (artistId) {
     const [artistResult, billingSummary] = await Promise.all([

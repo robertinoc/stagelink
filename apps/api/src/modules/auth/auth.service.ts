@@ -32,6 +32,8 @@ export class AuthService {
       lastName: user.lastName,
       avatarUrl: user.avatarUrl,
       artistIds,
+      isSuspended: user.isSuspended,
+      isDeleted: user.deletedAt !== null,
       createdAt: user.createdAt,
     };
   }
