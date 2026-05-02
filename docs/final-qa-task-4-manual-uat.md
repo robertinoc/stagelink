@@ -60,10 +60,11 @@ Recorded Section 9 entries:
 | ------- | ------------- | ------------------------- | -------- | ------ |
 | UAT-004 | New artist    | Landing to auth entry     | P3       | closed |
 | UAT-005 | Fan / visitor | Public artist inspection  | P3       | closed |
-| UAT-006 | Operator      | Product-owner copy review | P2       | open   |
+| UAT-006 | Operator      | Product-owner copy review | P2       | closed |
 
-`UAT-006` is intentionally open as a subjective product review item. It is not
-a launch blocker unless the product owner finds P0/P1 friction.
+`UAT-006` was approved by the product owner on 2026-05-02 with no P0/P1
+findings. A deeper copy QA may still happen later, but it is not a blocker for
+this final-check task.
 
 ## Closure Criteria
 
@@ -71,5 +72,5 @@ Task 4 is closed when:
 
 - this UAT evidence is merged;
 - there are no open P0/P1 UAT issues in Section 9;
-- the product owner understands that final subjective copy/trust review remains
-  available as a non-blocking launch polish pass.
+- the product owner has approved the subjective copy/trust review for this
+  final-check pass.

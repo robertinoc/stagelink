@@ -103,7 +103,7 @@ pass are included below:
 | ------- | -------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------ | ------ | ------ |
 | UAT-004 | Artist   | Landing → auth entry            | No blocking friction found in landing, pricing, signup or login entry points.                                       | P3       | `docs/final-qa-task-4-manual-uat.md` | Codex  | closed |
 | UAT-005 | Visitor  | Public artist inspection        | No blocking friction found for published demo artist inspection; optional content-dependent checks skipped cleanly. | P3       | `docs/final-qa-task-4-manual-uat.md` | Codex  | closed |
-| UAT-006 | Operator | Product-owner copy/trust review | Subjective copy, trust and launch polish review remains available before public launch.                             | P2       | Product-owner manual pass            | Robert | open   |
+| UAT-006 | Operator | Product-owner copy/trust review | Approved by product owner; no P0/P1 found. A deeper copy QA can happen later as non-blocking polish.                | P2       | Product-owner manual pass            | Robert | closed |
 
 Severity:
 
