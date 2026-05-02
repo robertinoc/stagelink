@@ -8,7 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ARTIST_AUTH_FILE = path.join(__dirname, '../.auth/artist.json');
 const E2E_AUTH_EMAIL = process.env.E2E_AUTH_EMAIL;
 const E2E_AUTH_PASSWORD = process.env.E2E_AUTH_PASSWORD;
-const AUTH_SETUP_TIMEOUT = 90_000;
+const AUTH_SETUP_TIMEOUT = 120_000;
 
 function isAuthenticatedAppUrl(url: URL): boolean {
   const pathname = url.pathname;
@@ -54,17 +54,19 @@ async function completeHostedAuth(page: Page) {
     .click();
 
   const invalidCredentials = page.getByText(/invalid email or password/i).first();
+  const invalidCredentialsResult = invalidCredentials
+    .waitFor({ state: 'visible', timeout: 10_000 })
+    .then(() => 'invalid-credentials' as const)
+    .catch(() => new Promise<never>(() => undefined));
+
   const authResult = await Promise.race([
     page
       .waitForURL((url) => isAuthenticatedAppUrl(url), {
-        timeout: 60_000,
+        timeout: 90_000,
         waitUntil: 'domcontentloaded',
       })
       .then(() => 'authenticated' as const),
-    invalidCredentials
-      .waitFor({ state: 'visible', timeout: 10_000 })
-      .then(() => 'invalid-credentials' as const)
-      .catch(() => null),
+    invalidCredentialsResult,
   ]);
 
   if (authResult === 'invalid-credentials') {

@@ -157,7 +157,8 @@ docs/
 ├── performance-testing-section-7.md # Load, stress, scalability, thresholds y runner Node sin dependencias
 ├── data-reliability-section-8.md  # Data integrity, duplicates, backup y restore-check
 ├── uat-final-qa-section-9.md      # UAT, smoke final, matriz de regresión y readiness
-└── final-qa-task-1-main-green.md  # Recuperación de main verde post Section 9
+├── final-qa-task-1-main-green.md  # Recuperación de main verde post Section 9
+└── final-qa-task-2-staging-e2e-workos.md # Staging E2E completo con WorkOS
 ```
 
 ---
