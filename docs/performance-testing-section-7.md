@@ -1,7 +1,7 @@
 # StageLink — Performance Testing Section 7
 
 Status: implemented for repeatable load/stress/scalability runs
-Last checked: 2026-05-01
+Last checked: 2026-05-02
 
 This document records the Section 7 performance testing work:
 
@@ -145,6 +145,11 @@ Results:
 
 No unapproved live stress test was run against production from this PR.
 
+Final-check Task 5 was recorded on 2026-05-02 in
+`docs/final-qa-task-5-stress-test-window.md`. The production guardrails were
+verified again and the real stress run remains deferred until an approved window
+with monitoring open.
+
 ## Execution Plan
 
 ### Local Baseline
@@ -246,6 +251,7 @@ Section 7 is healthy when:
 | -------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
 | P1       | Replace in-memory rate limiters with Redis/Upstash before high traffic.  | Multi-instance deployments cannot coordinate current per-process counters. |
 | P1       | Decide final staging API URL and update the examples above.              | Current deploy docs still describe a future dedicated staging Railway API. |
+| P1       | Run the first real stress test only in an approved window.               | Tracked in `docs/final-qa-task-5-stress-test-window.md`.                   |
 | P2       | Add CI/manual workflow artifact upload for `performance-results/*.json`. | Makes launch sign-off easier to audit.                                     |
 | P2       | Add authenticated dashboard route mix using a dedicated QA bearer token. | Current runner supports it, but tokens should not be stored in repo.       |
 | P3       | Consider regional/load-cloud tooling once marketing traffic grows.       | Local single-machine load cannot model global network behavior.            |

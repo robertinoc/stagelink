@@ -160,7 +160,8 @@ docs/
 ├── final-qa-task-1-main-green.md  # Recuperación de main verde post Section 9
 ├── final-qa-task-2-staging-e2e-workos.md # Staging E2E completo con WorkOS
 ├── final-qa-task-3-production-smoke.md # Smoke productivo en stagelink.art
-└── final-qa-task-4-manual-uat.md # Pase UAT asistido, fricción y sign-off manual
+├── final-qa-task-4-manual-uat.md # Pase UAT asistido, fricción y sign-off manual
+└── final-qa-task-5-stress-test-window.md # Stress real diferido con ventana y monitoreo
 ```
 
 ---
