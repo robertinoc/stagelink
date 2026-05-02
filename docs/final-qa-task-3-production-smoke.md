@@ -13,6 +13,10 @@ after staging E2E has passed.
 GitHub Actions run `25250006639` on `main` completed successfully after PR #224.
 The production smoke job started only after staging E2E passed.
 
+Post-merge closure was confirmed on GitHub Actions run `25250764085` after PR
+#225. The full `main` pipeline passed, including `E2E tests (staging)` and
+`Smoke tests (production)`.
+
 | Check                    | Result |
 | ------------------------ | ------ |
 | TypeScript check         | Passed |

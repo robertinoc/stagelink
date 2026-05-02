@@ -159,7 +159,8 @@ docs/
 ├── uat-final-qa-section-9.md      # UAT, smoke final, matriz de regresión y readiness
 ├── final-qa-task-1-main-green.md  # Recuperación de main verde post Section 9
 ├── final-qa-task-2-staging-e2e-workos.md # Staging E2E completo con WorkOS
-└── final-qa-task-3-production-smoke.md # Smoke productivo en stagelink.art
+├── final-qa-task-3-production-smoke.md # Smoke productivo en stagelink.art
+└── final-qa-task-4-manual-uat.md # Pase UAT asistido, fricción y sign-off manual
 ```
 
 ---

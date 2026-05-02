@@ -1,7 +1,7 @@
 # StageLink — UAT & Final QA Section 9
 
 Status: implemented for UAT coverage and final pre-release checklist
-Last checked: 2026-05-01
+Last checked: 2026-05-02
 
 This document records the Section 9 final QA work:
 
@@ -96,11 +96,14 @@ are intentionally not registered.
 
 ## UAT Friction Report Template
 
-Use this table during manual UAT:
+Use this table during manual UAT. Entries from the Task 4 Codex-assisted UAT
+pass are included below:
 
-| ID      | Persona | Flow               | Friction / Issue    | Severity | Evidence        | Owner | Status |
-| ------- | ------- | ------------------ | ------------------- | -------- | --------------- | ----- | ------ |
-| UAT-001 | Artist  | Signup → dashboard | Example placeholder | P2       | screenshot/link | TBD   | open   |
+| ID      | Persona  | Flow                            | Friction / Issue                                                                                                    | Severity | Evidence                             | Owner  | Status |
+| ------- | -------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------ | ------ | ------ |
+| UAT-004 | Artist   | Landing → auth entry            | No blocking friction found in landing, pricing, signup or login entry points.                                       | P3       | `docs/final-qa-task-4-manual-uat.md` | Codex  | closed |
+| UAT-005 | Visitor  | Public artist inspection        | No blocking friction found for published demo artist inspection; optional content-dependent checks skipped cleanly. | P3       | `docs/final-qa-task-4-manual-uat.md` | Codex  | closed |
+| UAT-006 | Operator | Product-owner copy/trust review | Subjective copy, trust and launch polish review remains available before public launch.                             | P2       | Product-owner manual pass            | Robert | open   |
 
 Severity:
 
@@ -171,6 +174,20 @@ Results:
 
 No production mutation was performed by this PR.
 
+Additional Task 4 UAT evidence recorded on 2026-05-02:
+
+```bash
+PLAYWRIGHT_BASE_URL=https://stagelink.art \
+E2E_DEMO_ARTIST=free-artist-qa \
+CI=true \
+PLAYWRIGHT_OUTPUT_DIR=/tmp/stagelink-task4-uat-results \
+PLAYWRIGHT_HTML_REPORT=/tmp/stagelink-task4-uat-report \
+pnpm test:e2e:uat
+```
+
+Result: 17 passed, 7 skipped, 0 failed. The skips were optional
+content-dependent public journey checks; no P0/P1 UAT issues were found.
+
 ## Known Follow-ups
 
 | Priority | Follow-up                                                                                                                       | Reason                                                                                                  |
@@ -178,7 +195,7 @@ No production mutation was performed by this PR.
 | P0       | Keep `main` green after the Section 9 merge.                                                                                    | Tracked in `docs/final-qa-task-1-main-green.md`; staging E2E must pass before production smoke can run. |
 | P1       | Run full staging `pnpm test:e2e` with WorkOS credentials before final launch sign-off.                                          | Tracked in `docs/final-qa-task-2-staging-e2e-workos.md`.                                                |
 | P1       | Run production smoke tests on `stagelink.art`.                                                                                  | Tracked in `docs/final-qa-task-3-production-smoke.md`.                                                  |
-| P1       | Run manual UAT with at least one artist/operator persona and record issues in the template.                                     | Automated checks do not fully measure friction or comprehension.                                        |
+| P1       | Run manual UAT with at least one artist/operator persona and record issues in the template.                                     | Tracked in `docs/final-qa-task-4-manual-uat.md`; no open P0/P1 after Codex-assisted pass.               |
 | P1       | Keep the Section 7 real stress test deferred until the full testing plan is complete, with approved window and monitoring open. | Avoid accidental production/staging disruption.                                                         |
 | P1       | Run the first Section 8 restore drill only after the full testing plan is complete and against a disposable restore DB.         | Avoid destructive recovery operations during active QA.                                                 |
 | P2       | Add a GitHub Actions manual workflow for final QA evidence artifacts.                                                           | Simplifies release sign-off history.                                                                    |
