@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { confirmUpload, requestUploadIntent, uploadToS3 } from '@/lib/api/assets';
+import { confirmUpload, requestUploadIntent, resolveMimeType, uploadToS3 } from '@/lib/api/assets';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB
@@ -39,7 +39,8 @@ export function CoverUpload({ artistId, currentCoverUrl, onSuccess }: CoverUploa
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    const mimeType = resolveMimeType(file);
+    if (!ALLOWED_TYPES.includes(mimeType)) {
       setError('Only JPEG, PNG and WebP images are allowed.');
       return;
     }
