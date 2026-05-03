@@ -41,13 +41,18 @@ export default async function middleware(request: NextRequest) {
 
   // Rule 4: behind.stagelink.art — rewrite to /en/behind/*
   //
-  // Uses request.nextUrl.hostname (parsed URL) rather than the Host header
-  // because Vercel Edge may present the header in a different format.
+  // Vercel Edge may surface the custom domain in different headers depending on
+  // how the request traverses CDN layers: x-forwarded-host is most reliable,
+  // then the Host header, then nextUrl.hostname as a final fallback.
   //
   // Locale prefixes (/en, /es) are stripped so that any cached redirect landing
   // on behind.stagelink.art/en resolves to /en/behind, not /en/behind/en.
   // API routes fall through to the existing AuthKit handler below.
-  if (request.nextUrl.hostname === BEHIND_HOST && !pathname.startsWith('/api/')) {
+  const incomingHostname =
+    request.headers.get('x-forwarded-host') ??
+    request.headers.get('host') ??
+    request.nextUrl.hostname;
+  if (incomingHostname === BEHIND_HOST && !pathname.startsWith('/api/')) {
     const { headers: authkitHeaders } = await authkit(request);
     const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
 
