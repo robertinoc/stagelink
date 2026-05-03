@@ -41,21 +41,17 @@ export default async function middleware(request: NextRequest) {
 
   // Rule 4: behind.stagelink.art — rewrite to /en/behind/*
   //
-  // MUST come before the root-path redirect (handled by intlMiddleware below)
-  // so that behind.stagelink.art/ is rewritten to /en/behind directly.
+  // Uses request.nextUrl.hostname (parsed URL) rather than the Host header
+  // because Vercel Edge may present the header in a different format.
   //
-  // Locale prefixes (/en, /es) are stripped from the path so that any
-  // cached redirect landing on behind.stagelink.art/en also resolves
-  // correctly to /en/behind instead of the non-existent /en/behind/en.
-  //
-  // API routes (/api/*) fall through to the existing handler below,
-  // which already applies AuthKit session headers.
-  if (request.headers.get('host') === BEHIND_HOST && !pathname.startsWith('/api/')) {
+  // Locale prefixes (/en, /es) are stripped so that any cached redirect landing
+  // on behind.stagelink.art/en resolves to /en/behind, not /en/behind/en.
+  // API routes fall through to the existing AuthKit handler below.
+  if (request.nextUrl.hostname === BEHIND_HOST && !pathname.startsWith('/api/')) {
     const { headers: authkitHeaders } = await authkit(request);
     const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
 
     const rewriteUrl = request.nextUrl.clone();
-    // Strip locale prefix so /en → / and /en/foo → /foo before prepending /en/behind
     const stripped = pathname.replace(/^\/(en|es)(\/|$)/, '/');
     rewriteUrl.pathname =
       stripped === '/' || stripped === '' ? '/en/behind' : `/en/behind${stripped}`;
@@ -70,29 +66,6 @@ export default async function middleware(request: NextRequest) {
     acceptLanguage: request.headers.get('accept-language') ?? DEFAULT_LOCALE,
     localeCookie: request.cookies.get('NEXT_LOCALE')?.value ?? null,
   });
-
-  // Rule 4: behind.stagelink.art — rewrite to /en/behind/*
-  //
-  // API routes (/api/*) and Next.js internals (/_next/*) are excluded from the
-  // rewrite and fall through to the existing API handler below, which already
-  // applies AuthKit session headers. Non-API paths are rewritten so the admin
-  // panel is served without a locale prefix (always English, internal tool).
-  //
-  // Auth: unauthenticated requests are handled by the (admin) layout, which
-  // redirects to /api/auth/signin. With WORKOS_COOKIE_DOMAIN=.stagelink.art the
-  // resulting session cookie is valid on both stagelink.art and this subdomain.
-  if (request.headers.get('host') === BEHIND_HOST && !pathname.startsWith('/api/')) {
-    const { headers: authkitHeaders } = await authkit(request);
-    const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
-
-    const rewriteUrl = request.nextUrl.clone();
-    rewriteUrl.pathname = pathname === '/' ? '/en/behind' : `/en/behind${pathname}`;
-
-    const response = NextResponse.rewrite(rewriteUrl, {
-      request: { headers: requestHeaders },
-    });
-    return applyResponseHeaders(response, responseHeaders);
-  }
 
   // API routes that need AuthKit session context but not locale handling.
   if (
