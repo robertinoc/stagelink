@@ -19,11 +19,16 @@ export default async function AdminLayout({ children, params }: AdminLayoutProps
   // both stagelink.art and behind.stagelink.art without hitting the host-rewrite
   // loop (/${locale}/login on the subdomain rewrites to /en/behind/en/login).
   //
+  // returnTo lands the user back on /{locale}/behind after auth — without it
+  // the callback falls back to /en/dashboard (the artist app), bouncing admins
+  // away from the panel they were trying to reach.
+  //
   // After auth WorkOS returns to WORKOS_REDIRECT_URI (stagelink.art).
   // With WORKOS_COOKIE_DOMAIN=.stagelink.art that session cookie is automatically
   // valid on behind.stagelink.art on the next visit — no second login required.
   if (!session) {
-    redirect('/api/auth/signin');
+    const returnTo = encodeURIComponent(`/${locale}/behind`);
+    redirect(`/api/auth/signin?returnTo=${returnTo}`);
   }
 
   // Authenticated but not the owner → silent redirect to main site.
