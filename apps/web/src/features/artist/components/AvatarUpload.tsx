@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { confirmUpload, requestUploadIntent, uploadToS3 } from '@/lib/api/assets';
+import { confirmUpload, requestUploadIntent, resolveMimeType, uploadToS3 } from '@/lib/api/assets';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -39,8 +39,10 @@ export function AvatarUpload({ artistId, currentAvatarUrl, onSuccess }: AvatarUp
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Client-side validation
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    // Client-side validation — use resolveMimeType so mobile browsers that
+    // return empty or "application/octet-stream" for file.type still pass.
+    const mimeType = resolveMimeType(file);
+    if (!ALLOWED_TYPES.includes(mimeType)) {
       setError('Only JPEG, PNG and WebP images are allowed.');
       return;
     }

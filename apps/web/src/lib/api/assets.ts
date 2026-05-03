@@ -2,6 +2,29 @@ import { apiFetch } from '@/lib/auth';
 import type { AssetDto, AssetKind, UploadIntentResponse } from '@stagelink/types';
 
 /**
+ * Resolve the MIME type for a file, falling back to extension-based detection.
+ *
+ * Mobile browsers (iOS Safari, some Android) can return an empty string or
+ * "application/octet-stream" for file.type even for valid images. Deriving
+ * from the extension is a reliable fallback for the image types we accept.
+ */
+export function resolveMimeType(file: File): string {
+  if (file.type && file.type !== 'application/octet-stream') return file.type;
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'png':
+      return 'image/png';
+    case 'webp':
+      return 'image/webp';
+    default:
+      return file.type || 'application/octet-stream';
+  }
+}
+
+/**
  * Request a presigned upload URL from the backend.
  * The backend validates ownership, mime type, and file size.
  */
@@ -18,7 +41,7 @@ export async function requestUploadIntent(
     body: JSON.stringify({
       artistId,
       kind,
-      mimeType: file.type,
+      mimeType: resolveMimeType(file),
       sizeBytes: file.size,
       originalFilename: file.name,
     }),
@@ -44,7 +67,9 @@ export async function uploadToS3(
   await new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', uploadUrl);
-    xhr.setRequestHeader('Content-Type', file.type);
+    // Use the same resolved MIME type as requestUploadIntent so the Content-Type
+    // header matches the one baked into the S3 presigned URL signature.
+    xhr.setRequestHeader('Content-Type', resolveMimeType(file));
 
     if (onProgress) {
       xhr.upload.onprogress = (e) => {
