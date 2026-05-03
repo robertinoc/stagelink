@@ -39,10 +39,31 @@ export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const segments = pathname.split('/').filter(Boolean);
 
-  if (pathname === '/') {
-    const url = request.nextUrl.clone();
-    url.pathname = '/en';
-    return NextResponse.redirect(url, 302);
+  // Rule 4: behind.stagelink.art — rewrite to /en/behind/*
+  //
+  // MUST come before the root-path redirect (handled by intlMiddleware below)
+  // so that behind.stagelink.art/ is rewritten to /en/behind directly.
+  //
+  // Locale prefixes (/en, /es) are stripped from the path so that any
+  // cached redirect landing on behind.stagelink.art/en also resolves
+  // correctly to /en/behind instead of the non-existent /en/behind/en.
+  //
+  // API routes (/api/*) fall through to the existing handler below,
+  // which already applies AuthKit session headers.
+  if (request.headers.get('host') === BEHIND_HOST && !pathname.startsWith('/api/')) {
+    const { headers: authkitHeaders } = await authkit(request);
+    const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
+
+    const rewriteUrl = request.nextUrl.clone();
+    // Strip locale prefix so /en → / and /en/foo → /foo before prepending /en/behind
+    const stripped = pathname.replace(/^\/(en|es)(\/|$)/, '/');
+    rewriteUrl.pathname =
+      stripped === '/' || stripped === '' ? '/en/behind' : `/en/behind${stripped}`;
+
+    const response = NextResponse.rewrite(rewriteUrl, {
+      request: { headers: requestHeaders },
+    });
+    return applyResponseHeaders(response, responseHeaders);
   }
 
   const locale = resolvePreferredLocale({
