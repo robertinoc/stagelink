@@ -33,30 +33,23 @@ const BEHIND_HOST = 'behind.stagelink.art';
  * 1. /p/{username} → 302 to /{locale}/{username} — prevent duplicate content.
  * 2. Single-segment non-locale paths → 302 to /{locale}/{username}.
  * 3. Everything else → authkit session + intl locale handling.
- * 4. behind.stagelink.art — host rewrite to /en/behind (no locale prefix needed).
+ *
+ * Note: behind.stagelink.art rewrites are handled in next.config.ts (rewrites
+ * with `has: { type: 'host' }`). Middleware-level host rewrites were unreliable
+ * on Vercel Edge for the root path. The behind subdomain still flows through
+ * authkit below for session handling, but skips intl middleware (always /en).
  */
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const segments = pathname.split('/').filter(Boolean);
+  const isBehindHost = request.nextUrl.hostname === BEHIND_HOST;
 
-  // Rule 4: behind.stagelink.art — rewrite to /en/behind/*
-  //
-  // Uses request.nextUrl.hostname (parsed URL) rather than the Host header
-  // because Vercel Edge may present the header in a different format.
-  //
-  // Locale prefixes (/en, /es) are stripped so that any cached redirect landing
-  // on behind.stagelink.art/en resolves to /en/behind, not /en/behind/en.
-  // API routes fall through to the existing AuthKit handler below.
-  if (request.nextUrl.hostname === BEHIND_HOST && !pathname.startsWith('/api/')) {
+  // behind.stagelink.art: run authkit but skip intl middleware (always /en).
+  // The path rewrite to /en/behind/* is handled by next.config.ts rewrites.
+  if (isBehindHost && !pathname.startsWith('/api/')) {
     const { headers: authkitHeaders } = await authkit(request);
     const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
-
-    const rewriteUrl = request.nextUrl.clone();
-    const stripped = pathname.replace(/^\/(en|es)(\/|$)/, '/');
-    rewriteUrl.pathname =
-      stripped === '/' || stripped === '' ? '/en/behind' : `/en/behind${stripped}`;
-
-    const response = NextResponse.rewrite(rewriteUrl, {
+    const response = NextResponse.next({
       request: { headers: requestHeaders },
     });
     return applyResponseHeaders(response, responseHeaders);
