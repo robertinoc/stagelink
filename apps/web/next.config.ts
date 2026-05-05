@@ -104,37 +104,30 @@ const nextConfig: NextConfig = {
    * middleware-based host rewrites don't fire reliably for the root path on
    * Vercel Edge (the /api/admin/debug/headers diagnostic confirmed all four
    * hostname sources return "behind.stagelink.art" correctly, yet the
-   * middleware Rule 4 wasn't applying for /). next.config.ts rewrites with
-   * `has: { type: 'host' }` are processed by Vercel's CDN layer before the
-   * file system check and are the canonical Next.js mechanism for this.
+   * middleware host rewrite wasn't applying for /). next.config.ts rewrites
+   * with `has: { type: 'host' }` are processed by Vercel's CDN layer before
+   * the file system check and are the canonical Next.js mechanism for this.
    *
-   * Rules below cover:
-   *   - /                          → /en/behind
-   *   - /en or /es (cached prefix) → /en/behind
-   *   - /en/foo or /es/foo         → /en/behind/foo
-   *   - /anything-else             → /en/behind/anything-else
-   *   - /api/*, /_next/*, /_vercel/* are excluded (negative lookahead)
+   * Cascade prevention: beforeFiles rewrites with `has: { type: 'host' }`
+   * keep matching as long as the host doesn't change. To prevent
+   * /en/behind from being re-rewritten to /en/behind/en/behind (which
+   * happened in the first deploy), the path-matching rule excludes any
+   * path already starting with "en/behind" via a negative lookahead.
+   *
+   * Rules:
+   *   /                       → /en/behind
+   *   /anything-not-rewritten → /en/behind/anything (excludes en/behind, api, _next, _vercel)
    */
   async rewrites() {
     return {
       beforeFiles: [
-        {
-          source: '/:locale(en|es)',
-          has: [{ type: 'host', value: BEHIND_HOST }],
-          destination: '/en/behind',
-        },
-        {
-          source: '/:locale(en|es)/:path*',
-          has: [{ type: 'host', value: BEHIND_HOST }],
-          destination: '/en/behind/:path*',
-        },
         {
           source: '/',
           has: [{ type: 'host', value: BEHIND_HOST }],
           destination: '/en/behind',
         },
         {
-          source: '/:path((?!api|_next|_vercel).+)',
+          source: '/:path((?!en/behind|api|_next|_vercel).+)',
           has: [{ type: 'host', value: BEHIND_HOST }],
           destination: '/en/behind/:path',
         },
