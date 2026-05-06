@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   if (!session) {
     const redirectUri = process.env.WORKOS_REDIRECT_URI;
     const mainOrigin = redirectUri ? new URL(redirectUri).origin : '';
-    redirect(`${mainOrigin}/api/auth/signin?returnTo=/behind`);
+    redirect(`${mainOrigin}/api/auth/signin?returnTo=${encodeURIComponent('/behind')}`);
   }
 
   // Authenticated but not the owner → silent redirect to main site.
