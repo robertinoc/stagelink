@@ -1,0 +1,134 @@
+name: Final QA Evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Public URL to validate'
+        required: true
+        default: 'https://stagelink.art'
+      demo_artist:
+        description: 'Published demo artist username'
+        required: true
+        default: 'free-artist-qa'
+      run_final_e2e:
+        description: 'Run non-mutating Playwright final QA'
+        required: true
+        type: boolean
+        default: true
+      run_dry_runs:
+        description: 'Record performance/data dry-run evidence'
+        required: true
+        type: boolean
+        default: true
+
+concurrency:
+  group: final-qa-evidence-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  final-qa-evidence:
+    name: Final QA evidence artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Prepare evidence directory
+        run: mkdir -p final-qa-evidence
+
+      - name: Cache Playwright browsers
+        if: ${{ inputs.run_final_e2e }}
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright browsers
+        if: ${{ inputs.run_final_e2e && steps.playwright-cache.outputs.cache-hit != 'true' }}
+        run: pnpm playwright:install
+
+      - name: Run final QA Playwright pass
+        if: ${{ inputs.run_final_e2e }}
+        run: pnpm test:e2e:final
+        env:
+          CI: true
+          PLAYWRIGHT_BASE_URL: ${{ inputs.base_url }}
+          E2E_DEMO_ARTIST: ${{ inputs.demo_artist }}
+          PLAYWRIGHT_HTML_REPORT: final-qa-evidence/playwright-report
+          PLAYWRIGHT_OUTPUT_DIR: final-qa-evidence/test-results
+
+      - name: Record performance/data dry-run evidence
+        if: ${{ always() && inputs.run_dry_runs }}
+        run: |
+          set -o pipefail
+
+          {
+            echo "# Final QA Dry-Run Evidence"
+            echo ""
+            echo "- Base URL: ${{ inputs.base_url }}"
+            echo "- Demo artist: ${{ inputs.demo_artist }}"
+            echo "- Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "- Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo ""
+            echo "## Performance Load Plan"
+            echo '```text'
+            PERF_WEB_URL="${{ inputs.base_url }}" \
+              PERF_DEMO_ARTIST="${{ inputs.demo_artist }}" \
+              pnpm perf:load -- --dry-run
+            echo '```'
+            echo ""
+            echo "## Backup Dry Run"
+            echo '```text'
+            DATABASE_URL="postgresql://stage_user:stage_secret@staging.example.com:5432/stagelink" \
+              pnpm data:backup:dry-run
+            echo '```'
+            echo ""
+            echo "## Restore Dry Run"
+            echo '```text'
+            TARGET_DATABASE_URL="postgresql://localhost:5432/stagelink_restore" \
+              pnpm data:restore:dry-run -- --backup backups/example.dump
+            echo '```'
+          } | tee final-qa-evidence/dry-run-evidence.md
+
+      - name: Write final QA summary
+        if: always()
+        run: |
+          {
+            echo "# Final QA Evidence"
+            echo ""
+            echo "| Field | Value |"
+            echo "| ----- | ----- |"
+            echo "| Base URL | ${{ inputs.base_url }} |"
+            echo "| Demo artist | ${{ inputs.demo_artist }} |"
+            echo "| Final E2E requested | ${{ inputs.run_final_e2e }} |"
+            echo "| Dry-runs requested | ${{ inputs.run_dry_runs }} |"
+            echo "| Workflow status | ${{ job.status }} |"
+            echo "| Run | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |"
+            echo ""
+            echo "Artifacts include Playwright reports when final E2E is enabled and dry-run evidence when requested."
+          } | tee final-qa-evidence/summary.md
+
+          cat final-qa-evidence/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload final QA evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: final-qa-evidence-${{ github.run_id }}
+          path: final-qa-evidence/
+          retention-days: 30
