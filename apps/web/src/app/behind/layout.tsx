@@ -5,36 +5,28 @@ import { isBehindOwner } from '@/lib/behind-config';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
 }
 
-export default async function AdminLayout({ children, params }: AdminLayoutProps) {
-  const { locale } = await params;
-
+export default async function AdminLayout({ children }: AdminLayoutProps) {
   const session = await getSession();
 
   // Not authenticated → trigger WorkOS sign-in.
   //
-  // Redirect to /api/auth/signin rather than /${locale}/login so this works on
-  // both stagelink.art and behind.stagelink.art without hitting the host-rewrite
-  // loop (/${locale}/login on the subdomain rewrites to /en/behind/en/login).
-  //
-  // returnTo lands the user back on /{locale}/behind after auth — without it
+  // returnTo lands the user back on /behind after auth — without it
   // the callback falls back to /en/dashboard (the artist app), bouncing admins
   // away from the panel they were trying to reach.
   //
   // After auth WorkOS returns to WORKOS_REDIRECT_URI (stagelink.art).
-  // With WORKOS_COOKIE_DOMAIN=.stagelink.art that session cookie is automatically
-  // valid on behind.stagelink.art on the next visit — no second login required.
+  // With WORKOS_COOKIE_DOMAIN=.stagelink.art that session cookie is
+  // automatically valid on behind.stagelink.art on the next visit.
   if (!session) {
-    const returnTo = encodeURIComponent(`/${locale}/behind`);
-    redirect(`/api/auth/signin?returnTo=${returnTo}`);
+    redirect(`/api/auth/signin?returnTo=${encodeURIComponent('/behind')}`);
   }
 
   // Authenticated but not the owner → silent redirect to main site.
   // We redirect rather than 403 to avoid confirming that this path exists.
   if (!isBehindOwner(session.user.email)) {
-    redirect(`/${locale}`);
+    redirect('/');
   }
 
   return (
@@ -61,7 +53,7 @@ export default async function AdminLayout({ children, params }: AdminLayoutProps
         {/* Section nav */}
         <nav className="flex gap-1 border-b border-white/10 py-2">
           <Link
-            href={`/${locale}/behind`}
+            href="/behind"
             className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-white shadow-[0_0_12px_rgba(155,48,208,0.15)] transition-colors font-[family-name:var(--font-heading)]"
           >
             Users

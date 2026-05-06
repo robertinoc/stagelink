@@ -34,18 +34,19 @@ const BEHIND_HOST = 'behind.stagelink.art';
  * 2. Single-segment non-locale paths → 302 to /{locale}/{username}.
  * 3. Everything else → authkit session + intl locale handling.
  *
- * Note: behind.stagelink.art rewrites are handled in next.config.ts (rewrites
- * with `has: { type: 'host' }`). Middleware-level host rewrites were unreliable
- * on Vercel Edge for the root path. The behind subdomain still flows through
- * authkit below for session handling, but skips intl middleware (always /en).
+ * Note: behind.stagelink.art path rewrites are handled in next.config.ts
+ * (rewrites with `has: { type: 'host' }`). The admin panel lives at top-level
+ * /behind (outside [locale]) to avoid the [username] dynamic-route conflict.
+ * Middleware still runs authkit for session handling on the behind subdomain
+ * but skips intl middleware (admin panel is always English).
  */
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const segments = pathname.split('/').filter(Boolean);
   const isBehindHost = request.nextUrl.hostname === BEHIND_HOST;
 
-  // behind.stagelink.art: run authkit but skip intl middleware (always /en).
-  // The path rewrite to /en/behind/* is handled by next.config.ts rewrites.
+  // behind.stagelink.art: run authkit but skip intl middleware.
+  // The path rewrite to /behind/* is handled by next.config.ts rewrites.
   if (isBehindHost && !pathname.startsWith('/api/')) {
     const { headers: authkitHeaders } = await authkit(request);
     const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
@@ -109,7 +110,12 @@ export default async function middleware(request: NextRequest) {
   }
 
   // Rule 2: artist username — redirect /{username} → /{locale}/{username}.
-  if (segments.length === 1 && !LOCALES.includes(segments[0] as SupportedLocale)) {
+  // Excludes top-level routes that aren't artist pages (e.g. /behind admin panel).
+  if (
+    segments.length === 1 &&
+    !LOCALES.includes(segments[0] as SupportedLocale) &&
+    segments[0] !== 'behind'
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = `/${locale}/${segments[0]!}`;
     return NextResponse.redirect(url, 302);

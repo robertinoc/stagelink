@@ -100,23 +100,21 @@ const nextConfig: NextConfig = {
   /**
    * Host-based rewrites for behind.stagelink.art admin subdomain.
    *
-   * Why next.config.ts instead of middleware: empirical testing showed that
-   * middleware-based host rewrites don't fire reliably for the root path on
-   * Vercel Edge (the /api/admin/debug/headers diagnostic confirmed all four
-   * hostname sources return "behind.stagelink.art" correctly, yet the
-   * middleware host rewrite wasn't applying for /). next.config.ts rewrites
-   * with `has: { type: 'host' }` are processed by Vercel's CDN layer before
-   * the file system check and are the canonical Next.js mechanism for this.
+   * The admin panel lives at the top-level /behind path (outside [locale])
+   * to avoid conflicting with [locale]/[username] dynamic routing — when
+   * Vercel rewrote / → /en/behind, Next.js was matching the dynamic
+   * [username] route (notFound for "behind") instead of the static (admin)
+   * route, returning 404 even though the rewrite path was correct.
    *
-   * Cascade prevention: beforeFiles rewrites with `has: { type: 'host' }`
-   * keep matching as long as the host doesn't change. To prevent
-   * /en/behind from being re-rewritten to /en/behind/en/behind (which
-   * happened in the first deploy), the path-matching rule excludes any
-   * path already starting with "en/behind" via a negative lookahead.
+   * Path is internal-only and always English, so no locale prefix needed.
+   *
+   * Cascade prevention: beforeFiles rewrites keep matching while the host
+   * stays the same, so the catch-all rule excludes paths already starting
+   * with "behind" via negative lookahead.
    *
    * Rules:
-   *   /                       → /en/behind
-   *   /anything-not-rewritten → /en/behind/anything (excludes en/behind, api, _next, _vercel)
+   *   /                       → /behind
+   *   /anything-not-rewritten → /behind/anything (excludes behind, api, _next, _vercel)
    */
   async rewrites() {
     return {
@@ -124,12 +122,12 @@ const nextConfig: NextConfig = {
         {
           source: '/',
           has: [{ type: 'host', value: BEHIND_HOST }],
-          destination: '/en/behind',
+          destination: '/behind',
         },
         {
-          source: '/:path((?!en/behind|api|_next|_vercel).+)',
+          source: '/:path((?!behind|api|_next|_vercel).+)',
           has: [{ type: 'host', value: BEHIND_HOST }],
-          destination: '/en/behind/:path',
+          destination: '/behind/:path',
         },
       ],
     };
