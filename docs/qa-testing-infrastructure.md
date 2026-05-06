@@ -166,9 +166,11 @@ Current status:
 
 - Root scripts expose `pnpm data:validate`, `pnpm data:backup:dry-run`,
   `pnpm data:backup`, `pnpm data:restore:dry-run`, and
-  `pnpm data:restore:check`.
+  `pnpm data:restore:check`, and `pnpm data:row-counts`.
 - `scripts/data/data-integrity.sql` checks integrity, consistency and duplicate
   conditions across core StageLink tables.
+- `scripts/data/run-row-count-snapshot.mjs` captures read-only row counts for
+  critical tables before/after restore drills.
 - `scripts/data/backup-recovery.sh` defaults to dry-run and refuses unsafe
   restore targets unless explicitly approved.
 - Integration DB reset now truncates every mapped Prisma model table, and
@@ -179,6 +181,7 @@ Current commands:
 
 ```bash
 DATABASE_URL=postgresql://localhost:5432/stagelink_test pnpm data:validate
+DATABASE_URL=postgresql://localhost:5432/stagelink_test pnpm data:row-counts
 DATABASE_URL=postgresql://localhost:5432/stagelink_test pnpm data:backup:dry-run
 TARGET_DATABASE_URL=postgresql://localhost:5432/stagelink_restore pnpm data:restore:dry-run -- --backup backups/example.dump
 ```

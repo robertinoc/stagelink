@@ -164,7 +164,8 @@ docs/
 ├── final-qa-task-5-stress-test-window.md # Stress real diferido con ventana y monitoreo
 ├── final-qa-task-6-restore-drill.md # Backup/restore drill con DB descartable
 ├── final-qa-task-7-evidence-workflow.md # Workflow manual de artifacts final QA
-└── final-qa-task-8-managed-db-backups.md # Backups Railway Pro diferidos a T7-8/100 usuarios
+├── final-qa-task-8-managed-db-backups.md # Backups Railway Pro diferidos a T7-8/100 usuarios
+└── final-qa-task-9-row-count-snapshot.md # Snapshot read-only de row counts para restore drills
 ```
 
 ---
@@ -190,6 +191,7 @@ pnpm perf:load        # Performance load profile
 pnpm perf:stress      # Performance stress profile (bloquea prod sin PERF_ALLOW_PROD_STRESS=true)
 pnpm perf:scalability # Performance scalability profile
 pnpm data:validate    # Data integrity/consistency/duplicate checks (requiere DATABASE_URL)
+pnpm data:row-counts  # Snapshot read-only de conteos por tabla crítica
 pnpm data:backup:dry-run # Muestra comando pg_dump sin ejecutar
 pnpm data:restore:dry-run # Muestra comando pg_restore + validation sin ejecutar
 

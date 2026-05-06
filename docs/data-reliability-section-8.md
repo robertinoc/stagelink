@@ -1,6 +1,7 @@
 # StageLink — Data & Reliability Section 8
 
-Status: implemented for repeatable validation plus backup/recovery dry-runs
+Status: implemented for repeatable validation plus backup/recovery dry-runs and
+row-count snapshots
 Last checked: 2026-05-06
 
 This document records the Section 8 reliability work:
@@ -19,6 +20,7 @@ the repo:
 - integration-test database reset correctness
 - backup command generation
 - restore validation against a disposable target database
+- read-only row-count snapshots for before/after restore comparison
 
 No destructive restore was run against staging or production in this PR.
 
@@ -30,6 +32,7 @@ No destructive restore was run against staging or production in this PR.
 | No guard existed to keep the reset table list aligned with Prisma schema evolution.                                                                | Future schema additions could silently bypass integration resets.                           | Added `apps/api/src/test/integration-db.spec.ts`, which compares `RESET_TABLES` against mapped Prisma model tables.            |
 | No repeatable repo-level data integrity runner existed.                                                                                            | Data validation depended on manual SQL and was not auditable.                               | Added `scripts/data/data-integrity.sql` and `scripts/data/run-data-integrity.mjs`.                                             |
 | Backup/restore procedure was not encoded in repo tooling.                                                                                          | Recovery validation could be improvised during an incident.                                 | Added `scripts/data/backup-recovery.sh` with dry-run default, safe restore target guard and post-restore integrity validation. |
+| Row-count comparison required manual SQL during restore drills.                                                                                    | No-data-loss checks were slower and harder to audit.                                        | Added `scripts/data/run-row-count-snapshot.mjs` and `pnpm data:row-counts`.                                                    |
 
 ## Data Validation
 
@@ -173,6 +176,11 @@ accepted for the current private QA/pre-launch phase and must be revisited in
 `T7-8: Lanzamiento productivo, documentación y backlog post-launch`, before
 broad public launch or when StageLink reaches the first 100 users.
 
+Final-check Task 9 was recorded on 2026-05-06 in
+`docs/final-qa-task-9-row-count-snapshot.md`. The repo now includes
+`pnpm data:row-counts`, a read-only snapshot command for comparing critical
+table counts before and after a restore drill.
+
 ## Manual Staging Checklist
 
 1. Create or identify a disposable restore database.
@@ -181,17 +189,9 @@ broad public launch or when StageLink reaches the first 100 users.
 3. Restore the dump into the disposable database with
    `pnpm data:restore:check -- --execute --backup <file>`.
 4. Confirm `pnpm data:validate` returns pass on the restored database.
-5. Compare row counts for core tables:
-   - `users`
-   - `artists`
-   - `pages`
-   - `blocks`
-   - `subscribers`
-   - `analytics_events`
-   - `assets`
-   - `subscriptions`
+5. Capture and compare row counts with `pnpm data:row-counts`.
 6. Archive the backup filename, checksum, restore target, validation JSON and
-   timestamp outside git.
+   row-count snapshots outside git.
 
 ## Launch Readiness Criteria
 
@@ -199,6 +199,8 @@ Section 8 is healthy when:
 
 - Integration DB reset coverage remains green.
 - `pnpm data:validate` passes against staging.
+- `pnpm data:row-counts` captures source/target row-count snapshots during
+  restore drills.
 - Manual backup/restore guardrails remain verified.
 - For private QA/pre-launch: managed backup limitations are documented and
   accepted.
@@ -212,5 +214,4 @@ Section 8 is healthy when:
 | P1       | Enable managed database automated backups after Railway Pro upgrade / public launch threshold.                 | Railway Hobby does not currently provide the needed backup feature; revisit in T7-8 or at 100 users. |
 | P1       | Run the first staging backup/restore drill after the full testing plan is complete.                            | Tracked in `docs/final-qa-task-6-restore-drill.md`; requires approved source + disposable target DB. |
 | P2       | Add checksums and artifact upload for backup/restore drills.                                                   | Makes launch sign-off auditable.                                                                     |
-| P2       | Add a read-only row-count snapshot script.                                                                     | Simplifies no-data-loss comparison after restore.                                                    |
 | P3       | Consider case-insensitive DB indexes for emails/usernames if duplicates by case become operationally possible. | Current app normalizes key inputs, but DB-level protection would be stronger.                        |
