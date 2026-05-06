@@ -200,3 +200,9 @@ content-dependent public journey checks; no P0/P1 UAT issues were found.
 | P1       | Run the first Section 8 restore drill only after the full testing plan is complete and against a disposable restore DB.         | Tracked in `docs/final-qa-task-6-restore-drill.md`; guardrails verified, real drill needs approved DBs. |
 | P1       | Enable managed database backups after Railway Pro upgrade / public launch threshold.                                            | Tracked in `docs/final-qa-task-8-managed-db-backups.md`; deferred to T7-8 or first 100 users.           |
 | P2       | Add a GitHub Actions manual workflow for final QA evidence artifacts.                                                           | Tracked in `docs/final-qa-task-7-evidence-workflow.md`; workflow is `Final QA Evidence`.                |
+
+Final-check Task 10 closes the QA gap map in
+`docs/final-qa-task-10-gap-closure.md`. The remaining launch decisions are
+explicitly owner-gated: WorkOS dashboard policy confirmation, rate-limiting
+posture, optional staging load execution, staging data validation access, and
+the deferred stress/restore windows.
