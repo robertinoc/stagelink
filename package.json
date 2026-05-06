@@ -32,6 +32,7 @@
     "data:backup": "bash scripts/data/backup-recovery.sh backup",
     "data:restore:dry-run": "bash scripts/data/backup-recovery.sh restore-check",
     "data:restore:check": "bash scripts/data/backup-recovery.sh restore-check",
+    "data:row-counts": "node scripts/data/run-row-count-snapshot.mjs",
     "playwright:install": "playwright install --with-deps chromium",
     "prepare": "husky"
   },

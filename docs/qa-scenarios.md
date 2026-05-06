@@ -312,15 +312,19 @@ seeded with `pnpm --filter @stagelink/api db:seed`.
    `DATABASE_URL={db-url} pnpm data:validate`.
 2. ✅ Verify: The command exits `0` and reports `StageLink data integrity: pass`.
 3. If findings appear, review `docs/data-reliability-section-8.md` for severity and remediation order.
-4. Run backup dry-run:
+4. Capture a source row-count snapshot:
+   `DATABASE_URL={db-url} DATA_ROW_COUNTS_OUTPUT=data-integrity-results/source-row-counts.json pnpm data:row-counts`.
+5. ✅ Verify: Counts are printed for critical tables and the JSON artifact is stored outside git.
+6. Run backup dry-run:
    `DATABASE_URL={db-url} pnpm data:backup:dry-run`.
-5. ✅ Verify: The printed command uses `pg_dump --format=custom --no-owner --no-acl`.
-6. Run backup during an approved staging window:
+7. ✅ Verify: The printed command uses `pg_dump --format=custom --no-owner --no-acl`.
+8. Run backup during an approved staging window:
    `DATABASE_URL={db-url} pnpm data:backup -- --execute --output-dir backups`.
-7. ✅ Verify: A `.dump` file is created outside git and its path/timestamp are recorded.
-8. Restore into a disposable local/approved database:
-   `TARGET_DATABASE_URL=postgresql://localhost:5432/stagelink_restore pnpm data:restore:check -- --execute --backup {dump-file}`.
-9. ✅ Verify: Restore completes, post-restore `pnpm data:validate` passes, and critical row counts match the source snapshot.
+9. ✅ Verify: A `.dump` file is created outside git and its path/timestamp are recorded.
+10. Restore into a disposable local/approved database:
+    `TARGET_DATABASE_URL=postgresql://localhost:5432/stagelink_restore pnpm data:restore:check -- --execute --backup {dump-file}`.
+11. Capture a target row-count snapshot and compare it to the source snapshot.
+12. ✅ Verify: Restore completes, post-restore `pnpm data:validate` passes, and critical row counts match the source snapshot.
 
 ---
 
