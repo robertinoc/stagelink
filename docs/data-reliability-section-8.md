@@ -166,6 +166,13 @@ redaction and non-local restore guardrails were verified again. The first real
 restore drill remains gated on an approved source backup and a disposable
 restore database.
 
+Final-check Task 8 was recorded on 2026-05-06 in
+`docs/final-qa-task-8-managed-db-backups.md`. Railway managed database backups
+are currently disabled because the project is on the Railway Hobby plan. This is
+accepted for the current private QA/pre-launch phase and must be revisited in
+`T7-8: Lanzamiento productivo, documentación y backlog post-launch`, before
+broad public launch or when StageLink reaches the first 100 users.
+
 ## Manual Staging Checklist
 
 1. Create or identify a disposable restore database.
@@ -192,16 +199,17 @@ Section 8 is healthy when:
 
 - Integration DB reset coverage remains green.
 - `pnpm data:validate` passes against staging.
-- A staging backup has been restored into a disposable DB.
-- The restored DB passes `pnpm data:validate`.
-- Restore row counts match the source snapshot for critical tables.
-- Backup storage location and retention policy are confirmed outside the repo.
+- Manual backup/restore guardrails remain verified.
+- For private QA/pre-launch: managed backup limitations are documented and
+  accepted.
+- For public launch: managed backups, retention and restore/PITR capability are
+  confirmed outside the repo.
 
 ## Known Follow-ups
 
 | Priority | Follow-up                                                                                                      | Reason                                                                                               |
 | -------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| P1       | Confirm managed database automated backups and retention in Railway/Postgres provider.                         | Repo scripts validate manual recovery, but production needs managed point-in-time recovery.          |
+| P1       | Enable managed database automated backups after Railway Pro upgrade / public launch threshold.                 | Railway Hobby does not currently provide the needed backup feature; revisit in T7-8 or at 100 users. |
 | P1       | Run the first staging backup/restore drill after the full testing plan is complete.                            | Tracked in `docs/final-qa-task-6-restore-drill.md`; requires approved source + disposable target DB. |
 | P2       | Add checksums and artifact upload for backup/restore drills.                                                   | Makes launch sign-off auditable.                                                                     |
 | P2       | Add a read-only row-count snapshot script.                                                                     | Simplifies no-data-loss comparison after restore.                                                    |
