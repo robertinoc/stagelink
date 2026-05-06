@@ -32,13 +32,14 @@ const BEHIND_HOST = 'behind.stagelink.art';
  * 0. /go/[id] — bypass everything (Next.js route handler, no locale needed).
  * 1. /p/{username} → 302 to /{locale}/{username} — prevent duplicate content.
  * 2. Single-segment non-locale paths → 302 to /{locale}/{username}.
+ * 2b. /behind (any depth) — skip intl, run authkit only.
  * 3. Everything else → authkit session + intl locale handling.
  *
  * Note: behind.stagelink.art path rewrites are handled in next.config.ts
  * (rewrites with `has: { type: 'host' }`). The admin panel lives at top-level
  * /behind (outside [locale]) to avoid the [username] dynamic-route conflict.
- * Middleware still runs authkit for session handling on the behind subdomain
- * but skips intl middleware (admin panel is always English).
+ * Middleware skips intl on /behind paths (both subdomain and main domain) since
+ * the admin panel is always English and has no locale prefix.
  */
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -119,6 +120,20 @@ export default async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = `/${locale}/${segments[0]!}`;
     return NextResponse.redirect(url, 302);
+  }
+
+  // Rule 2b: /behind (admin panel) — skip intl, run authkit only.
+  //
+  // The admin panel lives at app/behind/ outside [locale]. When reached via
+  // the main domain (stagelink.art/behind — e.g. after a post-auth redirect),
+  // intl middleware would rewrite /behind to /en/behind, which no longer
+  // exists as a route and would 404. Handled separately from the behind
+  // subdomain block above since isBehindHost is false on stagelink.art.
+  if (segments[0] === 'behind') {
+    const { headers: authkitHeaders } = await authkit(request);
+    const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
+    return applyResponseHeaders(response, responseHeaders);
   }
 
   // Rule 3: authkit session + intl locale handling.
