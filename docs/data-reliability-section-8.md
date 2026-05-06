@@ -1,7 +1,7 @@
 # StageLink — Data & Reliability Section 8
 
 Status: implemented for repeatable validation plus backup/recovery dry-runs
-Last checked: 2026-05-01
+Last checked: 2026-05-06
 
 This document records the Section 8 reliability work:
 
@@ -160,6 +160,12 @@ Results:
 
 No live backup or restore was executed by this PR.
 
+Final-check Task 6 was recorded on 2026-05-06 in
+`docs/final-qa-task-6-restore-drill.md`. Backup/restore dry-runs, secret
+redaction and non-local restore guardrails were verified again. The first real
+restore drill remains gated on an approved source backup and a disposable
+restore database.
+
 ## Manual Staging Checklist
 
 1. Create or identify a disposable restore database.
@@ -193,10 +199,10 @@ Section 8 is healthy when:
 
 ## Known Follow-ups
 
-| Priority | Follow-up                                                                                                      | Reason                                                                                      |
-| -------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| P1       | Confirm managed database automated backups and retention in Railway/Postgres provider.                         | Repo scripts validate manual recovery, but production needs managed point-in-time recovery. |
-| P1       | Run the first staging backup/restore drill after the full testing plan is complete.                            | Avoid disruptive operations while other QA sections are still active.                       |
-| P2       | Add checksums and artifact upload for backup/restore drills.                                                   | Makes launch sign-off auditable.                                                            |
-| P2       | Add a read-only row-count snapshot script.                                                                     | Simplifies no-data-loss comparison after restore.                                           |
-| P3       | Consider case-insensitive DB indexes for emails/usernames if duplicates by case become operationally possible. | Current app normalizes key inputs, but DB-level protection would be stronger.               |
+| Priority | Follow-up                                                                                                      | Reason                                                                                               |
+| -------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| P1       | Confirm managed database automated backups and retention in Railway/Postgres provider.                         | Repo scripts validate manual recovery, but production needs managed point-in-time recovery.          |
+| P1       | Run the first staging backup/restore drill after the full testing plan is complete.                            | Tracked in `docs/final-qa-task-6-restore-drill.md`; requires approved source + disposable target DB. |
+| P2       | Add checksums and artifact upload for backup/restore drills.                                                   | Makes launch sign-off auditable.                                                                     |
+| P2       | Add a read-only row-count snapshot script.                                                                     | Simplifies no-data-loss comparison after restore.                                                    |
+| P3       | Consider case-insensitive DB indexes for emails/usernames if duplicates by case become operationally possible. | Current app normalizes key inputs, but DB-level protection would be stronger.                        |
