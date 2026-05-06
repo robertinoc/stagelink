@@ -165,7 +165,8 @@ docs/
 ├── final-qa-task-6-restore-drill.md # Backup/restore drill con DB descartable
 ├── final-qa-task-7-evidence-workflow.md # Workflow manual de artifacts final QA
 ├── final-qa-task-8-managed-db-backups.md # Backups Railway Pro diferidos a T7-8/100 usuarios
-└── final-qa-task-9-row-count-snapshot.md # Snapshot read-only de row counts para restore drills
+├── final-qa-task-9-row-count-snapshot.md # Snapshot read-only de row counts para restore drills
+└── final-qa-task-10-gap-closure.md # Cierre Final Check, decisiones de launch y gates pendientes
 ```
 
 ---
