@@ -12,19 +12,15 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
 
   // Not authenticated → trigger WorkOS sign-in.
   //
-  // IMPORTANT: redirect through the main domain (stagelink.art), not via a
-  // relative URL. The reason: when this layout runs on behind.stagelink.art,
-  // a relative redirect goes to behind.stagelink.art/api/auth/signin, which
-  // sets the PKCE state cookie (wos-auth-verifier) on behind.stagelink.art.
-  // WorkOS always redirects back to WORKOS_REDIRECT_URI (stagelink.art/api/
-  // auth/callback), and without WORKOS_COOKIE_DOMAIN=.stagelink.art that
-  // cookie is absent on the callback request, causing the auth to fail.
-  // Routing through the main domain ensures the cookie is set on the same
-  // origin as the callback, with no extra env-var requirement.
+  // returnTo lands the user back on /behind after auth — without it
+  // the callback falls back to /en/dashboard (the artist app), bouncing admins
+  // away from the panel they were trying to reach.
+  //
+  // After auth WorkOS returns to WORKOS_REDIRECT_URI (stagelink.art).
+  // With WORKOS_COOKIE_DOMAIN=.stagelink.art that session cookie is
+  // automatically valid on behind.stagelink.art on the next visit.
   if (!session) {
-    const redirectUri = process.env.WORKOS_REDIRECT_URI;
-    const mainOrigin = redirectUri ? new URL(redirectUri).origin : '';
-    redirect(`${mainOrigin}/api/auth/signin?returnTo=${encodeURIComponent('/behind')}`);
+    redirect(`/api/auth/signin?returnTo=${encodeURIComponent('/behind')}`);
   }
 
   // Authenticated but not the owner → silent redirect to main site.
