@@ -197,6 +197,8 @@ Current status:
   the existing axe/keyboard specs are not left outside the runnable suite.
 - Final QA remains a release gate: automated checks must be paired with manual
   UAT issue review before launch sign-off.
+- Manual final QA evidence artifacts can be captured from GitHub Actions with
+  the `Final QA Evidence` workflow.
 
 Current commands:
 

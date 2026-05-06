@@ -162,7 +162,8 @@ docs/
 ├── final-qa-task-3-production-smoke.md # Smoke productivo en stagelink.art
 ├── final-qa-task-4-manual-uat.md # Pase UAT asistido, fricción y sign-off manual
 ├── final-qa-task-5-stress-test-window.md # Stress real diferido con ventana y monitoreo
-└── final-qa-task-6-restore-drill.md # Backup/restore drill con DB descartable
+├── final-qa-task-6-restore-drill.md # Backup/restore drill con DB descartable
+└── final-qa-task-7-evidence-workflow.md # Workflow manual de artifacts final QA
 ```
 
 ---
