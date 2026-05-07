@@ -143,20 +143,25 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
             aria-label={t('language_toggle.label')}
             className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1"
           >
-            {(['en', 'es'] as const).map((lng) => (
-              <Link
-                key={lng}
-                href={lng === locale ? '#' : `/${lng}/${artist.username}`}
-                aria-current={lng === locale ? 'true' : undefined}
-                className={
-                  lng === locale
-                    ? 'inline-flex h-7 min-w-[2.75rem] items-center justify-center rounded-full bg-white/15 text-xs font-semibold text-white'
-                    : 'inline-flex h-7 min-w-[2.75rem] items-center justify-center rounded-full text-xs font-medium text-white/50 transition hover:text-white/80'
-                }
-              >
-                {lng.toUpperCase()}
-              </Link>
-            ))}
+            {(['en', 'es'] as const).map((lng) =>
+              lng === locale ? (
+                <span
+                  key={lng}
+                  aria-current="true"
+                  className="inline-flex h-7 min-w-[2.75rem] items-center justify-center rounded-full bg-white/15 text-xs font-semibold text-white"
+                >
+                  {lng.toUpperCase()}
+                </span>
+              ) : (
+                <Link
+                  key={lng}
+                  href={`/${lng}/${artist.username}`}
+                  className="inline-flex h-7 min-w-[2.75rem] items-center justify-center rounded-full text-xs font-medium text-white/50 transition hover:text-white/80"
+                >
+                  {lng.toUpperCase()}
+                </Link>
+              ),
+            )}
           </nav>
         </div>
 
