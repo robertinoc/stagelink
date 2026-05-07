@@ -1,4 +1,3 @@
-import { apiFetch } from '@/lib/auth';
 import type { SmartLink, CreateSmartLinkPayload, UpdateSmartLinkPayload } from '@stagelink/types';
 
 // ─── List ─────────────────────────────────────────────────────────────────────
@@ -7,8 +6,10 @@ import type { SmartLink, CreateSmartLinkPayload, UpdateSmartLinkPayload } from '
  * GET /api/artists/:artistId/smart-links
  * Returns all smart links for an artist, newest first.
  */
-export async function getSmartLinks(artistId: string, accessToken: string): Promise<SmartLink[]> {
-  const res = await apiFetch(`/api/artists/${artistId}/smart-links`, { accessToken });
+export async function getSmartLinks(artistId: string): Promise<SmartLink[]> {
+  const res = await fetch(`/api/artists/${encodeURIComponent(artistId)}/smart-links`, {
+    cache: 'no-store',
+  });
   if (!res.ok) throw new Error(`Failed to load smart links (${res.status})`);
   return res.json() as Promise<SmartLink[]>;
 }
@@ -21,11 +22,9 @@ export async function getSmartLinks(artistId: string, accessToken: string): Prom
 export async function createSmartLink(
   artistId: string,
   payload: CreateSmartLinkPayload,
-  accessToken: string,
 ): Promise<SmartLink> {
-  const res = await apiFetch(`/api/artists/${artistId}/smart-links`, {
+  const res = await fetch(`/api/artists/${encodeURIComponent(artistId)}/smart-links`, {
     method: 'POST',
-    accessToken,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
@@ -44,11 +43,9 @@ export async function createSmartLink(
 export async function updateSmartLink(
   smartLinkId: string,
   payload: UpdateSmartLinkPayload,
-  accessToken: string,
 ): Promise<SmartLink> {
-  const res = await apiFetch(`/api/smart-links/${smartLinkId}`, {
+  const res = await fetch(`/api/smart-links/${encodeURIComponent(smartLinkId)}`, {
     method: 'PATCH',
-    accessToken,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
@@ -64,10 +61,9 @@ export async function updateSmartLink(
 /**
  * DELETE /api/smart-links/:id
  */
-export async function deleteSmartLink(smartLinkId: string, accessToken: string): Promise<void> {
-  const res = await apiFetch(`/api/smart-links/${smartLinkId}`, {
+export async function deleteSmartLink(smartLinkId: string): Promise<void> {
+  const res = await fetch(`/api/smart-links/${encodeURIComponent(smartLinkId)}`, {
     method: 'DELETE',
-    accessToken,
   });
   if (!res.ok) throw new Error(`Failed to delete smart link (${res.status})`);
 }

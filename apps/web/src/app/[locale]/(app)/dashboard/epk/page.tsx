@@ -8,7 +8,7 @@ import { getArtistAssets } from '@/lib/api/assets';
 import { getBillingSummary } from '@/lib/api/billing';
 import { getArtistEpk } from '@/lib/api/epk';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
-import { getSmartLinks } from '@/lib/api/smart-links';
+import { getSmartLinksForArtist } from '@/lib/api/smart-links-server';
 import { getSession } from '@/lib/auth';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -77,7 +77,7 @@ export default async function DashboardEpkPage({
 
   const [epkData, smartLinks, assets] = await Promise.all([
     getArtistEpk(artistId, session.accessToken),
-    getSmartLinks(artistId, session.accessToken).catch(() => []),
+    getSmartLinksForArtist(artistId, session.accessToken).catch(() => []),
     getArtistAssets(artistId, session.accessToken).catch(() => []),
   ]);
 

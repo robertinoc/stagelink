@@ -92,16 +92,9 @@ interface SmartLinkEditorProps {
   onSave: (smartLink: SmartLink) => void;
   onCancel: () => void;
   artistId: string;
-  accessToken: string;
 }
 
-function SmartLinkEditor({
-  smartLink,
-  onSave,
-  onCancel,
-  artistId,
-  accessToken,
-}: SmartLinkEditorProps) {
+function SmartLinkEditor({ smartLink, onSave, onCancel, artistId }: SmartLinkEditorProps) {
   const t = useTranslations('blocks.smart_link');
   const [label, setLabel] = useState(smartLink?.label ?? '');
   const [destinations, setDestinations] = useState<SmartLinkDestination[]>(
@@ -157,22 +150,17 @@ function SmartLinkEditor({
     try {
       let result: SmartLink;
       if (smartLink) {
-        result = await updateSmartLink(
-          smartLink.id,
-          { label: label.trim(), destinations: normalizedDestinations },
-          accessToken,
-        );
+        result = await updateSmartLink(smartLink.id, {
+          label: label.trim(),
+          destinations: normalizedDestinations,
+        });
       } else {
-        result = await createSmartLink(
-          artistId,
-          {
-            label: label.trim(),
-            // Strip the client-generated id — backend assigns stable UUIDs on create.
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            destinations: normalizedDestinations.map(({ id: _id, ...d }) => d),
-          },
-          accessToken,
-        );
+        result = await createSmartLink(artistId, {
+          label: label.trim(),
+          // Strip the client-generated id — backend assigns stable UUIDs on create.
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          destinations: normalizedDestinations.map(({ id: _id, ...d }) => d),
+        });
       }
       onSave(result);
     } catch (err) {
@@ -256,18 +244,12 @@ function SmartLinkEditor({
  */
 export interface SmartLinkPickerProps {
   artistId: string;
-  accessToken: string;
   /** Currently selected SmartLink id, or null if nothing selected. */
   selectedId: string | null;
   onSelect: (smartLinkId: string) => void;
 }
 
-export function SmartLinkPicker({
-  artistId,
-  accessToken,
-  selectedId,
-  onSelect,
-}: SmartLinkPickerProps) {
+export function SmartLinkPicker({ artistId, selectedId, onSelect }: SmartLinkPickerProps) {
   const t = useTranslations('blocks.smart_link');
   const [smartLinks, setSmartLinks] = useState<SmartLink[]>([]);
   const [loading, setLoading] = useState(true);
@@ -280,14 +262,14 @@ export function SmartLinkPicker({
   const load = useCallback(async () => {
     setLoadError(false);
     try {
-      const list = await getSmartLinks(artistId, accessToken);
+      const list = await getSmartLinks(artistId);
       setSmartLinks(list);
     } catch {
       setLoadError(true);
     } finally {
       setLoading(false);
     }
-  }, [artistId, accessToken]);
+  }, [artistId]);
 
   useEffect(() => {
     void load();
@@ -313,7 +295,7 @@ export function SmartLinkPicker({
     setDeleteError(null);
     setDeletingId(id);
     try {
-      await deleteSmartLink(id, accessToken);
+      await deleteSmartLink(id);
       setSmartLinks((prev) => prev.filter((s) => s.id !== id));
       // If the deleted link was selected, clear the selection.
       // The parent LinksForm will show an empty smartLinkId — the user must pick another.
@@ -332,7 +314,6 @@ export function SmartLinkPicker({
         onSave={handleSaved}
         onCancel={() => setCreating(false)}
         artistId={artistId}
-        accessToken={accessToken}
       />
     );
   }
@@ -344,7 +325,6 @@ export function SmartLinkPicker({
         onSave={handleSaved}
         onCancel={() => setEditing(null)}
         artistId={artistId}
-        accessToken={accessToken}
       />
     );
   }

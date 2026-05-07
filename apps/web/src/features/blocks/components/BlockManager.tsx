@@ -39,7 +39,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 interface Props {
   pageId: string;
   artistId: string;
-  accessToken: string;
   canUseShopifyIntegration: boolean;
   canUseSmartMerch: boolean;
   galleryImages?: string[];
@@ -243,7 +242,6 @@ function CreateBlockDialog({
   open,
   pageId,
   artistId,
-  accessToken,
   canUseShopifyIntegration,
   canUseSmartMerch,
   galleryImages,
@@ -254,7 +252,6 @@ function CreateBlockDialog({
   open: boolean;
   pageId: string;
   artistId: string;
-  accessToken: string;
   canUseShopifyIntegration: boolean;
   canUseSmartMerch: boolean;
   galleryImages?: Props['galleryImages'];
@@ -379,7 +376,6 @@ function CreateBlockDialog({
                 localizedContent={localizedContent}
                 onLocalizedContentChange={setLocalizedContent}
                 artistId={artistId}
-                accessToken={accessToken}
                 galleryImages={galleryImages}
                 textSources={textSources}
               />
@@ -407,7 +403,6 @@ function CreateBlockDialog({
 function EditBlockSheet({
   block,
   artistId,
-  accessToken,
   galleryImages,
   textSources,
   onUpdated,
@@ -415,7 +410,6 @@ function EditBlockSheet({
 }: {
   block: Block | null;
   artistId: string;
-  accessToken: string;
   galleryImages?: Props['galleryImages'];
   textSources?: Props['textSources'];
   onUpdated: (block: Block) => void;
@@ -497,7 +491,6 @@ function EditBlockSheet({
                 localizedContent={localizedContent}
                 onLocalizedContentChange={setLocalizedContent}
                 artistId={artistId}
-                accessToken={accessToken}
                 galleryImages={galleryImages}
                 textSources={textSources}
               />
@@ -724,7 +717,6 @@ function BlockRow({
 export function BlockManager({
   pageId,
   artistId,
-  accessToken,
   canUseShopifyIntegration,
   canUseSmartMerch,
   galleryImages,
@@ -899,7 +891,6 @@ export function BlockManager({
         open={createOpen}
         pageId={pageId}
         artistId={artistId}
-        accessToken={accessToken}
         canUseShopifyIntegration={canUseShopifyIntegration}
         canUseSmartMerch={canUseSmartMerch}
         galleryImages={galleryImages}
@@ -911,7 +902,6 @@ export function BlockManager({
       <EditBlockSheet
         block={editingBlock}
         artistId={artistId}
-        accessToken={accessToken}
         galleryImages={galleryImages}
         textSources={textSources}
         onUpdated={(updated) => {

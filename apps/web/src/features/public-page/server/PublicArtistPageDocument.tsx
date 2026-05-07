@@ -8,6 +8,7 @@ import { fetchPublicPage } from '@/lib/public-api';
 import { ArtistPageView } from '@/features/public-page/components/ArtistPageView';
 import { AnalyticsConsentBanner } from '@/features/public-page/components/AnalyticsConsentBanner';
 import { QaModeInitializer } from '@/features/public-page/components/QaModeInitializer';
+import { serializeJsonLd } from '@/lib/json-ld';
 
 function buildJsonLd(
   artist: NonNullable<Awaited<ReturnType<typeof fetchPublicPage>>>['artist'],
@@ -124,7 +125,7 @@ export async function PublicArtistPageDocument({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <ArtistPageView page={page} />
       <AnalyticsConsentBanner />
