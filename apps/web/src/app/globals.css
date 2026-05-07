@@ -294,8 +294,11 @@ textarea {
 }
 
 .neon-card-border {
-  background: conic-gradient(from var(--neon-angle), #4c1d95, #a78bfa, #4c1d95, #a78bfa, #4c1d95);
+  background: conic-gradient(from var(--neon-angle), #1e0a4a, #c4b5fd, #7c3aed, #c4b5fd, #1e0a4a);
   animation: neon-border-rotate 4s linear infinite;
+  box-shadow:
+    0 0 18px rgba(196, 181, 253, 0.22),
+    0 0 40px rgba(124, 58, 237, 0.12);
 }
 
 .platform-cta-link {
