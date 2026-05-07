@@ -155,6 +155,14 @@ limiting remains accepted for private QA/pre-launch. Redis/Upstash/Vercel
 KV-backed shared rate limiting is deferred to `T7-8` and should be completed
 before sustained public traffic, paid campaigns or multi-instance scaling.
 
+Final-check staging load test evidence was recorded on 2026-05-07 in
+`docs/final-qa-staging-load-test.md`. `staging.stagelink.link` was not assigned
+to an active deployment, so the run used the latest relevant Vercel Preview
+after Robert temporarily disabled Vercel Preview Authentication. The run was
+stable at 0% errors, but the warm p95 was `1026 ms`, slightly above the
+`1000 ms` load threshold. Treat this as executed with warning and rerun against
+canonical staging before broad public launch.
+
 ## Execution Plan
 
 ### Local Baseline
@@ -252,11 +260,12 @@ Section 7 is healthy when:
 
 ## Known Follow-ups
 
-| Priority | Follow-up                                                                | Reason                                                                                         |
-| -------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| P1       | Replace in-memory rate limiters with Redis/Upstash before high traffic.  | Accepted for private QA/pre-launch; track as `T7-8` hardening before sustained public traffic. |
-| P1       | Decide final staging API URL and update the examples above.              | Current deploy docs still describe a future dedicated staging Railway API.                     |
-| P1       | Run the first real stress test only in an approved window.               | Tracked in `docs/final-qa-task-5-stress-test-window.md`.                                       |
-| P2       | Add CI/manual workflow artifact upload for `performance-results/*.json`. | Makes launch sign-off easier to audit.                                                         |
-| P2       | Add authenticated dashboard route mix using a dedicated QA bearer token. | Current runner supports it, but tokens should not be stored in repo.                           |
-| P3       | Consider regional/load-cloud tooling once marketing traffic grows.       | Local single-machine load cannot model global network behavior.                                |
+| Priority | Follow-up                                                                | Reason                                                                                          |
+| -------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| P1       | Replace in-memory rate limiters with Redis/Upstash before high traffic.  | Accepted for private QA/pre-launch; track as `T7-8` hardening before sustained public traffic.  |
+| P1       | Assign a real staging web domain and decide final staging API URL.       | `staging.stagelink.link` returned `DEPLOYMENT_NOT_FOUND`; current run used Vercel Preview only. |
+| P1       | Seed or identify a staging demo artist for load runs.                    | `free-artist-qa` returned `404` on the tested Preview deployment.                               |
+| P1       | Run the first real stress test only in an approved window.               | Tracked in `docs/final-qa-task-5-stress-test-window.md`.                                        |
+| P2       | Add CI/manual workflow artifact upload for `performance-results/*.json`. | Makes launch sign-off easier to audit.                                                          |
+| P2       | Add authenticated dashboard route mix using a dedicated QA bearer token. | Current runner supports it, but tokens should not be stored in repo.                            |
+| P3       | Consider regional/load-cloud tooling once marketing traffic grows.       | Local single-machine load cannot model global network behavior.                                 |
