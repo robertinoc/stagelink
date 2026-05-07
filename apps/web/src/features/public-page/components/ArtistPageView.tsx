@@ -300,62 +300,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                     ))}
                   </div>
                 )}
-
-                {(artist.contactEmail || artist.websiteUrl) && (
-                  <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                    {artist.contactEmail && (
-                      <a
-                        href={`mailto:${artist.contactEmail}`}
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500/25"
-                      >
-                        <Mail className="h-4 w-4" />
-                        {t('actions.book_artist')}
-                      </a>
-                    )}
-                    {artist.websiteUrl && (
-                      <a
-                        href={artist.websiteUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
-                      >
-                        <Globe className="h-4 w-4" />
-                        {t('actions.visit_website')}
-                      </a>
-                    )}
-                  </div>
-                )}
               </div>
-
-              {/* Music stores (REQ-07): Beatport + Traxsource */}
-              {(artist.beatportUrl || artist.traxsourceUrl) && (
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-                  {artist.beatportUrl && (
-                    <a
-                      href={artist.beatportUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={t('stores.beatport')}
-                      className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
-                    >
-                      <BeatportIcon />
-                      {t('stores.beatport')}
-                    </a>
-                  )}
-                  {artist.traxsourceUrl && (
-                    <a
-                      href={artist.traxsourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={t('stores.traxsource')}
-                      className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
-                    >
-                      <TraxsourceIcon />
-                      {t('stores.traxsource')}
-                    </a>
-                  )}
-                </div>
-              )}
 
               <div className="mx-auto mt-10 max-w-5xl space-y-10">
                 {linkBlocks.length > 0 && (
@@ -389,7 +334,8 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-label={t('cta.apple_music')}
-                                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                                className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100"
+                                style={{ '--cta-color': '#FC3C44' } as React.CSSProperties}
                               >
                                 <AppleMusicIcon />
                                 {t('cta.apple_music')}
@@ -403,7 +349,8 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-label={t('cta.soundcloud')}
-                                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                                className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100"
+                                style={{ '--cta-color': '#FF5500' } as React.CSSProperties}
                               >
                                 <SoundCloudIcon />
                                 {t('cta.soundcloud')}
@@ -417,7 +364,8 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-label={t('cta.youtube')}
-                                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                                className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100"
+                                style={{ '--cta-color': '#FF0000' } as React.CSSProperties}
                               >
                                 <YouTubeIcon />
                                 {t('cta.youtube')}
@@ -431,7 +379,8 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-label={t('cta.spotify')}
-                                className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500/25"
+                                className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white"
+                                style={{ '--cta-color': '#1DB954' } as React.CSSProperties}
                               >
                                 <SpotifyIcon />
                                 {t('cta.spotify')}
@@ -473,58 +422,68 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                 {(hasAboutSection || page.publicEpkAvailable || artist.contactEmail) && (
                   <section className="space-y-4">
                     {hasAboutSection && (
-                      <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
-                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                          {t('sections.about')}
-                        </p>
-                        {artist.bio && (
-                          <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-zinc-200 sm:text-base">
-                            {artist.bio}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {page.publicEpkAvailable && (
-                      <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
-                        <div className="space-y-2">
+                      <div className="neon-card-border rounded-[1.5rem] p-[1.5px]">
+                        <div className="rounded-[1.4rem] bg-[#0b0614] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
                           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                            {t('sections.presskit')}
+                            {t('sections.about')}
                           </p>
-                          <p className="text-sm leading-7 text-zinc-300">{t('presskit_copy')}</p>
-                        </div>
-                        <div className="mt-6 flex flex-wrap gap-3">
-                          <Link
-                            href={`/${locale}/${artist.username}/epk`}
-                            className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500/25"
-                          >
-                            <FileText className="h-4 w-4" />
-                            {t('actions.view_presskit')}
-                          </Link>
-                          <Link
-                            href={`/${locale}/${artist.username}/epk/print?download=1`}
-                            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
-                          >
-                            <Download className="h-4 w-4" />
-                            {t('actions.download_presskit')}
-                          </Link>
+                          {artist.bio && (
+                            <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-zinc-200 sm:text-base">
+                              {artist.bio}
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}
 
-                    {artist.contactEmail && (
-                      <div className="rounded-[1.5rem] border border-violet-400/20 bg-violet-500/10 p-6 shadow-[0_20px_80px_rgba(45,10,90,0.16)]">
-                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-violet-200/70">
-                          {t('sections.bookings')}
-                        </p>
-                        <p className="mt-4 text-sm leading-7 text-violet-50">{t('booking_copy')}</p>
-                        <a
-                          href={`mailto:${artist.contactEmail}`}
-                          className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
-                        >
-                          <Mail className="h-4 w-4" />
-                          {artist.contactEmail}
-                        </a>
+                    {(page.publicEpkAvailable || artist.contactEmail) && (
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {page.publicEpkAvailable && (
+                          <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
+                            <div className="space-y-2">
+                              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+                                {t('sections.presskit')}
+                              </p>
+                              <p className="text-sm leading-7 text-zinc-300">
+                                {t('presskit_copy')}
+                              </p>
+                            </div>
+                            <div className="mt-6 flex flex-wrap gap-3">
+                              <Link
+                                href={`/${locale}/${artist.username}/epk`}
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500/25"
+                              >
+                                <FileText className="h-4 w-4" />
+                                {t('actions.view_presskit')}
+                              </Link>
+                              <Link
+                                href={`/${locale}/${artist.username}/epk/print?download=1`}
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                              >
+                                <Download className="h-4 w-4" />
+                                {t('actions.download_presskit')}
+                              </Link>
+                            </div>
+                          </div>
+                        )}
+
+                        {artist.contactEmail && (
+                          <div className="rounded-[1.5rem] border border-violet-400/20 bg-violet-500/10 p-6 shadow-[0_20px_80px_rgba(45,10,90,0.16)]">
+                            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-violet-200/70">
+                              {t('sections.bookings')}
+                            </p>
+                            <p className="mt-4 text-sm leading-7 text-violet-50">
+                              {t('booking_copy')}
+                            </p>
+                            <a
+                              href={`mailto:${artist.contactEmail}`}
+                              className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
+                            >
+                              <Mail className="h-4 w-4" />
+                              {artist.contactEmail}
+                            </a>
+                          </div>
+                        )}
                       </div>
                     )}
                   </section>
@@ -532,6 +491,17 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
 
                 {emailCaptureBlocks.length > 0 && (
                   <section className="space-y-4">
+                    {artist.contactEmail && (
+                      <div className="flex justify-center">
+                        <a
+                          href={`mailto:${artist.contactEmail}`}
+                          className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-6 py-3 text-sm font-medium text-white transition hover:bg-violet-500/25"
+                        >
+                          <Mail className="h-4 w-4" />
+                          {t('actions.book_artist')}
+                        </a>
+                      </div>
+                    )}
                     <div className="space-y-2 text-center">
                       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
                         {t('sections.fan_list')}

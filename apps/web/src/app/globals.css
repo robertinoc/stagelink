@@ -281,6 +281,41 @@ textarea {
   background: rgba(255, 255, 255, 0.12);
 }
 
+@property --neon-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes neon-border-rotate {
+  to {
+    --neon-angle: 360deg;
+  }
+}
+
+.neon-card-border {
+  background: conic-gradient(from var(--neon-angle), #4c1d95, #a78bfa, #4c1d95, #a78bfa, #4c1d95);
+  animation: neon-border-rotate 4s linear infinite;
+}
+
+.platform-cta-link {
+  transition:
+    box-shadow 300ms ease,
+    border-color 300ms ease,
+    background-color 300ms ease,
+    color 300ms ease;
+}
+
+.platform-cta-link:hover {
+  box-shadow:
+    0 0 16px color-mix(in srgb, var(--cta-color) 60%, transparent),
+    0 0 32px color-mix(in srgb, var(--cta-color) 34%, transparent),
+    0 0 6px color-mix(in srgb, var(--cta-color) 80%, transparent) inset;
+  border-color: color-mix(in srgb, var(--cta-color) 56%, transparent);
+  color: var(--cta-color);
+  background-color: color-mix(in srgb, var(--cta-color) 10%, transparent);
+}
+
 @keyframes tag-pulse-glow {
   0%,
   100% {
@@ -409,7 +444,8 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tag-pulse {
+  .tag-pulse,
+  .neon-card-border {
     animation: none;
   }
 
