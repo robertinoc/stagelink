@@ -25,7 +25,7 @@ documentación y backlog post-launch`.
 | 6   | Decide launch rate-limiting posture           | DONE with decision     | In-memory app rate limiting is accepted for private QA/pre-launch; shared Redis/Upstash rate limiting is deferred to `T7-8` before sustained public traffic. |
 | 7   | Run staging load test                         | DONE with warning      | `docs/final-qa-staging-load-test.md`; Vercel Preview stayed stable at 0% errors, but warm p95 was 1026 ms and canonical staging was not assigned.            |
 | 8   | Run controlled stress test                    | Intentionally deferred | `docs/final-qa-task-5-stress-test-window.md`; no real stress run until an approved window and monitoring are open.                                           |
-| 9   | Run staging data validation                   | Ready to execute       | Tooling exists in `pnpm data:validate`; real staging run requires secure staging `DATABASE_URL` access and read-only approval.                               |
+| 9   | Run staging data validation                   | Blocked on staging DB  | `docs/final-qa-staging-data-validation.md`; Railway currently has only `production`, so no staging DB target exists yet.                                     |
 | 10  | Run backup/restore drill with disposable DB   | Intentionally deferred | `docs/final-qa-task-6-restore-drill.md`; real drill needs approved source backup and a disposable restore database.                                          |
 | 11  | Final Check Gap Closure & Launch Decisions    | DONE with decision log | This document records the final-check status map, launch decisions, warnings and explicitly deferred work for `T7-8`.                                        |
 
@@ -39,6 +39,7 @@ documentación y backlog post-launch`.
 | DONE with warning      | The task ran and showed acceptable stability, but left a measurable caveat that should be tracked. |
 | DONE with decision log | The task closes the final-check register by documenting decisions, caveats and remaining gates.    |
 | Ready to execute       | Tooling exists and the next step is to run it with approved environment access.                    |
+| Blocked on staging DB  | The task is technically ready, but the required staging database/environment does not exist yet.   |
 | Intentionally deferred | The task is not failed or forgotten; it is postponed on purpose until required conditions exist.   |
 
 `Intentionally deferred` is used for checks that should not be executed casually.
@@ -187,6 +188,15 @@ staging or production during the testing plan.
 ### D5 — Staging Data Validation
 
 Owner: Engineering, with Robert approval for DB access
+
+Decision recorded on 2026-05-07:
+
+- Railway CLI authentication was refreshed successfully;
+- the linked Railway project has only the `production` environment;
+- no Railway staging database exists yet;
+- T09 remains blocked on a staging DB target, not on repo tooling;
+- production data validation remains available as a read-only audit, but only
+  with explicit Robert approval.
 
 Ready command:
 
