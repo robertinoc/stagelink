@@ -23,7 +23,9 @@ interface Props {
  * Dashboard > My Page
  *
  * Server component: resolves session, artist, and default page.
- * Passes pageId + accessToken to the BlockManager client component.
+ * Passes pageId to the BlockManager client component.
+ * Authenticated block/smart-link mutations are proxied through web route handlers
+ * so WorkOS access tokens stay server-side.
  *
  * Multi-page note:
  *   Each artist currently has exactly one page (1:1 relation in DB).
@@ -93,7 +95,6 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
       <BlockManager
         pageId={page.id}
         artistId={artistId}
-        accessToken={session.accessToken}
         canUseShopifyIntegration={billingSummary.entitlements.shopify_integration}
         canUseSmartMerch={billingSummary.entitlements.smart_merch}
         galleryImages={artist?.galleryImageUrls ?? []}

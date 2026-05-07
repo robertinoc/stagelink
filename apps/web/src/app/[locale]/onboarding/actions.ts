@@ -17,13 +17,6 @@ export async function completeOnboardingAction(
     return { ok: false, error: 'You must be signed in to complete onboarding.' };
   }
 
-  console.error('[onboarding][action] Session resolved', {
-    userId: session.user.id,
-    hasAccessToken: Boolean(session.accessToken),
-    accessTokenLength: session.accessToken?.length ?? 0,
-    accessTokenLooksJwt: session.accessToken?.includes('.') ?? false,
-  });
-
   const apiBaseUrl = resolveApiBaseUrl();
   if (!apiBaseUrl) {
     return { ok: false, error: 'Onboarding is not configured on this deployment.' };

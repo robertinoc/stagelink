@@ -172,7 +172,8 @@ docs/
 ├── security-audit-e1-discovery.md # Setup/discovery de auditoría de seguridad: stack, arquitectura, flujos, servicios
 ├── security-audit-e2-auth-sessions.md # E2.1 auth/sessions: login/signup, tokens, recovery, fixes y backlog
 ├── security-audit-e2-authorization.md # E2.2 autorización: ownership, IDOR/BOLA, aislamiento multi-tenant y fix analytics
-└── security-audit-e2-api-security.md # E2.3 API security: input validation, XSS/injection y rate limiting
+├── security-audit-e2-api-security.md # E2.3 API security: input validation, XSS/injection y rate limiting
+└── security-audit-e2-frontend-security.md # E2.4 frontend security: XSS rendering, tokens/secrets y redirects
 ```
 
 ---
@@ -792,6 +793,8 @@ docs/brand/
 | Range selector SSR (URL params)   | `dashboard/analytics/page.tsx` + `RangeSelector` con `router.push`         | Date range pickers sin client fetch                    |
 | @CheckOwnership para analytics    | `analytics.controller.ts` + `@UseGuards(OwnershipGuard)`                   | Endpoints de lectura de datos propios                  |
 | Link click desde browser          | `track.ts` → `fetch(..., { keepalive: true })`                             | Reportar eventos del browser que sobreviven navegación |
+| JSON-LD seguro                    | `serializeJsonLd()` antes de `dangerouslySetInnerHTML`                     | Evitar cierre de `<script>` con contenido de usuario   |
+| BFF para Smart Links              | `apps/web/src/app/api/.../smart-links` + `getSession()` server-side        | Mantener WorkOS access tokens fuera del browser        |
 
 ---
 

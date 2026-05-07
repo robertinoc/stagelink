@@ -41,7 +41,6 @@ interface Props {
    * When absent, the smart link option is hidden.
    */
   artistId?: string;
-  accessToken?: string;
 }
 
 // ─── Links ────────────────────────────────────────────────────────────────────
@@ -86,15 +85,13 @@ function LinksForm({
   config,
   onChange,
   artistId,
-  accessToken,
 }: {
   config: LinksBlockConfig;
   onChange: (c: LinksBlockConfig) => void;
   artistId?: string;
-  accessToken?: string;
 }) {
   const t = useTranslations('blocks.fields');
-  const canUseSmartLinks = !!(artistId && accessToken);
+  const canUseSmartLinks = !!artistId;
 
   const items = config.items ?? [];
 
@@ -209,10 +206,9 @@ function LinksForm({
             )}
 
             {/* URL (for 'url' kind) or SmartLinkPicker (for 'smart_link' kind) */}
-            {itemKind === 'smart_link' && artistId && accessToken ? (
+            {itemKind === 'smart_link' && artistId ? (
               <SmartLinkPicker
                 artistId={artistId}
-                accessToken={accessToken}
                 selectedId={item.smartLinkId ?? null}
                 onSelect={(smartLinkId) => updateItem(index, { smartLinkId, url: '' })}
               />
@@ -1323,7 +1319,6 @@ export function BlockConfigForm({
   galleryImages,
   textSources,
   artistId,
-  accessToken,
 }: Props) {
   switch (type) {
     case 'links':
@@ -1332,7 +1327,6 @@ export function BlockConfigForm({
           config={config as LinksBlockConfig}
           onChange={(c) => onChange(c)}
           artistId={artistId}
-          accessToken={accessToken}
         />
       );
     case 'music_embed':
