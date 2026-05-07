@@ -281,6 +281,29 @@ textarea {
   background: rgba(255, 255, 255, 0.12);
 }
 
+@keyframes tag-pulse-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 3px rgba(168, 85, 247, 0.19),
+      0 0 6px rgba(168, 85, 247, 0.09);
+    border-color: rgba(168, 85, 247, 0.15);
+  }
+
+  50% {
+    box-shadow:
+      0 0 8px rgba(168, 85, 247, 0.38),
+      0 0 18px rgba(168, 85, 247, 0.21),
+      0 0 30px rgba(168, 85, 247, 0.13);
+    border-color: rgba(168, 85, 247, 0.44);
+    color: #ede9fe;
+  }
+}
+
+.tag-pulse {
+  animation: tag-pulse-glow 4s ease-in-out infinite;
+}
+
 @keyframes landing-marquee {
   from {
     transform: translateX(0);
@@ -386,6 +409,10 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tag-pulse {
+    animation: none;
+  }
+
   .landing-platform-track {
     animation: none;
   }
