@@ -2,10 +2,12 @@
 
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const apiRequire = createRequire(resolve(__dirname, '../../apps/api/package.json'));
 const args = parseArgs(process.argv.slice(2));
 const databaseUrl = args.databaseUrl ?? process.env.DATABASE_URL;
 const outputPath = args.output ?? process.env.DATA_INTEGRITY_OUTPUT;
@@ -21,25 +23,7 @@ if (looksProductionLike(databaseUrl) && !allowProduction) {
 }
 
 const sql = readFileSync(sqlPath, 'utf8');
-const result = spawnSync(
-  'psql',
-  [databaseUrl, '--no-psqlrc', '--set', 'ON_ERROR_STOP=1', '--csv', '--tuples-only'],
-  {
-    input: sql,
-    encoding: 'utf8',
-  },
-);
-
-if (result.error) {
-  fail(`Unable to run psql: ${result.error.message}`);
-}
-
-if (result.status !== 0) {
-  process.stderr.write(result.stderr);
-  process.exit(result.status ?? 1);
-}
-
-const findings = parseCsvRows(result.stdout);
+const findings = await runIntegritySql(sql);
 const summary = {
   checkedAt: new Date().toISOString(),
   database: redactDatabaseUrl(databaseUrl),
@@ -96,6 +80,79 @@ function parseCsvRows(stdout) {
         issueCount: Number(issueCount),
       };
     });
+}
+
+async function runIntegritySql(sql) {
+  const psqlResult = runWithPsql(sql);
+  if (psqlResult.status === 'success') {
+    return parseCsvRows(psqlResult.stdout);
+  }
+
+  if (psqlResult.status === 'error' && psqlResult.code !== 'ENOENT') {
+    fail(`Unable to run psql: ${psqlResult.message}`);
+  }
+
+  if (psqlResult.status === 'failed') {
+    process.stderr.write(psqlResult.stderr);
+    process.exit(psqlResult.exitCode ?? 1);
+  }
+
+  return runWithPrisma(sql);
+}
+
+function runWithPsql(sql) {
+  const result = spawnSync(
+    'psql',
+    [databaseUrl, '--no-psqlrc', '--set', 'ON_ERROR_STOP=1', '--csv', '--tuples-only'],
+    {
+      input: sql,
+      encoding: 'utf8',
+    },
+  );
+
+  if (result.error) {
+    return {
+      status: 'error',
+      code: result.error.code,
+      message: result.error.message,
+    };
+  }
+
+  if (result.status !== 0) {
+    return {
+      status: 'failed',
+      exitCode: result.status,
+      stderr: result.stderr,
+    };
+  }
+
+  return {
+    status: 'success',
+    stdout: result.stdout,
+  };
+}
+
+async function runWithPrisma(sql) {
+  let PrismaClient;
+  try {
+    ({ PrismaClient } = apiRequire('@prisma/client'));
+  } catch (error) {
+    fail(`Unable to run psql and unable to load @prisma/client fallback: ${error.message}`);
+  }
+
+  const prisma = new PrismaClient();
+  try {
+    const rows = await prisma.$queryRawUnsafe(sql);
+    return rows.map((row) => ({
+      checkName: row.check_name,
+      severity: row.severity,
+      issueCount: Number(row.issue_count),
+    }));
+  } catch (error) {
+    fail(`Unable to run data integrity SQL with Prisma fallback: ${error.message}`);
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
 function looksProductionLike(url) {

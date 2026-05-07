@@ -80,6 +80,10 @@ The SQL runner reports only failing check groups:
 | `insights_snapshot_connection_artist_mismatch` | critical | Ensures insights snapshots match their connection artist/platform. |
 | `uploaded_assets_without_delivery_url`         | warning  | Finds uploaded assets that cannot be served publicly.              |
 
+The runner uses `psql` when the Postgres CLI is available. If `psql` is not
+installed, it falls back to Prisma through the API package dependency so the
+same read-only SQL checks can still run from repo-only environments.
+
 ## Backup
 
 Dry-run:
@@ -181,6 +185,12 @@ Final-check Task 9 was recorded on 2026-05-06 in
 `pnpm data:row-counts`, a read-only snapshot command for comparing critical
 table counts before and after a restore drill.
 
+Final-check T09 staging data validation was revisited on 2026-05-07 in
+`docs/final-qa-staging-data-validation.md`. The validation tooling is ready, but
+Railway currently exposes only the `production` environment for the linked
+project. The real staging validation remains blocked until a staging database
+exists or Robert explicitly approves a read-only production data audit.
+
 ## Manual Staging Checklist
 
 1. Create or identify a disposable restore database.
@@ -198,7 +208,7 @@ table counts before and after a restore drill.
 Section 8 is healthy when:
 
 - Integration DB reset coverage remains green.
-- `pnpm data:validate` passes against staging.
+- `pnpm data:validate` passes against staging, once a staging database exists.
 - `pnpm data:row-counts` captures source/target row-count snapshots during
   restore drills.
 - Manual backup/restore guardrails remain verified.
