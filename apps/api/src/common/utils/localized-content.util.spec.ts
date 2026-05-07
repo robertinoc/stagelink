@@ -3,6 +3,8 @@ import {
   resolveDocumentText,
   resolveFieldLevelLocalizedText,
   resolveLocalizedText,
+  sanitizeLocalizedTextMap,
+  sanitizeTranslationFieldMap,
 } from './localized-content.util';
 
 describe('localized-content.util', () => {
@@ -80,6 +82,50 @@ describe('localized-content.util', () => {
       expect(resolveFieldLevelLocalizedText('Texto base', { en: 'English text' }, 'es')).toBe(
         'English text',
       );
+    });
+  });
+
+  describe('sanitizeLocalizedTextMap', () => {
+    it('keeps supported locales, trims text, and truncates oversized values', () => {
+      expect(
+        sanitizeLocalizedTextMap(
+          {
+            en: '  English text  ',
+            es: 'Contenido largo',
+            fr: 'unsupported',
+          },
+          { maxLength: 9 },
+        ),
+      ).toEqual({
+        en: 'English t',
+        es: 'Contenido',
+      });
+    });
+  });
+
+  describe('sanitizeTranslationFieldMap', () => {
+    it('drops unexpected fields and applies field-specific length caps', () => {
+      expect(
+        sanitizeTranslationFieldMap<{
+          title?: { en?: string };
+          body?: { en?: string };
+        }>(
+          {
+            title: { en: 'Short title' },
+            body: { en: '1234567890' },
+            unexpected: { en: 'drop me' },
+          },
+          {
+            allowedFields: ['title', 'body'],
+            maxLengthByField: {
+              body: 4,
+            },
+          },
+        ),
+      ).toEqual({
+        title: { en: 'Short title' },
+        body: { en: '1234' },
+      });
     });
   });
 });

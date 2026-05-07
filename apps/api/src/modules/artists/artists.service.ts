@@ -161,7 +161,15 @@ export class ArtistsService {
   async update(id: string, payload: UpdateArtistPayload, userId: string, ipAddress?: string) {
     await this.membershipService.validateAccess(userId, id, 'write');
 
-    const translations = sanitizeTranslationFieldMap<ArtistTranslations>(payload.translations);
+    const translations = sanitizeTranslationFieldMap<ArtistTranslations>(payload.translations, {
+      allowedFields: ['displayName', 'bio', 'seoTitle', 'seoDescription'],
+      maxLengthByField: {
+        displayName: 100,
+        bio: 500,
+        seoTitle: 60,
+        seoDescription: 160,
+      },
+    });
     if (hasAdditionalLocaleContent(translations)) {
       await this.billingEntitlementsService.assertFeatureAccess(id, 'multi_language_pages');
     }

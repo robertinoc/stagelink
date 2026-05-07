@@ -97,7 +97,7 @@ export class CreateArtistDto {
   bio?: string;
 
   @IsOptional()
-  @IsUrl()
+  @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
   avatarUrl?: string;
 }
 
@@ -170,7 +170,7 @@ export class UpdateArtistDto {
   @ArrayUnique()
   @ArrayMaxSize(6, { message: 'You can upload up to 6 gallery images' })
   @IsUrl(
-    { require_protocol: true },
+    { protocols: ['http', 'https'], require_protocol: true },
     { each: true, message: 'galleryImageUrls must contain only valid URLs' },
   )
   galleryImageUrls?: string[];
@@ -181,42 +181,60 @@ export class UpdateArtistDto {
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' && value.trim() === '' ? null : value,
   )
-  @IsUrl({ require_protocol: true }, { message: 'instagramUrl must be a valid URL' })
+  @IsUrl(
+    { protocols: ['http', 'https'], require_protocol: true },
+    { message: 'instagramUrl must be a valid URL' },
+  )
   instagramUrl?: string | null;
 
   @IsOptional()
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' && value.trim() === '' ? null : value,
   )
-  @IsUrl({ require_protocol: true }, { message: 'tiktokUrl must be a valid URL' })
+  @IsUrl(
+    { protocols: ['http', 'https'], require_protocol: true },
+    { message: 'tiktokUrl must be a valid URL' },
+  )
   tiktokUrl?: string | null;
 
   @IsOptional()
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' && value.trim() === '' ? null : value,
   )
-  @IsUrl({ require_protocol: true }, { message: 'youtubeUrl must be a valid URL' })
+  @IsUrl(
+    { protocols: ['http', 'https'], require_protocol: true },
+    { message: 'youtubeUrl must be a valid URL' },
+  )
   youtubeUrl?: string | null;
 
   @IsOptional()
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' && value.trim() === '' ? null : value,
   )
-  @IsUrl({ require_protocol: true }, { message: 'spotifyUrl must be a valid URL' })
+  @IsUrl(
+    { protocols: ['http', 'https'], require_protocol: true },
+    { message: 'spotifyUrl must be a valid URL' },
+  )
   spotifyUrl?: string | null;
 
   @IsOptional()
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' && value.trim() === '' ? null : value,
   )
-  @IsUrl({ require_protocol: true }, { message: 'soundcloudUrl must be a valid URL' })
+  @IsUrl(
+    { protocols: ['http', 'https'], require_protocol: true },
+    { message: 'soundcloudUrl must be a valid URL' },
+  )
   soundcloudUrl?: string | null;
 
   @IsOptional()
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' && value.trim() === '' ? null : value,
   )
-  @IsUrl({ require_protocol: true }, { message: 'websiteUrl must be a valid URL' })
+  @IsUrl(
+    { protocols: ['http', 'https'], require_protocol: true },
+    { message: 'websiteUrl must be a valid URL' },
+  )
   websiteUrl?: string | null;
 
   @IsOptional()

@@ -60,6 +60,8 @@ const MAX_SMART_MERCH_HEADLINE_LENGTH = 100;
 const MAX_SMART_MERCH_SUBTITLE_LENGTH = 300;
 const MAX_SMART_MERCH_CTA_LENGTH = 40;
 const MAX_SMART_MERCH_PRODUCTS = 12;
+const MAX_LOCALIZED_ITEM_LABELS = 50;
+const MAX_LOCALIZED_ITEM_ID_LENGTH = 64;
 
 const BLOCKED_PROTOCOLS = ['javascript:', 'data:', 'vbscript:', 'blob:'];
 const MUSIC_PROVIDERS = ['spotify', 'apple_music', 'soundcloud', 'youtube'] as const;
@@ -133,7 +135,17 @@ function sanitizeItemLabelTranslations(
   const sanitized = Object.entries(value).reduce<
     Record<string, NonNullable<ReturnType<typeof sanitizeLocalizedTextMap>>>
   >((acc, [itemId, localizedValue]) => {
-    const localizedText = sanitizeLocalizedTextMap(localizedValue);
+    if (Object.keys(acc).length >= MAX_LOCALIZED_ITEM_LABELS) {
+      return acc;
+    }
+
+    if (itemId.length === 0 || itemId.length > MAX_LOCALIZED_ITEM_ID_LENGTH) {
+      return acc;
+    }
+
+    const localizedText = sanitizeLocalizedTextMap(localizedValue, {
+      maxLength: MAX_LABEL_LENGTH,
+    });
     if (localizedText) {
       acc[itemId] = localizedText;
     }
@@ -153,7 +165,9 @@ export function sanitizeBlockLocalizedContent(
 
   const content = value as Record<string, unknown>;
   const sanitized: BlockLocalizedContent = {};
-  const localizedTitle = sanitizeLocalizedTextMap(content['title']);
+  const localizedTitle = sanitizeLocalizedTextMap(content['title'], {
+    maxLength: MAX_TITLE_LENGTH,
+  });
   if (localizedTitle) {
     sanitized.title = localizedTitle;
   }
@@ -161,6 +175,24 @@ export function sanitizeBlockLocalizedContent(
   if (type === 'email_capture') {
     const emailCapture = sanitizeTranslationFieldMap<EmailCaptureBlockTranslations>(
       content['emailCapture'],
+      {
+        allowedFields: [
+          'headline',
+          'buttonLabel',
+          'description',
+          'placeholder',
+          'successMessage',
+          'consentLabel',
+        ],
+        maxLengthByField: {
+          headline: MAX_HEADLINE_LENGTH,
+          buttonLabel: MAX_BUTTON_LABEL_LENGTH,
+          description: MAX_DESCRIPTION_LENGTH,
+          placeholder: MAX_PLACEHOLDER_LENGTH,
+          successMessage: MAX_SUCCESS_MESSAGE_LENGTH,
+          consentLabel: MAX_CONSENT_LABEL_LENGTH,
+        },
+      },
     );
     if (Object.keys(emailCapture).length > 0) {
       sanitized.emailCapture = emailCapture;
@@ -172,7 +204,9 @@ export function sanitizeBlockLocalizedContent(
     if (typeof rawLinks === 'object' && rawLinks !== null && !Array.isArray(rawLinks)) {
       const linksContent = rawLinks as Record<string, unknown>;
       const linksTranslations: LinksBlockTranslations = {};
-      const linksTitle = sanitizeLocalizedTextMap(linksContent['title']);
+      const linksTitle = sanitizeLocalizedTextMap(linksContent['title'], {
+        maxLength: MAX_TITLE_LENGTH,
+      });
       const itemLabels = sanitizeItemLabelTranslations(linksContent['itemLabels']);
 
       if (linksTitle) {
@@ -192,6 +226,14 @@ export function sanitizeBlockLocalizedContent(
   if (type === 'shopify_store') {
     const shopifyStore = sanitizeTranslationFieldMap<ShopifyStoreBlockTranslations>(
       content['shopifyStore'],
+      {
+        allowedFields: ['headline', 'description', 'ctaLabel'],
+        maxLengthByField: {
+          headline: MAX_SHOPIFY_HEADLINE_LENGTH,
+          description: MAX_SHOPIFY_DESCRIPTION_LENGTH,
+          ctaLabel: MAX_SHOPIFY_CTA_LENGTH,
+        },
+      },
     );
     if (Object.keys(shopifyStore).length > 0) {
       sanitized.shopifyStore = shopifyStore;
@@ -201,6 +243,14 @@ export function sanitizeBlockLocalizedContent(
   if (type === 'smart_merch') {
     const smartMerch = sanitizeTranslationFieldMap<SmartMerchBlockTranslations>(
       content['smartMerch'],
+      {
+        allowedFields: ['headline', 'subtitle', 'ctaLabel'],
+        maxLengthByField: {
+          headline: MAX_SMART_MERCH_HEADLINE_LENGTH,
+          subtitle: MAX_SMART_MERCH_SUBTITLE_LENGTH,
+          ctaLabel: MAX_SMART_MERCH_CTA_LENGTH,
+        },
+      },
     );
     if (Object.keys(smartMerch).length > 0) {
       sanitized.smartMerch = smartMerch;

@@ -33,6 +33,29 @@ function sanitizeStringArray(values: string[] | undefined): string[] | undefined
   return values.map((value) => value.trim()).filter(Boolean);
 }
 
+function sanitizeEpkTranslations(value: unknown): Partial<EpkTranslations> {
+  return sanitizeTranslationFieldMap<EpkTranslations>(value, {
+    allowedFields: [
+      'headline',
+      'shortBio',
+      'fullBio',
+      'pressQuote',
+      'riderInfo',
+      'techRequirements',
+      'availabilityNotes',
+    ],
+    maxLengthByField: {
+      headline: 140,
+      shortBio: 500,
+      fullBio: 5000,
+      pressQuote: 280,
+      riderInfo: 2000,
+      techRequirements: 2000,
+      availabilityNotes: 500,
+    },
+  });
+}
+
 function mapInheritedArtist(artist: Artist) {
   return {
     displayName: artist.displayName,
@@ -120,7 +143,7 @@ export class EpkService {
   ): Promise<EpkEditorResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'write');
     await this.billingEntitlementsService.assertFeatureAccess(artistId, 'epk_builder');
-    const translations = sanitizeTranslationFieldMap<EpkTranslations>(dto.translations);
+    const translations = sanitizeEpkTranslations(dto.translations);
     if (hasAdditionalLocaleContent(translations)) {
       await this.billingEntitlementsService.assertFeatureAccess(artistId, 'multi_language_pages');
     }
@@ -369,7 +392,7 @@ Return JSON with keys: headline, shortBio, fullBio, pressQuote`;
       ...(dto.baseLocale !== undefined && { baseLocale: dto.baseLocale }),
       ...(dto.headline !== undefined && { headline: dto.headline }),
       ...(dto.translations !== undefined && {
-        translations: sanitizeTranslationFieldMap<EpkTranslations>(dto.translations),
+        translations: sanitizeEpkTranslations(dto.translations),
       }),
       ...(dto.shortBio !== undefined && { shortBio: dto.shortBio }),
       ...(dto.fullBio !== undefined && { fullBio: dto.fullBio }),

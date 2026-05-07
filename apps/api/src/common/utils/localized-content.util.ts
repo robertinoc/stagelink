@@ -6,11 +6,18 @@ import {
 } from '@stagelink/types';
 
 type TranslationFieldMap = Record<string, LocalizedTextMap | undefined>;
+type TranslationFieldOptions<T extends object> = {
+  allowedFields?: readonly Extract<keyof T, string>[];
+  defaultMaxLength?: number;
+  maxLengthByField?: Partial<Record<Extract<keyof T, string>, number>>;
+};
 interface LocalizedDocumentField {
   baseValue: string | null | undefined;
   localizedValue?: LocalizedTextMap;
   required?: boolean;
 }
+
+const DEFAULT_LOCALIZED_TEXT_MAX_LENGTH = 5000;
 
 function hasText(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
@@ -24,30 +31,46 @@ export function normalizeBaseLocale(value: unknown): SupportedLocale {
   return isSupportedLocale(value) ? value : DEFAULT_LOCALE;
 }
 
-export function sanitizeLocalizedTextMap(value: unknown): LocalizedTextMap | undefined {
+export function sanitizeLocalizedTextMap(
+  value: unknown,
+  options?: { maxLength?: number },
+): LocalizedTextMap | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return undefined;
   }
 
+  const maxLength = options?.maxLength ?? DEFAULT_LOCALIZED_TEXT_MAX_LENGTH;
   const sanitized = Object.entries(value).reduce<LocalizedTextMap>((acc, [locale, text]) => {
     if (!isSupportedLocale(locale) || !hasText(text)) {
       return acc;
     }
 
-    acc[locale] = text.trim();
+    acc[locale] = text.trim().slice(0, maxLength);
     return acc;
   }, {});
 
   return Object.keys(sanitized).length > 0 ? sanitized : undefined;
 }
 
-export function sanitizeTranslationFieldMap<T extends object>(value: unknown): Partial<T> {
+export function sanitizeTranslationFieldMap<T extends object>(
+  value: unknown,
+  options?: TranslationFieldOptions<T>,
+): Partial<T> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return {};
   }
 
+  const allowedFields = options?.allowedFields ? new Set<string>(options.allowedFields) : null;
+  const defaultMaxLength = options?.defaultMaxLength ?? DEFAULT_LOCALIZED_TEXT_MAX_LENGTH;
+
   return Object.entries(value).reduce<Partial<T>>((acc, [field, localizedValue]) => {
-    const sanitized = sanitizeLocalizedTextMap(localizedValue);
+    if (allowedFields && !allowedFields.has(field)) {
+      return acc;
+    }
+
+    const maxLength =
+      options?.maxLengthByField?.[field as Extract<keyof T, string>] ?? defaultMaxLength;
+    const sanitized = sanitizeLocalizedTextMap(localizedValue, { maxLength });
     if (sanitized) {
       acc[field as keyof T] = sanitized as T[keyof T];
     }
