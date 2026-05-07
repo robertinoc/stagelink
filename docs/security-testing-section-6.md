@@ -1,7 +1,7 @@
 # StageLink — Security Testing Section 6
 
 Status: implemented and locally validated
-Last checked: 2026-05-01
+Last checked: 2026-05-07
 
 This document records the Section 6 security testing work:
 
@@ -90,18 +90,37 @@ Run these against staging before closing the security section:
 | Submit landing contact form too fast or with honeypot filled   | Silent `{ ok: true }`, no email sent.                                                  |
 | Attempt repeated password login in WorkOS hosted UI            | WorkOS protection should rate-limit/challenge according to WorkOS production settings. |
 
+## Final Check Security Decisions
+
+Recorded on 2026-05-07:
+
+- WorkOS production and staging dashboard settings were reviewed by Robert.
+- Redirect/callback URLs, sign-out redirect, login endpoint, auth methods and
+  session settings were confirmed.
+- WorkOS bot detection and brute-force attack protection are enabled.
+- Global MFA remains off intentionally for the current private QA/MVP launch
+  phase. MFA should be revisited in `T7-8`, preferably for admin/operator/behind
+  access before broad public launch.
+- Current public/upload/SmartLink rate limits remain in-memory for the current
+  pre-launch phase. This is accepted as a temporary risk and should be replaced
+  with shared Redis/Upstash/Vercel KV-backed limiting before sustained public
+  traffic.
+- Existing Upstash Redis usage is scoped to the internal Behind the Stage user
+  management dashboard at `behind.stagelink.art`; it is not currently the shared
+  store for public/API abuse protection.
+
 ## Known Risks / Follow-ups
 
-| Priority | Risk                                                                                              | Recommendation                                                                                            |
-| -------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| P1       | Rate limiters are in-memory and do not coordinate across Vercel/Railway instances.                | Replace with Redis/Upstash/Vercel KV before sustained high-traffic launch.                                |
-| P1       | WorkOS brute-force policy is external to the repo.                                                | Confirm production WorkOS rate-limit/MFA/session settings during the security audit.                      |
-| P2       | Public event endpoints remain unauthenticated by design.                                          | Keep strict validation and rate limits; consider signed event tokens if analytics abuse becomes material. |
-| P2       | `X-Forwarded-For` is trusted for rate-limit identity.                                             | Ensure Railway/Vercel/Cloudflare strip or normalize untrusted forwarded headers.                          |
-| P3       | CSRF is not a primary risk while protected API uses Bearer tokens via server-side route handlers. | Reassess if browser-direct cookie-authenticated mutation endpoints are introduced.                        |
+| Priority | Risk                                                                                              | Recommendation                                                                                                        |
+| -------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| P1       | Rate limiters are in-memory and do not coordinate across Vercel/Railway instances.                | Temporarily accepted for private QA/pre-launch; replace with Redis/Upstash/Vercel KV before sustained public traffic. |
+| P1       | Global MFA is not enabled.                                                                        | Accepted for current launch phase; revisit MFA for admin/operator/behind access in `T7-8`.                            |
+| P2       | Public event endpoints remain unauthenticated by design.                                          | Keep strict validation and rate limits; consider signed event tokens if analytics abuse becomes material.             |
+| P2       | `X-Forwarded-For` is trusted for rate-limit identity.                                             | Ensure Railway/Vercel/Cloudflare strip or normalize untrusted forwarded headers.                                      |
+| P3       | CSRF is not a primary risk while protected API uses Bearer tokens via server-side route handlers. | Reassess if browser-direct cookie-authenticated mutation endpoints are introduced.                                    |
 
 ## Section 6 Status
 
 Section 6 can be considered healthy after CI passes this PR and staging manual
-checks confirm WorkOS brute-force protection and real deployed rate-limit
-behavior.
+checks confirm real deployed rate-limit behavior. WorkOS dashboard settings were
+confirmed on 2026-05-07; global MFA remains an accepted `T7-8` hardening item.
