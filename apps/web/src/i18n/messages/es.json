@@ -1495,6 +1495,14 @@
       "notice": "Esta página contabiliza visitas y clics para ayudar al artista a entender su audiencia. Al hacer clic en \"Entendido\" habilitás analíticas adicionales. No se venden ni comparten datos personales.",
       "accept": "Entendido",
       "reject": "No, gracias"
+    },
+    "language_toggle": {
+      "label": "Cambiar idioma"
+    },
+    "cta": {
+      "spotify": "Seguirme en Spotify",
+      "youtube": "Ver más en YouTube",
+      "soundcloud": "Escuchar más en SoundCloud"
     }
   },
   "public_epk": {

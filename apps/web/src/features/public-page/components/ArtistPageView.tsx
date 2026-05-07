@@ -1,14 +1,17 @@
 import Link from 'next/link';
-import { Download, FileText, Globe, Instagram, Mail, Music2, Play, Sparkles } from 'lucide-react';
+import { Download, FileText, Globe, Instagram, Mail, Sparkles } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { PublicPageResponse } from '@stagelink/types';
 import { PublicPageClient } from './PublicPageClient';
 import { PublicAvatarImage } from './PublicAvatarImage';
 import { PublicCoverImage } from './PublicCoverImage';
+import { SpotifyIcon, YouTubeIcon, TikTokIcon, SoundCloudIcon } from './SocialPlatformIcons';
 
 interface ArtistPageViewProps {
   page: PublicPageResponse;
 }
+
+type IconComponent = (props: { className?: string }) => React.ReactElement;
 
 function normalizeTextForComparison(value: string | null | undefined): string {
   return value?.toLowerCase().replace(/\s+/g, ' ').trim() ?? '';
@@ -28,37 +31,37 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       href: artist.instagramUrl,
       label: t('social.instagram'),
       key: 'instagram',
-      Icon: Instagram,
+      Icon: Instagram as IconComponent,
     },
     artist.tiktokUrl && {
       href: artist.tiktokUrl,
       label: t('social.tiktok'),
       key: 'tiktok',
-      Icon: Music2,
+      Icon: TikTokIcon as IconComponent,
     },
     artist.youtubeUrl && {
       href: artist.youtubeUrl,
       label: t('social.youtube'),
       key: 'youtube',
-      Icon: Play,
+      Icon: YouTubeIcon as IconComponent,
     },
     artist.spotifyUrl && {
       href: artist.spotifyUrl,
       label: t('social.spotify'),
       key: 'spotify',
-      Icon: Music2,
+      Icon: SpotifyIcon as IconComponent,
     },
     artist.soundcloudUrl && {
       href: artist.soundcloudUrl,
       label: t('social.soundcloud'),
       key: 'soundcloud',
-      Icon: Music2,
+      Icon: SoundCloudIcon as IconComponent,
     },
     artist.websiteUrl && {
       href: artist.websiteUrl,
       label: t('social.website'),
       key: 'website',
-      Icon: Globe,
+      Icon: Globe as IconComponent,
     },
   ].filter(
     (
@@ -67,7 +70,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       href: string;
       label: string;
       key: string;
-      Icon: typeof Globe;
+      Icon: IconComponent;
     } => Boolean(item),
   );
 
@@ -118,6 +121,13 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
     emailCaptureBlocks.length > 0 ||
     remainingBlocks.length > 0;
 
+  // YouTube CTA shows below featured media if media blocks exist, or falls through to
+  // the platform CTAs row below the header if there are no media blocks.
+  const showYouTubeInMediaSection = Boolean(artist.youtubeUrl) && featuredMediaBlocks.length > 0;
+  const showYouTubeInCtaRow = Boolean(artist.youtubeUrl) && featuredMediaBlocks.length === 0;
+  const showPlatformCtaRow =
+    Boolean(artist.spotifyUrl) || Boolean(artist.soundcloudUrl) || showYouTubeInCtaRow;
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#090411] text-white">
       <div className="pointer-events-none absolute inset-0">
@@ -127,6 +137,29 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       </div>
 
       <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+        {/* Language toggle */}
+        <div className="mb-4 flex justify-end">
+          <nav
+            aria-label={t('language_toggle.label')}
+            className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1"
+          >
+            {(['en', 'es'] as const).map((lng) => (
+              <Link
+                key={lng}
+                href={lng === locale ? '#' : `/${lng}/${artist.username}`}
+                aria-current={lng === locale ? 'true' : undefined}
+                className={
+                  lng === locale
+                    ? 'inline-flex h-7 min-w-[2.75rem] items-center justify-center rounded-full bg-white/15 text-xs font-semibold text-white'
+                    : 'inline-flex h-7 min-w-[2.75rem] items-center justify-center rounded-full text-xs font-medium text-white/50 transition hover:text-white/80'
+                }
+              >
+                {lng.toUpperCase()}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
         <div className="rounded-[2rem] border border-violet-500/15 bg-black/20 p-3 shadow-[0_32px_140px_rgba(0,0,0,0.45)]">
           <div className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.24),_rgba(11,6,20,0.98)_55%)] backdrop-blur-xl">
             <div className="relative h-52 overflow-hidden sm:h-64">
@@ -186,7 +219,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                         key={social.key}
                         href={social.href}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         aria-label={social.label}
                         title={social.label}
                         className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-200 transition hover:border-violet-300/30 hover:bg-violet-400/10 hover:text-white"
@@ -213,11 +246,53 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                       <a
                         href={artist.websiteUrl}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
                       >
                         <Globe className="h-4 w-4" />
                         {t('actions.visit_website')}
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {/* Platform CTAs: Spotify, SoundCloud, and YouTube (when no media blocks) */}
+                {showPlatformCtaRow && (
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+                    {artist.spotifyUrl && (
+                      <a
+                        href={artist.spotifyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={t('cta.spotify')}
+                        className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500/25"
+                      >
+                        <SpotifyIcon />
+                        {t('cta.spotify')}
+                      </a>
+                    )}
+                    {showYouTubeInCtaRow && (
+                      <a
+                        href={artist.youtubeUrl!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={t('cta.youtube')}
+                        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                      >
+                        <YouTubeIcon />
+                        {t('cta.youtube')}
+                      </a>
+                    )}
+                    {artist.soundcloudUrl && (
+                      <a
+                        href={artist.soundcloudUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={t('cta.soundcloud')}
+                        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                      >
+                        <SoundCloudIcon />
+                        {t('cta.soundcloud')}
                       </a>
                     )}
                   </div>
@@ -248,6 +323,21 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                       blocks={featuredMediaBlocks}
                       className="grid gap-4 lg:grid-cols-2 lg:items-start"
                     />
+                    {/* YouTube CTA — appears below the last video when the artist has a channel */}
+                    {showYouTubeInMediaSection && (
+                      <div className="flex justify-center pt-2">
+                        <a
+                          href={artist.youtubeUrl!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={t('cta.youtube')}
+                          className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                        >
+                          <YouTubeIcon />
+                          {t('cta.youtube')}
+                        </a>
+                      </div>
+                    )}
                   </section>
                 )}
 
