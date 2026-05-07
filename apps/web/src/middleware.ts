@@ -121,6 +121,20 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 302);
   }
 
+  // Rule 2b: /behind (admin panel) on main domain — skip intl, run authkit only.
+  //
+  // After a successful auth flow the callback redirects to stagelink.art/behind.
+  // Without this rule the intl middleware would add a locale prefix and redirect
+  // to /en/behind, which no longer exists as a route (the panel lives at
+  // app/behind/ outside [locale]). This mirrors the skip-intl treatment that
+  // the isBehindHost block already applies for behind.stagelink.art requests.
+  if (segments[0] === 'behind') {
+    const { headers: authkitHeaders } = await authkit(request);
+    const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
+    return applyResponseHeaders(response, responseHeaders);
+  }
+
   // Rule 3: authkit session + intl locale handling.
   //
   // authkit() sets the x-workos-middleware marker (required by withAuth()) and
