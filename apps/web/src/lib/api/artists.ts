@@ -26,6 +26,14 @@ export interface Artist {
   soundcloudUrl: string | null;
   websiteUrl: string | null;
   contactEmail: string | null;
+  // Streaming platforms (REQ-06)
+  appleMusicUrl: string | null;
+  amazonMusicUrl: string | null;
+  deezerUrl: string | null;
+  tidalUrl: string | null;
+  // Music stores (REQ-07)
+  beatportUrl: string | null;
+  traxsourceUrl: string | null;
   // SEO
   seoTitle: string | null;
   seoDescription: string | null;
@@ -50,6 +58,12 @@ export interface UpdateArtistPayload {
   soundcloudUrl?: string | null;
   websiteUrl?: string | null;
   contactEmail?: string | null;
+  appleMusicUrl?: string | null;
+  amazonMusicUrl?: string | null;
+  deezerUrl?: string | null;
+  tidalUrl?: string | null;
+  beatportUrl?: string | null;
+  traxsourceUrl?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
   translations?: ArtistTranslations;

@@ -44,6 +44,12 @@ interface UpdateArtistPayload {
   soundcloudUrl?: string | null;
   websiteUrl?: string | null;
   contactEmail?: string | null;
+  appleMusicUrl?: string | null;
+  amazonMusicUrl?: string | null;
+  deezerUrl?: string | null;
+  tidalUrl?: string | null;
+  beatportUrl?: string | null;
+  traxsourceUrl?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
   translations?: ArtistTranslations;
@@ -201,6 +207,12 @@ export class ArtistsService {
         ...(payload.soundcloudUrl !== undefined && { soundcloudUrl: payload.soundcloudUrl }),
         ...(payload.websiteUrl !== undefined && { websiteUrl: payload.websiteUrl }),
         ...(payload.contactEmail !== undefined && { contactEmail: payload.contactEmail }),
+        ...(payload.appleMusicUrl !== undefined && { appleMusicUrl: payload.appleMusicUrl }),
+        ...(payload.amazonMusicUrl !== undefined && { amazonMusicUrl: payload.amazonMusicUrl }),
+        ...(payload.deezerUrl !== undefined && { deezerUrl: payload.deezerUrl }),
+        ...(payload.tidalUrl !== undefined && { tidalUrl: payload.tidalUrl }),
+        ...(payload.beatportUrl !== undefined && { beatportUrl: payload.beatportUrl }),
+        ...(payload.traxsourceUrl !== undefined && { traxsourceUrl: payload.traxsourceUrl }),
         ...(payload.seoTitle !== undefined && { seoTitle: payload.seoTitle }),
         ...(payload.seoDescription !== undefined && { seoDescription: payload.seoDescription }),
         ...(payload.translations !== undefined && {

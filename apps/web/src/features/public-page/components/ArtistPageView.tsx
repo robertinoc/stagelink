@@ -9,7 +9,18 @@ import type {
 import { PublicPageClient } from './PublicPageClient';
 import { PublicAvatarImage } from './PublicAvatarImage';
 import { PublicCoverImage } from './PublicCoverImage';
-import { SpotifyIcon, YouTubeIcon, TikTokIcon, SoundCloudIcon } from './SocialPlatformIcons';
+import {
+  SpotifyIcon,
+  YouTubeIcon,
+  TikTokIcon,
+  SoundCloudIcon,
+  AppleMusicIcon,
+  AmazonMusicIcon,
+  DeezerIcon,
+  TidalIcon,
+  BeatportIcon,
+  TraxsourceIcon,
+} from './SocialPlatformIcons';
 
 interface ArtistPageViewProps {
   page: PublicPageResponse;
@@ -60,6 +71,42 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       label: t('social.soundcloud'),
       key: 'soundcloud',
       Icon: SoundCloudIcon as IconComponent,
+    },
+    artist.appleMusicUrl && {
+      href: artist.appleMusicUrl,
+      label: t('social.apple_music'),
+      key: 'apple_music',
+      Icon: AppleMusicIcon as IconComponent,
+    },
+    artist.amazonMusicUrl && {
+      href: artist.amazonMusicUrl,
+      label: t('social.amazon_music'),
+      key: 'amazon_music',
+      Icon: AmazonMusicIcon as IconComponent,
+    },
+    artist.deezerUrl && {
+      href: artist.deezerUrl,
+      label: t('social.deezer'),
+      key: 'deezer',
+      Icon: DeezerIcon as IconComponent,
+    },
+    artist.tidalUrl && {
+      href: artist.tidalUrl,
+      label: t('social.tidal'),
+      key: 'tidal',
+      Icon: TidalIcon as IconComponent,
+    },
+    artist.beatportUrl && {
+      href: artist.beatportUrl,
+      label: t('social.beatport'),
+      key: 'beatport',
+      Icon: BeatportIcon as IconComponent,
+    },
+    artist.traxsourceUrl && {
+      href: artist.traxsourceUrl,
+      label: t('social.traxsource'),
+      key: 'traxsource',
+      Icon: TraxsourceIcon as IconComponent,
     },
     artist.websiteUrl && {
       href: artist.websiteUrl,
@@ -269,6 +316,36 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                 )}
               </div>
 
+              {/* Music stores (REQ-07): Beatport + Traxsource */}
+              {(artist.beatportUrl || artist.traxsourceUrl) && (
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+                  {artist.beatportUrl && (
+                    <a
+                      href={artist.beatportUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t('stores.beatport')}
+                      className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                    >
+                      <BeatportIcon />
+                      {t('stores.beatport')}
+                    </a>
+                  )}
+                  {artist.traxsourceUrl && (
+                    <a
+                      href={artist.traxsourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t('stores.traxsource')}
+                      className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                    >
+                      <TraxsourceIcon />
+                      {t('stores.traxsource')}
+                    </a>
+                  )}
+                </div>
+              )}
+
               <div className="mx-auto mt-10 max-w-5xl space-y-10">
                 {linkBlocks.length > 0 && (
                   <section className="mx-auto max-w-xl">
@@ -294,6 +371,20 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                       return (
                         <div key={block.id ?? index} className="space-y-3">
                           <PublicPageClient page={page} blocks={[block]} className="" />
+                          {musicProvider === 'apple_music' && artist.appleMusicUrl && (
+                            <div className="flex justify-center">
+                              <a
+                                href={artist.appleMusicUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={t('cta.apple_music')}
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                              >
+                                <AppleMusicIcon />
+                                {t('cta.apple_music')}
+                              </a>
+                            </div>
+                          )}
                           {musicProvider === 'soundcloud' && artist.soundcloudUrl && (
                             <div className="flex justify-center">
                               <a

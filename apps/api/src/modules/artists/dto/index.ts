@@ -226,6 +226,50 @@ export class UpdateArtistDto {
   @IsEmail({}, { message: 'contactEmail must be a valid email address' })
   contactEmail?: string | null;
 
+  // ── Streaming platforms (REQ-06) ─────────────────────────────
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'appleMusicUrl must be a valid URL' })
+  appleMusicUrl?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'amazonMusicUrl must be a valid URL' })
+  amazonMusicUrl?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'deezerUrl must be a valid URL' })
+  deezerUrl?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'tidalUrl must be a valid URL' })
+  tidalUrl?: string | null;
+
+  // ── Music stores (REQ-07) ─────────────────────────────────────
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'beatportUrl must be a valid URL' })
+  beatportUrl?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'traxsourceUrl must be a valid URL' })
+  traxsourceUrl?: string | null;
+
   // ── SEO ──────────────────────────────────────────────────────
 
   @IsOptional()

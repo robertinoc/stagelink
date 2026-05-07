@@ -633,7 +633,8 @@
         "social": "Social & Contact",
         "social_hint": "Links left blank won't appear on your page.",
         "seo": "SEO & Discoverability",
-        "seo_hint": "Control how your page appears in search results."
+        "seo_hint": "Control how your page appears in search results.",
+        "music_stores": "Music stores"
       },
       "fields": {
         "display_name": "Artist name",
@@ -652,7 +653,13 @@
         "seo_title_hint": "Recommended: 50–60 characters",
         "seo_description": "Meta description",
         "seo_description_hint": "Recommended: 120–160 characters",
-        "username_readonly_hint": "Your username isn't editable yet — changes will require identity verification."
+        "username_readonly_hint": "Your username isn't editable yet — changes will require identity verification.",
+        "apple_music": "Apple Music",
+        "amazon_music": "Amazon Music",
+        "deezer": "Deezer",
+        "tidal": "Tidal",
+        "beatport": "Beatport",
+        "traxsource": "Traxsource"
       },
       "placeholders": {
         "display_name": "e.g. The Midnight, DJ Snake, Rosalía…",
@@ -1448,7 +1455,13 @@
       "youtube": "YouTube",
       "spotify": "Spotify",
       "soundcloud": "SoundCloud",
-      "website": "Website"
+      "website": "Website",
+      "apple_music": "Apple Music",
+      "amazon_music": "Amazon Music",
+      "deezer": "Deezer",
+      "tidal": "Tidal",
+      "beatport": "Beatport",
+      "traxsource": "Traxsource"
     },
     "categories": {
       "musician": "Musician",
@@ -1502,7 +1515,12 @@
     "cta": {
       "spotify": "Follow me on Spotify",
       "youtube": "Watch more on YouTube",
-      "soundcloud": "Listen more on SoundCloud"
+      "soundcloud": "Listen more on SoundCloud",
+      "apple_music": "Listen on Apple Music"
+    },
+    "stores": {
+      "beatport": "Buy on Beatport",
+      "traxsource": "Buy on Traxsource"
     }
   },
   "public_epk": {
