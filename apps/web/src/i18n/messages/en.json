@@ -1495,6 +1495,14 @@
       "notice": "This page counts page views and link clicks to help the artist understand their audience. Clicking \"Got it\" enables additional analytics. No personal data is sold or shared.",
       "accept": "Got it",
       "reject": "No thanks"
+    },
+    "language_toggle": {
+      "label": "Change language"
+    },
+    "cta": {
+      "spotify": "Follow me on Spotify",
+      "youtube": "Watch more on YouTube",
+      "soundcloud": "Listen more on SoundCloud"
     }
   },
   "public_epk": {
