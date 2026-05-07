@@ -19,6 +19,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@stagelink/types": "workspace:*",
     "@stagelink/ui": "workspace:*",
+    "@upstash/redis": "^1.38.0",
     "@workos-inc/authkit-nextjs": "^3.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

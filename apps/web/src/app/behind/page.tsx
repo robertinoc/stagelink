@@ -1,7 +1,11 @@
 import { UsersTable } from './UsersTable';
+import { getMergedRoles } from '@/lib/behind-redis';
 import { BEHIND_OWNER_EMAILS } from '@/lib/behind-config';
+import { getSession } from '@/lib/auth';
 
-export default function BehindTheStagePage() {
+export default async function BehindTheStagePage() {
+  const [roles, session] = await Promise.all([getMergedRoles(), getSession()]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -16,7 +20,11 @@ export default function BehindTheStagePage() {
         </p>
       </div>
 
-      <UsersTable adminEmails={[...BEHIND_OWNER_EMAILS]} />
+      <UsersTable
+        roles={roles}
+        lockedOwnerEmails={[...BEHIND_OWNER_EMAILS]}
+        currentUserEmail={session?.user.email ?? ''}
+      />
     </div>
   );
 }

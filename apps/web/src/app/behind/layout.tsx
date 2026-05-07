@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
-import { isBehindOwner } from '@/lib/behind-config';
+import { hasBehindAccess } from '@/lib/behind-redis';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -31,9 +31,9 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     redirect(`${mainOrigin}/api/auth/behind-signin`);
   }
 
-  // Authenticated but not the owner → silent redirect to main site.
+  // Authenticated but no behind access (not owner or admin) → silent redirect.
   // We redirect rather than 403 to avoid confirming that this path exists.
-  if (!isBehindOwner(session.user.email)) {
+  if (!(await hasBehindAccess(session.user.email))) {
     redirect('/');
   }
 
