@@ -9,6 +9,7 @@ import type {
 import { PublicPageClient } from './PublicPageClient';
 import { PublicAvatarImage } from './PublicAvatarImage';
 import { PublicCoverImage } from './PublicCoverImage';
+import { SocialIconLink } from './SocialIconLink';
 import {
   SpotifyIcon,
   YouTubeIcon,
@@ -46,72 +47,84 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       href: artist.instagramUrl,
       label: t('social.instagram'),
       key: 'instagram',
+      color: '#E1306C',
       Icon: Instagram as IconComponent,
     },
     artist.tiktokUrl && {
       href: artist.tiktokUrl,
       label: t('social.tiktok'),
       key: 'tiktok',
+      color: '#FF0050',
       Icon: TikTokIcon as IconComponent,
     },
     artist.youtubeUrl && {
       href: artist.youtubeUrl,
       label: t('social.youtube'),
       key: 'youtube',
+      color: '#FF0000',
       Icon: YouTubeIcon as IconComponent,
     },
     artist.spotifyUrl && {
       href: artist.spotifyUrl,
       label: t('social.spotify'),
       key: 'spotify',
+      color: '#1DB954',
       Icon: SpotifyIcon as IconComponent,
     },
     artist.soundcloudUrl && {
       href: artist.soundcloudUrl,
       label: t('social.soundcloud'),
       key: 'soundcloud',
+      color: '#FF5500',
       Icon: SoundCloudIcon as IconComponent,
     },
     artist.appleMusicUrl && {
       href: artist.appleMusicUrl,
       label: t('social.apple_music'),
       key: 'apple_music',
+      color: '#FC3C44',
       Icon: AppleMusicIcon as IconComponent,
     },
     artist.amazonMusicUrl && {
       href: artist.amazonMusicUrl,
       label: t('social.amazon_music'),
       key: 'amazon_music',
+      color: '#00A8E1',
       Icon: AmazonMusicIcon as IconComponent,
     },
     artist.deezerUrl && {
       href: artist.deezerUrl,
       label: t('social.deezer'),
       key: 'deezer',
+      color: '#A238FF',
       Icon: DeezerIcon as IconComponent,
     },
     artist.tidalUrl && {
       href: artist.tidalUrl,
       label: t('social.tidal'),
       key: 'tidal',
+      color: '#25F4EE',
       Icon: TidalIcon as IconComponent,
     },
     artist.beatportUrl && {
       href: artist.beatportUrl,
       label: t('social.beatport'),
       key: 'beatport',
+      color: '#01FF95',
       Icon: BeatportIcon as IconComponent,
     },
     artist.traxsourceUrl && {
       href: artist.traxsourceUrl,
       label: t('social.traxsource'),
       key: 'traxsource',
+      color: '#FF6600',
       Icon: TraxsourceIcon as IconComponent,
     },
     artist.websiteUrl && {
       href: artist.websiteUrl,
       label: t('social.website'),
       key: 'website',
+      color: '#8B5CF6',
       Icon: Globe as IconComponent,
     },
   ].filter(
@@ -121,6 +134,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       href: string;
       label: string;
       key: string;
+      color: string;
       Icon: IconComponent;
     } => Boolean(item),
   );
@@ -272,20 +286,15 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                 )}
 
                 {socialLinks.length > 0 && (
-                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2 pb-8">
                     {socialLinks.map((social) => (
-                      <a
+                      <SocialIconLink
                         key={social.key}
                         href={social.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={social.label}
-                        title={social.label}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-200 transition hover:border-violet-300/30 hover:bg-violet-400/10 hover:text-white"
-                      >
-                        <social.Icon className="h-5 w-5" />
-                        <span className="sr-only">{social.label}</span>
-                      </a>
+                        label={social.label}
+                        color={social.color}
+                        Icon={social.Icon}
+                      />
                     ))}
                   </div>
                 )}
