@@ -92,6 +92,12 @@ function createService() {
     analyticsEvent: {
       create: jest.fn().mockResolvedValue(undefined),
     },
+    block: {
+      findUnique: jest.fn(),
+    },
+    smartLink: {
+      findUnique: jest.fn(),
+    },
   };
 
   const tenantResolver = {
@@ -371,6 +377,71 @@ describe('PublicPagesService', () => {
       const result = await service.getPageByDomain('myband.com');
 
       expect(result.artist.username).toBe('test-artist');
+    });
+  });
+
+  describe('recordLinkClick', () => {
+    it('records link clicks when scoped block and smart link belong to the artist', async () => {
+      const { service, prisma } = createService();
+
+      prisma.block.findUnique.mockResolvedValue({
+        isPublished: true,
+        page: { artistId: 'artist-1' },
+      });
+      prisma.smartLink.findUnique.mockResolvedValue({
+        artistId: 'artist-1',
+        isActive: true,
+      });
+
+      await service.recordLinkClick('artist-1', {
+        blockId: 'block-1',
+        smartLinkId: 'smart-link-1',
+        linkItemId: 'item-1',
+        isSmartLink: true,
+      });
+
+      expect(prisma.analyticsEvent.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            artistId: 'artist-1',
+            blockId: 'block-1',
+            smartLinkId: 'smart-link-1',
+          }),
+        }),
+      );
+    });
+
+    it('drops link clicks when block belongs to another artist', async () => {
+      const { service, prisma } = createService();
+
+      prisma.block.findUnique.mockResolvedValue({
+        isPublished: true,
+        page: { artistId: 'artist-other' },
+      });
+
+      await service.recordLinkClick('artist-1', {
+        blockId: 'block-other',
+        linkItemId: 'item-1',
+      });
+
+      expect(prisma.analyticsEvent.create).not.toHaveBeenCalled();
+    });
+
+    it('drops link clicks when smart link belongs to another artist', async () => {
+      const { service, prisma } = createService();
+
+      prisma.smartLink.findUnique.mockResolvedValue({
+        artistId: 'artist-other',
+        isActive: true,
+      });
+
+      await service.recordLinkClick('artist-1', {
+        smartLinkId: 'smart-link-other',
+        linkItemId: 'item-1',
+        isSmartLink: true,
+      });
+
+      expect(prisma.analyticsEvent.create).not.toHaveBeenCalled();
     });
   });
 });

@@ -170,7 +170,8 @@ docs/
 ├── final-qa-staging-data-validation.md # T09 bloqueada hasta tener Railway staging DB o audit prod aprobado
 ├── final-qa-staging-load-test.md # Load test liviano en Vercel Preview, warning p95/staging pendiente
 ├── security-audit-e1-discovery.md # Setup/discovery de auditoría de seguridad: stack, arquitectura, flujos, servicios
-└── security-audit-e2-auth-sessions.md # E2.1 auth/sessions: login/signup, tokens, recovery, fixes y backlog
+├── security-audit-e2-auth-sessions.md # E2.1 auth/sessions: login/signup, tokens, recovery, fixes y backlog
+└── security-audit-e2-authorization.md # E2.2 autorización: ownership, IDOR/BOLA, aislamiento multi-tenant y fix analytics
 ```
 
 ---
