@@ -43,6 +43,14 @@ export interface PublicArtistDto {
   soundcloudUrl: string | null;
   websiteUrl: string | null;
   contactEmail: string | null;
+  // Streaming platforms (REQ-06)
+  appleMusicUrl: string | null;
+  amazonMusicUrl: string | null;
+  deezerUrl: string | null;
+  tidalUrl: string | null;
+  // Music stores (REQ-07)
+  beatportUrl: string | null;
+  traxsourceUrl: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
   locale: SupportedLocale;
