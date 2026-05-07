@@ -37,6 +37,18 @@ function truncateId(id: string): string {
   return id.length > 12 ? `${id.slice(0, 8)}…` : id;
 }
 
+function matchesSearch(user: AdminUser, query: string): boolean {
+  if (!query) return true;
+  const q = query.toLowerCase();
+  return (
+    user.email.toLowerCase().includes(q) ||
+    (user.name?.toLowerCase().includes(q) ?? false) ||
+    (user.firstName?.toLowerCase().includes(q) ?? false) ||
+    (user.lastName?.toLowerCase().includes(q) ?? false) ||
+    user.artistUsernames.some((h) => h.toLowerCase().includes(q))
+  );
+}
+
 // ─── Shared field ─────────────────────────────────────────────────────────────
 
 function Dash() {
@@ -100,12 +112,12 @@ function ModalField({
 
 // ─── Loading / error / empty rows ─────────────────────────────────────────────
 
-function LoadingRows() {
+function LoadingRows({ cols }: { cols: number }) {
   return (
     <>
       {Array.from({ length: 4 }).map((_, i) => (
         <tr key={i}>
-          {Array.from({ length: 8 }).map((_, j) => (
+          {Array.from({ length: cols }).map((_, j) => (
             <td key={j} className="px-4 py-3">
               <div
                 className="h-3 animate-pulse rounded"
@@ -122,11 +134,11 @@ function LoadingRows() {
   );
 }
 
-function ErrorRow({ message }: { message: string }) {
+function ErrorRow({ message, cols }: { message: string; cols: number }) {
   return (
     <tr>
       <td
-        colSpan={8}
+        colSpan={cols}
         className="px-4 py-10 text-center text-sm"
         style={{ color: 'rgba(255,80,80,0.8)' }}
       >
@@ -136,15 +148,15 @@ function ErrorRow({ message }: { message: string }) {
   );
 }
 
-function EmptyRow() {
+function EmptyRow({ cols, query }: { cols: number; query: string }) {
   return (
     <tr>
       <td
-        colSpan={8}
+        colSpan={cols}
         className="px-4 py-10 text-center text-sm"
         style={{ color: 'rgba(255,255,255,0.3)' }}
       >
-        No users found.
+        {query ? `No users matching "${query}".` : 'No users found.'}
       </td>
     </tr>
   );
@@ -154,14 +166,18 @@ function EmptyRow() {
 
 function UserRow({
   user,
+  isAdmin,
   onStatusChange,
   onEdit,
   onDelete,
+  onManageAccess,
 }: {
   user: AdminUser;
+  isAdmin: boolean;
   onStatusChange: (id: string, isSuspended: boolean) => void;
   onEdit: (user: AdminUser) => void;
   onDelete: (user: AdminUser) => void;
+  onManageAccess: (user: AdminUser, grant: boolean) => void;
 }) {
   const handle = user.artistUsernames[0] ?? null;
   const [suspending, setSuspending] = useState(false);
@@ -221,8 +237,17 @@ function UserRow({
         {formatDate(user.createdAt)}
       </td>
 
-      <td className="px-4 py-3 text-sm">
-        <Dash />
+      <td className="px-4 py-3">
+        {isAdmin ? (
+          <Badge
+            variant="outline"
+            className="border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-300 text-xs"
+          >
+            Admin
+          </Badge>
+        ) : (
+          <Dash />
+        )}
       </td>
 
       <td className="px-4 py-3">
@@ -251,6 +276,25 @@ function UserRow({
           >
             {suspending ? '…' : user.isSuspended ? 'Unsuspend' : 'Suspend'}
           </Button>
+          {isAdmin ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onManageAccess(user, false)}
+              className="text-fuchsia-400 hover:text-fuchsia-300"
+            >
+              Revoke
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onManageAccess(user, true)}
+              className="text-fuchsia-400 hover:text-fuchsia-300"
+            >
+              Admin
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
@@ -511,6 +555,182 @@ function DeleteModal({
   );
 }
 
+// ─── Admin access modal ───────────────────────────────────────────────────────
+
+function AdminAccessModal({
+  user,
+  grant,
+  onClose,
+}: {
+  user: AdminUser;
+  grant: boolean;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
+
+  function copyEmail() {
+    void navigator.clipboard.writeText(user.email);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="w-full max-w-md rounded-xl p-6"
+        style={{ backgroundColor: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)' }}
+      >
+        <div
+          className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full"
+          style={{ backgroundColor: 'rgba(168,85,247,0.12)' }}
+        >
+          <svg
+            className="h-5 w-5"
+            style={{ color: 'rgba(168,85,247,0.8)' }}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25Z"
+            />
+          </svg>
+        </div>
+
+        <h3
+          className="mb-1 text-center text-base font-semibold"
+          style={{ color: 'var(--foreground)' }}
+        >
+          {grant ? 'Grant Behind the Stage access' : 'Revoke Behind the Stage access'}
+        </h3>
+
+        <p className="mb-5 text-center text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
+          Admin access is controlled by the{' '}
+          <code
+            className="rounded px-1 py-0.5 text-xs"
+            style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.8)' }}
+          >
+            BEHIND_ADMIN_EMAILS
+          </code>{' '}
+          environment variable in Vercel.
+        </p>
+
+        <div
+          className="mb-4 rounded-lg p-4 space-y-3"
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}
+        >
+          <p
+            className="text-xs font-semibold uppercase tracking-wider"
+            style={{ color: 'rgba(255,255,255,0.4)' }}
+          >
+            Steps
+          </p>
+          <ol className="space-y-2 text-sm" style={{ color: 'rgba(255,255,255,0.65)' }}>
+            <li className="flex gap-2">
+              <span style={{ color: 'rgba(168,85,247,0.7)' }}>1.</span>
+              <span>Copy this email address:</span>
+            </li>
+          </ol>
+
+          <div className="flex items-center gap-2">
+            <code
+              className="flex-1 rounded-md px-3 py-2 text-sm truncate"
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: 'var(--foreground)',
+              }}
+            >
+              {user.email}
+            </code>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={copyEmail}
+              className={copied ? 'text-green-400' : undefined}
+            >
+              {copied ? 'Copied!' : 'Copy'}
+            </Button>
+          </div>
+
+          <ol className="space-y-2 text-sm" style={{ color: 'rgba(255,255,255,0.65)' }} start={2}>
+            <li className="flex gap-2">
+              <span style={{ color: 'rgba(168,85,247,0.7)' }}>2.</span>
+              <span>
+                Go to{' '}
+                <strong style={{ color: 'rgba(255,255,255,0.85)' }}>
+                  Vercel → Project Settings → Environment Variables
+                </strong>
+              </span>
+            </li>
+            <li className="flex gap-2">
+              <span style={{ color: 'rgba(168,85,247,0.7)' }}>3.</span>
+              {grant ? (
+                <span>
+                  {' '}
+                  Add the email to{' '}
+                  <code
+                    className="rounded px-1 py-0.5 text-xs"
+                    style={{
+                      backgroundColor: 'rgba(255,255,255,0.08)',
+                      color: 'rgba(255,255,255,0.8)',
+                    }}
+                  >
+                    BEHIND_ADMIN_EMAILS
+                  </code>{' '}
+                  (comma-separated if multiple)
+                </span>
+              ) : (
+                <span>
+                  Remove the email from{' '}
+                  <code
+                    className="rounded px-1 py-0.5 text-xs"
+                    style={{
+                      backgroundColor: 'rgba(255,255,255,0.08)',
+                      color: 'rgba(255,255,255,0.8)',
+                    }}
+                  >
+                    BEHIND_ADMIN_EMAILS
+                  </code>
+                </span>
+              )}
+            </li>
+            <li className="flex gap-2">
+              <span style={{ color: 'rgba(168,85,247,0.7)' }}>4.</span>
+              <span>Save and redeploy — access takes effect immediately after deploy.</span>
+            </li>
+          </ol>
+        </div>
+
+        <Button type="button" className="w-full" onClick={onClose}>
+          Got it
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Invite modal ─────────────────────────────────────────────────────────────
 
 type InviteState = 'idle' | 'sending' | 'sent' | 'error';
@@ -657,11 +877,17 @@ type ActiveModal =
   | { type: 'invite' }
   | { type: 'edit'; user: AdminUser }
   | { type: 'delete'; user: AdminUser }
+  | { type: 'access'; user: AdminUser; grant: boolean }
   | null;
 
-export function UsersTable() {
+const COLS = ['ID', 'Handle', 'Name', 'Email', 'Joined', 'Behind Admin', 'Status', 'Actions'];
+
+export function UsersTable({ adminEmails }: { adminEmails: string[] }) {
   const [state, setState] = useState<FetchState>({ status: 'loading' });
   const [modal, setModal] = useState<ActiveModal>(null);
+  const [search, setSearch] = useState('');
+
+  const adminEmailSet = new Set(adminEmails.map((e) => e.toLowerCase()));
 
   useEffect(() => {
     let cancelled = false;
@@ -718,7 +944,8 @@ export function UsersTable() {
     });
   }
 
-  const userCount = state.status === 'ok' ? state.users.length : null;
+  const allUsers = state.status === 'ok' ? state.users : [];
+  const filteredUsers = allUsers.filter((u) => matchesSearch(u, search.trim()));
 
   return (
     <>
@@ -729,40 +956,76 @@ export function UsersTable() {
       {modal?.type === 'delete' && (
         <DeleteModal user={modal.user} onClose={() => setModal(null)} onDeleted={removeUser} />
       )}
+      {modal?.type === 'access' && (
+        <AdminAccessModal user={modal.user} grant={modal.grant} onClose={() => setModal(null)} />
+      )}
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div>
               <CardTitle className="text-base">Registered users</CardTitle>
               <CardDescription>
                 {state.status === 'loading' && 'Loading…'}
                 {state.status === 'error' && 'Could not load user data.'}
                 {state.status === 'ok' &&
-                  `${userCount} ${userCount === 1 ? 'user' : 'users'} registered`}
+                  (search.trim()
+                    ? `${filteredUsers.length} of ${allUsers.length} users`
+                    : `${allUsers.length} ${allUsers.length === 1 ? 'user' : 'users'} registered`)}
               </CardDescription>
             </div>
             <Button size="sm" onClick={() => setModal({ type: 'invite' })}>
               Invite user
             </Button>
           </div>
+
+          {/* Search bar */}
+          <div className="mt-3 relative">
+            <svg
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+              style={{ color: 'rgba(255,255,255,0.3)' }}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+              />
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name, handle or email…"
+              className="w-full rounded-md py-2 pl-9 pr-3 text-sm outline-none focus:ring-2"
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: 'var(--foreground)',
+              }}
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs"
+                style={{ color: 'rgba(255,255,255,0.4)' }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </CardHeader>
 
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[780px] text-sm">
+            <table className="w-full min-w-[900px] text-sm">
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                  {[
-                    'ID',
-                    'Handle',
-                    'Name',
-                    'Email',
-                    'Joined',
-                    'Last login',
-                    'Status',
-                    'Actions',
-                  ].map((col) => (
+                  {COLS.map((col) => (
                     <th
                       key={col}
                       className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider"
@@ -774,19 +1037,23 @@ export function UsersTable() {
                 </tr>
               </thead>
               <tbody>
-                {state.status === 'loading' && <LoadingRows />}
+                {state.status === 'loading' && <LoadingRows cols={COLS.length} />}
                 {state.status === 'error' && (
-                  <ErrorRow message={state.status === 'error' ? state.message : ''} />
+                  <ErrorRow message={state.message} cols={COLS.length} />
                 )}
-                {state.status === 'ok' && state.users.length === 0 && <EmptyRow />}
+                {state.status === 'ok' && filteredUsers.length === 0 && (
+                  <EmptyRow cols={COLS.length} query={search.trim()} />
+                )}
                 {state.status === 'ok' &&
-                  state.users.map((u) => (
+                  filteredUsers.map((u) => (
                     <UserRow
                       key={u.id}
                       user={u}
+                      isAdmin={adminEmailSet.has(u.email.toLowerCase())}
                       onStatusChange={handleStatusChange}
                       onEdit={(user) => setModal({ type: 'edit', user })}
                       onDelete={(user) => setModal({ type: 'delete', user })}
+                      onManageAccess={(user, grant) => setModal({ type: 'access', user, grant })}
                     />
                   ))}
               </tbody>
