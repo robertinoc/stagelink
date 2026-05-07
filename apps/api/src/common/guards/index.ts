@@ -16,6 +16,7 @@ import { IS_PUBLIC_KEY, OWNERSHIP_KEY, type OwnershipMeta } from '../decorators'
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../../modules/membership/membership.service';
 import { getWorkOS } from '../../lib/workos';
+import { requireActiveAuthUser } from './auth-user-status';
 
 /**
  * JwtAuthGuard — guard global de autenticación.
@@ -107,7 +108,7 @@ export class JwtAuthGuard implements CanActivate {
     const existing = await this.prisma.user.findUnique({
       where: { workosId: workosUserId },
     });
-    if (existing) return existing;
+    if (existing) return requireActiveAuthUser(existing);
 
     // Slow path: primer login — obtener perfil desde WorkOS
     try {
@@ -125,10 +126,11 @@ export class JwtAuthGuard implements CanActivate {
         this.logger.warn(
           `WorkOS ID changed for ${workosUser.email}: ${byEmail.workosId} → ${workosUserId}. Reconnecting existing user.`,
         );
-        return await this.prisma.user.update({
+        const reconnectedUser = await this.prisma.user.update({
           where: { id: byEmail.id },
           data: { workosId: workosUserId },
         });
+        return requireActiveAuthUser(reconnectedUser);
       }
 
       // Truly new user — upsert para manejar race conditions

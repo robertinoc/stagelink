@@ -1,6 +1,7 @@
 import { getSignInUrl } from '@workos-inc/authkit-nextjs';
 import { redirect } from 'next/navigation';
 import type { NextRequest } from 'next/server';
+import { sanitizeAuthReturnTo } from '@/lib/auth-return-to';
 
 // Force Node.js runtime — WorkOS AuthKit uses Node-only APIs (cookies, crypto)
 // that are not available in the Edge Runtime.
@@ -19,7 +20,7 @@ export const runtime = 'nodejs';
  * and Server Actions.
  */
 export async function GET(request: NextRequest) {
-  const returnTo = request.nextUrl.searchParams.get('returnTo');
+  const returnTo = sanitizeAuthReturnTo(request.nextUrl.searchParams.get('returnTo'));
   const signInUrl = await getSignInUrl(returnTo ? { returnTo } : undefined);
   redirect(signInUrl);
 }
