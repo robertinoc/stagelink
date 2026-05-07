@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import type { BehindRole, RolesMap } from '@/lib/behind-redis';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -49,10 +50,41 @@ function matchesSearch(user: AdminUser, query: string): boolean {
   );
 }
 
-// ─── Shared field ─────────────────────────────────────────────────────────────
+// ─── Shared ───────────────────────────────────────────────────────────────────
 
 function Dash() {
   return <span style={{ color: 'rgba(255,255,255,0.25)' }}>—</span>;
+}
+
+function RoleBadge({ role, locked }: { role: BehindRole; locked?: boolean }) {
+  if (role === 'owner') {
+    return (
+      <span className="inline-flex items-center gap-1">
+        <Badge
+          variant="outline"
+          className="border-purple-500/40 bg-purple-500/10 text-purple-300 text-xs"
+        >
+          owner
+        </Badge>
+        {locked && (
+          <span
+            title="Set via BEHIND_ADMIN_EMAILS env var"
+            style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px' }}
+          >
+            🔒
+          </span>
+        )}
+      </span>
+    );
+  }
+  return (
+    <Badge
+      variant="outline"
+      className="border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-300 text-xs"
+    >
+      admin
+    </Badge>
+  );
 }
 
 function ModalField({
@@ -112,12 +144,14 @@ function ModalField({
 
 // ─── Loading / error / empty rows ─────────────────────────────────────────────
 
-function LoadingRows({ cols }: { cols: number }) {
+const COLS = ['ID', 'Handle', 'Name', 'Email', 'Joined', 'Role', 'Status', 'Actions'];
+
+function LoadingRows() {
   return (
     <>
       {Array.from({ length: 4 }).map((_, i) => (
         <tr key={i}>
-          {Array.from({ length: cols }).map((_, j) => (
+          {Array.from({ length: COLS.length }).map((_, j) => (
             <td key={j} className="px-4 py-3">
               <div
                 className="h-3 animate-pulse rounded"
@@ -134,11 +168,11 @@ function LoadingRows({ cols }: { cols: number }) {
   );
 }
 
-function ErrorRow({ message, cols }: { message: string; cols: number }) {
+function ErrorRow({ message }: { message: string }) {
   return (
     <tr>
       <td
-        colSpan={cols}
+        colSpan={COLS.length}
         className="px-4 py-10 text-center text-sm"
         style={{ color: 'rgba(255,80,80,0.8)' }}
       >
@@ -148,11 +182,11 @@ function ErrorRow({ message, cols }: { message: string; cols: number }) {
   );
 }
 
-function EmptyRow({ cols, query }: { cols: number; query: string }) {
+function EmptyRow({ query }: { query: string }) {
   return (
     <tr>
       <td
-        colSpan={cols}
+        colSpan={COLS.length}
         className="px-4 py-10 text-center text-sm"
         style={{ color: 'rgba(255,255,255,0.3)' }}
       >
@@ -166,21 +200,29 @@ function EmptyRow({ cols, query }: { cols: number; query: string }) {
 
 function UserRow({
   user,
-  isAdmin,
+  role,
+  locked,
+  isCurrentUser,
+  currentUserRole,
   onStatusChange,
   onEdit,
   onDelete,
-  onManageAccess,
+  onRoleChange,
 }: {
   user: AdminUser;
-  isAdmin: boolean;
+  role: BehindRole | null;
+  locked: boolean;
+  isCurrentUser: boolean;
+  currentUserRole: BehindRole | null;
   onStatusChange: (id: string, isSuspended: boolean) => void;
   onEdit: (user: AdminUser) => void;
   onDelete: (user: AdminUser) => void;
-  onManageAccess: (user: AdminUser, grant: boolean) => void;
+  onRoleChange: (user: AdminUser, newRole: BehindRole | 'none') => void;
 }) {
   const handle = user.artistUsernames[0] ?? null;
   const [suspending, setSuspending] = useState(false);
+
+  const canManageRoles = currentUserRole === 'owner' && !isCurrentUser && !locked;
 
   async function toggleSuspend() {
     setSuspending(true);
@@ -227,6 +269,11 @@ function UserRow({
 
       <td className="px-4 py-3 text-sm" style={{ color: 'var(--foreground)' }}>
         {user.name ?? <Dash />}
+        {isCurrentUser && (
+          <span className="ml-1 text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            (you)
+          </span>
+        )}
       </td>
 
       <td className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
@@ -237,18 +284,7 @@ function UserRow({
         {formatDate(user.createdAt)}
       </td>
 
-      <td className="px-4 py-3">
-        {isAdmin ? (
-          <Badge
-            variant="outline"
-            className="border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-300 text-xs"
-          >
-            Admin
-          </Badge>
-        ) : (
-          <Dash />
-        )}
-      </td>
+      <td className="px-4 py-3">{role ? <RoleBadge role={role} locked={locked} /> : <Dash />}</td>
 
       <td className="px-4 py-3">
         {user.isSuspended ? (
@@ -259,7 +295,7 @@ function UserRow({
       </td>
 
       <td className="px-4 py-3">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-wrap">
           <Button variant="ghost" size="sm" onClick={() => onEdit(user)}>
             Edit
           </Button>
@@ -276,25 +312,52 @@ function UserRow({
           >
             {suspending ? '…' : user.isSuspended ? 'Unsuspend' : 'Suspend'}
           </Button>
-          {isAdmin ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onManageAccess(user, false)}
-              className="text-fuchsia-400 hover:text-fuchsia-300"
-            >
-              Revoke
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onManageAccess(user, true)}
-              className="text-fuchsia-400 hover:text-fuchsia-300"
-            >
-              Admin
-            </Button>
+
+          {canManageRoles && (
+            <>
+              {role === null && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-fuchsia-400 hover:text-fuchsia-300"
+                  onClick={() => onRoleChange(user, 'admin')}
+                >
+                  → Admin
+                </Button>
+              )}
+              {role === 'admin' && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-purple-400 hover:text-purple-300"
+                    onClick={() => onRoleChange(user, 'owner')}
+                  >
+                    → Owner
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-400 hover:text-red-300"
+                    onClick={() => onRoleChange(user, 'none')}
+                  >
+                    Revoke
+                  </Button>
+                </>
+              )}
+              {role === 'owner' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-fuchsia-400 hover:text-fuchsia-300"
+                  onClick={() => onRoleChange(user, 'admin')}
+                >
+                  → Admin
+                </Button>
+              )}
+            </>
           )}
+
           <Button
             variant="ghost"
             size="sm"
@@ -324,10 +387,8 @@ function EditModal({
   const [lastName, setLastName] = useState(user.lastName ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const firstRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    firstRef.current?.focus();
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
     }
@@ -339,20 +400,17 @@ function EditModal({
     e.preventDefault();
     setSaving(true);
     setError('');
-
     try {
       const res = await fetch(`/api/admin/users/${user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ firstName: firstName.trim(), lastName: lastName.trim() }),
       });
-
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { message?: string };
         setError(body.message ?? 'Could not save changes.');
         return;
       }
-
       const { user: updated } = (await res.json()) as { user: AdminUser };
       onSaved(updated);
       onClose();
@@ -378,7 +436,6 @@ function EditModal({
         <h3 className="mb-4 text-base font-semibold" style={{ color: 'var(--foreground)' }}>
           Edit user
         </h3>
-
         <form onSubmit={handleSubmit} className="space-y-3">
           <ModalField
             id="edit-first"
@@ -399,7 +456,7 @@ function EditModal({
             label="Email"
             value={user.email}
             readOnly
-            hint="Managed by WorkOS — changes here would desync identity."
+            hint="Managed by WorkOS."
           />
           <ModalField
             id="edit-handle"
@@ -408,13 +465,11 @@ function EditModal({
             readOnly
             hint="Immutable in V1."
           />
-
           {error && (
             <p className="text-xs" style={{ color: 'rgba(255,80,80,0.9)' }}>
               {error}
             </p>
           )}
-
           <div className="flex gap-2 pt-1">
             <Button
               type="button"
@@ -435,7 +490,7 @@ function EditModal({
   );
 }
 
-// ─── Delete confirmation modal ────────────────────────────────────────────────
+// ─── Delete modal ─────────────────────────────────────────────────────────────
 
 function DeleteModal({
   user,
@@ -460,16 +515,13 @@ function DeleteModal({
   async function handleDelete() {
     setDeleting(true);
     setError('');
-
     try {
       const res = await fetch(`/api/admin/users/${user.id}`, { method: 'DELETE' });
-
       if (res.status === 204) {
         onDeleted(user.id);
         onClose();
         return;
       }
-
       const body = (await res.json().catch(() => ({}))) as { message?: string };
       setError(body.message ?? 'Could not delete user.');
     } catch {
@@ -488,7 +540,7 @@ function DeleteModal({
       }}
     >
       <div
-        className="w-full max-w-sm rounded-xl p-6"
+        className="w-full max-w-sm rounded-xl p-6 text-center"
         style={{ backgroundColor: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)' }}
       >
         <div
@@ -510,27 +562,20 @@ function DeleteModal({
             />
           </svg>
         </div>
-
-        <h3
-          className="mb-1 text-center text-base font-semibold"
-          style={{ color: 'var(--foreground)' }}
-        >
+        <h3 className="mb-1 text-base font-semibold" style={{ color: 'var(--foreground)' }}>
           Delete user?
         </h3>
-        <p className="mb-1 text-center text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
+        <p className="mb-1 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
           <strong style={{ color: 'var(--foreground)' }}>{user.name ?? user.email}</strong>
         </p>
-        <p className="mb-5 text-center text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          This is a soft delete — the user&apos;s data is preserved but they lose access
-          immediately. Their WorkOS identity remains active (hard delete deferred to V2).
+        <p className="mb-5 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Soft delete — data preserved, access revoked immediately.
         </p>
-
         {error && (
-          <p className="mb-3 text-center text-xs" style={{ color: 'rgba(255,80,80,0.9)' }}>
+          <p className="mb-3 text-xs" style={{ color: 'rgba(255,80,80,0.9)' }}>
             {error}
           </p>
         )}
-
         <div className="flex gap-2">
           <Button
             type="button"
@@ -555,18 +600,21 @@ function DeleteModal({
   );
 }
 
-// ─── Admin access modal ───────────────────────────────────────────────────────
+// ─── Role change confirm modal ────────────────────────────────────────────────
 
-function AdminAccessModal({
+function RoleChangeModal({
   user,
-  grant,
+  newRole,
   onClose,
+  onConfirmed,
 }: {
   user: AdminUser;
-  grant: boolean;
+  newRole: BehindRole | 'none';
   onClose: () => void;
+  onConfirmed: (roles: RolesMap, lockedEmails: string[]) => void;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -576,10 +624,45 @@ function AdminAccessModal({
     return () => window.removeEventListener('keydown', handleKey);
   }, [onClose]);
 
-  function copyEmail() {
-    void navigator.clipboard.writeText(user.email);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const label =
+    newRole === 'none'
+      ? 'Revoke access'
+      : newRole === 'owner'
+        ? 'Promote to owner'
+        : 'Grant admin access';
+
+  const description =
+    newRole === 'none'
+      ? `${user.name ?? user.email} will lose access to Behind the Stage immediately.`
+      : newRole === 'owner'
+        ? `${user.name ?? user.email} will become an owner — they can manage roles and access everything.`
+        : `${user.name ?? user.email} will get access to Behind the Stage as an admin.`;
+
+  async function handleConfirm() {
+    setSaving(true);
+    setError('');
+    try {
+      const res = await fetch('/api/admin/behind-roles', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email, role: newRole }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { message?: string };
+        setError(body.message ?? 'Could not update role.');
+        return;
+      }
+      const { roles, lockedEmails } = (await res.json()) as {
+        roles: RolesMap;
+        lockedEmails: string[];
+      };
+      onConfirmed(roles, lockedEmails);
+      onClose();
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -591,141 +674,39 @@ function AdminAccessModal({
       }}
     >
       <div
-        className="w-full max-w-md rounded-xl p-6"
+        className="w-full max-w-sm rounded-xl p-6"
         style={{ backgroundColor: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)' }}
       >
-        <div
-          className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full"
-          style={{ backgroundColor: 'rgba(168,85,247,0.12)' }}
-        >
-          <svg
-            className="h-5 w-5"
-            style={{ color: 'rgba(168,85,247,0.8)' }}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25Z"
-            />
-          </svg>
-        </div>
-
-        <h3
-          className="mb-1 text-center text-base font-semibold"
-          style={{ color: 'var(--foreground)' }}
-        >
-          {grant ? 'Grant Behind the Stage access' : 'Revoke Behind the Stage access'}
+        <h3 className="mb-2 text-base font-semibold" style={{ color: 'var(--foreground)' }}>
+          {label}
         </h3>
-
-        <p className="mb-5 text-center text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
-          Admin access is controlled by the{' '}
-          <code
-            className="rounded px-1 py-0.5 text-xs"
-            style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.8)' }}
-          >
-            BEHIND_ADMIN_EMAILS
-          </code>{' '}
-          environment variable in Vercel.
+        <p className="mb-5 text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
+          {description}
         </p>
-
-        <div
-          className="mb-4 rounded-lg p-4 space-y-3"
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-          }}
-        >
-          <p
-            className="text-xs font-semibold uppercase tracking-wider"
-            style={{ color: 'rgba(255,255,255,0.4)' }}
-          >
-            Steps
+        {error && (
+          <p className="mb-3 text-xs" style={{ color: 'rgba(255,80,80,0.9)' }}>
+            {error}
           </p>
-          <ol className="space-y-2 text-sm" style={{ color: 'rgba(255,255,255,0.65)' }}>
-            <li className="flex gap-2">
-              <span style={{ color: 'rgba(168,85,247,0.7)' }}>1.</span>
-              <span>Copy this email address:</span>
-            </li>
-          </ol>
-
-          <div className="flex items-center gap-2">
-            <code
-              className="flex-1 rounded-md px-3 py-2 text-sm truncate"
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: 'var(--foreground)',
-              }}
-            >
-              {user.email}
-            </code>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={copyEmail}
-              className={copied ? 'text-green-400' : undefined}
-            >
-              {copied ? 'Copied!' : 'Copy'}
-            </Button>
-          </div>
-
-          <ol className="space-y-2 text-sm" style={{ color: 'rgba(255,255,255,0.65)' }} start={2}>
-            <li className="flex gap-2">
-              <span style={{ color: 'rgba(168,85,247,0.7)' }}>2.</span>
-              <span>
-                Go to{' '}
-                <strong style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  Vercel → Project Settings → Environment Variables
-                </strong>
-              </span>
-            </li>
-            <li className="flex gap-2">
-              <span style={{ color: 'rgba(168,85,247,0.7)' }}>3.</span>
-              {grant ? (
-                <span>
-                  {' '}
-                  Add the email to{' '}
-                  <code
-                    className="rounded px-1 py-0.5 text-xs"
-                    style={{
-                      backgroundColor: 'rgba(255,255,255,0.08)',
-                      color: 'rgba(255,255,255,0.8)',
-                    }}
-                  >
-                    BEHIND_ADMIN_EMAILS
-                  </code>{' '}
-                  (comma-separated if multiple)
-                </span>
-              ) : (
-                <span>
-                  Remove the email from{' '}
-                  <code
-                    className="rounded px-1 py-0.5 text-xs"
-                    style={{
-                      backgroundColor: 'rgba(255,255,255,0.08)',
-                      color: 'rgba(255,255,255,0.8)',
-                    }}
-                  >
-                    BEHIND_ADMIN_EMAILS
-                  </code>
-                </span>
-              )}
-            </li>
-            <li className="flex gap-2">
-              <span style={{ color: 'rgba(168,85,247,0.7)' }}>4.</span>
-              <span>Save and redeploy — access takes effect immediately after deploy.</span>
-            </li>
-          </ol>
+        )}
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="flex-1"
+            onClick={onClose}
+            disabled={saving}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            className={`flex-1 ${newRole === 'none' ? 'bg-red-600 hover:bg-red-700 text-white' : ''}`}
+            onClick={handleConfirm}
+            disabled={saving}
+          >
+            {saving ? 'Saving…' : 'Confirm'}
+          </Button>
         </div>
-
-        <Button type="button" className="w-full" onClick={onClose}>
-          Got it
-        </Button>
       </div>
     </div>
   );
@@ -753,24 +734,20 @@ function InviteModal({ onClose }: { onClose: () => void }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) return;
-
     setState('sending');
     setErrorMsg('');
-
     try {
       const res = await fetch('/api/admin/invitations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim().toLowerCase() }),
       });
-
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { message?: string };
         setErrorMsg(body.message ?? 'Failed to send invitation.');
         setState('error');
         return;
       }
-
       setState('sent');
     } catch {
       setErrorMsg('Network error. Please try again.');
@@ -812,7 +789,6 @@ function InviteModal({ onClose }: { onClose: () => void }) {
             <p className="mb-5 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
               WorkOS will email them a sign-up link.
             </p>
-
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label
@@ -838,13 +814,11 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                   }}
                 />
               </div>
-
               {state === 'error' && (
                 <p className="text-xs" style={{ color: 'rgba(255,80,80,0.9)' }}>
                   {errorMsg}
                 </p>
               )}
-
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -877,21 +851,30 @@ type ActiveModal =
   | { type: 'invite' }
   | { type: 'edit'; user: AdminUser }
   | { type: 'delete'; user: AdminUser }
-  | { type: 'access'; user: AdminUser; grant: boolean }
+  | { type: 'role'; user: AdminUser; newRole: BehindRole | 'none' }
   | null;
 
-const COLS = ['ID', 'Handle', 'Name', 'Email', 'Joined', 'Behind Admin', 'Status', 'Actions'];
-
-export function UsersTable({ adminEmails }: { adminEmails: string[] }) {
+export function UsersTable({
+  roles: initialRoles,
+  lockedOwnerEmails: initialLockedEmails,
+  currentUserEmail,
+}: {
+  roles: RolesMap;
+  lockedOwnerEmails: string[];
+  currentUserEmail: string;
+}) {
   const [state, setState] = useState<FetchState>({ status: 'loading' });
   const [modal, setModal] = useState<ActiveModal>(null);
   const [search, setSearch] = useState('');
+  const [roles, setRoles] = useState<RolesMap>(initialRoles);
+  const [lockedEmails, setLockedEmails] = useState<Set<string>>(
+    new Set(initialLockedEmails.map((e) => e.toLowerCase())),
+  );
 
-  const adminEmailSet = new Set(adminEmails.map((e) => e.toLowerCase()));
+  const currentUserRole = roles[currentUserEmail.toLowerCase()] ?? null;
 
   useEffect(() => {
     let cancelled = false;
-
     fetch('/api/admin/users')
       .then(async (res) => {
         if (!res.ok) {
@@ -904,14 +887,12 @@ export function UsersTable({ adminEmails }: { adminEmails: string[] }) {
         if (!cancelled) setState({ status: 'ok', users });
       })
       .catch((err: unknown) => {
-        if (!cancelled) {
+        if (!cancelled)
           setState({
             status: 'error',
             message: err instanceof Error ? err.message : 'Failed to load users.',
           });
-        }
       });
-
     return () => {
       cancelled = true;
     };
@@ -937,12 +918,14 @@ export function UsersTable({ adminEmails }: { adminEmails: string[] }) {
   function handleStatusChange(id: string, isSuspended: boolean) {
     setState((prev) => {
       if (prev.status !== 'ok') return prev;
-      return {
-        ...prev,
-        users: prev.users.map((u) => (u.id === id ? { ...u, isSuspended } : u)),
-      };
+      return { ...prev, users: prev.users.map((u) => (u.id === id ? { ...u, isSuspended } : u)) };
     });
   }
+
+  const handleRolesUpdated = useCallback((newRoles: RolesMap, newLocked: string[]) => {
+    setRoles(newRoles);
+    setLockedEmails(new Set(newLocked.map((e) => e.toLowerCase())));
+  }, []);
 
   const allUsers = state.status === 'ok' ? state.users : [];
   const filteredUsers = allUsers.filter((u) => matchesSearch(u, search.trim()));
@@ -956,8 +939,13 @@ export function UsersTable({ adminEmails }: { adminEmails: string[] }) {
       {modal?.type === 'delete' && (
         <DeleteModal user={modal.user} onClose={() => setModal(null)} onDeleted={removeUser} />
       )}
-      {modal?.type === 'access' && (
-        <AdminAccessModal user={modal.user} grant={modal.grant} onClose={() => setModal(null)} />
+      {modal?.type === 'role' && (
+        <RoleChangeModal
+          user={modal.user}
+          newRole={modal.newRole}
+          onClose={() => setModal(null)}
+          onConfirmed={handleRolesUpdated}
+        />
       )}
 
       <Card>
@@ -1000,7 +988,7 @@ export function UsersTable({ adminEmails }: { adminEmails: string[] }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, handle or email…"
-              className="w-full rounded-md py-2 pl-9 pr-3 text-sm outline-none focus:ring-2"
+              className="w-full rounded-md py-2 pl-9 pr-8 text-sm outline-none focus:ring-2"
               style={{
                 backgroundColor: 'rgba(255,255,255,0.05)',
                 border: '1px solid rgba(255,255,255,0.1)',
@@ -1037,25 +1025,29 @@ export function UsersTable({ adminEmails }: { adminEmails: string[] }) {
                 </tr>
               </thead>
               <tbody>
-                {state.status === 'loading' && <LoadingRows cols={COLS.length} />}
-                {state.status === 'error' && (
-                  <ErrorRow message={state.message} cols={COLS.length} />
-                )}
+                {state.status === 'loading' && <LoadingRows />}
+                {state.status === 'error' && <ErrorRow message={state.message} />}
                 {state.status === 'ok' && filteredUsers.length === 0 && (
-                  <EmptyRow cols={COLS.length} query={search.trim()} />
+                  <EmptyRow query={search.trim()} />
                 )}
                 {state.status === 'ok' &&
-                  filteredUsers.map((u) => (
-                    <UserRow
-                      key={u.id}
-                      user={u}
-                      isAdmin={adminEmailSet.has(u.email.toLowerCase())}
-                      onStatusChange={handleStatusChange}
-                      onEdit={(user) => setModal({ type: 'edit', user })}
-                      onDelete={(user) => setModal({ type: 'delete', user })}
-                      onManageAccess={(user, grant) => setModal({ type: 'access', user, grant })}
-                    />
-                  ))}
+                  filteredUsers.map((u) => {
+                    const emailKey = u.email.toLowerCase();
+                    return (
+                      <UserRow
+                        key={u.id}
+                        user={u}
+                        role={roles[emailKey] ?? null}
+                        locked={lockedEmails.has(emailKey)}
+                        isCurrentUser={emailKey === currentUserEmail.toLowerCase()}
+                        currentUserRole={currentUserRole as BehindRole | null}
+                        onStatusChange={handleStatusChange}
+                        onEdit={(user) => setModal({ type: 'edit', user })}
+                        onDelete={(user) => setModal({ type: 'delete', user })}
+                        onRoleChange={(user, newRole) => setModal({ type: 'role', user, newRole })}
+                      />
+                    );
+                  })}
               </tbody>
             </table>
           </div>
