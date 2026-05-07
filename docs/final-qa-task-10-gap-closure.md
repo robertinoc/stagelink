@@ -1,7 +1,7 @@
 # StageLink — Final QA Task 10: Gap Closure & Launch Decisions
 
 Status: implemented as final-check closure map and launch-decision register
-Last checked: 2026-05-06
+Last checked: 2026-05-07
 
 ## Goal
 
@@ -15,18 +15,18 @@ documentación y backlog post-launch`.
 
 ## Final Check Closure Map
 
-| #   | Final-check item                              | Status             | Evidence / Decision                                                                                                            |
-| --- | --------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Verify/restore `main` after Section 9 merge   | Closed             | `docs/final-qa-task-1-main-green.md`; `main` was recovered and kept green after the Section 9 merge sequence.                  |
-| 2   | Run full staging E2E with WorkOS credentials  | Closed             | `docs/final-qa-task-2-staging-e2e-workos.md`; authenticated staging E2E runs were enabled through GitHub staging secrets.      |
-| 3   | Run production smoke tests on `stagelink.art` | Closed             | `docs/final-qa-task-3-production-smoke.md`; production smoke coverage targets the canonical production domain.                 |
-| 4   | Run manual UAT with artist/operator persona   | Closed             | `docs/final-qa-task-4-manual-uat.md`; UAT-006 was manually approved with no open P0/P1 issue at sign-off.                      |
-| 5   | Review WorkOS security settings               | Needs owner check  | Repo-side auth, callbacks and E2E behavior are validated; WorkOS dashboard controls must be confirmed by the project owner.    |
-| 6   | Decide launch rate-limiting posture           | Decision required  | Current implementation is in-memory; acceptable only for private QA/MVP launch unless the owner chooses Redis/Upstash first.   |
-| 7   | Run staging load test                         | Ready to execute   | Tooling exists in `pnpm perf:load`; real staging run requires owner-approved target URLs and monitoring awareness.             |
-| 8   | Run controlled stress test                    | Deferred by design | `docs/final-qa-task-5-stress-test-window.md`; no real stress run until an approved window and monitoring are open.             |
-| 9   | Run staging data validation                   | Ready to execute   | Tooling exists in `pnpm data:validate`; real staging run requires secure staging `DATABASE_URL` access and read-only approval. |
-| 10  | Run backup/restore drill with disposable DB   | Deferred by design | `docs/final-qa-task-6-restore-drill.md`; real drill needs approved source backup and a disposable restore database.            |
+| #   | Final-check item                              | Status             | Evidence / Decision                                                                                                                                          |
+| --- | --------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Verify/restore `main` after Section 9 merge   | Closed             | `docs/final-qa-task-1-main-green.md`; `main` was recovered and kept green after the Section 9 merge sequence.                                                |
+| 2   | Run full staging E2E with WorkOS credentials  | Closed             | `docs/final-qa-task-2-staging-e2e-workos.md`; authenticated staging E2E runs were enabled through GitHub staging secrets.                                    |
+| 3   | Run production smoke tests on `stagelink.art` | Closed             | `docs/final-qa-task-3-production-smoke.md`; production smoke coverage targets the canonical production domain.                                               |
+| 4   | Run manual UAT with artist/operator persona   | Closed             | `docs/final-qa-task-4-manual-uat.md`; UAT-006 was manually approved with no open P0/P1 issue at sign-off.                                                    |
+| 5   | Review WorkOS security settings               | Closed             | Robert confirmed production/staging callbacks, sign-out, login endpoint, auth methods, sessions, bot detection and brute-force protection on 2026-05-07.     |
+| 6   | Decide launch rate-limiting posture           | Closed             | In-memory app rate limiting is accepted for private QA/pre-launch; shared Redis/Upstash rate limiting is deferred to `T7-8` before sustained public traffic. |
+| 7   | Run staging load test                         | Ready to execute   | Tooling exists in `pnpm perf:load`; real staging run requires owner-approved target URLs and monitoring awareness.                                           |
+| 8   | Run controlled stress test                    | Deferred by design | `docs/final-qa-task-5-stress-test-window.md`; no real stress run until an approved window and monitoring are open.                                           |
+| 9   | Run staging data validation                   | Ready to execute   | Tooling exists in `pnpm data:validate`; real staging run requires secure staging `DATABASE_URL` access and read-only approval.                               |
+| 10  | Run backup/restore drill with disposable DB   | Deferred by design | `docs/final-qa-task-6-restore-drill.md`; real drill needs approved source backup and a disposable restore database.                                          |
 
 ## Launch Decision Register
 
@@ -48,6 +48,22 @@ Repo status: no code change required in this task. StageLink validates WorkOS
 session consumption, protected API access and callback behavior, but the
 provider dashboard policy is external to the repo.
 
+Decision recorded on 2026-05-07:
+
+- production and staging WorkOS environments were reviewed by Robert;
+- canonical `stagelink.art`, staging, sign-out and login redirects were
+  confirmed;
+- Google, Email + Password and Magic Auth are enabled;
+- session settings were confirmed;
+- bot detection and brute-force attack protection are enabled;
+- global MFA remains off intentionally for the current launch phase.
+
+MFA is not a launch blocker for the current private QA/MVP phase. Revisit MFA in
+`T7-8`, with a preference for requiring MFA on admin/operator/behind access
+before broad public launch. Do not enable global MFA without updating the
+authenticated E2E strategy because mandatory MFA can break the
+`E2E_AUTH_EMAIL`/`E2E_AUTH_PASSWORD` setup flow.
+
 ### D2 — Rate Limiting for Launch
 
 Owner: Robert + Engineering
@@ -59,15 +75,28 @@ Current state:
 - The current limiters are in-memory and therefore instance-local.
 - In-memory rate limiting is acceptable for private QA and low-traffic MVP use
   if the risk is explicitly accepted.
+- Upstash Redis is already used by the internal `behind.stagelink.art` role
+  system, but only for that operational dashboard. It does not yet make
+  public/upload/SmartLink rate limits distributed.
 
-Recommended launch posture:
+Decision recorded on 2026-05-07:
 
 - Keep in-memory rate limiting for private QA/pre-launch.
 - Add Redis/Upstash/Vercel KV-backed shared rate limiting before sustained
   public marketing traffic, paid acquisition or any launch where multiple
   scaled instances are expected.
-- Track the Redis/Upstash migration in `T7-8` unless the owner chooses to pull
-  it forward before launch.
+- Track the Redis/Upstash migration in `T7-8`.
+- Pull the migration forward only if StageLink will receive broad public
+  traffic, paid campaigns or abusive traffic before `T7-8`.
+
+Acceptance criteria for a future Redis/Upstash rate-limit migration:
+
+- web `checkRateLimit()` uses a shared atomic store;
+- API `PublicRateLimitGuard` and `UploadRateLimitGuard` use the same shared
+  store or a clearly equivalent API-side limiter;
+- tests cover quota enforcement, namespace isolation and multi-instance-safe key
+  generation;
+- staging validates controlled `429` responses before production rollout.
 
 ### D3 — Staging Load Test
 
@@ -166,10 +195,7 @@ Never restore into production from the helper.
 
 After this PR is merged:
 
-1. Confirm WorkOS dashboard settings.
-2. Decide whether in-memory rate limiting is acceptable for the current launch
-   phase.
-3. Run a light staging load test if staging URLs and monitoring are ready.
-4. Run staging data validation if secure DB access is available.
-5. Keep real stress and backup/restore drill deferred unless Robert creates an
+1. Run a light staging load test if staging URLs and monitoring are ready.
+2. Run staging data validation if secure DB access is available.
+3. Keep real stress and backup/restore drill deferred unless Robert creates an
    approved window and disposable restore database.
