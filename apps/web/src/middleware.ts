@@ -121,14 +121,25 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 302);
   }
 
-  // Rule 2b: /behind (admin panel) on main domain — skip intl, run authkit only.
+  // Rule 2b: /behind (admin panel) on main domain.
   //
   // After a successful auth flow the callback redirects to stagelink.art/behind.
   // Without this rule the intl middleware would add a locale prefix and redirect
   // to /en/behind, which no longer exists as a route (the panel lives at
-  // app/behind/ outside [locale]). This mirrors the skip-intl treatment that
-  // the isBehindHost block already applies for behind.stagelink.art requests.
+  // app/behind/ outside [locale]).
+  //
+  // When WORKOS_COOKIE_DOMAIN=.stagelink.art is set, the session cookie is valid
+  // on all subdomains, so we can canonically redirect stagelink.art/behind →
+  // behind.stagelink.art/. Without that env var the cookie is host-only on
+  // stagelink.art, so we serve /behind here instead (redirecting would loop).
   if (segments[0] === 'behind') {
+    if (process.env.WORKOS_COOKIE_DOMAIN === '.stagelink.art') {
+      const url = request.nextUrl.clone();
+      url.hostname = BEHIND_HOST;
+      url.pathname = pathname.replace(/^\/behind/, '') || '/';
+      url.protocol = 'https:';
+      return NextResponse.redirect(url, 308);
+    }
     const { headers: authkitHeaders } = await authkit(request);
     const { requestHeaders, responseHeaders } = partitionAuthkitHeaders(request, authkitHeaders);
     const response = NextResponse.next({ request: { headers: requestHeaders } });

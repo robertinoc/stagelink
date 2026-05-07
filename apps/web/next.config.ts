@@ -57,7 +57,12 @@ const nextConfig: NextConfig = {
       {
         source: '/(.*)',
         has: [{ type: 'host', value: BEHIND_HOST }],
-        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+          // Tell browsers to always use HTTPS for this subdomain for 1 year.
+          // Eliminates the "had to type https://" problem after the first visit.
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+        ],
       },
     ];
   },

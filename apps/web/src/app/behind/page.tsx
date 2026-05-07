@@ -1,4 +1,5 @@
 import { UsersTable } from './UsersTable';
+import { BEHIND_OWNER_EMAILS } from '@/lib/behind-config';
 
 export default function BehindTheStagePage() {
   return (
@@ -15,7 +16,7 @@ export default function BehindTheStagePage() {
         </p>
       </div>
 
-      <UsersTable />
+      <UsersTable adminEmails={[...BEHIND_OWNER_EMAILS]} />
     </div>
   );
 }
