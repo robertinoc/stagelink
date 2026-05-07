@@ -274,10 +274,11 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
 
                 {artist.tags.length > 0 && (
                   <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                    {artist.tags.map((tag) => (
+                    {artist.tags.map((tag, index) => (
                       <span
                         key={tag}
-                        className="rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.16em] text-violet-100"
+                        className="tag-pulse rounded-full border border-violet-400/20 bg-violet-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.16em] text-violet-100"
+                        style={{ animationDelay: `${index * 0.5}s` }}
                       >
                         {tag}
                       </span>
