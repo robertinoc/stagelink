@@ -12,15 +12,23 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
 
   // Not authenticated → trigger WorkOS sign-in.
   //
-  // returnTo lands the user back on /behind after auth — without it
-  // the callback falls back to /en/dashboard (the artist app), bouncing admins
-  // away from the panel they were trying to reach.
+  // Redirect to /api/auth/behind-signin on stagelink.art (main domain), not
+  // a relative URL. Two reasons:
   //
-  // After auth WorkOS returns to WORKOS_REDIRECT_URI (stagelink.art).
-  // With WORKOS_COOKIE_DOMAIN=.stagelink.art that session cookie is
-  // automatically valid on behind.stagelink.art on the next visit.
+  // 1. Cookie domain: when running on behind.stagelink.art, a relative redirect
+  //    sets the PKCE cookie on behind.stagelink.art. WorkOS always returns to
+  //    WORKOS_REDIRECT_URI (stagelink.art/api/auth/callback), so the cookie
+  //    would be absent and auth fails. Using the main domain ensures the PKCE
+  //    cookie and the callback are on the same origin.
+  //
+  // 2. Vercel WAF: passing returnTo as a query parameter (?returnTo=/behind or
+  //    ?returnTo=%2Fbehind) triggers path-traversal false positives and gets
+  //    blocked with 403 before the route handler runs. The dedicated endpoint
+  //    has no query parameters and hardcodes the return path server-side.
   if (!session) {
-    redirect(`/api/auth/signin?returnTo=${encodeURIComponent('/behind')}`);
+    const redirectUri = process.env.WORKOS_REDIRECT_URI;
+    const mainOrigin = redirectUri ? new URL(redirectUri).origin : '';
+    redirect(`${mainOrigin}/api/auth/behind-signin`);
   }
 
   // Authenticated but not the owner → silent redirect to main site.
