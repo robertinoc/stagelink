@@ -43,6 +43,12 @@ export interface Artist {
   soundcloudUrl: string | null;
   websiteUrl: string | null;
   contactEmail: string | null;
+  appleMusicUrl: string | null;
+  amazonMusicUrl: string | null;
+  deezerUrl: string | null;
+  tidalUrl: string | null;
+  beatportUrl: string | null;
+  traxsourceUrl: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
   translations: ArtistTranslations;
@@ -94,6 +100,12 @@ export interface PublicArtist {
   soundcloudUrl: string | null;
   websiteUrl: string | null;
   contactEmail: string | null;
+  appleMusicUrl: string | null;
+  amazonMusicUrl: string | null;
+  deezerUrl: string | null;
+  tidalUrl: string | null;
+  beatportUrl: string | null;
+  traxsourceUrl: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
 }

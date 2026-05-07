@@ -101,6 +101,14 @@ export const profileSchema = z
     soundcloudUrl: optionalUrl,
     websiteUrl: optionalUrl,
     contactEmail: optionalEmail,
+    // Streaming platforms (REQ-06)
+    appleMusicUrl: optionalUrl,
+    amazonMusicUrl: optionalUrl,
+    deezerUrl: optionalUrl,
+    tidalUrl: optionalUrl,
+    // Music stores (REQ-07)
+    beatportUrl: optionalUrl,
+    traxsourceUrl: optionalUrl,
 
     // SEO
     seoTitle: z.string().max(60, 'SEO title must be 60 characters or less').optional(),

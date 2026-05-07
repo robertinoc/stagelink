@@ -633,7 +633,8 @@
         "social": "Redes y contacto",
         "social_hint": "Los links en blanco no aparecen en tu página.",
         "seo": "SEO y visibilidad",
-        "seo_hint": "Controlá cómo aparece tu página en resultados de búsqueda."
+        "seo_hint": "Controlá cómo aparece tu página en resultados de búsqueda.",
+        "music_stores": "Tiendas de música"
       },
       "fields": {
         "display_name": "Nombre artístico",
@@ -652,7 +653,13 @@
         "seo_title_hint": "Recomendado: 50–60 caracteres",
         "seo_description": "Meta descripción",
         "seo_description_hint": "Recomendado: 120–160 caracteres",
-        "username_readonly_hint": "Tu nombre de usuario todavía no es editable — los cambios van a requerir verificación de identidad."
+        "username_readonly_hint": "Tu nombre de usuario todavía no es editable — los cambios van a requerir verificación de identidad.",
+        "apple_music": "Apple Music",
+        "amazon_music": "Amazon Music",
+        "deezer": "Deezer",
+        "tidal": "Tidal",
+        "beatport": "Beatport",
+        "traxsource": "Traxsource"
       },
       "placeholders": {
         "display_name": "ej. The Midnight, DJ Snake, Rosalía…",
@@ -1448,7 +1455,13 @@
       "youtube": "YouTube",
       "spotify": "Spotify",
       "soundcloud": "SoundCloud",
-      "website": "Sitio web"
+      "website": "Sitio web",
+      "apple_music": "Apple Music",
+      "amazon_music": "Amazon Music",
+      "deezer": "Deezer",
+      "tidal": "Tidal",
+      "beatport": "Beatport",
+      "traxsource": "Traxsource"
     },
     "categories": {
       "musician": "Músico",
@@ -1502,7 +1515,12 @@
     "cta": {
       "spotify": "Seguirme en Spotify",
       "youtube": "Ver más en YouTube",
-      "soundcloud": "Escuchar más en SoundCloud"
+      "soundcloud": "Escuchar más en SoundCloud",
+      "apple_music": "Escuchar en Apple Music"
+    },
+    "stores": {
+      "beatport": "Comprar en Beatport",
+      "traxsource": "Comprar en Traxsource"
     }
   },
   "public_epk": {
