@@ -34,10 +34,6 @@ function formatDate(iso: string): string {
   }).format(new Date(iso));
 }
 
-function truncateId(id: string): string {
-  return id.length > 12 ? `${id.slice(0, 8)}…` : id;
-}
-
 function matchesSearch(user: AdminUser, query: string): boolean {
   if (!query) return true;
   const q = query.toLowerCase();
@@ -144,7 +140,7 @@ function ModalField({
 
 // ─── Loading / error / empty rows ─────────────────────────────────────────────
 
-const COLS = ['ID', 'Handle', 'Name', 'Email', 'Joined', 'Role', 'Status', 'Actions'];
+const COLS = ['Handle', 'Name', 'Email', 'Joined', 'Role', 'Status', 'Actions'];
 
 function LoadingRows() {
   return (
@@ -253,25 +249,40 @@ function UserRow({
       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '')}
     >
-      <td className="px-4 py-3">
-        <code
-          className="rounded px-1.5 py-0.5 text-xs"
-          style={{ backgroundColor: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)' }}
-          title={user.id}
-        >
-          {truncateId(user.id)}
-        </code>
-      </td>
-
       <td className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-        {handle ? <span style={{ color: 'var(--foreground)' }}>@{handle}</span> : <Dash />}
+        {handle ? (
+          <span style={{ color: 'var(--foreground)' }}>@{handle}</span>
+        ) : (
+          <span className="inline-flex items-center gap-1">
+            <Dash />
+            <span title="No handle set" style={{ color: 'rgba(234,179,8,0.8)', fontSize: '8px' }}>
+              ●
+            </span>
+          </span>
+        )}
       </td>
 
       <td className="px-4 py-3 text-sm" style={{ color: 'var(--foreground)' }}>
-        {user.name ?? <Dash />}
-        {isCurrentUser && (
-          <span className="ml-1 text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
-            (you)
+        {user.name ? (
+          <>
+            {user.name}
+            {isCurrentUser && (
+              <span className="ml-1 text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                (you)
+              </span>
+            )}
+          </>
+        ) : (
+          <span className="inline-flex items-center gap-1">
+            <Dash />
+            <span title="No name set" style={{ color: 'rgba(234,179,8,0.8)', fontSize: '8px' }}>
+              ●
+            </span>
+            {isCurrentUser && (
+              <span className="ml-1 text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                (you)
+              </span>
+            )}
           </span>
         )}
       </td>
