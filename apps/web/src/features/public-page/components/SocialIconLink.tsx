@@ -1,16 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import type { ComponentType } from 'react';
+import type { ReactNode } from 'react';
 
 interface SocialIconLinkProps {
   href: string;
   label: string;
   color: string;
-  Icon: ComponentType<{ className?: string }>;
+  children: ReactNode;
 }
 
-export function SocialIconLink({ href, label, color, Icon }: SocialIconLinkProps) {
+export function SocialIconLink({ href, label, color, children }: SocialIconLinkProps) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -34,7 +34,7 @@ export function SocialIconLink({ href, label, color, Icon }: SocialIconLinkProps
         }
         className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-200 transition-all duration-300"
       >
-        <Icon className="h-5 w-5" />
+        {children}
       </a>
 
       <span

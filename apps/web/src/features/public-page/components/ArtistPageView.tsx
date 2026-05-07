@@ -135,7 +135,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       label: string;
       key: string;
       color: string;
-      Icon: IconComponent;
+      Icon: IconComponent; // still used as JSX in the render (<social.Icon />)
     } => Boolean(item),
   );
 
@@ -293,8 +293,9 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                         href={social.href}
                         label={social.label}
                         color={social.color}
-                        Icon={social.Icon}
-                      />
+                      >
+                        <social.Icon className="h-5 w-5" />
+                      </SocialIconLink>
                     ))}
                   </div>
                 )}
