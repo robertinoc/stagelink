@@ -171,7 +171,8 @@ docs/
 ├── final-qa-staging-load-test.md # Load test liviano en Vercel Preview, warning p95/staging pendiente
 ├── security-audit-e1-discovery.md # Setup/discovery de auditoría de seguridad: stack, arquitectura, flujos, servicios
 ├── security-audit-e2-auth-sessions.md # E2.1 auth/sessions: login/signup, tokens, recovery, fixes y backlog
-└── security-audit-e2-authorization.md # E2.2 autorización: ownership, IDOR/BOLA, aislamiento multi-tenant y fix analytics
+├── security-audit-e2-authorization.md # E2.2 autorización: ownership, IDOR/BOLA, aislamiento multi-tenant y fix analytics
+└── security-audit-e2-api-security.md # E2.3 API security: input validation, XSS/injection y rate limiting
 ```
 
 ---

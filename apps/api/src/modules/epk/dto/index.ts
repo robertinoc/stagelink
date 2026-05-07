@@ -31,7 +31,7 @@ export class EpkFeaturedMediaItemDto {
   @MaxLength(120)
   title!: string;
 
-  @IsUrl({ require_protocol: true })
+  @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
   @MaxLength(2048)
   url!: string;
 
@@ -48,7 +48,7 @@ export class EpkFeaturedLinkItemDto {
   @MaxLength(100)
   label!: string;
 
-  @IsUrl({ require_protocol: true })
+  @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
   @MaxLength(2048)
   url!: string;
 }
@@ -105,7 +105,7 @@ export class UpdateEpkDto {
 
   @IsOptional()
   @Transform(({ value }) => emptyStringToNull(value))
-  @IsUrl({ require_protocol: true })
+  @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
   @MaxLength(2048)
   heroImageUrl?: string | null;
 
@@ -113,7 +113,7 @@ export class UpdateEpkDto {
   @IsArray()
   // 2 reserved slots (hero + portrait) + up to 6 extra gallery photos = 8 max.
   @ArrayMaxSize(8)
-  @IsUrl({ require_protocol: true }, { each: true })
+  @IsUrl({ protocols: ['http', 'https'], require_protocol: true }, { each: true })
   galleryImageUrls?: string[];
 
   @IsOptional()
