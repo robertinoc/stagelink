@@ -1,7 +1,11 @@
 import Link from 'next/link';
 import { Download, FileText, Globe, Instagram, Mail, Sparkles } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
-import type { PublicPageResponse } from '@stagelink/types';
+import type {
+  MusicEmbedBlockConfig,
+  PublicPageResponse,
+  VideoEmbedBlockConfig,
+} from '@stagelink/types';
 import { PublicPageClient } from './PublicPageClient';
 import { PublicAvatarImage } from './PublicAvatarImage';
 import { PublicCoverImage } from './PublicCoverImage';
@@ -121,12 +125,15 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
     emailCaptureBlocks.length > 0 ||
     remainingBlocks.length > 0;
 
-  // YouTube CTA shows below featured media if media blocks exist, or falls through to
-  // the platform CTAs row below the header if there are no media blocks.
-  const showYouTubeInMediaSection = Boolean(artist.youtubeUrl) && featuredMediaBlocks.length > 0;
-  const showYouTubeInCtaRow = Boolean(artist.youtubeUrl) && featuredMediaBlocks.length === 0;
-  const showPlatformCtaRow =
-    Boolean(artist.spotifyUrl) || Boolean(artist.soundcloudUrl) || showYouTubeInCtaRow;
+  function getMusicProvider(block: PublicPageResponse['blocks'][number]): string | null {
+    if (block.type !== 'music_embed') return null;
+    return (block.config as MusicEmbedBlockConfig).provider;
+  }
+
+  function getVideoProvider(block: PublicPageResponse['blocks'][number]): string | null {
+    if (block.type !== 'video_embed') return null;
+    return (block.config as VideoEmbedBlockConfig).provider;
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#090411] text-white">
@@ -229,7 +236,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                         title={social.label}
                         className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-200 transition hover:border-violet-300/30 hover:bg-violet-400/10 hover:text-white"
                       >
-                        <social.Icon className="h-4 w-4" />
+                        <social.Icon className="h-5 w-5" />
                         <span className="sr-only">{social.label}</span>
                       </a>
                     ))}
@@ -260,48 +267,6 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                     )}
                   </div>
                 )}
-
-                {/* Platform CTAs: Spotify, SoundCloud, and YouTube (when no media blocks) */}
-                {showPlatformCtaRow && (
-                  <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-                    {artist.spotifyUrl && (
-                      <a
-                        href={artist.spotifyUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={t('cta.spotify')}
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500/25"
-                      >
-                        <SpotifyIcon />
-                        {t('cta.spotify')}
-                      </a>
-                    )}
-                    {showYouTubeInCtaRow && (
-                      <a
-                        href={artist.youtubeUrl!}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={t('cta.youtube')}
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
-                      >
-                        <YouTubeIcon />
-                        {t('cta.youtube')}
-                      </a>
-                    )}
-                    {artist.soundcloudUrl && (
-                      <a
-                        href={artist.soundcloudUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={t('cta.soundcloud')}
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
-                      >
-                        <SoundCloudIcon />
-                        {t('cta.soundcloud')}
-                      </a>
-                    )}
-                  </div>
-                )}
               </div>
 
               <div className="mx-auto mt-10 max-w-5xl space-y-10">
@@ -317,32 +282,63 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                 )}
 
                 {featuredMediaBlocks.length > 0 && (
-                  <section className="space-y-4">
+                  <section className="space-y-6">
                     <div className="space-y-2 text-center">
                       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
                         {t('sections.featured_media')}
                       </p>
                     </div>
-                    <PublicPageClient
-                      page={page}
-                      blocks={featuredMediaBlocks}
-                      className="grid gap-4 lg:grid-cols-2 lg:items-start"
-                    />
-                    {/* YouTube CTA — appears below the last video when the artist has a channel */}
-                    {showYouTubeInMediaSection && (
-                      <div className="flex justify-center pt-2">
-                        <a
-                          href={artist.youtubeUrl!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={t('cta.youtube')}
-                          className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
-                        >
-                          <YouTubeIcon />
-                          {t('cta.youtube')}
-                        </a>
-                      </div>
-                    )}
+                    {featuredMediaBlocks.map((block, index) => {
+                      const musicProvider = getMusicProvider(block);
+                      const videoProvider = getVideoProvider(block);
+                      return (
+                        <div key={block.id ?? index} className="space-y-3">
+                          <PublicPageClient page={page} blocks={[block]} className="" />
+                          {musicProvider === 'soundcloud' && artist.soundcloudUrl && (
+                            <div className="flex justify-center">
+                              <a
+                                href={artist.soundcloudUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={t('cta.soundcloud')}
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                              >
+                                <SoundCloudIcon />
+                                {t('cta.soundcloud')}
+                              </a>
+                            </div>
+                          )}
+                          {videoProvider === 'youtube' && artist.youtubeUrl && (
+                            <div className="flex justify-center">
+                              <a
+                                href={artist.youtubeUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={t('cta.youtube')}
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                              >
+                                <YouTubeIcon />
+                                {t('cta.youtube')}
+                              </a>
+                            </div>
+                          )}
+                          {musicProvider === 'spotify' && artist.spotifyUrl && (
+                            <div className="flex justify-center">
+                              <a
+                                href={artist.spotifyUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={t('cta.spotify')}
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500/25"
+                              >
+                                <SpotifyIcon />
+                                {t('cta.spotify')}
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </section>
                 )}
 

@@ -1,6 +1,6 @@
-export function SpotifyIcon() {
+export function SpotifyIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
       <path
         d="M5 9.8c4.2-1.3 9.8-.9 13.9 1.2"
         stroke="currentColor"
@@ -24,9 +24,9 @@ export function SpotifyIcon() {
   );
 }
 
-export function YouTubeIcon() {
+export function YouTubeIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
       <rect
         x="4.5"
         y="6.5"
@@ -47,9 +47,9 @@ export function YouTubeIcon() {
   );
 }
 
-export function TikTokIcon() {
+export function TikTokIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
       <path
         d="M14 5.5c.6 1.7 1.8 3 3.5 3.7V12c-1.5-.1-2.7-.6-3.8-1.4v4.2a4.2 4.2 0 1 1-4.2-4.2c.3 0 .6 0 .9.1"
         stroke="currentColor"
@@ -61,9 +61,9 @@ export function TikTokIcon() {
   );
 }
 
-export function SoundCloudIcon() {
+export function SoundCloudIcon({ className = 'h-4 w-4' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
       <path
         d="M6 14v2M9 11v5M12 8v8M15 10v6M18 12v4"
         stroke="currentColor"
