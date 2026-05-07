@@ -386,6 +386,9 @@ export class PublicPagesService {
     ip?: string,
     qualityCtx?: ClickQualityCtx,
   ): Promise<void> {
+    const belongsToArtist = await this.validateLinkClickOwnership(artistId, data);
+    if (!belongsToArtist) return;
+
     const flags = resolveTrafficFlags({
       userAgent: qualityCtx?.userAgent,
       slQaHeader: qualityCtx?.slQa,
@@ -412,6 +415,52 @@ export class PublicPagesService {
       .catch(() => {
         // Fire-and-forget — recording failure is non-fatal.
       });
+  }
+
+  private async validateLinkClickOwnership(
+    artistId: string,
+    data: {
+      blockId?: string;
+      smartLinkId?: string;
+    },
+  ): Promise<boolean> {
+    try {
+      if (data.blockId) {
+        const block = await this.prisma.block.findUnique({
+          where: { id: data.blockId },
+          select: {
+            isPublished: true,
+            page: {
+              select: {
+                artistId: true,
+              },
+            },
+          },
+        });
+
+        if (!block || !block.isPublished || block.page.artistId !== artistId) {
+          return false;
+        }
+      }
+
+      if (data.smartLinkId) {
+        const smartLink = await this.prisma.smartLink.findUnique({
+          where: { id: data.smartLinkId },
+          select: {
+            artistId: true,
+            isActive: true,
+          },
+        });
+
+        if (!smartLink || !smartLink.isActive || smartLink.artistId !== artistId) {
+          return false;
+        }
+      }
+
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
