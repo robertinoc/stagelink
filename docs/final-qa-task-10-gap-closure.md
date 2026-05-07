@@ -15,18 +15,48 @@ documentación y backlog post-launch`.
 
 ## Final Check Closure Map
 
-| #   | Final-check item                              | Status                | Evidence / Decision                                                                                                                                          |
-| --- | --------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Verify/restore `main` after Section 9 merge   | Closed                | `docs/final-qa-task-1-main-green.md`; `main` was recovered and kept green after the Section 9 merge sequence.                                                |
-| 2   | Run full staging E2E with WorkOS credentials  | Closed                | `docs/final-qa-task-2-staging-e2e-workos.md`; authenticated staging E2E runs were enabled through GitHub staging secrets.                                    |
-| 3   | Run production smoke tests on `stagelink.art` | Closed                | `docs/final-qa-task-3-production-smoke.md`; production smoke coverage targets the canonical production domain.                                               |
-| 4   | Run manual UAT with artist/operator persona   | Closed                | `docs/final-qa-task-4-manual-uat.md`; UAT-006 was manually approved with no open P0/P1 issue at sign-off.                                                    |
-| 5   | Review WorkOS security settings               | Closed                | Robert confirmed production/staging callbacks, sign-out, login endpoint, auth methods, sessions, bot detection and brute-force protection on 2026-05-07.     |
-| 6   | Decide launch rate-limiting posture           | Closed                | In-memory app rate limiting is accepted for private QA/pre-launch; shared Redis/Upstash rate limiting is deferred to `T7-8` before sustained public traffic. |
-| 7   | Run staging load test                         | Executed with warning | `docs/final-qa-staging-load-test.md`; Vercel Preview stayed stable at 0% errors, but warm p95 was 1026 ms and canonical staging was not assigned.            |
-| 8   | Run controlled stress test                    | Deferred by design    | `docs/final-qa-task-5-stress-test-window.md`; no real stress run until an approved window and monitoring are open.                                           |
-| 9   | Run staging data validation                   | Ready to execute      | Tooling exists in `pnpm data:validate`; real staging run requires secure staging `DATABASE_URL` access and read-only approval.                               |
-| 10  | Run backup/restore drill with disposable DB   | Deferred by design    | `docs/final-qa-task-6-restore-drill.md`; real drill needs approved source backup and a disposable restore database.                                          |
+| #   | Final-check item                              | Status                 | Evidence / Decision                                                                                                                                          |
+| --- | --------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Verify/restore `main` after Section 9 merge   | DONE                   | `docs/final-qa-task-1-main-green.md`; `main` was recovered and kept green after the Section 9 merge sequence.                                                |
+| 2   | Run full staging E2E with WorkOS credentials  | DONE                   | `docs/final-qa-task-2-staging-e2e-workos.md`; authenticated staging E2E runs were enabled through GitHub staging secrets.                                    |
+| 3   | Run production smoke tests on `stagelink.art` | DONE                   | `docs/final-qa-task-3-production-smoke.md`; production smoke coverage targets the canonical production domain.                                               |
+| 4   | Run manual UAT with artist/operator persona   | DONE                   | `docs/final-qa-task-4-manual-uat.md`; UAT-006 was manually approved with no open P0/P1 issue at sign-off.                                                    |
+| 5   | Review WorkOS security settings               | DONE with note         | Robert confirmed production/staging callbacks, sign-out, login endpoint, auth methods, sessions, bot detection and brute-force protection on 2026-05-07.     |
+| 6   | Decide launch rate-limiting posture           | DONE with decision     | In-memory app rate limiting is accepted for private QA/pre-launch; shared Redis/Upstash rate limiting is deferred to `T7-8` before sustained public traffic. |
+| 7   | Run staging load test                         | DONE with warning      | `docs/final-qa-staging-load-test.md`; Vercel Preview stayed stable at 0% errors, but warm p95 was 1026 ms and canonical staging was not assigned.            |
+| 8   | Run controlled stress test                    | Intentionally deferred | `docs/final-qa-task-5-stress-test-window.md`; no real stress run until an approved window and monitoring are open.                                           |
+| 9   | Run staging data validation                   | Ready to execute       | Tooling exists in `pnpm data:validate`; real staging run requires secure staging `DATABASE_URL` access and read-only approval.                               |
+| 10  | Run backup/restore drill with disposable DB   | Intentionally deferred | `docs/final-qa-task-6-restore-drill.md`; real drill needs approved source backup and a disposable restore database.                                          |
+| 11  | Final Check Gap Closure & Launch Decisions    | DONE with decision log | This document records the final-check status map, launch decisions, warnings and explicitly deferred work for `T7-8`.                                        |
+
+## Status Legend
+
+| Status                 | Meaning                                                                                            |
+| ---------------------- | -------------------------------------------------------------------------------------------------- |
+| DONE                   | The task was executed and closed without an open launch caveat.                                    |
+| DONE with note         | The task is closed, but there is an important operational note to preserve for launch hardening.   |
+| DONE with decision     | The task is closed because a conscious launch decision was made and documented.                    |
+| DONE with warning      | The task ran and showed acceptable stability, but left a measurable caveat that should be tracked. |
+| DONE with decision log | The task closes the final-check register by documenting decisions, caveats and remaining gates.    |
+| Ready to execute       | Tooling exists and the next step is to run it with approved environment access.                    |
+| Intentionally deferred | The task is not failed or forgotten; it is postponed on purpose until required conditions exist.   |
+
+`Intentionally deferred` is used for checks that should not be executed casually.
+For StageLink, this currently applies to destructive or infrastructure-dependent
+work: real stress testing and real backup/restore drills. These remain valid
+launch-readiness items, but they require an approved window, monitoring and/or
+disposable infrastructure before execution.
+
+## Done With Notes, Decisions And Warnings
+
+| Task | Classification         | Recorded outcome                                                                                                                                                               | Priority to revisit                                                        |
+| ---- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| T05  | DONE with note         | WorkOS redirect/callbacks, auth methods, sessions, bot detection and brute-force protection were confirmed. Global MFA remains intentionally off for the current launch phase. | Revisit MFA in `T7-8` for admin/operator/behind access.                    |
+| T06  | DONE with decision     | Keep in-memory rate limiting for private QA/pre-launch. Move public/API/upload/SmartLink limits to Redis/Upstash/Vercel KV before sustained public traffic.                    | High before broad public traffic or paid acquisition.                      |
+| T07  | DONE with warning      | Light load on Vercel Preview had 0% errors and no `5xx`, but warm p95 was `1026 ms` vs the `1000 ms` target; canonical staging was not assigned.                               | High once staging URL/API/demo artist are ready.                           |
+| T08  | Intentionally deferred | Real stress testing was not run because it requires an approved window, monitoring and stop/rollback conditions.                                                               | Medium; run before larger launch or traffic push.                          |
+| T10  | Intentionally deferred | Real backup/restore drill was not run because Railway managed backups are unavailable on the Hobby plan and a disposable restore DB is required.                               | High before public launch with meaningful user data, or after Railway Pro. |
+| T11  | DONE with decision log | Final Check now has an explicit closure map, launch decisions, caveats and deferred gates ready for `T7-8`.                                                                    | Use as input to `T7-8`.                                                    |
 
 ## Launch Decision Register
 
