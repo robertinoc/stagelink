@@ -15,18 +15,18 @@ documentación y backlog post-launch`.
 
 ## Final Check Closure Map
 
-| #   | Final-check item                              | Status             | Evidence / Decision                                                                                                                                          |
-| --- | --------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Verify/restore `main` after Section 9 merge   | Closed             | `docs/final-qa-task-1-main-green.md`; `main` was recovered and kept green after the Section 9 merge sequence.                                                |
-| 2   | Run full staging E2E with WorkOS credentials  | Closed             | `docs/final-qa-task-2-staging-e2e-workos.md`; authenticated staging E2E runs were enabled through GitHub staging secrets.                                    |
-| 3   | Run production smoke tests on `stagelink.art` | Closed             | `docs/final-qa-task-3-production-smoke.md`; production smoke coverage targets the canonical production domain.                                               |
-| 4   | Run manual UAT with artist/operator persona   | Closed             | `docs/final-qa-task-4-manual-uat.md`; UAT-006 was manually approved with no open P0/P1 issue at sign-off.                                                    |
-| 5   | Review WorkOS security settings               | Closed             | Robert confirmed production/staging callbacks, sign-out, login endpoint, auth methods, sessions, bot detection and brute-force protection on 2026-05-07.     |
-| 6   | Decide launch rate-limiting posture           | Closed             | In-memory app rate limiting is accepted for private QA/pre-launch; shared Redis/Upstash rate limiting is deferred to `T7-8` before sustained public traffic. |
-| 7   | Run staging load test                         | Ready to execute   | Tooling exists in `pnpm perf:load`; real staging run requires owner-approved target URLs and monitoring awareness.                                           |
-| 8   | Run controlled stress test                    | Deferred by design | `docs/final-qa-task-5-stress-test-window.md`; no real stress run until an approved window and monitoring are open.                                           |
-| 9   | Run staging data validation                   | Ready to execute   | Tooling exists in `pnpm data:validate`; real staging run requires secure staging `DATABASE_URL` access and read-only approval.                               |
-| 10  | Run backup/restore drill with disposable DB   | Deferred by design | `docs/final-qa-task-6-restore-drill.md`; real drill needs approved source backup and a disposable restore database.                                          |
+| #   | Final-check item                              | Status                | Evidence / Decision                                                                                                                                          |
+| --- | --------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Verify/restore `main` after Section 9 merge   | Closed                | `docs/final-qa-task-1-main-green.md`; `main` was recovered and kept green after the Section 9 merge sequence.                                                |
+| 2   | Run full staging E2E with WorkOS credentials  | Closed                | `docs/final-qa-task-2-staging-e2e-workos.md`; authenticated staging E2E runs were enabled through GitHub staging secrets.                                    |
+| 3   | Run production smoke tests on `stagelink.art` | Closed                | `docs/final-qa-task-3-production-smoke.md`; production smoke coverage targets the canonical production domain.                                               |
+| 4   | Run manual UAT with artist/operator persona   | Closed                | `docs/final-qa-task-4-manual-uat.md`; UAT-006 was manually approved with no open P0/P1 issue at sign-off.                                                    |
+| 5   | Review WorkOS security settings               | Closed                | Robert confirmed production/staging callbacks, sign-out, login endpoint, auth methods, sessions, bot detection and brute-force protection on 2026-05-07.     |
+| 6   | Decide launch rate-limiting posture           | Closed                | In-memory app rate limiting is accepted for private QA/pre-launch; shared Redis/Upstash rate limiting is deferred to `T7-8` before sustained public traffic. |
+| 7   | Run staging load test                         | Executed with warning | `docs/final-qa-staging-load-test.md`; Vercel Preview stayed stable at 0% errors, but warm p95 was 1026 ms and canonical staging was not assigned.            |
+| 8   | Run controlled stress test                    | Deferred by design    | `docs/final-qa-task-5-stress-test-window.md`; no real stress run until an approved window and monitoring are open.                                           |
+| 9   | Run staging data validation                   | Ready to execute      | Tooling exists in `pnpm data:validate`; real staging run requires secure staging `DATABASE_URL` access and read-only approval.                               |
+| 10  | Run backup/restore drill with disposable DB   | Deferred by design    | `docs/final-qa-task-6-restore-drill.md`; real drill needs approved source backup and a disposable restore database.                                          |
 
 ## Launch Decision Register
 
@@ -118,6 +118,27 @@ Run only after:
 - staging has a seeded public artist used by the route mix;
 - Railway/Vercel dashboards are open or at least watched after the run;
 - the output artifact is stored outside git or attached to the release record.
+
+Decision recorded on 2026-05-07:
+
+- `https://staging.stagelink.link` returned Vercel
+  `404 DEPLOYMENT_NOT_FOUND`;
+- Robert temporarily disabled Vercel Preview Authentication so QA traffic could
+  reach the selected Preview deployment;
+- Codex ran `pnpm perf:load` against the latest relevant Vercel Preview
+  deployment;
+- the valid run and warm rerun both had 0% request failures and no observed
+  `5xx` responses;
+- the warm run missed the p95 threshold by 26 ms: p95 `1026 ms` versus the
+  `1000 ms` load target;
+- Point 3 is accepted as executed with warning, not as a full canonical staging
+  sign-off.
+
+For the next true staging run, execute only after:
+
+- `staging.stagelink.link` points to the intended staging deployment;
+- a seeded demo artist exists in staging;
+- the staging API/Railway URL is included through `PERF_API_URL`.
 
 ### D4 — Controlled Stress Test
 
