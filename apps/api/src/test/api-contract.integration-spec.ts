@@ -49,6 +49,7 @@ import { PublicPagesController } from '../modules/public/public-pages.controller
 import { PublicSmartLinksController } from '../modules/public/public-smart-links.controller';
 import { PublicEpkService } from '../modules/public/public-epk.service';
 import { PublicPagesService } from '../modules/public/public-pages.service';
+import { PublicContactService } from '../modules/public/public-contact.service';
 import { PublicSubscribeService } from '../modules/public/public-subscribe.service';
 import { ShopifyController } from '../modules/shopify/shopify.controller';
 import { ShopifyService } from '../modules/shopify/shopify.service';
@@ -289,6 +290,10 @@ function createMocks() {
     recordLinkClick: jest.fn(() => Promise.resolve()),
   };
 
+  const publicContact = {
+    sendContactMessage: jest.fn(() => Promise.resolve()),
+  };
+
   const publicSubscribe = {
     createSubscriber: jest.fn(() => Promise.resolve()),
   };
@@ -343,6 +348,7 @@ function createMocks() {
     merch,
     onboarding,
     pages,
+    publicContact,
     publicEpk,
     publicPages,
     publicSubscribe,
@@ -843,6 +849,7 @@ describe('API contract integration coverage', () => {
         { provide: MerchService, useValue: mocks.merch },
         { provide: OnboardingService, useValue: mocks.onboarding },
         { provide: PagesService, useValue: mocks.pages },
+        { provide: PublicContactService, useValue: mocks.publicContact },
         { provide: PublicEpkService, useValue: mocks.publicEpk },
         { provide: PublicPagesService, useValue: mocks.publicPages },
         { provide: PublicSubscribeService, useValue: mocks.publicSubscribe },
