@@ -7,7 +7,6 @@ import { PublicSmartLinksController } from './public-smart-links.controller';
 import { PublicEpkController } from './public-epk.controller';
 import { PublicPagesService } from './public-pages.service';
 import { PublicSubscribeService } from './public-subscribe.service';
-import { PublicContactService } from './public-contact.service';
 import { PublicEpkService } from './public-epk.service';
 import { PublicRateLimitGuard } from '../../common/guards/public-rate-limit.guard';
 import { BillingModule } from '../billing/billing.module';
@@ -29,12 +28,6 @@ import { ShopifyModule } from '../shopify/shopify.module';
     PublicSmartLinksController,
     PublicEpkController,
   ],
-  providers: [
-    PublicPagesService,
-    PublicSubscribeService,
-    PublicContactService,
-    PublicEpkService,
-    PublicRateLimitGuard,
-  ],
+  providers: [PublicPagesService, PublicSubscribeService, PublicEpkService, PublicRateLimitGuard],
 })
 export class PublicModule {}
