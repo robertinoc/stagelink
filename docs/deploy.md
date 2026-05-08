@@ -87,6 +87,9 @@ Estos orígenes están permitidos en el CORS del API gracias al patrón:
 
 La CSP queda en modo report-only para observar compatibilidad con embeds,
 WorkOS, PostHog y scripts de Next antes de pasarla a modo bloqueante.
+No incluye `upgrade-insecure-requests` mientras siga en report-only: los
+navegadores ignoran esa directiva en ese modo y la reportan como error de
+consola, lo que rompe el smoke test sin indicar una falla real de la app.
 
 ---
 
