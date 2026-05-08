@@ -19,15 +19,29 @@ describe('AssetsService', () => {
     const prisma = {
       asset: {
         create: jest.fn().mockResolvedValue(asset),
+        findUnique: jest.fn().mockResolvedValue(asset),
+        update: jest.fn().mockResolvedValue({
+          ...asset,
+          status: 'uploaded',
+          deliveryUrl: 'https://cdn.stagelink.test/artists/artist_1/avatar/asset.png',
+          createdAt: new Date('2026-05-07T23:00:00.000Z'),
+        }),
+      },
+      artist: {
+        update: jest.fn().mockResolvedValue({}),
       },
     };
     const s3 = {
       getBucket: jest.fn().mockReturnValue('stagelink-assets'),
+      buildDeliveryUrl: jest
+        .fn()
+        .mockReturnValue('https://cdn.stagelink.test/artists/artist_1/avatar/asset.png'),
       generateObjectKey: jest.fn().mockReturnValue(asset.objectKey),
       generatePresignedPutUrl: jest.fn().mockResolvedValue({
         uploadUrl: 'https://uploads.stagelink.test/signed',
         expiresAt: new Date('2026-05-07T23:59:59.000Z'),
       }),
+      verifyUploadedObject: jest.fn().mockResolvedValue(undefined),
     };
     const membershipService = {
       validateAccess: jest.fn().mockResolvedValue({ role: 'owner' }),
@@ -67,5 +81,34 @@ describe('AssetsService', () => {
       expiresAt: '2026-05-07T23:59:59.000Z',
     });
     expect(response).not.toHaveProperty('objectKey');
+  });
+
+  it('verifies the uploaded object before confirming the asset', async () => {
+    const { service, prisma, s3 } = createService();
+
+    await service.confirmUpload(asset.id, user as never);
+
+    expect(s3.verifyUploadedObject).toHaveBeenCalledWith(
+      asset.objectKey,
+      asset.mimeType,
+      5 * 1024 * 1024,
+    );
+    expect(prisma.asset.update).toHaveBeenCalledWith({
+      where: { id: asset.id },
+      data: {
+        status: 'uploaded',
+        deliveryUrl: 'https://cdn.stagelink.test/artists/artist_1/avatar/asset.png',
+      },
+    });
+  });
+
+  it('rejects confirmation when the object does not exist or mismatches the intent', async () => {
+    const { service, prisma, s3 } = createService();
+    s3.verifyUploadedObject.mockRejectedValueOnce(new Error('not found'));
+
+    await expect(service.confirmUpload(asset.id, user as never)).rejects.toThrow(
+      'Upload has not completed or does not match the upload intent',
+    );
+    expect(prisma.asset.update).not.toHaveBeenCalled();
   });
 });

@@ -179,7 +179,8 @@ docs/
 ├── security-audit-e2-infra-headers.md # E2.7 infra/headers: HTTPS/HSTS, security headers y CORS
 ├── security-audit-e2-dependencies.md # E2.8 dependencies: audit, upgrades, overrides y Dependabot
 ├── security-audit-e2-repo-ci-cd.md # E2.9 repo/CI-CD: GitHub Actions, secrets, artifacts y Dependabot
-└── security-audit-e3-critical-hardening.md # E3 hardening critico, debug endpoint y notas pre-launch
+├── security-audit-e3-critical-hardening.md # E3 hardening critico, debug endpoint y notas pre-launch
+└── security-audit-e4-advanced-hardening.md # E4 hardening avanzado: rate limits, uploads, anti-spam y tenancy
 ```
 
 ---
@@ -598,6 +599,11 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - Frontend: `AvatarUpload` + `CoverUpload` con progress bar, settings page integrada
   - Storage: Cloudflare R2 (S3-compatible, sin egress fees)
   - `docs/assets-s3.md` con pipeline, CORS, IAM policy, MinIO local, QA checklist
+- **Security Audit E4 — Advanced Hardening cerrado**
+  - `FixedWindowRateLimiter` compartido para guards in-memory con headers `X-RateLimit-*` y `Retry-After`
+  - `S3Service.verifyUploadedObject()` verifica objeto real en S3/R2 antes de confirmar uploads
+  - Contact form backend no se reintrodujo: `main` usa landing API con rate limit/honeypot/escape HTML y public artist contact via EmailJS
+  - `docs/security-audit-e4-advanced-hardening.md` documenta decisiones, validacion y backlog residual
 
 ### T3-1 — Artist Onboarding (completed)
 
