@@ -111,7 +111,9 @@ Estado: sin exposicion directa de secrets detectada en frontend.
 ## Backlog residual
 
 - Mantener `dangerouslySetInnerHTML` bajo regla estricta: solo permitido con serializers dedicados y test.
-- Considerar eliminar o limitar `/api/admin/debug/headers` antes de launch publico si ya no se usa para diagnostico. Actualmente es owner-only, pero devuelve headers completos.
+- `/api/admin/debug/headers` fue limitado en E3: queda deshabilitado por default,
+  requiere owner y redacta headers sensibles cuando se habilita para una ventana
+  de diagnostico aprobada.
 - Revisar en E2.6 Secrets & Config que no existan `.env` reales commiteados ni valores sensibles en docs/logs.
 
 ## Decision
