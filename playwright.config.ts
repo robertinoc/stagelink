@@ -9,6 +9,12 @@ const authenticatedProjects: Project[] = hasE2EAuthCredentials
       {
         name: 'setup',
         testMatch: /e2e\/auth\/.*\.setup\.ts/,
+        use: {
+          ...devices['Desktop Chrome'],
+          trace: 'off',
+          screenshot: 'off',
+          video: 'off',
+        },
       },
       {
         name: 'authenticated',

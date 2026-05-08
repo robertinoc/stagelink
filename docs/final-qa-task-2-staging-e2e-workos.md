@@ -95,3 +95,19 @@ allowed redirect URI must share the same origin. Also do not use
 
 The E2E auth helper now detects `/login?error=auth_failed` directly and prints
 this configuration checklist instead of timing out with a generic URL wait.
+
+## 2026-05-08 Artifact Secret Handling
+
+The failing post-merge run for PR #281 confirmed the environment mismatch and
+also showed that Playwright traces can record values typed by the auth setup
+project. Since that project fills `E2E_AUTH_EMAIL` and `E2E_AUTH_PASSWORD`, the
+setup project now disables trace, screenshot, and video artifacts. Authenticated
+journey projects still keep normal diagnostics because they reuse the stored
+session and do not type the raw password.
+
+Operational follow-up for the affected run:
+
+- Delete the `playwright-report-25546729746` artifact from GitHub Actions if it
+  is still available.
+- Rotate `E2E_AUTH_PASSWORD` in WorkOS and update the GitHub `staging`
+  environment secret before rerunning authenticated E2E.
