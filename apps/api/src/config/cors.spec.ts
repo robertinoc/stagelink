@@ -22,10 +22,18 @@ describe('CORS configuration', () => {
     await expect(checkOrigin('https://stagelink-git-feature.vercel.app')).resolves.toBe(true);
   });
 
+  it('allows subdomains of stagelink.art and stagelink.link', async () => {
+    await expect(checkOrigin('https://music.stagelink.art')).resolves.toBe(true);
+    await expect(checkOrigin('https://music.stagelink.link')).resolves.toBe(true);
+    await expect(checkOrigin('https://app.stagelink.art')).resolves.toBe(true);
+  });
+
   it('rejects unknown production origins', async () => {
     await expect(checkOrigin('https://evil.example')).rejects.toThrow(
       "CORS: origin 'https://evil.example' not allowed",
     );
+    await expect(checkOrigin('https://evil-stagelink.art')).rejects.toThrow();
+    await expect(checkOrigin('https://music.stagelink.art.evil.com')).rejects.toThrow();
   });
 
   it('only allows localhost origins in development', async () => {
