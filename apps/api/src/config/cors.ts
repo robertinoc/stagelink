@@ -4,8 +4,9 @@
  * Rules (in order):
  * 1. Exact match against FRONTEND_URL (production domain)
  * 2. Any extra origins listed in CORS_ALLOWED_ORIGINS (comma-separated)
- * 3. Vercel preview deployments for the StageLink project
- * 4. localhost / 127.0.0.1 in development only
+ * 3. Subdomains of stagelink.art and stagelink.link (e.g. music.stagelink.art)
+ * 4. Vercel preview deployments for the StageLink project
+ * 5. localhost / 127.0.0.1 in development only
  */
 export function buildCorsOriginHandler(
   frontendUrl: string,
@@ -13,6 +14,7 @@ export function buildCorsOriginHandler(
   nodeEnv: string,
 ): (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => void {
   const vercelPreviewPattern = /^https:\/\/stagelink[a-z0-9-]*\.vercel\.app$/;
+  const stageLinkSubdomainPattern = /^https:\/\/[a-z0-9-]+\.(stagelink\.art|stagelink\.link)$/;
 
   return (origin, callback) => {
     // Allow requests with no origin (server-to-server, curl, health checks)
@@ -23,6 +25,9 @@ export function buildCorsOriginHandler(
 
     // Extra allowed origins (e.g. app.stagelink.io, staging.stagelink.io)
     if (extraOrigins.includes(origin)) return callback(null, true);
+
+    // Subdomains of stagelink.art / stagelink.link (e.g. music.stagelink.art)
+    if (stageLinkSubdomainPattern.test(origin)) return callback(null, true);
 
     // Vercel preview deployments (e.g. stagelink-git-feat-xyz.vercel.app)
     if (vercelPreviewPattern.test(origin)) return callback(null, true);
