@@ -1381,23 +1381,6 @@
       "contact_form_email_placeholder": "bookings@tuartista.com",
       "contact_form_email_hint": "Dejá vacío para usar el email de contacto de tu Perfil."
     },
-    "renderer": {
-      "technical_rider": {
-        "section_label": "Rider técnico",
-        "rider_info_label": "Rider",
-        "tech_requirements_label": "Requisitos técnicos"
-      },
-      "contact_form": {
-        "section_label": "Contacto",
-        "name_label": "Tu nombre",
-        "name_placeholder": "Tu nombre",
-        "message_label": "Mensaje",
-        "message_placeholder": "Escribí tu mensaje aquí...",
-        "send_button": "Enviar mensaje",
-        "subject_template": "Mensaje de {name} vía página",
-        "anonymous": "un fan"
-      }
-    },
     "smart_link": {
       "destination": "Destino",
       "destinations": "Destinos",
@@ -1467,6 +1450,21 @@
         "cta": "Comprar ahora",
         "available": "Disponible",
         "sold_out": "No disponible"
+      },
+      "technical_rider": {
+        "section_label": "Rider técnico",
+        "rider_info_label": "Rider",
+        "tech_requirements_label": "Requisitos técnicos"
+      },
+      "contact_form": {
+        "section_label": "Contacto",
+        "name_label": "Tu nombre",
+        "name_placeholder": "Tu nombre",
+        "message_label": "Mensaje",
+        "message_placeholder": "Escribí tu mensaje aquí...",
+        "send_button": "Enviar mensaje",
+        "subject_template": "Mensaje de {name} vía página",
+        "anonymous": "un fan"
       }
     }
   },
