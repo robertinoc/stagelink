@@ -178,7 +178,14 @@ export class PublicEpkService {
           contentLocale,
           artist.baseLocale ?? baseLocale,
         ),
-      fullBio: resolveDocumentText(epk.fullBio, epkTranslations.fullBio, contentLocale, baseLocale),
+      fullBio:
+        resolveDocumentText(epk.fullBio, epkTranslations.fullBio, contentLocale, baseLocale) ??
+        resolveDocumentText(
+          artist.bio,
+          artistTranslations.bio,
+          contentLocale,
+          artist.baseLocale ?? baseLocale,
+        ),
       pressQuote: resolveDocumentText(
         epk.pressQuote,
         epkTranslations.pressQuote,

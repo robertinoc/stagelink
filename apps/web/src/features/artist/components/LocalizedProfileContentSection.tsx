@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
-import { Globe2, Lock } from 'lucide-react';
+import { Bold, Globe2, Italic, List, Lock } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { autoTranslateLocalizedFields } from '@/lib/api/localization';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,6 +53,47 @@ export function LocalizedProfileContentSection({
   const fieldsDisabled = disabled || !hasMultiLanguageAccess || activeLocale === baseLocale;
   const translatedValues = watch(`translations.${activeLocale}`) ?? {};
   const translatedErrors = errors.translations?.[activeLocale];
+
+  const bioTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const { ref: bioRegisterRef, ...bioRegisterRest } = register(`translations.${activeLocale}.bio`);
+
+  function combinedBioRef(el: HTMLTextAreaElement | null) {
+    bioRegisterRef(el);
+    bioTextareaRef.current = el;
+  }
+
+  function insertMarkdown(prefix: string, suffix: string = '') {
+    const el = bioTextareaRef.current;
+    if (!el || fieldsDisabled) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const selected = el.value.slice(start, end);
+    const before = el.value.slice(0, start);
+    const after = el.value.slice(end);
+    const newValue = `${before}${prefix}${selected}${suffix}${after}`;
+    setValue(`translations.${activeLocale}.bio`, newValue, { shouldDirty: true });
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + prefix.length, end + prefix.length);
+    });
+  }
+
+  function insertBulletList() {
+    const el = bioTextareaRef.current;
+    if (!el || fieldsDisabled) return;
+    const start = el.selectionStart;
+    const before = el.value.slice(0, start);
+    const after = el.value.slice(start);
+    const needsNewline = before.length > 0 && !before.endsWith('\n');
+    const prefix = needsNewline ? '\n- ' : '- ';
+    const newValue = `${before}${prefix}${after}`;
+    setValue(`translations.${activeLocale}.bio`, newValue, { shouldDirty: true });
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = start + prefix.length;
+      el.setSelectionRange(pos, pos);
+    });
+  }
   const [translationStatus, setTranslationStatus] = useState<'idle' | 'loading' | 'success'>(
     'idle',
   );
@@ -281,12 +322,48 @@ export function LocalizedProfileContentSection({
             <label htmlFor={`translations.${activeLocale}.bio`} className="text-sm font-medium">
               {t('fields.bio')}
             </label>
+            <div className="flex items-center gap-1 rounded-t-md border border-b-0 border-input bg-muted/30 px-2 py-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={fieldsDisabled}
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                title="Bold"
+                onClick={() => insertMarkdown('**', '**')}
+              >
+                <Bold className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={fieldsDisabled}
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                title="Italic"
+                onClick={() => insertMarkdown('_', '_')}
+              >
+                <Italic className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={fieldsDisabled}
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                title="Bullet list"
+                onClick={insertBulletList}
+              >
+                <List className="h-3.5 w-3.5" />
+              </Button>
+            </div>
             <Textarea
               id={`translations.${activeLocale}.bio`}
               placeholder={t('translations.placeholders.bio')}
               disabled={fieldsDisabled}
-              className="min-h-[100px]"
-              {...register(`translations.${activeLocale}.bio`)}
+              className="min-h-[120px] rounded-t-none"
+              ref={combinedBioRef}
+              {...bioRegisterRest}
             />
             <div className="flex justify-between">
               {translatedErrors?.bio ? (
@@ -296,12 +373,12 @@ export function LocalizedProfileContentSection({
               )}
               <span
                 className={`text-xs ${
-                  (translatedValues.bio?.length ?? 0) > 480
+                  (translatedValues.bio?.length ?? 0) > 900
                     ? 'text-amber-500'
                     : 'text-muted-foreground'
                 }`}
               >
-                {translatedValues.bio?.length ?? 0}/500
+                {translatedValues.bio?.length ?? 0}/1000
               </span>
             </div>
           </div>

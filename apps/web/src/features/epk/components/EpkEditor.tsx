@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getEpkPublishReadiness } from '@stagelink/types';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import type {
   AssetDto,
   EpkEditorResponse,
@@ -827,16 +828,22 @@ export function EpkEditor({
             ) : null}
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Full bio *</label>
-            <Textarea
-              rows={8}
-              placeholder="Longer artist story, recent releases, background, positioning…"
-              disabled={formDisabled}
-              {...register('fullBio')}
-            />
-            {errors.fullBio ? (
-              <p className="text-xs text-destructive">{errors.fullBio.message}</p>
-            ) : null}
+            <label className="text-sm font-medium text-white">Full bio</label>
+            <div className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 p-4">
+              <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" />
+              <div className="space-y-2">
+                <p className="text-sm text-zinc-300">
+                  The full bio is managed in your{' '}
+                  <Link
+                    href={`/${locale}/dashboard/profile`}
+                    className="font-medium text-violet-400 underline-offset-2 hover:underline"
+                  >
+                    Profile
+                  </Link>
+                  . Edit it there to update what appears in your press kit.
+                </p>
+              </div>
+            </div>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-white">Press quote</label>
