@@ -1381,23 +1381,6 @@
       "contact_form_email_placeholder": "bookings@yourname.com",
       "contact_form_email_hint": "Leave empty to use the contact email from your Profile."
     },
-    "renderer": {
-      "technical_rider": {
-        "section_label": "Technical Rider",
-        "rider_info_label": "Rider Info",
-        "tech_requirements_label": "Tech Requirements"
-      },
-      "contact_form": {
-        "section_label": "Get in touch",
-        "name_label": "Your name",
-        "name_placeholder": "Your name",
-        "message_label": "Message",
-        "message_placeholder": "Write your message here...",
-        "send_button": "Send message",
-        "subject_template": "Message from {name} via page",
-        "anonymous": "a fan"
-      }
-    },
     "smart_link": {
       "destination": "Destination",
       "destinations": "Destinations",
@@ -1467,6 +1450,21 @@
         "cta": "Buy now",
         "available": "Available",
         "sold_out": "Unavailable"
+      },
+      "technical_rider": {
+        "section_label": "Technical Rider",
+        "rider_info_label": "Rider Info",
+        "tech_requirements_label": "Tech Requirements"
+      },
+      "contact_form": {
+        "section_label": "Get in touch",
+        "name_label": "Your name",
+        "name_placeholder": "Your name",
+        "message_label": "Message",
+        "message_placeholder": "Write your message here...",
+        "send_button": "Send message",
+        "subject_template": "Message from {name} via page",
+        "anonymous": "a fan"
       }
     }
   },
