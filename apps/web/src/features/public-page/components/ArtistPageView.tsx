@@ -422,7 +422,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                 {(hasAboutSection || page.publicEpkAvailable || artist.contactEmail) && (
                   <section className="space-y-4">
                     {hasAboutSection && (
-                      <div className="neon-card-border rounded-[1.5rem] p-[1.5px]">
+                      <div className="neon-card-border rounded-[1.5rem] p-[1px]">
                         <div className="rounded-[1.4rem] bg-[#0b0614] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
                           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
                             {t('sections.about')}
