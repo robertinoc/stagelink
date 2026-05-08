@@ -7,11 +7,11 @@ interface TechnicalRiderRendererProps {
 }
 
 export function TechnicalRiderRenderer({ title, config }: TechnicalRiderRendererProps) {
+  const t = useTranslations('blocks.renderer.technical_rider');
+
   if (!config.riderInfo && !config.techRequirements) {
     return null;
   }
-
-  const t = useTranslations('blocks.renderer.technical_rider');
 
   return (
     <div className="neon-card-border rounded-[1.5rem] p-[1px]">
