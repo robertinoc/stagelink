@@ -1463,7 +1463,10 @@
         "message_label": "Message",
         "message_placeholder": "Write your message here...",
         "send_button": "Send message",
-        "subject_template": "Message from {name} via page",
+        "sending": "Sending…",
+        "success_heading": "Message sent!",
+        "success_body": "The artist will get back to you soon.",
+        "error": "Something went wrong. Please try again.",
         "anonymous": "a fan"
       }
     }

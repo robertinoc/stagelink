@@ -107,6 +107,10 @@ export const validationSchema = Joi.object({
   SHOPIFY_STOREFRONT_TOKEN: optionalString,
   SHOPIFY_STORE_DOMAIN: optionalString,
 
+  // Email — optional (contact form blocks disabled when absent)
+  RESEND_API_KEY: optionalString,
+  RESEND_FROM_DOMAIN: Joi.string().default('stagelink.art'),
+
   // StageLink Insights — optional, each key enables a specific platform provider
   SPOTIFY_CLIENT_ID: optionalString,
   SPOTIFY_CLIENT_SECRET: optionalString,
