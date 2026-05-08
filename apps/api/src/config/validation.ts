@@ -10,6 +10,8 @@ export const validationSchema = Joi.object({
   FRONTEND_URL: Joi.string().default('http://localhost:4000'),
   // Optional extra origins for CORS (comma-separated)
   CORS_ALLOWED_ORIGINS: optionalString,
+  // Optional owner/admin allowlist for Behind the Stage API endpoints.
+  BEHIND_ADMIN_EMAILS: optionalString,
 
   // Required in production, optional in development
   DATABASE_URL: Joi.when('NODE_ENV', {

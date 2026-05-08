@@ -7,12 +7,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import type { User } from '@prisma/client';
-
-/**
- * Owner emails allowed to access Behind the Stage admin endpoints.
- * Keep in sync with apps/web/src/lib/behind-config.ts.
- */
-const BEHIND_OWNER_EMAILS: readonly string[] = ['robertinoc@gmail.com'];
+import { isBehindOwnerEmail } from './admin.config';
 
 /**
  * AdminOwnerGuard — restricts access to platform owner emails only.
@@ -34,7 +29,7 @@ export class AdminOwnerGuard implements CanActivate {
       throw new UnauthorizedException('Not authenticated');
     }
 
-    if (!BEHIND_OWNER_EMAILS.includes(user.email.toLowerCase())) {
+    if (!isBehindOwnerEmail(user.email)) {
       throw new ForbiddenException('Access restricted to platform owners');
     }
 

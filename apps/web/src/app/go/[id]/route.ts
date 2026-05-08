@@ -146,7 +146,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // Further validated server-side (length + format regex) before reaching the audit log.
   const from = request.nextUrl.searchParams.get('from') ?? undefined;
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+  const apiUrl = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
   const resolveUrl = new URL(`/api/public/smart-links/${encodeURIComponent(id)}/resolve`, apiUrl);
   resolveUrl.searchParams.set('platform', platform);

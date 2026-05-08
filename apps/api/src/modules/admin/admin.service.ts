@@ -6,9 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../lib/prisma.service';
 import { getWorkOS } from '../../lib/workos';
-
-/** Owner emails — kept in sync with admin-owner.guard.ts */
-const BEHIND_OWNER_EMAILS: readonly string[] = ['robertinoc@gmail.com'];
+import { isBehindOwnerEmail } from './admin.config';
 
 export interface AdminUserDto {
   id: string;
@@ -66,7 +64,7 @@ export class AdminService {
       throw new NotFoundException(`User ${targetId} not found`);
     }
 
-    if (BEHIND_OWNER_EMAILS.includes(existing.email.toLowerCase())) {
+    if (isBehindOwnerEmail(existing.email)) {
       throw new ForbiddenException('Owner accounts cannot be suspended');
     }
 
@@ -151,7 +149,7 @@ export class AdminService {
       throw new NotFoundException(`User ${targetId} not found`);
     }
 
-    if (BEHIND_OWNER_EMAILS.includes(existing.email.toLowerCase())) {
+    if (isBehindOwnerEmail(existing.email)) {
       throw new ForbiddenException('Owner accounts cannot be deleted');
     }
 
