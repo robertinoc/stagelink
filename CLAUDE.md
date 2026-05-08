@@ -177,7 +177,8 @@ docs/
 ├── security-audit-e2-db-data-security.md # E2.5 DB/data security: roles, cross-tenant exposure y sensitive data
 ├── security-audit-e2-secrets-config.md # E2.6 secrets/config: .env, hardcoded secrets y public/private env vars
 ├── security-audit-e2-infra-headers.md # E2.7 infra/headers: HTTPS/HSTS, security headers y CORS
-└── security-audit-e2-dependencies.md # E2.8 dependencies: audit, upgrades, overrides y Dependabot
+├── security-audit-e2-dependencies.md # E2.8 dependencies: audit, upgrades, overrides y Dependabot
+└── security-audit-e2-repo-ci-cd.md # E2.9 repo/CI-CD: GitHub Actions, secrets, artifacts y Dependabot
 ```
 
 ---
@@ -860,6 +861,15 @@ Pipeline GitHub Actions en `.github/workflows/ci.yml`:
 | `api-tests` | push/PR → main | Jest + reporte JUnit con anotaciones de PR          |
 | `web-tests` | push/PR → main | Vitest + coverage + comentario en PR                |
 | `build`     | push/PR → main | Next.js build (requiere que los 3 anteriores pasen) |
+
+Security baseline:
+
+- Token global read-only; solo jobs de anotaciones/comentarios elevan
+  `checks: write` / `pull-requests: write`.
+- `pull_request_target` no se usa.
+- Secrets de E2E solo corren en `push` a `main` bajo environment `staging`.
+- Artifacts Playwright excluyen rutas `.auth`; el proyecto auth setup mantiene
+  trace/screenshot/video apagados para no capturar credenciales.
 
 ### Accesibilidad (Sección 5)
 
