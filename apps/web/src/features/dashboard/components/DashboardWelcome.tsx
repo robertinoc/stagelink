@@ -95,7 +95,7 @@ export async function DashboardWelcome({ artist, billingSummary }: DashboardWelc
       href: entitlements.epk_builder ? `/${locale}/dashboard/epk` : `/${locale}/dashboard/billing`,
       title: t('cards.epk.title'),
       description: t('cards.epk.description'),
-      cta: entitlements.epk_builder ? t('cards.epk.cta') : t('cards.upgrade_cta'),
+      cta: entitlements.epk_builder ? t('cards.epk.cta') : t('upgrade_cta'),
       icon: FileText,
       tone: 'from-sky-500/20 via-cyan-500/10 to-transparent',
       feature: 'epk_builder',
