@@ -178,7 +178,8 @@ docs/
 ├── security-audit-e2-secrets-config.md # E2.6 secrets/config: .env, hardcoded secrets y public/private env vars
 ├── security-audit-e2-infra-headers.md # E2.7 infra/headers: HTTPS/HSTS, security headers y CORS
 ├── security-audit-e2-dependencies.md # E2.8 dependencies: audit, upgrades, overrides y Dependabot
-└── security-audit-e2-repo-ci-cd.md # E2.9 repo/CI-CD: GitHub Actions, secrets, artifacts y Dependabot
+├── security-audit-e2-repo-ci-cd.md # E2.9 repo/CI-CD: GitHub Actions, secrets, artifacts y Dependabot
+└── security-audit-e3-critical-hardening.md # E3 hardening critico, debug endpoint y notas pre-launch
 ```
 
 ---
@@ -511,6 +512,7 @@ WORKOS_API_KEY=                         # WorkOS Dashboard → API Keys (server-
 WORKOS_REDIRECT_URI=                    # http://localhost:4000/api/auth/callback (frontend Next.js)
 WORKOS_COOKIE_PASSWORD=                 # openssl rand -base64 32 (mín 32 chars)
 BEHIND_ADMIN_EMAILS=                    # server-only, allowlist Behind/admin
+BEHIND_DEBUG_HEADERS_ENABLED=false      # server-only, emergencia diagnostico owner-only
 RESEND_API_KEY=                         # server-only, contact form
 UPSTASH_REDIS_KV_REST_API_URL=          # server-only, Behind role persistence
 UPSTASH_REDIS_KV_REST_API_TOKEN=        # server-only, Behind role persistence
