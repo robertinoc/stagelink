@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
 import { Download, FileText, Globe, Instagram, Mail, Sparkles } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type {
@@ -428,9 +429,36 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                             {t('sections.about')}
                           </p>
                           {artist.bio && (
-                            <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-zinc-200 sm:text-base">
-                              {artist.bio}
-                            </p>
+                            <div className="bio-prose mt-4">
+                              <ReactMarkdown
+                                components={{
+                                  p: ({ children }) => (
+                                    <p className="mb-3 text-sm leading-7 text-zinc-200 last:mb-0 sm:text-base">
+                                      {children}
+                                    </p>
+                                  ),
+                                  strong: ({ children }) => (
+                                    <strong className="font-semibold text-white">{children}</strong>
+                                  ),
+                                  em: ({ children }) => (
+                                    <em className="italic text-zinc-300">{children}</em>
+                                  ),
+                                  ul: ({ children }) => (
+                                    <ul className="mb-3 ml-4 list-disc space-y-1 text-sm leading-7 text-zinc-200 sm:text-base">
+                                      {children}
+                                    </ul>
+                                  ),
+                                  ol: ({ children }) => (
+                                    <ol className="mb-3 ml-4 list-decimal space-y-1 text-sm leading-7 text-zinc-200 sm:text-base">
+                                      {children}
+                                    </ol>
+                                  ),
+                                  li: ({ children }) => <li>{children}</li>,
+                                }}
+                              >
+                                {artist.bio}
+                              </ReactMarkdown>
+                            </div>
                           )}
                         </div>
                       </div>

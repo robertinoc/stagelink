@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
+import { Bold, Italic, List } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ARTIST_CATEGORIES, type ProfileFormValues } from '../schemas/profile.schema';
@@ -19,6 +21,7 @@ const chipClass =
 export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
   const t = useTranslations('dashboard.profile');
   const [tagDraft, setTagDraft] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const {
     setValue,
     register,
@@ -29,6 +32,48 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
   const bioValue = watch('bio') ?? '';
   const selectedCategories = watch('categories') ?? [];
   const selectedTags = watch('tags') ?? [];
+
+  const { ref: bioRegisterRef, ...bioRegisterRest } = register('bio');
+
+  function combinedBioRef(el: HTMLTextAreaElement | null) {
+    bioRegisterRef(el);
+    (textareaRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = el;
+  }
+
+  function insertMarkdown(prefix: string, suffix: string = '') {
+    const el = textareaRef.current;
+    if (!el || disabled) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const selected = el.value.slice(start, end);
+    const before = el.value.slice(0, start);
+    const after = el.value.slice(end);
+    const newValue = `${before}${prefix}${selected}${suffix}${after}`;
+    setValue('bio', newValue, { shouldDirty: true });
+    requestAnimationFrame(() => {
+      el.focus();
+      const cursorStart = start + prefix.length;
+      const cursorEnd = end + prefix.length;
+      el.setSelectionRange(cursorStart, cursorEnd);
+    });
+  }
+
+  function insertBulletList() {
+    const el = textareaRef.current;
+    if (!el || disabled) return;
+    const start = el.selectionStart;
+    const before = el.value.slice(0, start);
+    const after = el.value.slice(start);
+    const needsNewline = before.length > 0 && !before.endsWith('\n');
+    const prefix = needsNewline ? '\n- ' : '- ';
+    const newValue = `${before}${prefix}${after}`;
+    setValue('bio', newValue, { shouldDirty: true });
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = start + prefix.length;
+      el.setSelectionRange(pos, pos);
+    });
+  }
 
   function toggleCategory(category: (typeof ARTIST_CATEGORIES)[number]) {
     const next = selectedCategories.includes(category)
@@ -93,12 +138,49 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
           <label htmlFor="bio" className="text-sm font-medium">
             {t('fields.bio')}
           </label>
+          {/* Markdown toolbar */}
+          <div className="flex items-center gap-1 rounded-t-md border border-b-0 border-input bg-muted/30 px-2 py-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={disabled}
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              title="Bold"
+              onClick={() => insertMarkdown('**', '**')}
+            >
+              <Bold className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={disabled}
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              title="Italic"
+              onClick={() => insertMarkdown('_', '_')}
+            >
+              <Italic className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={disabled}
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              title="Bullet list"
+              onClick={insertBulletList}
+            >
+              <List className="h-3.5 w-3.5" />
+            </Button>
+          </div>
           <Textarea
             id="bio"
             placeholder={t('placeholders.bio')}
             disabled={disabled}
-            className="min-h-[100px]"
-            {...register('bio')}
+            className="min-h-[120px] rounded-t-none"
+            ref={combinedBioRef}
+            {...bioRegisterRest}
           />
           <div className="flex justify-between">
             {errors.bio ? (
@@ -107,9 +189,9 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
               <span />
             )}
             <span
-              className={`text-xs ${bioValue.length > 480 ? 'text-amber-500' : 'text-muted-foreground'}`}
+              className={`text-xs ${bioValue.length > 900 ? 'text-amber-500' : 'text-muted-foreground'}`}
             >
-              {bioValue.length}/500
+              {bioValue.length}/1000
             </span>
           </div>
         </div>
