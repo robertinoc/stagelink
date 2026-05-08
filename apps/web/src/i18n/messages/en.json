@@ -1521,6 +1521,11 @@
     "stores": {
       "beatport": "Buy on Beatport",
       "traxsource": "Buy on Traxsource"
+    },
+    "technical_rider": {
+      "section_label": "Technical Rider",
+      "rider_info_label": "Rider",
+      "tech_requirements_label": "Technical requirements"
     }
   },
   "public_epk": {

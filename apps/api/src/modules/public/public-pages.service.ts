@@ -10,6 +10,7 @@ import {
   buildTenantEntitlements,
   hasFeature,
   type ArtistTranslations,
+  type EpkTranslations,
   type BlockLocalizedContent,
   type EmailCaptureBlockConfig,
   type LinksBlockConfig,
@@ -507,6 +508,9 @@ export class PublicPagesService {
             epk: {
               select: {
                 isPublished: true,
+                riderInfo: true,
+                techRequirements: true,
+                translations: true,
               },
             },
             subscription: {
@@ -547,6 +551,24 @@ export class PublicPagesService {
     const publicEpkAvailable =
       hasFeature(entitlements.effectivePlan, 'epk_builder') &&
       page.artist.epk?.isPublished === true;
+
+    const epkTranslations = (page.artist.epk?.translations as EpkTranslations | null) ?? {};
+    const epkRiderInfo = publicEpkAvailable
+      ? resolveDocumentText(
+          page.artist.epk?.riderInfo ?? null,
+          epkTranslations.riderInfo,
+          locale,
+          page.artist.baseLocale ?? DEFAULT_LOCALE,
+        )
+      : null;
+    const epkTechRequirements = publicEpkAvailable
+      ? resolveDocumentText(
+          page.artist.epk?.techRequirements ?? null,
+          epkTranslations.techRequirements,
+          locale,
+          page.artist.baseLocale ?? DEFAULT_LOCALE,
+        )
+      : null;
 
     // T4-4: Persist page_view for ALL requests (including bots) — flag at write time,
     // filter at query time. Only skip when no analytics context is available (e.g.
@@ -747,6 +769,8 @@ export class PublicPagesService {
       blocks: localizedBlocks,
       promoSlot,
       publicEpkAvailable,
+      epkRiderInfo,
+      epkTechRequirements,
       locale,
       contentLocale: localizedArtist.contentLocale,
     };

@@ -71,6 +71,8 @@ export interface PublicPageResponseDto {
   artist: PublicArtistDto;
   blocks: PublicBlockDto[];
   publicEpkAvailable: boolean;
+  epkRiderInfo: string | null;
+  epkTechRequirements: string | null;
   locale: SupportedLocale;
   contentLocale: SupportedLocale;
   /** Slot público reservado para branding/promo según el plan efectivo. */
