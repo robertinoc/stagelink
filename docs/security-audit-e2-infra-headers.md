@@ -88,6 +88,10 @@ Fix:
   - allowlist de frames para YouTube, Vimeo, Spotify y SoundCloud
   - `connect-src 'self' https: wss:`
 
+Nota CI: `upgrade-insecure-requests` queda fuera de la CSP report-only porque
+Chrome la ignora en ese modo y la reporta como error de consola. Si se migra a
+CSP bloqueante, se puede re-evaluar agregarla en ese momento.
+
 Decision: mantener report-only hasta revisar logs/console en staging y produccion.
 Pasar a CSP enforce queda para E3/E4 hardening si no aparecen falsos positivos.
 
