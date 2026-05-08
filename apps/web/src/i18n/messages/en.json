@@ -1258,7 +1258,9 @@
       "text": "Text",
       "image_gallery": "Image Gallery",
       "shopify_store": "Merch",
-      "smart_merch": "Smart Merch"
+      "smart_merch": "Smart Merch",
+      "technical_rider": "Technical Rider",
+      "contact_form": "Contact Form"
     },
     "type_descriptions": {
       "links": "Add clickable links to your profiles, website or anywhere.",
@@ -1268,7 +1270,9 @@
       "text": "A free-text area — bio, rider, press note, or anything you want to say.",
       "image_gallery": "Show a gallery using images from your Profile gallery.",
       "shopify_store": "Show selected merch from your connected Shopify storefront.",
-      "smart_merch": "Pick real products from Printful and attach an external purchase link for each one."
+      "smart_merch": "Pick real products from Printful and attach an external purchase link for each one.",
+      "technical_rider": "Display your technical and production rider from your EPK.",
+      "contact_form": "Let visitors send you a message directly from your page."
     },
     "fields": {
       "title": "Block title (optional)",
@@ -1368,7 +1372,31 @@
       "smart_merch_locale_es": "Spanish",
       "smart_merch_localized_headline": "Localized headline",
       "smart_merch_localized_subtitle": "Localized subtitle (optional)",
-      "smart_merch_localized_cta": "Localized CTA label (optional)"
+      "smart_merch_localized_cta": "Localized CTA label (optional)",
+      "technical_rider_info_title": "Data pulled from your EPK",
+      "technical_rider_info_body": "This block automatically shows your Technical Rider and Tech Requirements from your Press Kit. Update that content in Dashboard > Press Kit.",
+      "contact_form_info_title": "A simple contact form for visitors",
+      "contact_form_info_body": "Visitors fill in their name and message, then their email client opens pre-filled. Leave the email field empty to use your Profile contact email.",
+      "contact_form_email_label": "Destination email (optional)",
+      "contact_form_email_placeholder": "bookings@yourname.com",
+      "contact_form_email_hint": "Leave empty to use the contact email from your Profile."
+    },
+    "renderer": {
+      "technical_rider": {
+        "section_label": "Technical Rider",
+        "rider_info_label": "Rider Info",
+        "tech_requirements_label": "Tech Requirements"
+      },
+      "contact_form": {
+        "section_label": "Get in touch",
+        "name_label": "Your name",
+        "name_placeholder": "Your name",
+        "message_label": "Message",
+        "message_placeholder": "Write your message here...",
+        "send_button": "Send message",
+        "subject_template": "Message from {name} via page",
+        "anonymous": "a fan"
+      }
     },
     "smart_link": {
       "destination": "Destination",

@@ -9,6 +9,8 @@ import type {
   ImageGalleryBlockConfig,
   SmartMerchBlockConfig,
   ShopifyStoreBlockConfig,
+  TechnicalRiderBlockConfig,
+  ContactFormBlockConfig,
 } from '@stagelink/types';
 import { LinksBlockRenderer } from './LinksBlockRenderer';
 import { MusicEmbedRenderer } from './MusicEmbedRenderer';
@@ -18,6 +20,8 @@ import { TextBlockRenderer } from './TextBlockRenderer';
 import { ImageGalleryRenderer } from './ImageGalleryRenderer';
 import { SmartMerchRenderer } from './SmartMerchRenderer';
 import { ShopifyStoreRenderer } from './ShopifyStoreRenderer';
+import { TechnicalRiderRenderer } from './TechnicalRiderRenderer';
+import { ContactFormRenderer } from './ContactFormRenderer';
 
 /**
  * Minimal block shape accepted by BlockRenderer.
@@ -121,6 +125,21 @@ export function BlockRenderer({ block, onLinkClick }: BlockRendererProps) {
   if (block.type === 'smart_merch') {
     return (
       <SmartMerchRenderer title={block.title} config={block.config as SmartMerchBlockConfig} />
+    );
+  }
+
+  if (block.type === 'technical_rider') {
+    return (
+      <TechnicalRiderRenderer
+        title={block.title}
+        config={block.config as TechnicalRiderBlockConfig}
+      />
+    );
+  }
+
+  if (block.type === 'contact_form') {
+    return (
+      <ContactFormRenderer title={block.title} config={block.config as ContactFormBlockConfig} />
     );
   }
 
