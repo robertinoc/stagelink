@@ -12,7 +12,7 @@ FROM node:20-alpine
 # OpenSSL required by Prisma on Alpine/musl
 RUN apk add --no-cache openssl
 
-RUN npm install -g pnpm@latest --ignore-scripts
+RUN npm install -g pnpm@9 --ignore-scripts
 
 WORKDIR /app
 
