@@ -330,34 +330,7 @@ export function LocalizedEpkContentSection({
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label htmlFor={`translations.${activeLocale}.fullBio`} className="text-sm font-medium">
-              {t('fields.full_bio')}
-            </label>
-            <Textarea
-              id={`translations.${activeLocale}.fullBio`}
-              placeholder={t('translations.placeholders.full_bio')}
-              disabled={fieldsDisabled}
-              className="min-h-[180px]"
-              {...register(`translations.${activeLocale}.fullBio`)}
-            />
-            <div className="flex justify-between">
-              {translatedErrors?.fullBio ? (
-                <p className="text-xs text-destructive">{translatedErrors.fullBio.message}</p>
-              ) : (
-                <span />
-              )}
-              <span
-                className={`text-xs ${
-                  (translatedValues.fullBio?.length ?? 0) > 4800
-                    ? 'text-amber-500'
-                    : 'text-muted-foreground'
-                }`}
-              >
-                {translatedValues.fullBio?.length ?? 0}/5000
-              </span>
-            </div>
-          </div>
+          {/* fullBio is managed from the Profile editor, not here */}
 
           <div className="space-y-1.5">
             <label

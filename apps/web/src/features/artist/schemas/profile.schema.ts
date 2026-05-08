@@ -28,7 +28,7 @@ const optionalEmail = z
   })
   .optional();
 
-const optionalLocalizedText = z.string().max(500, 'Must be 500 characters or less').optional();
+const optionalLocalizedText = z.string().max(1000, 'Must be 1000 characters or less').optional();
 const optionalLocalizedTitle = z
   .string()
   .max(60, 'SEO title must be 60 characters or less')
