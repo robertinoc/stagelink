@@ -1,5 +1,6 @@
 'use client';
 
+import emailjs from '@emailjs/browser';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { ContactFormBlockConfig } from '@stagelink/types';
@@ -12,30 +13,57 @@ interface ContactFormRendererProps {
 
 type Status = 'idle' | 'sending' | 'success' | 'error';
 
-export function ContactFormRenderer({ blockId, title, config }: ContactFormRendererProps) {
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function ContactFormRenderer({ title, config }: ContactFormRendererProps) {
   const t = useTranslations('blocks.renderer.contact_form');
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<Status>('idle');
 
-  if (!config.email) {
-    return null;
-  }
+  if (!config.email) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!message.trim() || status === 'sending') return;
+    if (status === 'sending') return;
+
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const trimmedMessage = message.trim();
+
+    if (trimmedName.length < 2 || trimmedMessage.length < 5 || !EMAIL_REGEX.test(trimmedEmail)) {
+      setStatus('error');
+      return;
+    }
+
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+    if (!publicKey || !serviceId || !templateId) {
+      setStatus('error');
+      return;
+    }
 
     setStatus('sending');
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
-      const res = await fetch(`${apiUrl}/api/public/blocks/${blockId}/contact`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim() || t('anonymous'), message: message.trim() }),
-      });
+      const safeName = trimmedName.replace(/[\r\n\t]/g, '').slice(0, 100);
+      const safeEmail = trimmedEmail.slice(0, 254);
+      const safeMessage = trimmedMessage.slice(0, 2000);
 
-      if (!res.ok) throw new Error('send_failed');
+      await emailjs.send(
+        serviceId,
+        templateId,
+        {
+          to_email: config.email,
+          from_name: safeName,
+          from_email: safeEmail,
+          reply_to: safeEmail,
+          subject: `Message from ${safeName} via StageLink`,
+          message: safeMessage,
+        },
+        { publicKey },
+      );
       setStatus('success');
     } catch {
       setStatus('error');
@@ -68,6 +96,20 @@ export function ContactFormRenderer({ blockId, title, config }: ContactFormRende
                 disabled={status === 'sending'}
                 className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-violet-500/50 focus:outline-none disabled:opacity-50"
                 maxLength={100}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-400">
+                {t('email_label')}
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('email_placeholder')}
+                disabled={status === 'sending'}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-violet-500/50 focus:outline-none disabled:opacity-50"
+                maxLength={254}
               />
             </div>
             <div>
