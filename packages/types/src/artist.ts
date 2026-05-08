@@ -123,6 +123,8 @@ export interface PublicPageResponse {
   blocks: PublicBlock[];
   promoSlot: PublicPromoSlot;
   publicEpkAvailable: boolean;
+  epkRiderInfo: string | null;
+  epkTechRequirements: string | null;
   locale: SupportedLocale;
   contentLocale: SupportedLocale;
 }

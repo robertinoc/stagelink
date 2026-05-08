@@ -464,6 +464,38 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                       </div>
                     )}
 
+                    {(page.epkRiderInfo || page.epkTechRequirements) && (
+                      <div className="neon-card-border rounded-[1.5rem] p-[1px]">
+                        <div className="rounded-[1.4rem] bg-[#0b0614] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
+                          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+                            {t('technical_rider.section_label')}
+                          </p>
+                          <div className="mt-4 space-y-6">
+                            {page.epkRiderInfo && (
+                              <div>
+                                <p className="mb-2 text-xs font-medium uppercase tracking-widest text-zinc-400">
+                                  {t('technical_rider.rider_info_label')}
+                                </p>
+                                <p className="whitespace-pre-wrap text-sm leading-7 text-zinc-200 sm:text-base">
+                                  {page.epkRiderInfo}
+                                </p>
+                              </div>
+                            )}
+                            {page.epkTechRequirements && (
+                              <div>
+                                <p className="mb-2 text-xs font-medium uppercase tracking-widest text-zinc-400">
+                                  {t('technical_rider.tech_requirements_label')}
+                                </p>
+                                <p className="whitespace-pre-wrap text-sm leading-7 text-zinc-200 sm:text-base">
+                                  {page.epkTechRequirements}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {(page.publicEpkAvailable || artist.contactEmail) && (
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         {page.publicEpkAvailable && (
