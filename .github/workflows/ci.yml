@@ -54,12 +54,33 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Restore node_modules cache
+        id: nm-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/api/node_modules
+            apps/web/node_modules
+            packages/types/node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        if: steps.nm-cache.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
 
       - name: Build shared types
         run: pnpm --filter @stagelink/types build
 
+      - name: Restore Prisma client cache
+        id: prisma-cache
+        uses: actions/cache@v4
+        with:
+          path: apps/api/node_modules/.prisma
+          key: prisma-${{ runner.os }}-${{ hashFiles('apps/api/prisma/schema.prisma') }}
+
       - name: Generate Prisma client
+        if: steps.prisma-cache.outputs.cache-hit != 'true'
         run: pnpm --filter @stagelink/api db:generate
 
       - name: Typecheck all packages
@@ -81,12 +102,33 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Restore node_modules cache
+        id: nm-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/api/node_modules
+            apps/web/node_modules
+            packages/types/node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        if: steps.nm-cache.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
 
       - name: Build shared types
         run: pnpm --filter @stagelink/types build
 
+      - name: Restore Prisma client cache
+        id: prisma-cache
+        uses: actions/cache@v4
+        with:
+          path: apps/api/node_modules/.prisma
+          key: prisma-${{ runner.os }}-${{ hashFiles('apps/api/prisma/schema.prisma') }}
+
       - name: Generate Prisma client
+        if: steps.prisma-cache.outputs.cache-hit != 'true'
         run: pnpm --filter @stagelink/api db:generate
 
       - name: Run API tests with coverage
@@ -138,7 +180,20 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Restore node_modules cache
+        id: nm-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/api/node_modules
+            apps/web/node_modules
+            packages/types/node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        if: steps.nm-cache.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
 
       - name: Build shared packages (required by web)
         run: pnpm --filter @stagelink/types build
@@ -192,6 +247,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
+          --tmpfs /var/lib/postgresql/data:rw,noexec,nosuid,size=256m
           --health-cmd "pg_isready -U stagelink -d stagelink_test"
           --health-interval 5s
           --health-timeout 5s
@@ -213,12 +269,33 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Restore node_modules cache
+        id: nm-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/api/node_modules
+            apps/web/node_modules
+            packages/types/node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        if: steps.nm-cache.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
 
       - name: Build shared types
         run: pnpm --filter @stagelink/types build
 
+      - name: Restore Prisma client cache
+        id: prisma-cache
+        uses: actions/cache@v4
+        with:
+          path: apps/api/node_modules/.prisma
+          key: prisma-${{ runner.os }}-${{ hashFiles('apps/api/prisma/schema.prisma') }}
+
       - name: Generate Prisma client
+        if: steps.prisma-cache.outputs.cache-hit != 'true'
         run: pnpm --filter @stagelink/api db:generate
 
       - name: Apply database migrations
@@ -262,9 +339,30 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Restore node_modules cache
+        id: nm-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/api/node_modules
+            apps/web/node_modules
+            packages/types/node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        if: steps.nm-cache.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore Prisma client cache
+        id: prisma-cache
+        uses: actions/cache@v4
+        with:
+          path: apps/api/node_modules/.prisma
+          key: prisma-${{ runner.os }}-${{ hashFiles('apps/api/prisma/schema.prisma') }}
 
       - name: Generate Prisma client
+        if: steps.prisma-cache.outputs.cache-hit != 'true'
         run: pnpm --filter @stagelink/api db:generate
 
       # Cache del build de Next.js
@@ -299,7 +397,20 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Restore node_modules cache
+        id: nm-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/api/node_modules
+            apps/web/node_modules
+            packages/types/node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        if: steps.nm-cache.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
 
       # Cache de binarios de Playwright
       - name: Cache Playwright browsers
@@ -348,7 +459,7 @@ jobs:
             echo "[Ver artefactos](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # ── 6. Smoke — producción (solo en push a main, después de E2E) ──────────
+  # ── 7. Smoke — producción (solo en push a main, después de E2E) ──────────
   smoke:
     name: Smoke tests (production)
     runs-on: ubuntu-latest
@@ -367,7 +478,20 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Restore node_modules cache
+        id: nm-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/api/node_modules
+            apps/web/node_modules
+            packages/types/node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        if: steps.nm-cache.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
