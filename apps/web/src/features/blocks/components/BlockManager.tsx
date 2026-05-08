@@ -205,7 +205,7 @@ function getBlockPreview(block: Block, t: ReturnType<typeof useTranslations<'blo
       return headline?.trim() || t('type_descriptions.email_capture');
     }
     default:
-      return t(`type_descriptions.${block.type}`);
+      return '';
   }
 }
 

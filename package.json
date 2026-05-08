@@ -14,6 +14,7 @@
     "typecheck": "pnpm --recursive typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml,css}\"",
+    "security:audit": "pnpm audit --audit-level moderate",
     "test": "pnpm --recursive test",
     "test:api": "pnpm --filter @stagelink/api test",
     "test:api:coverage": "pnpm --filter @stagelink/api test:coverage",
@@ -37,6 +38,17 @@
     "prepare": "husky"
   },
   "pnpm": {
+    "overrides": {
+      "@angular-devkit/core>ajv": "8.18.0",
+      "brace-expansion": "1.1.13",
+      "dompurify": "3.4.0",
+      "fast-xml-parser": "5.7.0",
+      "handlebars": "4.7.9",
+      "lodash": "4.18.0",
+      "picomatch": "4.0.4",
+      "postcss": "8.5.10",
+      "protobufjs": "7.5.5"
+    },
     "onlyBuiltDependencies": [
       "@nestjs/core",
       "@prisma/client",
