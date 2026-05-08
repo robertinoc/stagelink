@@ -1,7 +1,9 @@
 import { Body, Controller, Headers, HttpCode, Param, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { PublicSubscribeService } from './public-subscribe.service';
+import { PublicContactService } from './public-contact.service';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
+import { ContactFormDto } from './dto/contact-form.dto';
 import { Public } from '../../common/decorators';
 import { PublicRateLimitGuard } from '../../common/guards';
 import { ParseCuidPipe } from '../../common/pipes/parse-cuid.pipe';
@@ -19,7 +21,10 @@ import { extractClientIp } from '../../common/utils/request.utils';
 @Controller('public/blocks')
 @UseGuards(PublicRateLimitGuard)
 export class PublicBlocksController {
-  constructor(private readonly publicSubscribeService: PublicSubscribeService) {}
+  constructor(
+    private readonly publicSubscribeService: PublicSubscribeService,
+    private readonly publicContactService: PublicContactService,
+  ) {}
 
   /**
    * POST /api/public/blocks/:blockId/subscribers
@@ -55,6 +60,26 @@ export class PublicBlocksController {
       slAc,
       slInternal,
     });
+    return { ok: true };
+  }
+
+  /**
+   * POST /api/public/blocks/:blockId/contact
+   *
+   * Sends a contact message from a visitor to the artist's email via Resend.
+   * The destination email is resolved from the block config, falling back to
+   * the artist's profile contactEmail.
+   *
+   * 400 if Resend is not configured or no email is set.
+   * 404 if block doesn't exist or isn't published.
+   */
+  @Post(':blockId/contact')
+  @HttpCode(200)
+  async sendContact(
+    @Param('blockId', ParseCuidPipe) blockId: string,
+    @Body() dto: ContactFormDto,
+  ): Promise<{ ok: boolean }> {
+    await this.publicContactService.sendContactMessage(blockId, dto);
     return { ok: true };
   }
 }

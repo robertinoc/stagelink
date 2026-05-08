@@ -139,7 +139,11 @@ export function BlockRenderer({ block, onLinkClick }: BlockRendererProps) {
 
   if (block.type === 'contact_form') {
     return (
-      <ContactFormRenderer title={block.title} config={block.config as ContactFormBlockConfig} />
+      <ContactFormRenderer
+        blockId={block.id}
+        title={block.title}
+        config={block.config as ContactFormBlockConfig}
+      />
     );
   }
 
