@@ -28,7 +28,6 @@ export class CreateUploadIntentDto {
 export class UploadIntentResponseDto {
   assetId!: string;
   uploadUrl!: string;
-  objectKey!: string;
   expiresAt!: string; // ISO 8601
 }
 

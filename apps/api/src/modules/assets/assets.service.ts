@@ -89,7 +89,6 @@ export class AssetsService {
     return {
       assetId: asset.id,
       uploadUrl,
-      objectKey,
       expiresAt: expiresAt.toISOString(),
     };
   }

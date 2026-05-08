@@ -29,7 +29,6 @@ export interface UploadIntentRequest {
 export interface UploadIntentResponse {
   assetId: string;
   uploadUrl: string;
-  objectKey: string;
   expiresAt: string; // ISO 8601
 }
 

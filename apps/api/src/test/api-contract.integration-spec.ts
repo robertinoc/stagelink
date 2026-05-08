@@ -175,7 +175,7 @@ function createMocks() {
       json({
         assetId: ASSET_ID,
         uploadUrl: 'https://uploads.stagelink.test/asset',
-        objectKey: 'a/b',
+        expiresAt: '2026-05-07T23:59:59.000Z',
       }),
     ),
     confirmUpload: jest.fn(() => json({ id: ASSET_ID, status: 'uploaded' })),
