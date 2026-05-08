@@ -94,8 +94,8 @@ Current launch posture:
 
 ## Residual Backlog
 
-| Priority | Item                                                                                   | Target section                    |
-| -------- | -------------------------------------------------------------------------------------- | --------------------------------- |
-| P1       | Replace hardcoded Nest `AdminOwnerGuard` owner email with env/config                   | E2.6 Secrets & Config or E5 Infra |
-| P2       | Consider declarative `OwnershipGuard` on service-validated controllers for readability | E3 hardening                      |
-| P3       | Consider DB row-level security if StageLink evolves into heavier multi-tenant usage    | Audit 360 / future architecture   |
+| Priority | Item                                                                                   | Target section                                             |
+| -------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Closed   | Replace hardcoded Nest `AdminOwnerGuard` owner email with env/config                   | Closed in E2.6 via `BEHIND_ADMIN_EMAILS` shared API config |
+| P2       | Consider declarative `OwnershipGuard` on service-validated controllers for readability | E3 hardening                                               |
+| P3       | Consider DB row-level security if StageLink evolves into heavier multi-tenant usage    | Audit 360 / future architecture                            |

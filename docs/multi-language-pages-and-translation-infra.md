@@ -276,7 +276,8 @@ Comportamiento:
 
 Configuración:
 
-- `OPENAI_API_KEY` en el frontend (`apps/web/.env.local` o entorno equivalente en Vercel)
+- `OPENAI_API_KEY` en el entorno server-side de `apps/web` (`.env.local` o
+  entorno equivalente en Vercel). No usar prefijo `NEXT_PUBLIC_`.
 - opcional: `OPENAI_TRANSLATION_MODEL`
 
 La traducción automática está acotada a:

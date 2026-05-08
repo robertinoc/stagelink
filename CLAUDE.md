@@ -174,7 +174,8 @@ docs/
 ├── security-audit-e2-authorization.md # E2.2 autorización: ownership, IDOR/BOLA, aislamiento multi-tenant y fix analytics
 ├── security-audit-e2-api-security.md # E2.3 API security: input validation, XSS/injection y rate limiting
 ├── security-audit-e2-frontend-security.md # E2.4 frontend security: XSS rendering, tokens/secrets y redirects
-└── security-audit-e2-db-data-security.md # E2.5 DB/data security: roles, cross-tenant exposure y sensitive data
+├── security-audit-e2-db-data-security.md # E2.5 DB/data security: roles, cross-tenant exposure y sensitive data
+└── security-audit-e2-secrets-config.md # E2.6 secrets/config: .env, hardcoded secrets y public/private env vars
 ```
 
 ---
@@ -500,17 +501,24 @@ Usar un helper centralizado tanto en backend como en frontend para verificar el 
 ```
 # Frontend (apps/web/.env.local)
 NEXT_PUBLIC_APP_URL=                    # http://localhost:4000 en dev | https://stagelink.art en producción
-NEXT_PUBLIC_API_URL=                    # http://localhost:4001 en dev
+NEXT_PUBLIC_API_URL=                    # public config; http://localhost:4001 en dev
+API_URL=                                # server-only API URL para SSR/route handlers
 WORKOS_CLIENT_ID=                       # WorkOS Dashboard → API Keys
 WORKOS_API_KEY=                         # WorkOS Dashboard → API Keys (server-side)
 WORKOS_REDIRECT_URI=                    # http://localhost:4000/api/auth/callback (frontend Next.js)
 WORKOS_COOKIE_PASSWORD=                 # openssl rand -base64 32 (mín 32 chars)
+BEHIND_ADMIN_EMAILS=                    # server-only, allowlist Behind/admin
+RESEND_API_KEY=                         # server-only, contact form
+UPSTASH_REDIS_KV_REST_API_URL=          # server-only, Behind role persistence
+UPSTASH_REDIS_KV_REST_API_TOKEN=        # server-only, Behind role persistence
 
 # Backend (apps/api/.env)
 DATABASE_URL=                           # PostgreSQL (requerida en producción)
+DIRECT_URL=                             # Prisma migrate / conexión directa
 PORT=                                   # Inyectado por Railway automáticamente
 WORKOS_CLIENT_ID=                       # Para construir URL JWKS
 WORKOS_API_KEY=                         # Para fetchear perfil en 1er login
+BEHIND_ADMIN_EMAILS=                    # misma allowlist owner/admin que web
 AWS_S3_BUCKET=                          # Nombre del bucket (ej: stagelink-assets)
 AWS_S3_REGION=                          # auto (R2) o us-east-1 (AWS)
 AWS_ACCESS_KEY_ID=                      # R2 o IAM access key
