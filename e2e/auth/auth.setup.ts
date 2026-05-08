@@ -9,6 +9,14 @@ const ARTIST_AUTH_FILE = path.join(__dirname, '../.auth/artist.json');
 const E2E_AUTH_EMAIL = process.env.E2E_AUTH_EMAIL;
 const E2E_AUTH_PASSWORD = process.env.E2E_AUTH_PASSWORD;
 const AUTH_SETUP_TIMEOUT = 120_000;
+const AUTH_FAILED_ERROR = [
+  'WorkOS callback returned /login?error=auth_failed.',
+  'Most likely causes:',
+  '- PLAYWRIGHT_BASE_URL / STAGING_URL host does not match the WorkOS callback host, so the PKCE state cookie is written on one domain and read on another.',
+  '- WORKOS_REDIRECT_URI in the staging deployment is not the same origin as STAGING_URL.',
+  '- WORKOS_COOKIE_DOMAIN is scoped to a different parent domain than STAGING_URL.',
+  '- The staging WorkOS environment rejected the login or requires an interactive challenge.',
+].join('\n');
 
 function isAuthenticatedAppUrl(url: URL): boolean {
   const pathname = url.pathname;
@@ -59,6 +67,17 @@ async function completeHostedAuth(page: Page) {
     .then(() => 'invalid-credentials' as const)
     .catch(() => new Promise<never>(() => undefined));
 
+  const callbackFailureResult = page
+    .waitForURL(
+      (url) => url.pathname.endsWith('/login') && url.searchParams.get('error') === 'auth_failed',
+      {
+        timeout: 90_000,
+        waitUntil: 'domcontentloaded',
+      },
+    )
+    .then(() => 'auth-failed' as const)
+    .catch(() => new Promise<never>(() => undefined));
+
   const authResult = await Promise.race([
     page
       .waitForURL((url) => isAuthenticatedAppUrl(url), {
@@ -67,6 +86,7 @@ async function completeHostedAuth(page: Page) {
       })
       .then(() => 'authenticated' as const),
     invalidCredentialsResult,
+    callbackFailureResult,
   ]);
 
   if (authResult === 'invalid-credentials') {
@@ -74,6 +94,10 @@ async function completeHostedAuth(page: Page) {
     throw new Error(
       'WorkOS rejected E2E_AUTH_EMAIL/E2E_AUTH_PASSWORD. Update the staging GitHub environment secrets with a valid staging test user before running authenticated E2E.',
     );
+  }
+
+  if (authResult === 'auth-failed') {
+    throw new Error(AUTH_FAILED_ERROR);
   }
 
   if (authResult !== 'authenticated') {

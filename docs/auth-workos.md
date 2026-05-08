@@ -52,6 +52,8 @@ WORKOS_CLIENT_ID=client_XXXXXXXX      # Dashboard → Your App → API Keys
 WORKOS_API_KEY=sk-XXXXXXXXXXXXXXXX    # Dashboard → Your App → API Keys (server-side)
 WORKOS_REDIRECT_URI=http://localhost:4000/api/auth/callback
 WORKOS_COOKIE_PASSWORD=<32+ chars>    # openssl rand -base64 32
+# Production only, when sharing sessions with behind.stagelink.art:
+WORKOS_COOKIE_DOMAIN=.stagelink.art
 
 # App URLs
 NEXT_PUBLIC_APP_URL=http://localhost:4000
@@ -74,14 +76,34 @@ DATABASE_URL=postgresql://...
 1. Ir a **Authentication** → **Redirect URIs**
 2. Añadir cada URL de callback:
    - `http://localhost:4000/api/auth/callback` (local)
-   - `https://stagelink.link/api/auth/callback` (producción canónica)
+   - `https://stagelink.art/api/auth/callback` (producción canónica)
    - `https://staging.stagelink.link/api/auth/callback` (staging, si está activo)
    - `https://*.vercel.app/api/auth/callback` (preview)
 3. Configurar los **Auth Methods** que corresponda (Email + Password es suficiente para MVP)
 
-`stagelink.art` y `www.stagelink.art` son dominios de redirect hacia
-`stagelink.link`; no deberían configurarse como callback principal salvo que se
+`stagelink.link` y `www.stagelink.link` son dominios legacy que redirigen hacia
+`stagelink.art`; no deberían configurarse como callback principal salvo que se
 decida permitir sesiones directas en ese host.
+
+### Staging E2E y PKCE
+
+El login automatizado depende de la cookie PKCE/state que WorkOS AuthKit escribe
+antes de mandar al usuario a la hosted UI. Esa cookie es host-bound, por lo que
+el host donde empieza el E2E debe ser el mismo host al que WorkOS vuelve en el
+callback.
+
+Para staging:
+
+- `STAGING_URL` en GitHub Environment `staging` debe apuntar al mismo origen que
+  `WORKOS_REDIRECT_URI` en el deployment web de staging.
+- WorkOS Staging debe tener ese callback permitido.
+- Si `STAGING_URL=https://staging.stagelink.link`, entonces el deployment web de
+  staging debe tener `WORKOS_REDIRECT_URI=https://staging.stagelink.link/api/auth/callback`.
+- No setear `WORKOS_COOKIE_DOMAIN=.stagelink.art` en staging si el host de
+  staging es `staging.stagelink.link`; esa cookie no pertenece al parent domain
+  `.stagelink.link` y el callback no podrá verificar el estado.
+- El usuario de `E2E_AUTH_EMAIL` debe existir en el WorkOS environment usado por
+  ese deployment y debe poder ingresar con Email + Password, sin desafío manual.
 
 ## Flujo login / signup / logout
 

@@ -75,3 +75,23 @@ WorkOS credentials live in the GitHub `staging` environment.
 
 Task 2 is closed when the follow-up PR is merged and the next `main` CI run
 passes staging E2E with authenticated projects enabled.
+
+## 2026-05-08 Regression Note
+
+After the CSP report-only console warning was fixed in PR #280, the next `main`
+CI run reached authenticated E2E again and failed in the WorkOS setup project:
+
+```text
+/en/login?error=auth_failed
+```
+
+The likely cause is staging environment alignment rather than app business
+logic: WorkOS AuthKit writes a PKCE/state cookie on the host where login starts,
+then reads it on the callback host. Therefore the GitHub `staging` secret
+`STAGING_URL`, the Vercel staging `WORKOS_REDIRECT_URI`, and the WorkOS Staging
+allowed redirect URI must share the same origin. Also do not use
+`WORKOS_COOKIE_DOMAIN=.stagelink.art` when staging runs on
+`staging.stagelink.link`.
+
+The E2E auth helper now detects `/login?error=auth_failed` directly and prints
+this configuration checklist instead of timing out with a generic URL wait.
