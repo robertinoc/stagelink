@@ -254,6 +254,8 @@ enum BlockType {
   image_gallery
   shopify_store
   smart_merch
+  technical_rider
+  contact_form
 
   @@map("block_type")
 }

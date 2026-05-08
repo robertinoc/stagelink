@@ -60,6 +60,8 @@ const BLOCK_TYPE_ICONS: Record<BlockType, string> = {
   image_gallery: '🖼️',
   shopify_store: '🛍️',
   smart_merch: '👕',
+  technical_rider: '🎚️',
+  contact_form: '📬',
 };
 
 const BLOCK_TYPE_ACCENTS: Record<
@@ -109,6 +111,16 @@ const BLOCK_TYPE_ACCENTS: Record<
     border: 'border-cyan-500/25',
     background: 'bg-cyan-500/8',
     preview: 'text-cyan-200',
+  },
+  technical_rider: {
+    border: 'border-violet-500/25',
+    background: 'bg-violet-500/8',
+    preview: 'text-violet-200',
+  },
+  contact_form: {
+    border: 'border-sky-500/25',
+    background: 'bg-sky-500/8',
+    preview: 'text-sky-200',
   },
 };
 

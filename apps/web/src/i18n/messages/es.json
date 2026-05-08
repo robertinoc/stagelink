@@ -1258,7 +1258,9 @@
       "text": "Texto",
       "image_gallery": "Galería de imágenes",
       "shopify_store": "Merch",
-      "smart_merch": "Smart Merch"
+      "smart_merch": "Smart Merch",
+      "technical_rider": "Rider técnico",
+      "contact_form": "Formulario de contacto"
     },
     "type_descriptions": {
       "links": "Agregá links a tus perfiles, sitio web o cualquier lugar.",
@@ -1268,7 +1270,9 @@
       "text": "Área de texto libre — bio, rider, nota de prensa o lo que quieras decir.",
       "image_gallery": "Mostrá una galería usando imágenes de tu galería de Perfil.",
       "shopify_store": "Mostrá merch seleccionada desde tu storefront conectado de Shopify.",
-      "smart_merch": "Elegí productos reales desde Printful y agregá un link externo de compra para cada uno."
+      "smart_merch": "Elegí productos reales desde Printful y agregá un link externo de compra para cada uno.",
+      "technical_rider": "Mostrá tu rider técnico y de producción desde tu Prensa.",
+      "contact_form": "Dejá que los visitantes te envíen un mensaje directamente desde tu página."
     },
     "fields": {
       "title": "Título del bloque (opcional)",
@@ -1368,7 +1372,31 @@
       "smart_merch_locale_es": "Español",
       "smart_merch_localized_headline": "Título localizado",
       "smart_merch_localized_subtitle": "Subtítulo localizado (opcional)",
-      "smart_merch_localized_cta": "Texto localizado del CTA (opcional)"
+      "smart_merch_localized_cta": "Texto localizado del CTA (opcional)",
+      "technical_rider_info_title": "Datos tomados de tu Prensa",
+      "technical_rider_info_body": "Este bloque muestra automáticamente tu Rider técnico y Requisitos técnicos de tu Prensa. Actualizá ese contenido en Dashboard > Prensa.",
+      "contact_form_info_title": "Un formulario simple de contacto para los visitantes",
+      "contact_form_info_body": "Los visitantes escriben su nombre y mensaje, y se abre su cliente de correo pre-completado. Dejá el campo email vacío para usar el email de contacto de tu Perfil.",
+      "contact_form_email_label": "Email de destino (opcional)",
+      "contact_form_email_placeholder": "bookings@tuartista.com",
+      "contact_form_email_hint": "Dejá vacío para usar el email de contacto de tu Perfil."
+    },
+    "renderer": {
+      "technical_rider": {
+        "section_label": "Rider técnico",
+        "rider_info_label": "Rider",
+        "tech_requirements_label": "Requisitos técnicos"
+      },
+      "contact_form": {
+        "section_label": "Contacto",
+        "name_label": "Tu nombre",
+        "name_placeholder": "Tu nombre",
+        "message_label": "Mensaje",
+        "message_placeholder": "Escribí tu mensaje aquí...",
+        "send_button": "Enviar mensaje",
+        "subject_template": "Mensaje de {name} vía página",
+        "anonymous": "un fan"
+      }
     },
     "smart_link": {
       "destination": "Destino",

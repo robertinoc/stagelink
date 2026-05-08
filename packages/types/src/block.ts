@@ -23,6 +23,8 @@ export const BLOCK_TYPES = [
   'image_gallery',
   'shopify_store',
   'smart_merch',
+  'technical_rider',
+  'contact_form',
 ] as const;
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
@@ -182,6 +184,17 @@ export interface SmartMerchBlockTranslations {
   ctaLabel?: LocalizedTextMap;
 }
 
+/** No artist-editable config — rider data is injected from EPK at serve time */
+export interface TechnicalRiderBlockConfig {
+  riderInfo: string | null;
+  techRequirements: string | null;
+}
+
+export interface ContactFormBlockConfig {
+  /** Destination email. Defaults to artist.contactEmail when omitted. */
+  email: string;
+}
+
 export interface BlockLocalizedContent {
   title?: LocalizedTextMap;
   emailCapture?: EmailCaptureBlockTranslations;
@@ -199,7 +212,9 @@ export type BlockConfig =
   | TextBlockConfig
   | ImageGalleryBlockConfig
   | ShopifyStoreBlockConfig
-  | SmartMerchBlockConfig;
+  | SmartMerchBlockConfig
+  | TechnicalRiderBlockConfig
+  | ContactFormBlockConfig;
 
 // ─── Block entity ─────────────────────────────────────────────────────────────
 
@@ -279,4 +294,16 @@ export function isSmartMerchBlock(
   block: Block,
 ): block is Block & { config: SmartMerchBlockConfig } {
   return block.type === 'smart_merch';
+}
+
+export function isTechnicalRiderBlock(
+  block: Block,
+): block is Block & { config: TechnicalRiderBlockConfig } {
+  return block.type === 'technical_rider';
+}
+
+export function isContactFormBlock(
+  block: Block,
+): block is Block & { config: ContactFormBlockConfig } {
+  return block.type === 'contact_form';
 }

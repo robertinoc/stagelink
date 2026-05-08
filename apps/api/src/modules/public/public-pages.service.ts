@@ -19,6 +19,7 @@ import {
   type SmartMerchProductSelection,
   type ShopifyStoreBlockConfig,
   type ShopifyStoreProduct,
+  type TechnicalRiderBlockConfig,
   type SupportedLocale,
   type SmartMerchProvider,
 } from '@stagelink/types';
@@ -137,6 +138,11 @@ function localizeBlock(
     products: ShopifyStoreProduct[];
   },
   smartMerchProducts?: SmartMerchProduct[],
+  options?: {
+    epkRiderInfo?: string | null;
+    epkTechRequirements?: string | null;
+    artistContactEmail?: string | null;
+  },
 ): PublicBlockDto {
   const localizedContent = (block.localizedContent as BlockLocalizedContent | null) ?? {};
   const baseConfig = (block.config as Record<string, unknown>) ?? {};
@@ -272,6 +278,32 @@ function localizeBlock(
           locale,
         ),
         products: (smartMerchProducts ?? []).slice(0, maxItems),
+      },
+    };
+  }
+
+  if (block.type === 'technical_rider') {
+    return {
+      id: block.id,
+      type: block.type,
+      title: localizedTitle,
+      position: block.position,
+      config: {
+        riderInfo: options?.epkRiderInfo ?? null,
+        techRequirements: options?.epkTechRequirements ?? null,
+      } satisfies TechnicalRiderBlockConfig,
+    };
+  }
+
+  if (block.type === 'contact_form') {
+    const contactConfig = baseConfig as { email?: string };
+    return {
+      id: block.id,
+      type: block.type,
+      title: localizedTitle,
+      position: block.position,
+      config: {
+        email: contactConfig.email || options?.artistContactEmail || '',
       },
     };
   }
@@ -725,7 +757,11 @@ export class PublicPagesService {
           const smartMerchProducts =
             block.type === 'smart_merch' ? smartMerchProductsByBlock.get(block.id) : undefined;
 
-          return localizeBlock(block, locale, shopifySelection ?? undefined, smartMerchProducts);
+          return localizeBlock(block, locale, shopifySelection ?? undefined, smartMerchProducts, {
+            epkRiderInfo,
+            epkTechRequirements,
+            artistContactEmail: page.artist.contactEmail,
+          });
         }),
       )
     ).filter(
@@ -733,7 +769,11 @@ export class PublicPagesService {
         (block.type !== 'shopify_store' ||
           ((block.config as ShopifyStoreBlockConfig).products ?? []).length > 0) &&
         (block.type !== 'smart_merch' ||
-          ((block.config as unknown as Partial<SmartMerchBlockConfig>).products ?? []).length > 0),
+          ((block.config as unknown as Partial<SmartMerchBlockConfig>).products ?? []).length >
+            0) &&
+        (block.type !== 'technical_rider' ||
+          !!(block.config as unknown as TechnicalRiderBlockConfig).riderInfo ||
+          !!(block.config as unknown as TechnicalRiderBlockConfig).techRequirements),
     );
 
     return {

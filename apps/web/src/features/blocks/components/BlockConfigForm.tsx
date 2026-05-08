@@ -18,6 +18,7 @@ import type {
   SmartMerchBlockConfig,
   SmartMerchProduct,
   ShopifyStoreBlockConfig,
+  ContactFormBlockConfig,
   SupportedLocale,
 } from '@stagelink/types';
 import { SUPPORTED_LOCALES } from '@stagelink/types';
@@ -1266,6 +1267,50 @@ function SmartMerchBlockForm({
   );
 }
 
+// ─── Technical Rider ─────────────────────────────────────────────────────────
+
+function TechnicalRiderForm() {
+  const t = useTranslations('blocks.fields');
+  return (
+    <div className="rounded-md border border-violet-500/20 bg-violet-500/5 p-4">
+      <p className="text-sm font-medium text-violet-300">{t('technical_rider_info_title')}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{t('technical_rider_info_body')}</p>
+    </div>
+  );
+}
+
+// ─── Contact Form ─────────────────────────────────────────────────────────────
+
+function ContactFormFormBlock({
+  config,
+  onChange,
+}: {
+  config: ContactFormBlockConfig;
+  onChange: (c: ContactFormBlockConfig) => void;
+}) {
+  const t = useTranslations('blocks.fields');
+  return (
+    <div className="space-y-3">
+      <div className="rounded-md border border-sky-500/20 bg-sky-500/5 p-4">
+        <p className="text-sm font-medium text-sky-300">{t('contact_form_info_title')}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{t('contact_form_info_body')}</p>
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium">{t('contact_form_email_label')}</label>
+        <input
+          type="email"
+          placeholder={t('contact_form_email_placeholder')}
+          value={config.email}
+          onChange={(e) => onChange({ ...config, email: e.target.value })}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          maxLength={254}
+        />
+        <p className="mt-1 text-xs text-muted-foreground">{t('contact_form_email_hint')}</p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Default configs ──────────────────────────────────────────────────────────
 
 export function defaultConfig(type: BlockType): BlockConfig {
@@ -1305,6 +1350,10 @@ export function defaultConfig(type: BlockType): BlockConfig {
         selectedProducts: [],
         maxItems: 4,
       };
+    case 'technical_rider':
+      return { riderInfo: null, techRequirements: null };
+    case 'contact_form':
+      return { email: '' };
   }
 }
 
@@ -1377,6 +1426,15 @@ export function BlockConfigForm({
           localizedContent={localizedContent}
           onLocalizedContentChange={onLocalizedContentChange}
           artistId={artistId}
+        />
+      );
+    case 'technical_rider':
+      return <TechnicalRiderForm />;
+    case 'contact_form':
+      return (
+        <ContactFormFormBlock
+          config={config as ContactFormBlockConfig}
+          onChange={(c) => onChange(c)}
         />
       );
   }

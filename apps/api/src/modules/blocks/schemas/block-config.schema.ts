@@ -41,6 +41,7 @@ import {
 // =============================================================
 
 const MAX_TITLE_LENGTH = 200;
+const MAX_EMAIL_LENGTH = 254;
 const MAX_LABEL_LENGTH = 100;
 // MAX_URL_LENGTH imported from @stagelink/types — single source of truth.
 const MAX_HEADLINE_LENGTH = 100;
@@ -459,6 +460,16 @@ function validateShopifyStoreConfig(c: Record<string, unknown>): void {
   }
 }
 
+function validateContactFormConfig(c: Record<string, unknown>): void {
+  // email is optional — falls back to artist.contactEmail at serve time
+  if (c['email'] !== undefined && c['email'] !== null && c['email'] !== '') {
+    assertOptionalString(c['email'], 'contact_form config.email', MAX_EMAIL_LENGTH);
+    if (typeof c['email'] === 'string' && !c['email'].includes('@')) {
+      throw new BadRequestException('contact_form config.email must be a valid email address');
+    }
+  }
+}
+
 function validateSmartMerchConfig(c: Record<string, unknown>): void {
   if (!SMART_MERCH_PROVIDERS.includes(c['provider'] as (typeof SMART_MERCH_PROVIDERS)[number])) {
     throw new BadRequestException(
@@ -808,6 +819,12 @@ export function validateBlockConfig(type: BlockType, config: unknown): void {
       break;
     case 'smart_merch':
       validateSmartMerchConfig(config);
+      break;
+    case 'technical_rider':
+      // Config is server-injected from EPK at serve time — no user-editable fields.
+      break;
+    case 'contact_form':
+      validateContactFormConfig(config);
       break;
     default: {
       // Exhaustive guard — TypeScript will error here if a new BlockType

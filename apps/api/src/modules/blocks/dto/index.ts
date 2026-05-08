@@ -23,6 +23,8 @@ export const BLOCK_TYPES = [
   'image_gallery',
   'shopify_store',
   'smart_merch',
+  'technical_rider',
+  'contact_form',
 ] as const;
 export type BlockTypeValue = (typeof BLOCK_TYPES)[number];
 
