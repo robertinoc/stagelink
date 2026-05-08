@@ -175,7 +175,8 @@ docs/
 ├── security-audit-e2-api-security.md # E2.3 API security: input validation, XSS/injection y rate limiting
 ├── security-audit-e2-frontend-security.md # E2.4 frontend security: XSS rendering, tokens/secrets y redirects
 ├── security-audit-e2-db-data-security.md # E2.5 DB/data security: roles, cross-tenant exposure y sensitive data
-└── security-audit-e2-secrets-config.md # E2.6 secrets/config: .env, hardcoded secrets y public/private env vars
+├── security-audit-e2-secrets-config.md # E2.6 secrets/config: .env, hardcoded secrets y public/private env vars
+└── security-audit-e2-infra-headers.md # E2.7 infra/headers: HTTPS/HSTS, security headers y CORS
 ```
 
 ---

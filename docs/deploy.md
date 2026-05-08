@@ -74,6 +74,20 @@ URL del preview: `https://stagelink-git-{branch-name}-{user}.vercel.app`
 Estos orígenes están permitidos en el CORS del API gracias al patrón:
 `/^https:\/\/stagelink[a-z0-9-]*\.vercel\.app$/`
 
+### Security headers web
+
+`apps/web/vercel.json` aplica headers baseline a todo el deployment:
+
+- `Strict-Transport-Security`
+- `X-Frame-Options: DENY`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy`
+- `Content-Security-Policy-Report-Only`
+
+La CSP queda en modo report-only para observar compatibilidad con embeds,
+WorkOS, PostHog y scripts de Next antes de pasarla a modo bloqueante.
+
 ---
 
 ## Railway (Backend)
@@ -317,6 +331,8 @@ Si hay errores de CORS en producción:
 1. Verificar que `FRONTEND_URL` en Railway apunta a la URL correcta de Vercel
 2. Para orígenes adicionales: agregar a `CORS_ALLOWED_ORIGINS` (comma-separated)
 3. Los preview de Vercel (`*.vercel.app`) ya están permitidos automáticamente
+4. Los headers browser permitidos incluyen `X-Request-ID`, `X-SL-AC` y `X-SL-QA`
+   para request tracing y analytics/QA quality flags
 
 ### Prisma migrations en producción
 
