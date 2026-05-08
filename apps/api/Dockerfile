@@ -12,7 +12,9 @@ FROM node:20-alpine
 # OpenSSL required by Prisma on Alpine/musl
 RUN apk add --no-cache openssl
 
-RUN npm install -g pnpm@latest --ignore-scripts
+# Keep pnpm pinned to the same Node 20-compatible major used by local/CI.
+# `pnpm@latest` can move to a Node 22+ only release and break Railway builds.
+RUN npm install -g pnpm@10.33.2 --ignore-scripts
 
 WORKDIR /app
 

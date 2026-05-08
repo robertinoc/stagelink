@@ -95,6 +95,15 @@ consola, lo que rompe el smoke test sin indicar una falla real de la app.
 
 ## Railway (Backend)
 
+### Build runtime
+
+El Dockerfile del API fija `pnpm@10.33.2` en lugar de usar `pnpm@latest`.
+Railway compila sobre `node:20-alpine`; nuevos majors de pnpm pueden requerir
+Node 22+ y romper el build antes de instalar dependencias.
+
+Si StageLink migra a Node 22, actualizar la imagen base y el pin de pnpm en el
+mismo PR.
+
 ### Configuración inicial
 
 1. Ir a [railway.app](https://railway.app) → New Project → Deploy from GitHub repo
