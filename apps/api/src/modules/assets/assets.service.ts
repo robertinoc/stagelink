@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  Logger,
+} from '@nestjs/common';
 import type { User } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
 import { S3Service } from '../../lib/s3/s3.service';
@@ -110,6 +116,22 @@ export class AssetsService {
     await this.membershipService.validateAccess(user.id, asset.artistId, 'write');
     if (asset.status !== 'pending') {
       throw new BadRequestException(`Asset is already ${asset.status}`);
+    }
+
+    const config = ASSET_CONFIG[asset.kind];
+    if (!config) {
+      throw new InternalServerErrorException('Asset kind is not configured');
+    }
+
+    try {
+      await this.s3.verifyUploadedObject(asset.objectKey, asset.mimeType, config.maxSizeBytes);
+    } catch (error) {
+      this.logger.warn(
+        `Upload confirmation rejected: assetId=${assetId} reason=${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      throw new BadRequestException('Upload has not completed or does not match the upload intent');
     }
 
     const deliveryUrl = this.s3.buildDeliveryUrl(asset.objectKey);

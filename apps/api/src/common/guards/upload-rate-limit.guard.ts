@@ -4,9 +4,12 @@ import {
   ExecutionContext,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import type { User } from '@prisma/client';
+import { extractClientIp } from '../utils/request.utils';
+import { FixedWindowRateLimiter, type RateLimitDecision } from '../utils/fixed-window-rate-limit';
 
 /**
  * UploadRateLimitGuard — fixed-window in-memory rate limiter for the
@@ -25,45 +28,41 @@ import type { User } from '@prisma/client';
  * multi-instance production deployments.
  */
 
-interface RateLimitEntry {
-  count: number;
-  windowStart: number;
-}
-
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 20;
 
-const store = new Map<string, RateLimitEntry>();
-
-// Periodic cleanup — prevents unbounded Map growth.
-const cleanupTimer = setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of store.entries()) {
-    if (now - entry.windowStart > WINDOW_MS * 5) store.delete(key);
-  }
-}, 5 * 60_000);
-cleanupTimer.unref?.();
+const limiter = new FixedWindowRateLimiter({
+  namespace: 'upload-intent',
+  windowMs: WINDOW_MS,
+  maxRequests: MAX_REQUESTS,
+});
 
 @Injectable()
 export class UploadRateLimitGuard implements CanActivate {
+  private readonly logger = new Logger(UploadRateLimitGuard.name);
+
   canActivate(context: ExecutionContext): boolean {
     const req = context.switchToHttp().getRequest<Request & { user?: User }>();
+    const res = context.switchToHttp().getResponse<Response>();
     const userId = req.user?.id ?? 'anonymous';
-    const key = `upload-intent:${userId}`;
-    const now = Date.now();
-
-    const entry = store.get(key);
-
-    if (!entry || now - entry.windowStart > WINDOW_MS) {
-      store.set(key, { count: 1, windowStart: now });
-      return true;
-    }
-
-    if (entry.count >= MAX_REQUESTS) {
+    const ip = extractClientIp(req) ?? 'unknown';
+    const decision = limiter.check(`${userId}:${ip}`);
+    setRateLimitHeaders(res, decision);
+    if (!decision.allowed) {
+      this.logger.warn(
+        `Upload intent rate limit exceeded: userId=${userId} ip=${ip} path=${req.originalUrl}`,
+      );
       throw new HttpException('Too many upload requests', HttpStatus.TOO_MANY_REQUESTS);
     }
-
-    entry.count++;
     return true;
+  }
+}
+
+function setRateLimitHeaders(res: Response, decision: RateLimitDecision): void {
+  res.setHeader('X-RateLimit-Limit', String(decision.limit));
+  res.setHeader('X-RateLimit-Remaining', String(decision.remaining));
+  res.setHeader('X-RateLimit-Reset', decision.resetAt.toISOString());
+  if (!decision.allowed) {
+    res.setHeader('Retry-After', String(decision.retryAfterSeconds));
   }
 }

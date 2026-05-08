@@ -4,9 +4,11 @@ import {
   ExecutionContext,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import { extractClientIp } from '../utils/request.utils';
+import { FixedWindowRateLimiter, type RateLimitDecision } from '../utils/fixed-window-rate-limit';
 
 /**
  * PublicRateLimitGuard — fixed-window in-memory rate limiter for public endpoints.
@@ -23,45 +25,38 @@ import { extractClientIp } from '../utils/request.utils';
  * multi-instance production deployments.
  */
 
-interface RateLimitEntry {
-  count: number;
-  windowStart: number;
-}
-
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 120;
 
-const store = new Map<string, RateLimitEntry>();
-
-// Periodic cleanup to prevent unbounded Map growth.
-const cleanupTimer = setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of store.entries()) {
-    if (now - entry.windowStart > WINDOW_MS * 5) store.delete(key);
-  }
-}, 5 * 60_000);
-cleanupTimer.unref?.();
+const limiter = new FixedWindowRateLimiter({
+  namespace: 'public',
+  windowMs: WINDOW_MS,
+  maxRequests: MAX_REQUESTS,
+});
 
 @Injectable()
 export class PublicRateLimitGuard implements CanActivate {
+  private readonly logger = new Logger(PublicRateLimitGuard.name);
+
   canActivate(context: ExecutionContext): boolean {
     const req = context.switchToHttp().getRequest<Request>();
+    const res = context.switchToHttp().getResponse<Response>();
     const ip = extractClientIp(req) ?? 'unknown';
-    const key = `public-resolve:${ip}`;
-    const now = Date.now();
-
-    const entry = store.get(key);
-
-    if (!entry || now - entry.windowStart > WINDOW_MS) {
-      store.set(key, { count: 1, windowStart: now });
-      return true;
-    }
-
-    if (entry.count >= MAX_REQUESTS) {
+    const decision = limiter.check(ip);
+    setRateLimitHeaders(res, decision);
+    if (!decision.allowed) {
+      this.logger.warn(`Rate limit exceeded: namespace=public ip=${ip} path=${req.originalUrl}`);
       throw new HttpException('Too many requests', HttpStatus.TOO_MANY_REQUESTS);
     }
-
-    entry.count++;
     return true;
+  }
+}
+
+function setRateLimitHeaders(res: Response, decision: RateLimitDecision): void {
+  res.setHeader('X-RateLimit-Limit', String(decision.limit));
+  res.setHeader('X-RateLimit-Remaining', String(decision.remaining));
+  res.setHeader('X-RateLimit-Reset', decision.resetAt.toISOString());
+  if (!decision.allowed) {
+    res.setHeader('Retry-After', String(decision.retryAfterSeconds));
   }
 }

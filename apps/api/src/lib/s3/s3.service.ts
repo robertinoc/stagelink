@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'node:crypto';
 import * as nodePath from 'node:path';
@@ -54,6 +54,34 @@ export class S3Service {
     const expiresAt = new Date(Date.now() + expiresIn * 1000);
 
     return { uploadUrl, objectKey, expiresAt };
+  }
+
+  /**
+   * Verify that an object exists and still matches the expected upload contract
+   * before the API marks an Asset row as uploaded.
+   */
+  async verifyUploadedObject(
+    objectKey: string,
+    expectedMimeType: string,
+    maxSizeBytes: number,
+  ): Promise<void> {
+    const result = await this.client.send(
+      new HeadObjectCommand({
+        Bucket: this.bucket,
+        Key: objectKey,
+      }),
+    );
+
+    const contentLength = result.ContentLength ?? 0;
+    if (contentLength <= 0) {
+      throw new Error(`Uploaded object is empty: ${objectKey}`);
+    }
+    if (contentLength > maxSizeBytes) {
+      throw new Error(`Uploaded object exceeds max size: ${objectKey}`);
+    }
+    if (result.ContentType && result.ContentType !== expectedMimeType) {
+      throw new Error(`Uploaded object content type mismatch: ${objectKey}`);
+    }
   }
 
   /**
