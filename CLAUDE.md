@@ -173,7 +173,8 @@ docs/
 ├── security-audit-e2-auth-sessions.md # E2.1 auth/sessions: login/signup, tokens, recovery, fixes y backlog
 ├── security-audit-e2-authorization.md # E2.2 autorización: ownership, IDOR/BOLA, aislamiento multi-tenant y fix analytics
 ├── security-audit-e2-api-security.md # E2.3 API security: input validation, XSS/injection y rate limiting
-└── security-audit-e2-frontend-security.md # E2.4 frontend security: XSS rendering, tokens/secrets y redirects
+├── security-audit-e2-frontend-security.md # E2.4 frontend security: XSS rendering, tokens/secrets y redirects
+└── security-audit-e2-db-data-security.md # E2.5 DB/data security: roles, cross-tenant exposure y sensitive data
 ```
 
 ---
@@ -795,6 +796,7 @@ docs/brand/
 | Link click desde browser          | `track.ts` → `fetch(..., { keepalive: true })`                             | Reportar eventos del browser que sobreviven navegación |
 | JSON-LD seguro                    | `serializeJsonLd()` antes de `dangerouslySetInnerHTML`                     | Evitar cierre de `<script>` con contenido de usuario   |
 | BFF para Smart Links              | `apps/web/src/app/api/.../smart-links` + `getSession()` server-side        | Mantener WorkOS access tokens fuera del browser        |
+| Upload object key privado         | Upload intent devuelve `assetId`, `uploadUrl`, `expiresAt`                 | No exponer storage `objectKey` al browser              |
 
 ---
 
@@ -832,10 +834,11 @@ docs/brand/
 
 ### Archivos de test (API — Jest)
 
-| Archivo                              | Qué cubre                                                                           |
-| ------------------------------------ | ----------------------------------------------------------------------------------- |
-| `common/utils/username.util.spec.ts` | `normalizeUsername()`, `validateUsernameFormat()`, `normalizeAndValidateUsername()` |
-| `common/utils/locale.util.spec.ts`   | `detectLocale()` — q-values, prefixes, fallbacks                                    |
+| Archivo                                 | Qué cubre                                                                           |
+| --------------------------------------- | ----------------------------------------------------------------------------------- |
+| `common/utils/username.util.spec.ts`    | `normalizeUsername()`, `validateUsernameFormat()`, `normalizeAndValidateUsername()` |
+| `common/utils/locale.util.spec.ts`      | `detectLocale()` — q-values, prefixes, fallbacks                                    |
+| `modules/assets/assets.service.spec.ts` | Upload intent no expone storage `objectKey` en la respuesta pública                 |
 
 ### CI/CD
 
