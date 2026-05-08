@@ -508,7 +508,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                               className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
                             >
                               <Mail className="h-4 w-4" />
-                              {artist.contactEmail}
+                              {t('actions.book_artist')}
                             </a>
                           </div>
                         )}
@@ -519,17 +519,6 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
 
                 {emailCaptureBlocks.length > 0 && (
                   <section className="space-y-4">
-                    {artist.contactEmail && (
-                      <div className="flex justify-center">
-                        <a
-                          href={`mailto:${artist.contactEmail}`}
-                          className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-6 py-3 text-sm font-medium text-white transition hover:bg-violet-500/25"
-                        >
-                          <Mail className="h-4 w-4" />
-                          {t('actions.book_artist')}
-                        </a>
-                      </div>
-                    )}
                     <div className="space-y-2 text-center">
                       <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
                         {t('sections.fan_list')}
