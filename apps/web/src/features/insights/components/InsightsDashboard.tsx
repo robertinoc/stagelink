@@ -257,6 +257,7 @@ export function InsightsDashboard({
   const locale = useLocale();
   const resolvedSettingsHref = settingsHref ?? `/${locale}/dashboard/settings#insights-connections`;
   const embedded = mode === 'embedded';
+  const dynamicT = t as unknown as (key: string, values?: Record<string, unknown>) => string;
 
   if (lockedPayload) {
     return <LockedState payload={lockedPayload} />;
@@ -419,24 +420,25 @@ export function InsightsDashboard({
           // Generic fallback for any future platforms not yet fully wired up
           const effectiveStatus = platform.connection?.status ?? 'disconnected';
           const formattedLastSynced = formatDate(platform.connection?.lastSyncedAt ?? null, locale);
+          const platformKey = platform.platform as string;
 
           return (
             <Card key={platform.platform} className="h-full">
               <CardHeader className="space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <CardTitle>{t(`platforms.${platform.platform}.title`)}</CardTitle>
+                    <CardTitle>{dynamicT(`platforms.${platformKey}.title`)}</CardTitle>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {t(`platforms.${platform.platform}.description`)}
+                      {dynamicT(`platforms.${platformKey}.description`)}
                     </p>
                   </div>
                   <Badge variant={resolveStatusTone(effectiveStatus)}>
-                    {t(`status.${effectiveStatus}`)}
+                    {dynamicT(`status.${effectiveStatus}`)}
                   </Badge>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline">
-                    {t(`connection_methods.${platform.capabilities.connectionMethod}`)}
+                    {dynamicT(`connection_methods.${platform.capabilities.connectionMethod}`)}
                   </Badge>
                   {platform.capabilities.requiresArtistOwnedAccount ? (
                     <Badge variant="outline">{t('requires_owner_account')}</Badge>
@@ -489,7 +491,7 @@ export function InsightsDashboard({
                 )}
 
                 <p className="text-xs leading-5 text-muted-foreground">
-                  {t(`platforms.${platform.platform}.limitations`)}
+                  {dynamicT(`platforms.${platformKey}.limitations`)}
                 </p>
               </CardContent>
             </Card>

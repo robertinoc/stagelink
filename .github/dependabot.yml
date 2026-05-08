@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/Argentina/Cordoba'
+    open-pull-requests-limit: 5
+    groups:
+      next-stack:
+        patterns:
+          - 'next'
+          - 'next-intl'
+          - 'eslint-config-next'
+      nest-stack:
+        patterns:
+          - '@nestjs/*'
+      test-tooling:
+        patterns:
+          - 'jest'
+          - 'ts-jest'
+          - 'vitest'
+          - '@vitest/*'
+          - '@playwright/*'
+      observability:
+        patterns:
+          - 'posthog-*'
+          - '@opentelemetry/*'

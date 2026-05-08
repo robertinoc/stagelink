@@ -17,6 +17,27 @@ permissions:
   pull-requests: write # Coverage comment
 
 jobs:
+  # ── 0. Dependency audit ───────────────────────────────────────────────────
+  dependency-audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Audit dependencies
+        run: pnpm security:audit
+
   # ── 1. TypeScript ─────────────────────────────────────────────────────────
   typecheck:
     name: TypeScript check
