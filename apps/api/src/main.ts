@@ -1,48 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-
-/**
- * Determine whether an incoming origin is allowed.
- *
- * Rules (in order):
- * 1. Exact match against FRONTEND_URL (production domain)
- * 2. Any extra origins listed in CORS_ALLOWED_ORIGINS (comma-separated)
- * 3. Vercel preview deployments: *.vercel.app URLs for the stagelink project
- * 4. localhost / 127.0.0.1 in development only
- */
-function buildCorsOriginHandler(
-  frontendUrl: string,
-  extraOrigins: string[],
-  nodeEnv: string,
-): (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => void {
-  const vercelPreviewPattern = /^https:\/\/stagelink[a-z0-9-]*\.vercel\.app$/;
-
-  return (origin, callback) => {
-    // Allow requests with no origin (server-to-server, curl, health checks)
-    if (!origin) return callback(null, true);
-
-    // Exact match: production frontend URL
-    if (origin === frontendUrl) return callback(null, true);
-
-    // Extra allowed origins (e.g. app.stagelink.io, staging.stagelink.io)
-    if (extraOrigins.includes(origin)) return callback(null, true);
-
-    // Vercel preview deployments (e.g. stagelink-git-feat-xyz.vercel.app)
-    if (vercelPreviewPattern.test(origin)) return callback(null, true);
-
-    // localhost in development
-    if (nodeEnv === 'development') {
-      if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
-        return callback(null, true);
-      }
-    }
-
-    callback(new Error(`CORS: origin '${origin}' not allowed`));
-  };
-}
+import { buildCorsOriginHandler, CORS_ALLOWED_HEADERS } from './config/cors';
 
 async function bootstrap(): Promise<void> {
   const logger = new Logger('Bootstrap');
@@ -66,11 +28,23 @@ async function bootstrap(): Promise<void> {
   // Global prefix
   app.setGlobalPrefix('api');
 
+  // Baseline security headers for API responses.
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    }
+    next();
+  });
+
   // CORS
   app.enableCors({
     origin: buildCorsOriginHandler(frontendUrl, extraOrigins, nodeEnv),
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Request-ID'],
+    allowedHeaders: [...CORS_ALLOWED_HEADERS],
     exposedHeaders: ['X-Request-ID'],
     credentials: true,
   });
