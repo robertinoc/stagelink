@@ -7,7 +7,7 @@
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
-    "startCommand": "cd /app && pnpm --filter @stagelink/api exec prisma migrate deploy && node /app/apps/api/dist/main",
+    "startCommand": "pnpm exec prisma migrate deploy && node dist/main",
     "healthcheckPath": "/api/health",
     "sleepApplication": false,
     "useLegacyStacker": false,
