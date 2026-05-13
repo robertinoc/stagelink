@@ -120,11 +120,18 @@ export function resolveDocumentText(
 ): string | null {
   const normalizedBaseLocale = normalizeBaseLocale(baseLocale);
   if (localeToRender === normalizedBaseLocale) {
-    return hasText(baseValue) ? baseValue.trim() : null;
+    if (hasText(baseValue)) return baseValue.trim();
+    // Fallback: check translation stored under the base locale key in case baseValue was cleared.
+    const baseLangTranslation = localizedValue?.[normalizedBaseLocale];
+    return hasText(baseLangTranslation) ? baseLangTranslation.trim() : null;
   }
 
   const translated = localizedValue?.[localeToRender];
-  return hasText(translated) ? translated.trim() : null;
+  if (hasText(translated)) return translated.trim();
+  // Fallback to base content when the requested locale has no translation yet.
+  // This prevents blocks from disappearing just because a visitor uses a locale
+  // the artist hasn't translated their bio into.
+  return hasText(baseValue) ? baseValue.trim() : null;
 }
 
 export function resolveLocalizedText(

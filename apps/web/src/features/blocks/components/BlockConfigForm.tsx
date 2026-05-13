@@ -556,7 +556,12 @@ function TextBlockForm({
     // Remove bioSource by omitting it — spread then delete is safe since TextBlockConfig.bioSource is optional.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { bioSource: _omitted, ...rest } = config;
-    onChange({ ...rest });
+    // Pre-populate body with the current bio preview so the textarea isn't blank
+    // when the user switches to "custom text". bioSourcePreview holds the live
+    // text that was being displayed (short bio or full bio), giving the user a
+    // sensible starting point to edit from.
+    const prefilledBody = rest.body || bioSourcePreview || '';
+    onChange({ ...rest, body: prefilledBody });
   }
 
   return (
