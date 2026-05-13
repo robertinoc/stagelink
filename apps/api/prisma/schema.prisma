@@ -75,8 +75,47 @@ model User {
   assets      Asset[]  @relation("UserAssets")
   memberships ArtistMembership[]
   auditLogs   AuditLog[]
+  dsarRequests DsarRequest[]
 
   @@map("users")
+}
+
+enum DsarRequestType {
+  access
+  rectification
+  erasure
+  portability
+  withdraw_consent
+  objection
+
+  @@map("dsar_request_type")
+}
+
+enum DsarRequestStatus {
+  received
+  verified
+  completed
+  rejected
+  failed
+
+  @@map("dsar_request_status")
+}
+
+model DsarRequest {
+  id          String            @id @default(cuid())
+  userId      String?           @map("user_id")
+  requestType DsarRequestType   @map("request_type")
+  status      DsarRequestStatus @default(received)
+  metadata    Json              @default("{}")
+  completedAt DateTime?         @map("completed_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, requestType, createdAt])
+  @@index([status, createdAt])
+  @@map("dsar_requests")
 }
 
 // =============================================================
