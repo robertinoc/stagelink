@@ -18,10 +18,13 @@ interface ProfileBasicInfoProps {
 const chipClass =
   'relative flex items-center gap-2 rounded-lg border px-3 py-3 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50';
 
+type BioField = 'bio' | 'fullBio';
+
 export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
   const t = useTranslations('dashboard.profile');
   const [tagDraft, setTagDraft] = useState('');
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const bioTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const fullBioTextareaRef = useRef<HTMLTextAreaElement>(null);
   const {
     setValue,
     register,
@@ -30,18 +33,29 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
   } = form;
 
   const bioValue = watch('bio') ?? '';
+  const fullBioValue = watch('fullBio') ?? '';
   const selectedCategories = watch('categories') ?? [];
   const selectedTags = watch('tags') ?? [];
 
   const { ref: bioRegisterRef, ...bioRegisterRest } = register('bio');
+  const { ref: fullBioRegisterRef, ...fullBioRegisterRest } = register('fullBio');
 
   function combinedBioRef(el: HTMLTextAreaElement | null) {
     bioRegisterRef(el);
-    (textareaRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = el;
+    (bioTextareaRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = el;
   }
 
-  function insertMarkdown(prefix: string, suffix: string = '') {
-    const el = textareaRef.current;
+  function combinedFullBioRef(el: HTMLTextAreaElement | null) {
+    fullBioRegisterRef(el);
+    (fullBioTextareaRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = el;
+  }
+
+  function getRef(field: BioField) {
+    return field === 'bio' ? bioTextareaRef : fullBioTextareaRef;
+  }
+
+  function insertMarkdown(field: BioField, prefix: string, suffix: string = '') {
+    const el = getRef(field).current;
     if (!el || disabled) return;
     const start = el.selectionStart;
     const end = el.selectionEnd;
@@ -49,7 +63,7 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
     const before = el.value.slice(0, start);
     const after = el.value.slice(end);
     const newValue = `${before}${prefix}${selected}${suffix}${after}`;
-    setValue('bio', newValue, { shouldDirty: true });
+    setValue(field, newValue, { shouldDirty: true });
     requestAnimationFrame(() => {
       el.focus();
       const cursorStart = start + prefix.length;
@@ -58,8 +72,8 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
     });
   }
 
-  function insertBulletList() {
-    const el = textareaRef.current;
+  function insertBulletList(field: BioField) {
+    const el = getRef(field).current;
     if (!el || disabled) return;
     const start = el.selectionStart;
     const before = el.value.slice(0, start);
@@ -67,7 +81,7 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
     const needsNewline = before.length > 0 && !before.endsWith('\n');
     const prefix = needsNewline ? '\n- ' : '- ';
     const newValue = `${before}${prefix}${after}`;
-    setValue('bio', newValue, { shouldDirty: true });
+    setValue(field, newValue, { shouldDirty: true });
     requestAnimationFrame(() => {
       el.focus();
       const pos = start + prefix.length;
@@ -133,11 +147,12 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
           )}
         </div>
 
-        {/* Bio */}
+        {/* Short Bio */}
         <div className="space-y-1.5">
           <label htmlFor="bio" className="text-sm font-medium">
             {t('fields.bio')}
           </label>
+          <p className="text-xs text-muted-foreground">{t('hints.short_bio')}</p>
           {/* Markdown toolbar */}
           <div className="flex items-center gap-1 rounded-t-md border border-b-0 border-input bg-muted/30 px-2 py-1">
             <Button
@@ -147,7 +162,7 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
               disabled={disabled}
               className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
               title="Bold"
-              onClick={() => insertMarkdown('**', '**')}
+              onClick={() => insertMarkdown('bio', '**', '**')}
             >
               <Bold className="h-3.5 w-3.5" />
             </Button>
@@ -158,7 +173,7 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
               disabled={disabled}
               className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
               title="Italic"
-              onClick={() => insertMarkdown('_', '_')}
+              onClick={() => insertMarkdown('bio', '_', '_')}
             >
               <Italic className="h-3.5 w-3.5" />
             </Button>
@@ -169,7 +184,7 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
               disabled={disabled}
               className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
               title="Bullet list"
-              onClick={insertBulletList}
+              onClick={() => insertBulletList('bio')}
             >
               <List className="h-3.5 w-3.5" />
             </Button>
@@ -192,6 +207,69 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
               className={`text-xs ${bioValue.length > 900 ? 'text-amber-500' : 'text-muted-foreground'}`}
             >
               {bioValue.length}/1000
+            </span>
+          </div>
+        </div>
+
+        {/* Full Bio */}
+        <div className="space-y-1.5">
+          <label htmlFor="fullBio" className="text-sm font-medium">
+            {t('fields.full_bio')}
+          </label>
+          <p className="text-xs text-muted-foreground">{t('hints.full_bio')}</p>
+          <div className="flex items-center gap-1 rounded-t-md border border-b-0 border-input bg-muted/30 px-2 py-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={disabled}
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              title="Bold"
+              onClick={() => insertMarkdown('fullBio', '**', '**')}
+            >
+              <Bold className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={disabled}
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              title="Italic"
+              onClick={() => insertMarkdown('fullBio', '_', '_')}
+            >
+              <Italic className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={disabled}
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              title="Bullet list"
+              onClick={() => insertBulletList('fullBio')}
+            >
+              <List className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+          <Textarea
+            id="fullBio"
+            placeholder={t('placeholders.full_bio')}
+            disabled={disabled}
+            className="min-h-[240px] rounded-t-none"
+            ref={combinedFullBioRef}
+            {...fullBioRegisterRest}
+          />
+          <div className="flex justify-between">
+            {errors.fullBio ? (
+              <p className="text-xs text-destructive">{errors.fullBio.message}</p>
+            ) : (
+              <span />
+            )}
+            <span
+              className={`text-xs ${fullBioValue.length > 4500 ? 'text-amber-500' : 'text-muted-foreground'}`}
+            >
+              {fullBioValue.length}/5000
             </span>
           </div>
         </div>

@@ -639,6 +639,7 @@
       "fields": {
         "display_name": "Nombre artístico",
         "bio": "Bio corta",
+        "full_bio": "Bio completa",
         "category": "Categoría",
         "descriptors": "Descriptores",
         "instagram": "Instagram",
@@ -664,8 +665,13 @@
       "placeholders": {
         "display_name": "ej. The Midnight, DJ Snake, Rosalía…",
         "bio": "Contale a tus fans un poco sobre vos…",
+        "full_bio": "Contá la historia completa — carrera, logros, sonido, lo que ayude a fans y bookers a conocerte. Soporta markdown.",
         "seo_title": "ej. \"DJ Snake — Official Page\"",
         "seo_description": "Una descripción breve de tu música, estilo y lo que los fans van a encontrar acá…"
+      },
+      "hints": {
+        "short_bio": "Resumen corto (1–2 líneas) que se usa en cards y previews.",
+        "full_bio": "La historia completa que aparece debajo del resumen corto en tu página pública. Soporta markdown."
       },
       "categories": {
         "hint": "Elegí hasta 3. Tocá de nuevo para quitar.",

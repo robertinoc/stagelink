@@ -51,6 +51,7 @@ export function ArtistProfileSettings({
     defaultValues: {
       displayName: artist.displayName,
       bio: artist.bio ?? '',
+      fullBio: artist.fullBio ?? '',
       baseLocale: artist.baseLocale,
       categories: [artist.category, ...(artist.secondaryCategories ?? [])],
       tags: artist.tags ?? [],
@@ -158,6 +159,7 @@ export function ArtistProfileSettings({
     const payload = {
       displayName: values.displayName,
       bio: values.bio || null,
+      fullBio: values.fullBio || null,
       baseLocale: values.baseLocale,
       category,
       secondaryCategories,
@@ -190,6 +192,7 @@ export function ArtistProfileSettings({
       reset({
         displayName: updated.displayName,
         bio: updated.bio ?? '',
+        fullBio: updated.fullBio ?? '',
         baseLocale: updated.baseLocale,
         categories: [updated.category, ...(updated.secondaryCategories ?? [])],
         tags: updated.tags ?? [],

@@ -30,6 +30,7 @@ export interface PublicArtistDto {
   username: string;
   displayName: string;
   bio: string | null;
+  fullBio: string | null;
   baseLocale: SupportedLocale;
   avatarUrl: string | null;
   coverUrl: string | null;
