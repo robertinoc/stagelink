@@ -28,8 +28,11 @@ async function completeHostedAuth(page: Page) {
     throw new Error('E2E_AUTH_EMAIL and E2E_AUTH_PASSWORD are required for authenticated E2E');
   }
 
-  await page.goto('/en/login');
-  await page.getByRole('button', { name: /sign in/i }).click();
+  // Start from the route handler that creates the WorkOS PKCE state cookie and
+  // redirect URL in a single response. Visiting /en/login first can create a
+  // stale verifier cookie during CI and make the callback fail with a state
+  // mismatch after the hosted login succeeds.
+  await page.goto('/api/auth/signin?returnTo=/en/dashboard');
 
   await expect(page).toHaveURL(/workos|authkit|api\/auth/i, { timeout: 15_000 });
 
