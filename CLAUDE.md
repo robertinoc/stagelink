@@ -179,6 +179,7 @@ docs/
 ├── security-audit-e2-infra-headers.md # E2.7 infra/headers: HTTPS/HSTS, security headers y CORS
 ├── security-audit-e2-dependencies.md # E2.8 dependencies: audit, upgrades, overrides y Dependabot
 ├── security-audit-e2-repo-ci-cd.md # E2.9 repo/CI-CD: GitHub Actions, secrets, artifacts y Dependabot
+├── security-audit-e2-webhooks-security.md # E2.10 webhooks: Stripe firma, replay/idempotencia y baseline futuro
 ├── security-audit-e2-workos-authkit-config.md # E2.12 WorkOS/AuthKit/Radar: redirects, issuer, MFA, sessions y auth methods
 ├── security-audit-e2-admin-behind-security.md # E2.13 Behind/admin security: roles, access, search exposure y auditability
 ├── security-audit-e3-critical-hardening.md # E3 hardening critico, debug endpoint y notas pre-launch
@@ -628,6 +629,12 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - `setRole()` valida/normaliza emails, bloquea self/env-owner edits y agrega audit trail Redis `behind:role_audit`.
   - API admin mutations escriben `AuditLog` para update/suspend/unsuspend/soft-delete/invitation.
   - Backlog: MFA para owners/admins, paginacion/search server-side y vista owner-only de role audit.
+- **Security Audit E2.10 — Webhooks security cerrado**
+  - Stripe webhook conserva raw-body + signature verification y ahora fija tolerancia explicita de replay en 300s.
+  - Missing signature/raw body/invalid signature rechazan antes de cualquier write de DB.
+  - Idempotencia por `stripe_webhook_events.stripe_event_id`; stale events no pisan `lastStripeEventAt` mas nuevo.
+  - No hay inbound Shopify webhooks hoy; cualquier webhook futuro debe copiar baseline signed raw-body + idempotency + generic errors.
+  - Backlog launch: confirmar `STRIPE_WEBHOOK_SECRET` sensible por environment y agregar alertas de invalid signature/retry failures en E2.15.
 
 ### T3-1 — Artist Onboarding (completed)
 
