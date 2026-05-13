@@ -25,6 +25,27 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
   }
 
   const me = await getAuthMe(session.accessToken);
+
+  // me === null means the API is unreachable (deploy in progress, network error, etc.).
+  // NEVER redirect to onboarding in this case — existing users would lose their artist.
+  // Show a recoverable error page instead so the user can simply refresh.
+  if (me === null) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+        <p className="text-lg font-semibold">Having trouble connecting…</p>
+        <p className="text-sm text-muted-foreground">
+          The server is temporarily unavailable. Please refresh the page in a few seconds.
+        </p>
+        <a
+          href={`/${locale}/dashboard`}
+          className="mt-2 rounded-full bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+        >
+          Refresh
+        </a>
+      </div>
+    );
+  }
+
   const artistId = getCurrentArtistId(me);
 
   if (!artistId) {
