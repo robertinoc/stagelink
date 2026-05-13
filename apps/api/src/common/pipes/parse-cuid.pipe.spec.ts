@@ -18,4 +18,14 @@ describe('ParseCuidPipe', () => {
       expect(() => pipe.transform(value)).toThrow(BadRequestException);
     },
   );
+
+  it('does not reflect malformed ids back in the error message', () => {
+    expect(() => pipe.transform('<script>alert(1)</script>')).toThrow('Invalid ID format');
+    try {
+      pipe.transform('<script>alert(1)</script>');
+    } catch (error) {
+      expect(error).toBeInstanceOf(BadRequestException);
+      expect((error as BadRequestException).message).toBe('Invalid ID format');
+    }
+  });
 });

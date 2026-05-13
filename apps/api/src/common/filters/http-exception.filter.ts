@@ -18,6 +18,7 @@ interface ErrorBody {
   [key: string]: unknown;
 }
 
+const MAX_ERROR_MESSAGE_LENGTH = 500;
 const ALLOWED_ERROR_EXTRAS = new Set([
   'code',
   'feature',
@@ -48,7 +49,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const exceptionResponse = exception instanceof HttpException ? exception.getResponse() : null;
 
-    const message: string | string[] =
+    const rawMessage: string | string[] =
       exceptionResponse !== null &&
       typeof exceptionResponse === 'object' &&
       'message' in exceptionResponse
@@ -59,12 +60,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
             ? exception.message
             : 'Internal server error';
 
+    const message =
+      status >= HttpStatus.INTERNAL_SERVER_ERROR
+        ? 'Internal server error'
+        : sanitizeMessage(rawMessage);
+
     const error: string =
       exceptionResponse !== null &&
       typeof exceptionResponse === 'object' &&
       'error' in exceptionResponse
-        ? (exceptionResponse as { error: string }).error
+        ? sanitizeString((exceptionResponse as { error: string }).error)
         : (HttpStatus[status] ?? 'Error');
+
+    const path = sanitizePath(request.originalUrl ?? request.url);
 
     const extras =
       exceptionResponse !== null &&
@@ -80,13 +88,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(
-        `[${requestId}] ${request.method} ${request.url} → ${status}`,
+        `[${requestId}] ${request.method} ${path} → ${status}`,
         exception instanceof Error ? exception.stack : String(exception),
       );
     } else {
       const printableMessage = Array.isArray(message) ? message.join(', ') : message;
       this.logger.warn(
-        `[${requestId}] ${request.method} ${request.url} → ${status} (${printableMessage})`,
+        `[${requestId}] ${request.method} ${path} → ${status} (${printableMessage})`,
       );
     }
 
@@ -96,10 +104,25 @@ export class HttpExceptionFilter implements ExceptionFilter {
       error,
       message,
       timestamp: new Date().toISOString(),
-      path: request.url,
+      path,
       ...extras,
     };
 
     response.status(status).json(body);
   }
+}
+
+function sanitizePath(path: string): string {
+  const [pathname] = path.split('?');
+  return pathname || '/';
+}
+
+function sanitizeMessage(message: string | string[]): string | string[] {
+  if (Array.isArray(message)) return message.map((item) => sanitizeString(item));
+
+  return sanitizeString(message);
+}
+
+function sanitizeString(message: string): string {
+  return message.replace(/[\r\n\t]/g, ' ').slice(0, MAX_ERROR_MESSAGE_LENGTH);
 }

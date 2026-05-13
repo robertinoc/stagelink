@@ -2,6 +2,9 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import type { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
 
+const MAX_REQUEST_ID_LENGTH = 128;
+const SAFE_REQUEST_ID_RE = /^[a-zA-Z0-9._:-]+$/;
+
 /**
  * RequestIdMiddleware — attaches a correlation ID to every request.
  *
@@ -19,7 +22,7 @@ import { randomUUID } from 'crypto';
 export class RequestIdMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction): void {
     const incoming = req.headers['x-request-id'];
-    const requestId = typeof incoming === 'string' && incoming.length > 0 ? incoming : randomUUID();
+    const requestId = isSafeRequestId(incoming) ? incoming : randomUUID();
 
     // Normalise to string so downstream code can read it without type guards.
     req.headers['x-request-id'] = requestId;
@@ -27,4 +30,13 @@ export class RequestIdMiddleware implements NestMiddleware {
 
     next();
   }
+}
+
+function isSafeRequestId(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    value.length > 0 &&
+    value.length <= MAX_REQUEST_ID_LENGTH &&
+    SAFE_REQUEST_ID_RE.test(value)
+  );
 }

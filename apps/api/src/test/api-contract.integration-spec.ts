@@ -1021,7 +1021,8 @@ describe('API contract integration coverage', () => {
 
       expect(response.status).toBe(400);
       expectErrorBody(body, 400, '/api/public/blocks/not-a-cuid/subscribers');
-      expect(body.message).toContain('Invalid ID format');
+      expect(body.message).toBe('Invalid ID format');
+      expect(body.message).not.toContain('not-a-cuid');
     });
 
     it('normalizes service exceptions through the shared error envelope', async () => {
@@ -1161,6 +1162,8 @@ describe('API contract integration coverage', () => {
 });
 
 function expectErrorBody(body: unknown, statusCode: number, path: string): void {
+  const pathname = path.split('?')[0] ?? path;
+
   expect(body).toEqual(
     expect.objectContaining({
       requestId: expect.any(String),
@@ -1168,7 +1171,7 @@ function expectErrorBody(body: unknown, statusCode: number, path: string): void 
       error: expect.any(String),
       message: expect.anything(),
       timestamp: expect.any(String),
-      path: expect.stringContaining(path),
+      path: expect.stringContaining(pathname),
     }),
   );
 }

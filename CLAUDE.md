@@ -183,6 +183,7 @@ docs/
 ├── security-audit-e2-file-upload-asset-security.md # E2.11 uploads/assets: MIME, size, signed URLs, bucket publico y ownership
 ├── security-audit-e2-workos-authkit-config.md # E2.12 WorkOS/AuthKit/Radar: redirects, issuer, MFA, sessions y auth methods
 ├── security-audit-e2-admin-behind-security.md # E2.13 Behind/admin security: roles, access, search exposure y auditability
+├── security-audit-e2-error-handling-info-leakage.md # E2.14 errores/info leakage: 5xx genericos, path sin query, request-id seguro
 ├── security-audit-e3-critical-hardening.md # E3 hardening critico, debug endpoint y notas pre-launch
 ├── security-audit-e4-advanced-hardening.md # E4 hardening avanzado: rate limits, uploads, anti-spam y tenancy
 └── security-audit-e5-infra-ci-cd-security.md # E5 infra/CI-CD security: workflows, secrets, environments y storage
@@ -642,6 +643,12 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - `confirmUpload` exige existencia, size valido y `Content-Type` exacto reportado por S3/R2 antes de marcar `uploaded`.
   - Bucket/CDN publico queda aceptado solo para media artistica publica; no subir documentos privados a este pipeline.
   - Backlog launch: magic-byte/AV scanning si se aceptan formatos no imagen, lifecycle cleanup de assets pending/viejos y bucket privado para assets privados.
+- **Security Audit E2.14 — Error handling / information leakage cerrado**
+  - `HttpExceptionFilter` responde 5xx con `Internal server error` generico aunque el exception interno tenga detalles sensibles.
+  - Error envelope ya no expone querystrings en `path`; conserva solo pathname y `requestId`.
+  - `RequestIdMiddleware` solo acepta `X-Request-ID` seguro (`[a-zA-Z0-9._:-]`, max 128 chars); si no, genera UUID.
+  - `ParseCuidPipe` ya no refleja IDs malformados en mensajes 400.
+  - Mensajes 4xx se sanitizan/truncan y los extras del envelope siguen allowlisted.
 
 ### T3-1 — Artist Onboarding (completed)
 
