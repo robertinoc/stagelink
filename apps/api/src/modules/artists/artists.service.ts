@@ -8,6 +8,7 @@ import {
   ANALYTICS_EVENTS,
   DEFAULT_LOCALE,
   type ArtistTranslations,
+  type RecordLabel,
   type SupportedLocale,
 } from '@stagelink/types';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
@@ -94,16 +95,9 @@ function sanitizeGalleryImageUrls(galleryImageUrls?: string[]): string[] | undef
   );
 }
 
-interface SanitizedRecordLabel {
-  id: string;
-  name: string;
-  websiteUrl: string | null;
-  logoUrl: string | null;
-}
-
 function sanitizeRecordLabels(
   labels?: { id: string; name: string; websiteUrl?: string | null; logoUrl?: string | null }[],
-): SanitizedRecordLabel[] | undefined {
+): RecordLabel[] | undefined {
   if (labels === undefined) return undefined;
 
   return labels
@@ -134,7 +128,7 @@ export class ArtistsService {
         typeof artist.baseLocale === 'string'
           ? (artist.baseLocale as SupportedLocale)
           : DEFAULT_LOCALE,
-      recordLabels: (artist.recordLabels as SanitizedRecordLabel[] | null) ?? [],
+      recordLabels: (artist.recordLabels as RecordLabel[] | null) ?? [],
       translations: (artist.translations as ArtistTranslations | null) ?? {},
     };
   }
