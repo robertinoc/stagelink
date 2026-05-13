@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminSession } from '@/lib/admin-guard';
+import { requireOwnerSession } from '@/lib/admin-guard';
 import { resolveApiBaseUrl } from '@/lib/server/api-base-url';
 
 interface RouteContext {
@@ -13,9 +13,10 @@ interface RouteContext {
  *
  * Proxies to NestJS PATCH /api/admin/users/:id.
  * Only firstName and lastName are mutable — email and handle are not.
+ * Owner-only at the web edge and API layer.
  */
 export async function PATCH(request: NextRequest, context: RouteContext) {
-  const guarded = await requireAdminSession();
+  const guarded = await requireOwnerSession();
   if (guarded.error) return guarded.error;
 
   const apiBaseUrl = resolveApiBaseUrl();
@@ -54,9 +55,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
  *
  * Soft-deletes the user (sets deletedAt). Returns 204 on success.
  * Hard delete is deferred to V2 — see AdminService.softDeleteUser() for rationale.
+ * Owner-only at the web edge and API layer.
  */
 export async function DELETE(request: NextRequest, context: RouteContext) {
-  const guarded = await requireAdminSession();
+  const guarded = await requireOwnerSession();
   if (guarded.error) return guarded.error;
 
   const apiBaseUrl = resolveApiBaseUrl();

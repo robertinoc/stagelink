@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../../lib/prisma.service';
 import { getWorkOS } from '../../lib/workos';
 import { isBehindOwnerEmail } from './admin.config';
+import { AuditService } from '../audit/audit.service';
 
 export interface AdminUserDto {
   id: string;
@@ -21,7 +22,10 @@ export interface AdminUserDto {
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+  ) {}
 
   /**
    * Returns all registered users, newest first.
@@ -54,7 +58,12 @@ export class AdminService {
    *   2. Target email must not be an owner email → 403
    *      (prevents self-suspension and suspending any co-owner)
    */
-  async updateUserStatus(targetId: string, isSuspended: boolean): Promise<AdminUserDto> {
+  async updateUserStatus(
+    targetId: string,
+    isSuspended: boolean,
+    actorId: string,
+    ipAddress?: string,
+  ): Promise<AdminUserDto> {
     const existing = await this.prisma.user.findUnique({
       where: { id: targetId },
       select: { id: true, email: true, deletedAt: true },
@@ -83,6 +92,15 @@ export class AdminService {
       },
     });
 
+    this.auditService.log({
+      actorId,
+      action: isSuspended ? 'admin.user.suspend' : 'admin.user.unsuspend',
+      entityType: 'user',
+      entityId: targetId,
+      metadata: { targetEmail: existing.email },
+      ipAddress,
+    });
+
     return toDto(updated);
   }
 
@@ -95,10 +113,16 @@ export class AdminService {
    *   - isSuspended is handled by updateUserStatus()
    *   - deletedAt is handled by softDeleteUser()
    */
-  async updateUser(targetId: string, firstName?: string, lastName?: string): Promise<AdminUserDto> {
+  async updateUser(
+    targetId: string,
+    firstName: string | undefined,
+    lastName: string | undefined,
+    actorId: string,
+    ipAddress?: string,
+  ): Promise<AdminUserDto> {
     const existing = await this.prisma.user.findUnique({
       where: { id: targetId },
-      select: { id: true, deletedAt: true },
+      select: { id: true, email: true, deletedAt: true },
     });
 
     if (!existing || existing.deletedAt !== null) {
@@ -123,6 +147,21 @@ export class AdminService {
       },
     });
 
+    this.auditService.log({
+      actorId,
+      action: 'admin.user.update',
+      entityType: 'user',
+      entityId: targetId,
+      metadata: {
+        targetEmail: existing.email,
+        fields: [
+          ...(firstName !== undefined ? ['firstName'] : []),
+          ...(lastName !== undefined ? ['lastName'] : []),
+        ],
+      },
+      ipAddress,
+    });
+
     return toDto(updated);
   }
 
@@ -139,7 +178,7 @@ export class AdminService {
    * The user's data (artists, pages, subscribers) is preserved in DB.
    * Auth enforcement in layout.tsx and onboarding/page.tsx blocks access.
    */
-  async softDeleteUser(targetId: string): Promise<void> {
+  async softDeleteUser(targetId: string, actorId: string, ipAddress?: string): Promise<void> {
     const existing = await this.prisma.user.findUnique({
       where: { id: targetId },
       select: { id: true, email: true, deletedAt: true },
@@ -157,6 +196,15 @@ export class AdminService {
       where: { id: targetId },
       data: { deletedAt: new Date() },
     });
+
+    this.auditService.log({
+      actorId,
+      action: 'admin.user.soft_delete',
+      entityType: 'user',
+      entityId: targetId,
+      metadata: { targetEmail: existing.email },
+      ipAddress,
+    });
   }
 
   /**
@@ -166,9 +214,9 @@ export class AdminService {
    */
   async sendInvitation(
     email: string,
+    actorId: string,
+    ipAddress?: string,
   ): Promise<{ id: string; email: string; expiresAt: string | null }> {
-    const wos = getWorkOS();
-
     const existingUser = await this.prisma.user.findUnique({
       where: { email: email.toLowerCase() },
       select: { id: true },
@@ -178,7 +226,17 @@ export class AdminService {
       throw new BadRequestException('A user with this email already exists');
     }
 
+    const wos = getWorkOS();
     const invitation = await wos.userManagement.sendInvitation({ email });
+
+    this.auditService.log({
+      actorId,
+      action: 'admin.invitation.send',
+      entityType: 'workos_invitation',
+      entityId: invitation.id,
+      metadata: { targetEmail: invitation.email },
+      ipAddress,
+    });
 
     return {
       id: invitation.id,
