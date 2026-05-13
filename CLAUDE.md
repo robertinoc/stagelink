@@ -187,7 +187,11 @@ docs/
 ├── security-audit-e2-security-monitoring-incident-readiness.md # E2.15 monitoreo: security_event logs, alertas minimas y runbooks
 ├── security-audit-e3-critical-hardening.md # E3 hardening critico, debug endpoint y notas pre-launch
 ├── security-audit-e4-advanced-hardening.md # E4 hardening avanzado: rate limits, uploads, anti-spam y tenancy
-└── security-audit-e5-infra-ci-cd-security.md # E5 infra/CI-CD security: workflows, secrets, environments y storage
+├── security-audit-e5-infra-ci-cd-security.md # E5 infra/CI-CD security: workflows, secrets, environments y storage
+├── security-audit-e6-closeout-report.md # E6 cierre formal: reporte ejecutivo, estado final y riesgos aceptados
+├── security-audit-e6-checklist.md # E6 checklist final de controles Done/Accepted/Backlog
+├── security-audit-e6-architecture.md # E6 arquitectura de seguridad y boundaries post-auditoria
+└── security-audit-e6-baseline.md # E6 baseline operativo para evitar regresiones de seguridad
 ```
 
 ---
@@ -655,6 +659,11 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - Rate-limit guards y exception filter ya emiten eventos estructurados sin querystrings ni caracteres de control.
   - `docs/security-audit-e2-security-monitoring-incident-readiness.md` define logs a revisar, alertas minimas y runbooks para login attacks, uploads sospechosos, public API abuse, webhooks y Behind/admin incidents.
   - Backlog launch: observability externa/alertas automaticas, Redis rate limit, retencion formal de logs y vista owner-only de audit trails.
+- **Security Audit E6 — Documentacion & cierre cerrado**
+  - `docs/security-audit-e6-closeout-report.md` consolida estado final, fixes principales, riesgos aceptados y no-go conditions para launch publico amplio.
+  - `docs/security-audit-e6-checklist.md` deja la matriz final Done/Accepted/Backlog para controles de seguridad.
+  - `docs/security-audit-e6-architecture.md` documenta boundaries de browser, Vercel, Railway API, DB, storage, WorkOS, Stripe, Behind y monitoring.
+  - `docs/security-audit-e6-baseline.md` define la baseline operativa y regression triggers que deben abrir review de seguridad.
 
 ### T3-1 — Artist Onboarding (completed)
 
