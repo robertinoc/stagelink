@@ -128,8 +128,18 @@ export interface EmailCaptureBlockConfig {
   requireConsent?: boolean;
 }
 
+/**
+ * Valid values for bioSource:
+ *   'short_bio' — pull artist.bio from profile at render time
+ *   'full_bio'  — pull artist.fullBio from profile at render time
+ * When absent (undefined), the block renders config.body as custom text.
+ */
+export type TextBlockBioSource = 'short_bio' | 'full_bio';
+
 export interface TextBlockConfig {
   body: string;
+  /** When set, overrides `body` and pulls the corresponding bio from the artist profile. */
+  bioSource?: TextBlockBioSource;
 }
 
 export interface ImageGalleryBlockConfig {

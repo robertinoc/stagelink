@@ -23,7 +23,7 @@
 
 import { BlockRenderer } from '@/features/blocks/components/BlockRenderer';
 import { trackPublicLinkClick } from '@/lib/analytics/track';
-import type { PublicPageResponse, LinksBlockConfig } from '@stagelink/types';
+import type { PublicPageResponse, LinksBlockConfig, TextBlockConfig } from '@stagelink/types';
 import { cn } from '@/lib/utils';
 
 interface PublicPageClientProps {
@@ -34,7 +34,23 @@ interface PublicPageClientProps {
 
 export function PublicPageClient({ page, blocks: scopedBlocks, className }: PublicPageClientProps) {
   const { artistId, pageId, artist } = page;
-  const blocks = scopedBlocks ?? page.blocks;
+  const rawBlocks = scopedBlocks ?? page.blocks;
+
+  /**
+   * Resolve text blocks that use bioSource — substitute the matching artist bio
+   * into config.body so TextBlockRenderer can render it without needing artist context.
+   */
+  const blocks = rawBlocks.map((block) => {
+    if (block.type !== 'text') return block;
+    const config = block.config as TextBlockConfig;
+    if (!config.bioSource) return block;
+    const resolvedBody =
+      config.bioSource === 'short_bio' ? (artist.bio ?? '') : (artist.fullBio ?? '');
+    return {
+      ...block,
+      config: { body: resolvedBody } satisfies TextBlockConfig,
+    };
+  });
 
   /**
    * Called by BlockRenderer → LinksBlockRenderer when a link is clicked.

@@ -62,6 +62,7 @@ import type { BlockType, BlockConfig } from './block';
 export interface ArtistTranslations {
   displayName?: LocalizedTextMap;
   bio?: LocalizedTextMap;
+  fullBio?: LocalizedTextMap;
   seoTitle?: LocalizedTextMap;
   seoDescription?: LocalizedTextMap;
 }

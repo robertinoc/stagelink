@@ -75,12 +75,14 @@ export function ArtistProfileSettings({
         en: {
           displayName: artist.translations?.displayName?.en ?? '',
           bio: artist.translations?.bio?.en ?? '',
+          fullBio: artist.translations?.fullBio?.en ?? '',
           seoTitle: artist.translations?.seoTitle?.en ?? '',
           seoDescription: artist.translations?.seoDescription?.en ?? '',
         },
         es: {
           displayName: artist.translations?.displayName?.es ?? '',
           bio: artist.translations?.bio?.es ?? '',
+          fullBio: artist.translations?.fullBio?.es ?? '',
           seoTitle: artist.translations?.seoTitle?.es ?? '',
           seoDescription: artist.translations?.seoDescription?.es ?? '',
         },
@@ -125,6 +127,13 @@ export function ArtistProfileSettings({
       } as Record<'en' | 'es', string | undefined>) && {
         bio: buildLocalizedFieldMap({
           [otherLocale]: values.translations[otherLocale].bio,
+        } as Record<'en' | 'es', string | undefined>),
+      }),
+      ...(buildLocalizedFieldMap({
+        [otherLocale]: values.translations[otherLocale].fullBio,
+      } as Record<'en' | 'es', string | undefined>) && {
+        fullBio: buildLocalizedFieldMap({
+          [otherLocale]: values.translations[otherLocale].fullBio,
         } as Record<'en' | 'es', string | undefined>),
       }),
       ...(buildLocalizedFieldMap({
@@ -216,12 +225,14 @@ export function ArtistProfileSettings({
           en: {
             displayName: updated.translations?.displayName?.en ?? '',
             bio: updated.translations?.bio?.en ?? '',
+            fullBio: updated.translations?.fullBio?.en ?? '',
             seoTitle: updated.translations?.seoTitle?.en ?? '',
             seoDescription: updated.translations?.seoDescription?.en ?? '',
           },
           es: {
             displayName: updated.translations?.displayName?.es ?? '',
             bio: updated.translations?.bio?.es ?? '',
+            fullBio: updated.translations?.fullBio?.es ?? '',
             seoTitle: updated.translations?.seoTitle?.es ?? '',
             seoDescription: updated.translations?.seoDescription?.es ?? '',
           },
