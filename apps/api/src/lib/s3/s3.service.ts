@@ -64,6 +64,7 @@ export class S3Service {
     objectKey: string,
     expectedMimeType: string,
     maxSizeBytes: number,
+    minSizeBytes = 1,
   ): Promise<void> {
     const result = await this.client.send(
       new HeadObjectCommand({
@@ -73,13 +74,16 @@ export class S3Service {
     );
 
     const contentLength = result.ContentLength ?? 0;
-    if (contentLength <= 0) {
-      throw new Error(`Uploaded object is empty: ${objectKey}`);
+    if (contentLength < minSizeBytes) {
+      throw new Error(`Uploaded object is smaller than minimum size: ${objectKey}`);
     }
     if (contentLength > maxSizeBytes) {
       throw new Error(`Uploaded object exceeds max size: ${objectKey}`);
     }
-    if (result.ContentType && result.ContentType !== expectedMimeType) {
+    if (!result.ContentType) {
+      throw new Error(`Uploaded object content type is missing: ${objectKey}`);
+    }
+    if (result.ContentType !== expectedMimeType) {
       throw new Error(`Uploaded object content type mismatch: ${objectKey}`);
     }
   }

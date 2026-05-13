@@ -48,8 +48,8 @@ Rules:
 
 - The **backend always generates** the object key — clients never control it
 - UUID prevents collisions; artistId scopes to tenant
-- Extension extracted from original filename, stripped of unsafe chars
-- Fallback to empty string if extension is invalid
+- Extension is canonicalized from the validated MIME type (`jpg`, `png`, `webp`)
+- `originalFilename` is stored for display/audit only and never controls storage path
 
 ## Data Model
 
@@ -84,10 +84,12 @@ Old assets remain in the DB with `uploaded` status (future: soft-delete + S3 lif
 
 ## Allowed Types & Sizes
 
-| Kind   | MIME types                        | Max size |
-| ------ | --------------------------------- | -------- |
-| avatar | image/jpeg, image/png, image/webp | 5 MB     |
-| cover  | image/jpeg, image/png, image/webp | 8 MB     |
+| Kind            | MIME types                        | Size range |
+| --------------- | --------------------------------- | ---------- |
+| avatar          | image/jpeg, image/png, image/webp | 1 B - 5 MB |
+| cover           | image/jpeg, image/png, image/webp | 1 B - 8 MB |
+| epk_image       | image/jpeg, image/png, image/webp | 1 B - 8 MB |
+| profile_gallery | image/jpeg, image/png, image/webp | 1 B - 8 MB |
 
 SVG is not accepted (XSS risk). Video and audio not in scope for this phase.
 
@@ -166,7 +168,8 @@ Security posture for launch:
 
 - API credentials must be scoped to the single StageLink bucket only.
 - Browser uploads use short-lived presigned PUT URLs; AWS/R2 keys never reach the client.
-- `confirmUpload` verifies the uploaded object with `HEAD` before marking it `uploaded`.
+- `confirmUpload` verifies the uploaded object with `HEAD` before marking it `uploaded`:
+  existence, minimum/maximum size and exact storage-reported `Content-Type`.
 - Public delivery is intentional for artist media; do not store private documents or secrets in this bucket.
 - Prefer a custom CDN/R2 public domain for `AWS_S3_PUBLIC_BASE_URL` instead of exposing provider internals in product URLs.
 
@@ -186,13 +189,13 @@ This URL is stable and CDN-compatible. To add Cloudflare in front:
 
 ## Risks & Pending Work
 
-| Risk                                  | Status       | Notes                                                                                                                     |
-| ------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| No server-side magic bytes validation | ⚠️ Pending   | `confirmUpload` verifies existence, size and stored Content-Type; future: validate bytes after upload via worker/S3 event |
-| No cleanup of `pending` assets        | ⚠️ Pending   | Assets that never get confirmed accumulate; configure S3/R2 lifecycle rule + scheduled DB cleanup before larger traffic   |
-| Old assets not deleted from S3        | ⚠️ Pending   | Replacing avatar/cover leaves old object in bucket; future: lifecycle rules or explicit deletion job                      |
-| No signed delivery URLs               | ℹ️ By design | Artist media is public for now; use signed URLs only for future private assets                                            |
-| Image dimensions not validated        | ℹ️ By design | No server-side resize/crop yet; future feature                                                                            |
+| Risk                                  | Status       | Notes                                                                                                                           |
+| ------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| No server-side magic bytes validation | ⚠️ Pending   | `confirmUpload` verifies existence, size and exact stored Content-Type; future: validate bytes after upload via worker/S3 event |
+| No cleanup of `pending` assets        | ⚠️ Pending   | Assets that never get confirmed accumulate; configure S3/R2 lifecycle rule + scheduled DB cleanup before larger traffic         |
+| Old assets not deleted from S3        | ⚠️ Pending   | Replacing avatar/cover leaves old object in bucket; future: lifecycle rules or explicit deletion job                            |
+| No signed delivery URLs               | ℹ️ By design | Artist media is public for now; use signed URLs only for future private assets                                                  |
+| Image dimensions not validated        | ℹ️ By design | No server-side resize/crop yet; future feature                                                                                  |
 
 ## Local Development with MinIO
 
