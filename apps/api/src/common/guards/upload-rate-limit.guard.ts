@@ -10,6 +10,7 @@ import type { Request, Response } from 'express';
 import type { User } from '@prisma/client';
 import { extractClientIp } from '../utils/request.utils';
 import { FixedWindowRateLimiter, type RateLimitDecision } from '../utils/fixed-window-rate-limit';
+import { formatSecurityEvent, sanitizeLogPath, sanitizeLogValue } from '../utils/security-log';
 
 /**
  * UploadRateLimitGuard — fixed-window in-memory rate limiter for the
@@ -50,7 +51,14 @@ export class UploadRateLimitGuard implements CanActivate {
     setRateLimitHeaders(res, decision);
     if (!decision.allowed) {
       this.logger.warn(
-        `Upload intent rate limit exceeded: userId=${userId} ip=${ip} path=${req.originalUrl}`,
+        formatSecurityEvent('rate_limit.exceeded', {
+          namespace: 'upload-intent',
+          userId: sanitizeLogValue(userId),
+          ip: sanitizeLogValue(ip),
+          path: sanitizeLogPath(req.originalUrl ?? req.url),
+          limit: decision.limit,
+          retryAfterSeconds: decision.retryAfterSeconds,
+        }),
       );
       throw new HttpException('Too many upload requests', HttpStatus.TOO_MANY_REQUESTS);
     }

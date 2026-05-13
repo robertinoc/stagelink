@@ -1,4 +1,4 @@
-import { ExecutionContext, HttpException } from '@nestjs/common';
+import { ExecutionContext, HttpException, Logger } from '@nestjs/common';
 import { PublicRateLimitGuard } from './public-rate-limit.guard';
 import { UploadRateLimitGuard } from './upload-rate-limit.guard';
 
@@ -15,12 +15,23 @@ function httpContext(request: unknown): ExecutionContext {
 }
 
 describe('rate limit guards', () => {
+  let warnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('blocks public endpoint abuse after the per-IP fixed window quota', () => {
     const guard = new PublicRateLimitGuard();
     const request = {
       headers: {
-        'x-forwarded-for': `198.51.100.${Date.now()}`,
+        'x-forwarded-for': `198.51.100.${Date.now()}\nspoofed`,
       },
+      originalUrl: '/api/public/smart-links/test?token=secret',
     };
     const context = httpContext(request);
 
@@ -33,6 +44,8 @@ describe('rate limit guards', () => {
       'Retry-After',
       expect.any(String),
     );
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('rate_limit.exceeded'));
+    expect(warnSpy).toHaveBeenCalledWith(expect.not.stringContaining('token=secret'));
   });
 
   it('blocks upload-intent abuse after the per-user fixed window quota', () => {

@@ -9,6 +9,7 @@ import {
 import type { Request, Response } from 'express';
 import { extractClientIp } from '../utils/request.utils';
 import { FixedWindowRateLimiter, type RateLimitDecision } from '../utils/fixed-window-rate-limit';
+import { formatSecurityEvent, sanitizeLogPath, sanitizeLogValue } from '../utils/security-log';
 
 /**
  * PublicRateLimitGuard — fixed-window in-memory rate limiter for public endpoints.
@@ -45,7 +46,15 @@ export class PublicRateLimitGuard implements CanActivate {
     const decision = limiter.check(ip);
     setRateLimitHeaders(res, decision);
     if (!decision.allowed) {
-      this.logger.warn(`Rate limit exceeded: namespace=public ip=${ip} path=${req.originalUrl}`);
+      this.logger.warn(
+        formatSecurityEvent('rate_limit.exceeded', {
+          namespace: 'public',
+          ip: sanitizeLogValue(ip),
+          path: sanitizeLogPath(req.originalUrl ?? req.url),
+          limit: decision.limit,
+          retryAfterSeconds: decision.retryAfterSeconds,
+        }),
+      );
       throw new HttpException('Too many requests', HttpStatus.TOO_MANY_REQUESTS);
     }
     return true;

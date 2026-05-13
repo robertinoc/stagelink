@@ -184,6 +184,7 @@ docs/
 ├── security-audit-e2-workos-authkit-config.md # E2.12 WorkOS/AuthKit/Radar: redirects, issuer, MFA, sessions y auth methods
 ├── security-audit-e2-admin-behind-security.md # E2.13 Behind/admin security: roles, access, search exposure y auditability
 ├── security-audit-e2-error-handling-info-leakage.md # E2.14 errores/info leakage: 5xx genericos, path sin query, request-id seguro
+├── security-audit-e2-security-monitoring-incident-readiness.md # E2.15 monitoreo: security_event logs, alertas minimas y runbooks
 ├── security-audit-e3-critical-hardening.md # E3 hardening critico, debug endpoint y notas pre-launch
 ├── security-audit-e4-advanced-hardening.md # E4 hardening avanzado: rate limits, uploads, anti-spam y tenancy
 └── security-audit-e5-infra-ci-cd-security.md # E5 infra/CI-CD security: workflows, secrets, environments y storage
@@ -649,6 +650,11 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - `RequestIdMiddleware` solo acepta `X-Request-ID` seguro (`[a-zA-Z0-9._:-]`, max 128 chars); si no, genera UUID.
   - `ParseCuidPipe` ya no refleja IDs malformados en mensajes 400.
   - Mensajes 4xx se sanitizan/truncan y los extras del envelope siguen allowlisted.
+- **Security Audit E2.15 — Security monitoring / incident readiness cerrado**
+  - Se agrego `formatSecurityEvent()` para logs parseables y sanitizados con prefijo `security_event=...`.
+  - Rate-limit guards y exception filter ya emiten eventos estructurados sin querystrings ni caracteres de control.
+  - `docs/security-audit-e2-security-monitoring-incident-readiness.md` define logs a revisar, alertas minimas y runbooks para login attacks, uploads sospechosos, public API abuse, webhooks y Behind/admin incidents.
+  - Backlog launch: observability externa/alertas automaticas, Redis rate limit, retencion formal de logs y vista owner-only de audit trails.
 
 ### T3-1 — Artist Onboarding (completed)
 
