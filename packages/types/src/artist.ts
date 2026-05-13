@@ -1,4 +1,5 @@
 import type { LocalizedTextMap, SupportedLocale } from './i18n';
+import type { RecordLabel } from './epk';
 
 export type ArtistRole = 'owner' | 'admin' | 'editor' | 'viewer';
 
@@ -52,6 +53,7 @@ export interface Artist {
   traxsourceUrl: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
+  recordLabels: RecordLabel[];
   translations: ArtistTranslations;
   createdAt: string;
   updatedAt: string;

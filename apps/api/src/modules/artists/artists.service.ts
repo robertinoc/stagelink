@@ -8,6 +8,7 @@ import {
   ANALYTICS_EVENTS,
   DEFAULT_LOCALE,
   type ArtistTranslations,
+  type RecordLabel,
   type SupportedLocale,
 } from '@stagelink/types';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
@@ -54,6 +55,12 @@ interface UpdateArtistPayload {
   traxsourceUrl?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
+  recordLabels?: {
+    id: string;
+    name: string;
+    websiteUrl?: string | null;
+    logoUrl?: string | null;
+  }[];
   translations?: ArtistTranslations;
 }
 
@@ -88,6 +95,22 @@ function sanitizeGalleryImageUrls(galleryImageUrls?: string[]): string[] | undef
   );
 }
 
+function sanitizeRecordLabels(
+  labels?: { id: string; name: string; websiteUrl?: string | null; logoUrl?: string | null }[],
+): RecordLabel[] | undefined {
+  if (labels === undefined) return undefined;
+
+  return labels
+    .filter((label) => label.name?.trim())
+    .slice(0, 10)
+    .map((label) => ({
+      id: label.id,
+      name: label.name.trim().slice(0, 100),
+      websiteUrl: label.websiteUrl?.trim() || null,
+      logoUrl: label.logoUrl?.trim() || null,
+    }));
+}
+
 @Injectable()
 export class ArtistsService {
   constructor(
@@ -105,6 +128,7 @@ export class ArtistsService {
         typeof artist.baseLocale === 'string'
           ? (artist.baseLocale as SupportedLocale)
           : DEFAULT_LOCALE,
+      recordLabels: (artist.recordLabels as RecordLabel[] | null) ?? [],
       translations: (artist.translations as ArtistTranslations | null) ?? {},
     };
   }
@@ -198,6 +222,7 @@ export class ArtistsService {
     );
     const tags = sanitizeTags(payload.tags);
     const galleryImageUrls = sanitizeGalleryImageUrls(payload.galleryImageUrls);
+    const recordLabels = sanitizeRecordLabels(payload.recordLabels);
 
     const artist = await this.prisma.artist.update({
       where: { id },
@@ -227,6 +252,9 @@ export class ArtistsService {
         ...(payload.traxsourceUrl !== undefined && { traxsourceUrl: payload.traxsourceUrl }),
         ...(payload.seoTitle !== undefined && { seoTitle: payload.seoTitle }),
         ...(payload.seoDescription !== undefined && { seoDescription: payload.seoDescription }),
+        ...(recordLabels !== undefined && {
+          recordLabels: recordLabels as unknown as Prisma.InputJsonValue,
+        }),
         ...(payload.translations !== undefined && {
           translations: translations as unknown as Prisma.InputJsonValue,
         }),

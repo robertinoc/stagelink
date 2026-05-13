@@ -5,13 +5,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getEpkPublishReadiness } from '@stagelink/types';
 import Link from 'next/link';
-import { ChevronDown, ChevronUp, ExternalLink, Pencil } from 'lucide-react';
+import { Building2, ChevronDown, ChevronUp, ExternalLink, Pencil } from 'lucide-react';
 import type {
   AssetDto,
   EpkEditorResponse,
   EpkFeaturedLinkItem,
   EpkFeaturedMediaItem,
   EpkGenerateBioResponse,
+  RecordLabel,
   SmartLink,
   UpdateEpkPayload,
 } from '@stagelink/types';
@@ -236,7 +237,6 @@ export function EpkEditor({
       techRequirements: editorData.epk.techRequirements ?? '',
       location: editorData.epk.location ?? '',
       availabilityNotes: editorData.epk.availabilityNotes ?? '',
-      recordLabels: editorData.epk.recordLabels ?? '',
       translations: {
         en: {
           headline: editorData.epk.translations?.headline?.en ?? '',
@@ -426,7 +426,6 @@ export function EpkEditor({
         techRequirements: values.techRequirements || null,
         location: values.location || null,
         availabilityNotes: values.availabilityNotes || null,
-        recordLabels: values.recordLabels || null,
         ...(hasMultiLanguageAccess && {
           translations: buildTranslationsPayload(values),
         }),
@@ -451,7 +450,6 @@ export function EpkEditor({
         techRequirements: normalizeNullable(updated.epk.techRequirements),
         location: normalizeNullable(updated.epk.location),
         availabilityNotes: normalizeNullable(updated.epk.availabilityNotes),
-        recordLabels: normalizeNullable(updated.epk.recordLabels),
         translations: {
           en: {
             headline: updated.epk.translations?.headline?.en ?? '',
@@ -1249,23 +1247,74 @@ export function EpkEditor({
         </CardContent>
       </Card>
 
-      {/* ── Record labels ── */}
-      <Card className={sectionCardClass}>
-        <CardHeader>
-          <CardTitle>Record labels</CardTitle>
-          <CardDescription>
-            Optional. Add the label or labels the artist is signed to or has released through.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            rows={3}
-            placeholder="e.g. Independent / Domino Records / XL Recordings…"
-            disabled={formDisabled}
-            {...register('recordLabels')}
-          />
-        </CardContent>
-      </Card>
+      {/* ── Record labels (inherited from profile) ── */}
+      {inherited.recordLabels.length > 0 || !editorLocked ? (
+        <Card className={sectionCardClass}>
+          <CardHeader>
+            <CardTitle>Record labels</CardTitle>
+            <CardDescription>
+              Inherited from your artist profile. Manage them in{' '}
+              <Link
+                href={`/${locale}/dashboard/profile`}
+                className="font-medium text-violet-400 underline-offset-2 hover:underline"
+              >
+                Profile
+              </Link>
+              .
+            </CardDescription>
+          </CardHeader>
+          {inherited.recordLabels.length > 0 ? (
+            <CardContent className="p-0">
+              <div className="divide-y divide-white/10">
+                {inherited.recordLabels.map((label: RecordLabel) => {
+                  const logoSrc =
+                    label.logoUrl ??
+                    (() => {
+                      try {
+                        return `https://logo.clearbit.com/${new URL(label.websiteUrl ?? '').hostname}`;
+                      } catch {
+                        return null;
+                      }
+                    })();
+                  return (
+                    <div key={label.id} className="flex items-center gap-3 px-5 py-3">
+                      {logoSrc ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={logoSrc}
+                          alt={label.name}
+                          className="h-8 w-8 flex-shrink-0 rounded-md border border-white/10 bg-white object-contain p-0.5"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/5">
+                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-white">{label.name}</p>
+                        {label.websiteUrl ? (
+                          <p className="truncate text-xs text-muted-foreground">
+                            {label.websiteUrl}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          ) : (
+            <CardContent>
+              <p className="text-sm italic text-muted-foreground/60">
+                No record labels added yet. Go to Profile to add them.
+              </p>
+            </CardContent>
+          )}
+        </Card>
+      ) : null}
 
       {/* ── Availability, logistics, and rider ── */}
       <Card className={sectionCardClass}>

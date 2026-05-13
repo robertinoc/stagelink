@@ -14,6 +14,7 @@ import { ProfileImagesSection } from './ProfileImagesSection';
 import { ProfileSocialLinks } from './ProfileSocialLinks';
 import { ProfileSeoSection } from './ProfileSeoSection';
 import { LocalizedProfileContentSection } from './LocalizedProfileContentSection';
+import { ProfileRecordLabelsSection } from './ProfileRecordLabelsSection';
 
 interface ArtistProfileSettingsProps {
   artist: Artist;
@@ -55,6 +56,7 @@ export function ArtistProfileSettings({
       baseLocale: artist.baseLocale,
       categories: [artist.category, ...(artist.secondaryCategories ?? [])],
       tags: artist.tags ?? [],
+      recordLabels: artist.recordLabels ?? [],
       galleryImageUrls: artist.galleryImageUrls ?? [],
       instagramUrl: artist.instagramUrl ?? '',
       tiktokUrl: artist.tiktokUrl ?? '',
@@ -173,6 +175,7 @@ export function ArtistProfileSettings({
       category,
       secondaryCategories,
       tags: values.tags,
+      recordLabels: values.recordLabels,
       galleryImageUrls: values.galleryImageUrls,
       instagramUrl: values.instagramUrl || null,
       tiktokUrl: values.tiktokUrl || null,
@@ -205,6 +208,7 @@ export function ArtistProfileSettings({
         baseLocale: updated.baseLocale,
         categories: [updated.category, ...(updated.secondaryCategories ?? [])],
         tags: updated.tags ?? [],
+        recordLabels: updated.recordLabels ?? [],
         galleryImageUrls: updated.galleryImageUrls ?? [],
         instagramUrl: updated.instagramUrl ?? '',
         tiktokUrl: updated.tiktokUrl ?? '',
@@ -277,7 +281,14 @@ export function ArtistProfileSettings({
         {/* 4 — SEO */}
         <ProfileSeoSection form={form} disabled={isBusy} username={artist.username} />
 
-        {/* 5 — Additional locale content */}
+        {/* 5 — Record labels */}
+        <ProfileRecordLabelsSection
+          labels={form.watch('recordLabels')}
+          disabled={isBusy}
+          onChange={(labels) => form.setValue('recordLabels', labels, { shouldDirty: true })}
+        />
+
+        {/* 6 — Additional locale content */}
         <LocalizedProfileContentSection
           form={form}
           disabled={isBusy}

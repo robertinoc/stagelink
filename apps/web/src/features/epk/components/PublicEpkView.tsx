@@ -282,14 +282,57 @@ export async function PublicEpkView({
             ) : null}
 
             {/* ── Record labels ── */}
-            {epk.recordLabels ? (
-              <section className="space-y-3">
+            {epk.recordLabels.length > 0 ? (
+              <section className="space-y-4">
                 <h2
                   className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
                 >
                   {t('sections.record_labels')}
                 </h2>
-                <p className={`text-sm leading-7 ${bodyTextClass}`}>{epk.recordLabels}</p>
+                <div className="flex flex-wrap gap-3">
+                  {epk.recordLabels.map((label) => {
+                    const logoSrc =
+                      label.logoUrl ??
+                      (() => {
+                        try {
+                          return `https://logo.clearbit.com/${new URL(label.websiteUrl ?? '').hostname}`;
+                        } catch {
+                          return null;
+                        }
+                      })();
+                    const inner = (
+                      <div
+                        className={`flex items-center gap-2.5 rounded-2xl border px-4 py-2.5 ${cardClass}`}
+                      >
+                        {logoSrc ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={logoSrc}
+                            alt={label.name}
+                            className="h-6 w-6 flex-shrink-0 rounded-sm bg-white object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : null}
+                        <span className={`text-sm font-medium ${bodyTextClass}`}>{label.name}</span>
+                      </div>
+                    );
+                    return label.websiteUrl && !printMode ? (
+                      <a
+                        key={label.id}
+                        href={label.websiteUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="transition hover:opacity-80"
+                      >
+                        {inner}
+                      </a>
+                    ) : (
+                      <div key={label.id}>{inner}</div>
+                    );
+                  })}
+                </div>
               </section>
             ) : null}
 

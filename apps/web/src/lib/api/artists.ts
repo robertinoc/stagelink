@@ -1,5 +1,10 @@
 import { apiFetch } from '@/lib/auth';
-import type { ArtistCategory, ArtistTranslations, SupportedLocale } from '@stagelink/types';
+import type {
+  ArtistCategory,
+  ArtistTranslations,
+  RecordLabel,
+  SupportedLocale,
+} from '@stagelink/types';
 
 /**
  * Full artist data returned by GET /api/artists/:id.
@@ -38,6 +43,7 @@ export interface Artist {
   // SEO
   seoTitle: string | null;
   seoDescription: string | null;
+  recordLabels: RecordLabel[];
   translations: ArtistTranslations;
   createdAt: string;
   updatedAt: string;
@@ -68,6 +74,7 @@ export interface UpdateArtistPayload {
   traxsourceUrl?: string | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
+  recordLabels?: RecordLabel[];
   translations?: ArtistTranslations;
 }
 

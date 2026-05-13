@@ -12,13 +12,15 @@ import {
   MinLength,
   Matches,
   IsObject,
+  ValidateNested,
+  IsUUID,
   registerDecorator,
   ValidationOptions,
   ValidatorConstraint,
   ValidatorConstraintInterface,
   ValidationArguments,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { ArtistCategory } from '@prisma/client';
 import {
   normalizeUsername,
@@ -326,4 +328,38 @@ export class UpdateArtistDto {
   @IsOptional()
   @IsObject()
   translations?: Record<string, unknown>;
+
+  // ── Record labels ─────────────────────────────────────────────
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10, { message: 'You can add up to 10 record labels' })
+  @ValidateNested({ each: true })
+  @Type(() => RecordLabelDto)
+  recordLabels?: RecordLabelDto[];
+}
+
+export class RecordLabelDto {
+  @IsString()
+  @IsUUID()
+  id!: string;
+
+  @IsString()
+  @MinLength(1, { message: 'Label name is required' })
+  @MaxLength(100, { message: 'Label name must be 100 characters or less' })
+  name!: string;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'websiteUrl must be a valid URL' })
+  websiteUrl?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'logoUrl must be a valid URL' })
+  logoUrl?: string | null;
 }

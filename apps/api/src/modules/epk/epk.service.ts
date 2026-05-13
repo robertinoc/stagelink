@@ -7,6 +7,7 @@ import {
   type EpkFeaturedMediaItem,
   type EpkGenerateBioResponse,
   type EpkTranslations,
+  type RecordLabel,
   type SupportedLocale,
   type UpdateEpkPayload,
 } from '@stagelink/types';
@@ -75,6 +76,7 @@ function mapInheritedArtist(artist: Artist) {
     // Expose the artist's profile gallery so the EPK editor can show a
     // "pick from your gallery" source without an extra API round-trip.
     profileGalleryUrls: (artist.galleryImageUrls as unknown as string[]) ?? [],
+    recordLabels: (artist.recordLabels as unknown as RecordLabel[]) ?? [],
   };
 }
 
@@ -104,7 +106,6 @@ function mapEpk(epk: EpkRecord) {
     techRequirements: epk.techRequirements,
     location: epk.location,
     availabilityNotes: epk.availabilityNotes,
-    recordLabels: epk.recordLabels,
     createdAt: epk.createdAt.toISOString(),
     updatedAt: epk.updatedAt.toISOString(),
   };
@@ -415,7 +416,6 @@ Return JSON with keys: headline, shortBio, fullBio, pressQuote`;
       ...(dto.techRequirements !== undefined && { techRequirements: dto.techRequirements }),
       ...(dto.location !== undefined && { location: dto.location }),
       ...(dto.availabilityNotes !== undefined && { availabilityNotes: dto.availabilityNotes }),
-      ...(dto.recordLabels !== undefined && { recordLabels: dto.recordLabels }),
     };
 
     return {
@@ -453,7 +453,6 @@ Return JSON with keys: headline, shortBio, fullBio, pressQuote`;
       ...(payload.availabilityNotes !== undefined && {
         availabilityNotes: payload.availabilityNotes,
       }),
-      ...(payload.recordLabels !== undefined && { recordLabels: payload.recordLabels }),
     };
   }
 }
