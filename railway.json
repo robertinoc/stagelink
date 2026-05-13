@@ -7,7 +7,7 @@
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
-    "startCommand": "node_modules/.bin/prisma migrate deploy && node dist/main",
+    "startCommand": "pnpm start",
     "healthcheckPath": "/api/health",
     "sleepApplication": false,
     "useLegacyStacker": false,
