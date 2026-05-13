@@ -180,6 +180,7 @@ docs/
 ├── security-audit-e2-dependencies.md # E2.8 dependencies: audit, upgrades, overrides y Dependabot
 ├── security-audit-e2-repo-ci-cd.md # E2.9 repo/CI-CD: GitHub Actions, secrets, artifacts y Dependabot
 ├── security-audit-e2-webhooks-security.md # E2.10 webhooks: Stripe firma, replay/idempotencia y baseline futuro
+├── security-audit-e2-file-upload-asset-security.md # E2.11 uploads/assets: MIME, size, signed URLs, bucket publico y ownership
 ├── security-audit-e2-workos-authkit-config.md # E2.12 WorkOS/AuthKit/Radar: redirects, issuer, MFA, sessions y auth methods
 ├── security-audit-e2-admin-behind-security.md # E2.13 Behind/admin security: roles, access, search exposure y auditability
 ├── security-audit-e3-critical-hardening.md # E3 hardening critico, debug endpoint y notas pre-launch
@@ -635,6 +636,12 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - Idempotencia por `stripe_webhook_events.stripe_event_id`; stale events no pisan `lastStripeEventAt` mas nuevo.
   - No hay inbound Shopify webhooks hoy; cualquier webhook futuro debe copiar baseline signed raw-body + idempotency + generic errors.
   - Backlog launch: confirmar `STRIPE_WEBHOOK_SECRET` sensible por environment y agregar alertas de invalid signature/retry failures en E2.15.
+- **Security Audit E2.11 — File upload / asset security cerrado**
+  - Object keys siguen siendo server-side y ahora usan extension canonica derivada del MIME validado, no del `originalFilename`.
+  - Asset config declara `minSizeBytes`/`maxSizeBytes`; uploads vacios se rechazan en intent y confirm.
+  - `confirmUpload` exige existencia, size valido y `Content-Type` exacto reportado por S3/R2 antes de marcar `uploaded`.
+  - Bucket/CDN publico queda aceptado solo para media artistica publica; no subir documentos privados a este pipeline.
+  - Backlog launch: magic-byte/AV scanning si se aceptan formatos no imagen, lifecycle cleanup de assets pending/viejos y bucket privado para assets privados.
 
 ### T3-1 — Artist Onboarding (completed)
 

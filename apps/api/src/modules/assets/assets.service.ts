@@ -10,7 +10,12 @@ import { PrismaService } from '../../lib/prisma.service';
 import { S3Service } from '../../lib/s3/s3.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
-import { ASSET_CONFIG, PRESIGNED_URL_TTL_SECONDS } from './assets.constants';
+import {
+  ASSET_CONFIG,
+  buildCanonicalAssetFilename,
+  type AllowedMimeType,
+  PRESIGNED_URL_TTL_SECONDS,
+} from './assets.constants';
 import type { AssetDto, CreateUploadIntentDto, UploadIntentResponseDto } from './dto';
 
 @Injectable()
@@ -45,17 +50,20 @@ export class AssetsService {
     if (!config.allowedMimeTypes.includes(dto.mimeType as never)) {
       throw new BadRequestException(`MIME type ${dto.mimeType} is not allowed for ${dto.kind}`);
     }
+    if (dto.sizeBytes < config.minSizeBytes) {
+      throw new BadRequestException(`File is too small for ${dto.kind}`);
+    }
     if (dto.sizeBytes > config.maxSizeBytes) {
       throw new BadRequestException(
         `File too large: max ${config.maxSizeBytes / (1024 * 1024)} MB for ${dto.kind}`,
       );
     }
 
-    // 3. Generate object key (backend controls this — never trust client)
+    // 3. Generate object key (backend controls path and extension — never trust client)
     const objectKey = this.s3.generateObjectKey(
       dto.artistId,
       dto.kind,
-      dto.originalFilename ?? `upload.${dto.mimeType.split('/')[1]}`,
+      buildCanonicalAssetFilename(dto.mimeType as AllowedMimeType),
     );
 
     // 4. Create Asset in DB with status: pending
@@ -124,7 +132,12 @@ export class AssetsService {
     }
 
     try {
-      await this.s3.verifyUploadedObject(asset.objectKey, asset.mimeType, config.maxSizeBytes);
+      await this.s3.verifyUploadedObject(
+        asset.objectKey,
+        asset.mimeType,
+        config.maxSizeBytes,
+        config.minSizeBytes,
+      );
     } catch (error) {
       this.logger.warn(
         `Upload confirmation rejected: assetId=${assetId} reason=${

@@ -61,7 +61,7 @@ describe('AssetsService', () => {
   }
 
   it('does not expose internal storage object keys in upload-intent responses', async () => {
-    const { service, membershipService } = createService();
+    const { service, s3, membershipService } = createService();
 
     const response = await service.createUploadIntent(
       {
@@ -69,18 +69,59 @@ describe('AssetsService', () => {
         kind: 'avatar',
         mimeType: 'image/png',
         sizeBytes: asset.sizeBytes,
-        originalFilename: asset.originalFilename,
+        originalFilename: 'avatar.svg',
       },
       user as never,
     );
 
     expect(membershipService.validateAccess).toHaveBeenCalledWith(user.id, asset.artistId, 'write');
+    expect(s3.generateObjectKey).toHaveBeenCalledWith(asset.artistId, 'avatar', 'upload.png');
     expect(response).toEqual({
       assetId: asset.id,
       uploadUrl: 'https://uploads.stagelink.test/signed',
       expiresAt: '2026-05-07T23:59:59.000Z',
     });
     expect(response).not.toHaveProperty('objectKey');
+  });
+
+  it('rejects upload intents that do not meet the configured file-size floor', async () => {
+    const { service, prisma, s3 } = createService();
+
+    await expect(
+      service.createUploadIntent(
+        {
+          artistId: asset.artistId,
+          kind: 'avatar',
+          mimeType: 'image/png',
+          sizeBytes: 0,
+          originalFilename: asset.originalFilename,
+        },
+        user as never,
+      ),
+    ).rejects.toThrow('File is too small for avatar');
+
+    expect(prisma.asset.create).not.toHaveBeenCalled();
+    expect(s3.generatePresignedPutUrl).not.toHaveBeenCalled();
+  });
+
+  it('rejects upload intents above the configured per-kind size limit', async () => {
+    const { service, prisma, s3 } = createService();
+
+    await expect(
+      service.createUploadIntent(
+        {
+          artistId: asset.artistId,
+          kind: 'avatar',
+          mimeType: 'image/png',
+          sizeBytes: 5 * 1024 * 1024 + 1,
+          originalFilename: asset.originalFilename,
+        },
+        user as never,
+      ),
+    ).rejects.toThrow('File too large');
+
+    expect(prisma.asset.create).not.toHaveBeenCalled();
+    expect(s3.generatePresignedPutUrl).not.toHaveBeenCalled();
   });
 
   it('verifies the uploaded object before confirming the asset', async () => {
@@ -92,6 +133,7 @@ describe('AssetsService', () => {
       asset.objectKey,
       asset.mimeType,
       5 * 1024 * 1024,
+      1,
     );
     expect(prisma.asset.update).toHaveBeenCalledWith({
       where: { id: asset.id },
