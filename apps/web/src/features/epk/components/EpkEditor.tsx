@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getEpkPublishReadiness } from '@stagelink/types';
 import Link from 'next/link';
-import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronUp, ExternalLink, Pencil } from 'lucide-react';
 import type {
   AssetDto,
   EpkEditorResponse,
@@ -18,6 +18,14 @@ import type {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { publishArtistEpk, unpublishArtistEpk, updateArtistEpk } from '@/lib/api/epk';
@@ -73,6 +81,118 @@ function areFeaturedLinksEqual(a: EpkFeaturedLinkItem[], b: EpkFeaturedLinkItem[
       item.id === b[index]?.id && item.label === b[index]?.label && item.url === b[index]?.url,
   );
 }
+
+// ─── Rider edit dialog ───────────────────────────────────────────────────────
+
+interface RiderEditDialogProps {
+  icon: string;
+  title: string;
+  description: string;
+  placeholder: string;
+  value: string;
+  disabled: boolean;
+  onSave: (value: string) => void;
+}
+
+function RiderEditDialog({
+  icon,
+  title,
+  description,
+  placeholder,
+  value,
+  disabled,
+  onSave,
+}: RiderEditDialogProps) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState('');
+
+  function handleOpen() {
+    setDraft(value);
+    setOpen(true);
+  }
+
+  function handleSave() {
+    onSave(draft);
+    setOpen(false);
+  }
+
+  const preview = value.trim();
+  const previewText = preview ? preview.slice(0, 80) + (preview.length > 80 ? '…' : '') : null;
+
+  return (
+    <>
+      {/* ── Row ── */}
+      <div className="flex min-h-[56px] items-center gap-4 px-5 py-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <span className="text-lg leading-none">{icon}</span>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-white">{title}</p>
+            {previewText ? (
+              <p className="truncate text-xs text-muted-foreground">{previewText}</p>
+            ) : (
+              <p className="text-xs italic text-muted-foreground/50">Not set</p>
+            )}
+          </div>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={disabled}
+          onClick={handleOpen}
+          className="shrink-0 gap-1.5 text-xs"
+        >
+          <Pencil className="h-3 w-3" />
+          Edit
+        </Button>
+      </div>
+
+      {/* ── Modal ── */}
+      <Dialog
+        open={open}
+        onOpenChange={(o) => {
+          if (!o) setOpen(false);
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span>{icon}</span> {title}
+            </DialogTitle>
+            <DialogDescription>{description}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Textarea
+              rows={16}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder={placeholder}
+              maxLength={5000}
+              className="resize-none font-mono text-sm"
+            />
+            <p
+              className={`text-right text-xs ${
+                draft.length > 4800 ? 'text-amber-500' : 'text-muted-foreground'
+              }`}
+            >
+              {draft.length.toLocaleString()} / 5,000
+            </p>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={handleSave}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+// ─── Main editor ──────────────────────────────────────────────────────────────
 
 export function EpkEditor({
   artistId,
@@ -1148,79 +1268,59 @@ export function EpkEditor({
       </Card>
 
       {/* ── Availability, logistics, and rider ── */}
-      <div className="space-y-4">
-        <div className="space-y-1">
-          <h2 className="text-base font-semibold text-white">Booking info &amp; rider</h2>
-          <p className="text-sm text-muted-foreground">
+      <Card className={sectionCardClass}>
+        <CardHeader>
+          <CardTitle>Booking info &amp; rider</CardTitle>
+          <CardDescription>
             Keep the practical information clear and separated so promoters know what is logistics,
             what is artist-side, and what belongs to the technical setup. Up to 5,000 characters per
             section.
-          </p>
-        </div>
-
-        <Card className={sectionCardClass}>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <span>📅</span> Availability and logistics
-            </CardTitle>
-            <CardDescription>
-              Touring windows, airport transfers, hotel needs, in/out logistics, or event timing
-              notes.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              rows={14}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {/* Table header */}
+          <div className="flex items-center border-b border-white/10 px-5 py-2.5">
+            <p className="flex-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Section
+            </p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Content
+            </p>
+          </div>
+          {/* Rows */}
+          <div className="divide-y divide-white/10">
+            <RiderEditDialog
+              icon="📅"
+              title="Availability and logistics"
+              description="Touring windows, airport transfers, hotel needs, in/out logistics, or event timing notes."
               placeholder="e.g. Available for bookings across South America and Europe. Travel from Buenos Aires (EZE). Requires roundtrip flights + 2 hotel nights for events outside Buenos Aires…"
+              value={watch('availabilityNotes') ?? ''}
               disabled={formDisabled}
-              maxLength={5000}
-              {...register('availabilityNotes')}
+              onSave={(v) => setValue('availabilityNotes', v, { shouldDirty: true })}
             />
-          </CardContent>
-        </Card>
-
-        <Card className={sectionCardClass}>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <span>🎤</span> Artist requirements
-            </CardTitle>
-            <CardDescription>
-              Hospitality, staff, guest list, catering, dressing room notes, or other artist-side
-              requirements.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              rows={14}
+            <RiderEditDialog
+              icon="🎤"
+              title="Artist requirements"
+              description="Hospitality, staff, guest list, catering, dressing room notes, or other artist-side requirements."
               placeholder="e.g. 1 dressing room with lockable door. Guest list: up to 4 people. Catering: water, juice, snacks. No media access to dressing room before the show…"
+              value={watch('riderInfo') ?? ''}
               disabled={formDisabled}
-              maxLength={5000}
-              {...register('riderInfo')}
+              onSave={(v) => setValue('riderInfo', v, { shouldDirty: true })}
             />
-          </CardContent>
-        </Card>
-
-        <Card className={sectionCardClass}>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <span>🎛️</span> Technical rider
-            </CardTitle>
-            <CardDescription>
-              DJ setup, mixers, CDJs, sound system, monitors, lights, screens, stage plot, or
-              production notes.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              rows={14}
-              placeholder="e.g. SETUP 01: CDJ+MIXER&#10;• (1) Pioneer DJM-900 NEXUS&#10;• (2) Pioneer CDJ-3000&#10;• (2) Monitor speakers – 1 to 2m from DJ&#10;&#10;SETUP 02: TRAKTOR&#10;• (1) Traktor Kontrol Z1…"
+            <RiderEditDialog
+              icon="🎛️"
+              title="Technical rider"
+              description="DJ setup, mixers, CDJs, sound system, monitors, lights, screens, stage plot, or production notes."
+              placeholder={
+                'SETUP 01: CDJ+MIXER\n• (1) Pioneer DJM-900 NEXUS\n• (2) Pioneer CDJ-3000\n• (2) Monitor speakers – 1 to 2m from DJ\n\nSETUP 02: TRAKTOR\n• (1) Traktor Kontrol Z1…'
+              }
+              value={watch('techRequirements') ?? ''}
               disabled={formDisabled}
-              maxLength={5000}
-              {...register('techRequirements')}
+              onSave={(v) => setValue('techRequirements', v, { shouldDirty: true })}
             />
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* ── Save bar ── */}
       <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-card p-4 sm:flex-row sm:items-center sm:justify-between">

@@ -2,11 +2,19 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
-import { Globe2, Lock } from 'lucide-react';
+import { Globe2, Lock, Pencil } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { autoTranslateLocalizedFields } from '@/lib/api/localization';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { EpkFormValues } from '../schemas/epk.schema';
@@ -18,6 +26,116 @@ const LOCALE_TABS: LocaleTab[] = ['en', 'es'];
 function getDefaultTranslatedLocale(baseLocale: LocaleTab): LocaleTab {
   return LOCALE_TABS.find((locale) => locale !== baseLocale) ?? 'en';
 }
+
+// ─── Localized rider dialog ───────────────────────────────────────────────────
+
+interface LocalizedRiderDialogProps {
+  icon: string;
+  title: string;
+  description: string;
+  placeholder: string;
+  value: string;
+  disabled: boolean;
+  onSave: (value: string) => void;
+}
+
+function LocalizedRiderDialog({
+  icon,
+  title,
+  description,
+  placeholder,
+  value,
+  disabled,
+  onSave,
+}: LocalizedRiderDialogProps) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState('');
+
+  function handleOpen() {
+    setDraft(value);
+    setOpen(true);
+  }
+
+  function handleSave() {
+    onSave(draft);
+    setOpen(false);
+  }
+
+  const preview = value.trim();
+  const previewText = preview ? preview.slice(0, 80) + (preview.length > 80 ? '…' : '') : null;
+
+  return (
+    <>
+      <div className="flex min-h-[56px] items-center gap-4 px-5 py-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <span className="text-lg leading-none">{icon}</span>
+          <div className="min-w-0">
+            <p className="text-sm font-medium">{title}</p>
+            {previewText ? (
+              <p className="truncate text-xs text-muted-foreground">{previewText}</p>
+            ) : (
+              <p className="text-xs italic text-muted-foreground/50">Not set</p>
+            )}
+          </div>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={disabled}
+          onClick={handleOpen}
+          className="shrink-0 gap-1.5 text-xs"
+        >
+          <Pencil className="h-3 w-3" />
+          Edit
+        </Button>
+      </div>
+
+      <Dialog
+        open={open}
+        onOpenChange={(o) => {
+          if (!o) setOpen(false);
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span>{icon}</span> {title}
+            </DialogTitle>
+            <DialogDescription>{description}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Textarea
+              rows={16}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder={placeholder}
+              maxLength={5000}
+              className="resize-none font-mono text-sm"
+            />
+            <p
+              className={`text-right text-xs ${
+                draft.length > 4800 ? 'text-amber-500' : 'text-muted-foreground'
+              }`}
+            >
+              {draft.length.toLocaleString()} / 5,000
+            </p>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={handleSave}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+// ─── Main section ─────────────────────────────────────────────────────────────
 
 interface LocalizedEpkContentSectionProps {
   form: UseFormReturn<EpkFormValues>;
@@ -349,59 +467,53 @@ export function LocalizedEpkContentSection({
           </div>
 
           {/* ── Rider / availability translations ── */}
-          <div className="space-y-3 border-t border-white/10 pt-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Booking info &amp; rider
-            </p>
-
-            <div className="space-y-1.5">
-              <label
-                htmlFor={`translations.${activeLocale}.availabilityNotes`}
-                className="flex items-center gap-1.5 text-sm font-medium"
-              >
-                <span>📅</span> {t('fields.availability')}
-              </label>
-              <Textarea
-                id={`translations.${activeLocale}.availabilityNotes`}
+          <div className="overflow-hidden rounded-xl border border-white/10">
+            {/* Table header */}
+            <div className="flex items-center border-b border-white/10 bg-white/[0.02] px-5 py-2.5">
+              <p className="flex-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Booking info &amp; rider
+              </p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Content
+              </p>
+            </div>
+            <div className="divide-y divide-white/10">
+              <LocalizedRiderDialog
+                icon="📅"
+                title={t('fields.availability')}
+                description="Touring windows, airport transfers, hotel needs, in/out logistics, or event timing notes."
                 placeholder={t('translations.placeholders.availability')}
+                value={translatedValues.availabilityNotes ?? ''}
                 disabled={fieldsDisabled}
-                className="min-h-[220px]"
-                maxLength={5000}
-                {...register(`translations.${activeLocale}.availabilityNotes`)}
+                onSave={(v) =>
+                  setValue(`translations.${activeLocale}.availabilityNotes`, v, {
+                    shouldDirty: true,
+                  })
+                }
               />
-            </div>
-
-            <div className="space-y-1.5">
-              <label
-                htmlFor={`translations.${activeLocale}.riderInfo`}
-                className="flex items-center gap-1.5 text-sm font-medium"
-              >
-                <span>🎤</span> {t('fields.rider')}
-              </label>
-              <Textarea
-                id={`translations.${activeLocale}.riderInfo`}
+              <LocalizedRiderDialog
+                icon="🎤"
+                title={t('fields.rider')}
+                description="Hospitality, staff, guest list, catering, dressing room notes, or other artist-side requirements."
                 placeholder={t('translations.placeholders.rider')}
+                value={translatedValues.riderInfo ?? ''}
                 disabled={fieldsDisabled}
-                className="min-h-[220px]"
-                maxLength={5000}
-                {...register(`translations.${activeLocale}.riderInfo`)}
+                onSave={(v) =>
+                  setValue(`translations.${activeLocale}.riderInfo`, v, { shouldDirty: true })
+                }
               />
-            </div>
-
-            <div className="space-y-1.5">
-              <label
-                htmlFor={`translations.${activeLocale}.techRequirements`}
-                className="flex items-center gap-1.5 text-sm font-medium"
-              >
-                <span>🎛️</span> {t('fields.tech_requirements')}
-              </label>
-              <Textarea
-                id={`translations.${activeLocale}.techRequirements`}
+              <LocalizedRiderDialog
+                icon="🎛️"
+                title={t('fields.tech_requirements')}
+                description="DJ setup, mixers, CDJs, sound system, monitors, lights, screens, stage plot, or production notes."
                 placeholder={t('translations.placeholders.tech_requirements')}
+                value={translatedValues.techRequirements ?? ''}
                 disabled={fieldsDisabled}
-                className="min-h-[220px]"
-                maxLength={5000}
-                {...register(`translations.${activeLocale}.techRequirements`)}
+                onSave={(v) =>
+                  setValue(`translations.${activeLocale}.techRequirements`, v, {
+                    shouldDirty: true,
+                  })
+                }
               />
             </div>
           </div>
