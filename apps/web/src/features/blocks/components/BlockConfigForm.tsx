@@ -14,6 +14,7 @@ import type {
   VideoEmbedBlockConfig,
   EmailCaptureBlockConfig,
   TextBlockConfig,
+  TextBlockBioSource,
   ImageGalleryBlockConfig,
   SmartMerchBlockConfig,
   SmartMerchProduct,
@@ -513,6 +514,15 @@ function EmailCaptureForm({
 
 // ─── Text ────────────────────────────────────────────────────────────────────
 
+/** IDs of textSources that represent profile bio fields (handled by the bio selector, not the "Reuse" section). */
+const PROFILE_BIO_SOURCE_IDS = ['profile-bio', 'profile-full-bio'] as const;
+
+/** Map from profile source ID to the bioSource value stored in the block config. */
+const SOURCE_ID_TO_BIO_SOURCE: Record<string, TextBlockBioSource> = {
+  'profile-bio': 'short_bio',
+  'profile-full-bio': 'full_bio',
+};
+
 function TextBlockForm({
   config,
   onChange,
@@ -524,16 +534,89 @@ function TextBlockForm({
 }) {
   const t = useTranslations('blocks.fields');
 
+  // Separate profile bio sources (for the bio selector) from other text sources (for Reuse pills).
+  const profileBioSources = (textSources ?? []).filter((s) =>
+    (PROFILE_BIO_SOURCE_IDS as readonly string[]).includes(s.id),
+  );
+  const otherSources = (textSources ?? []).filter(
+    (s) => !(PROFILE_BIO_SOURCE_IDS as readonly string[]).includes(s.id),
+  );
+
+  // Look up the preview text for the currently selected bioSource.
+  const bioSourcePreview = config.bioSource
+    ? (profileBioSources.find((s) => SOURCE_ID_TO_BIO_SOURCE[s.id] === config.bioSource)?.body ??
+      '')
+    : null;
+
+  function selectBioSource(bioSource: TextBlockBioSource) {
+    onChange({ ...config, bioSource, body: config.body });
+  }
+
+  function clearBioSource() {
+    // Remove bioSource by omitting it — spread then delete is safe since TextBlockConfig.bioSource is optional.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { bioSource: _omitted, ...rest } = config;
+    onChange({ ...rest });
+  }
+
   return (
     <div className="space-y-3">
-      {textSources && textSources.length > 0 ? (
+      {/* ── Bio Selector (profile sources only) ─────────────────────── */}
+      {profileBioSources.length > 0 && (
+        <div className="rounded-md border border-input bg-muted/20 p-3">
+          <div className="space-y-1">
+            <p className="text-sm font-medium">{t('bio_selector_title')}</p>
+            <p className="text-xs text-muted-foreground">{t('bio_selector_hint')}</p>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {profileBioSources.map((source) => {
+              const bioSource: TextBlockBioSource | undefined = SOURCE_ID_TO_BIO_SOURCE[source.id];
+              if (!bioSource) return null;
+              const isActive = config.bioSource === bioSource;
+              return (
+                <button
+                  key={source.id}
+                  type="button"
+                  onClick={() => (isActive ? clearBioSource() : selectBioSource(bioSource))}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                    isActive
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-input bg-background text-muted-foreground hover:border-primary hover:text-foreground'
+                  }`}
+                >
+                  {source.label}
+                </button>
+              );
+            })}
+            {config.bioSource && (
+              <button
+                type="button"
+                onClick={clearBioSource}
+                className="rounded-full border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-destructive hover:text-destructive"
+              >
+                {t('bio_selector_custom')}
+              </button>
+            )}
+          </div>
+          {bioSourcePreview !== null && (
+            <div className="mt-3 max-h-32 overflow-y-auto rounded-md border border-input bg-background px-3 py-2">
+              <p className="whitespace-pre-wrap text-xs text-muted-foreground">
+                {bioSourcePreview || t('bio_selector_empty_preview')}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Reuse section (non-bio sources) ────────────────────────── */}
+      {otherSources.length > 0 ? (
         <div className="rounded-md border border-input bg-muted/20 p-3">
           <div className="space-y-1">
             <p className="text-sm font-medium">{t('reuse_section_title')}</p>
             <p className="text-xs text-muted-foreground">{t('reuse_section_hint')}</p>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            {textSources.map((source) => (
+            {otherSources.map((source) => (
               <button
                 key={source.id}
                 type="button"
@@ -546,17 +629,21 @@ function TextBlockForm({
           </div>
         </div>
       ) : null}
-      <div>
-        <label className="mb-1 block text-sm font-medium">{t('body')}</label>
-        <textarea
-          value={config.body}
-          onChange={(e) => onChange({ ...config, body: e.target.value })}
-          placeholder={t('body_placeholder')}
-          className="min-h-[180px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          maxLength={5000}
-        />
-        <p className="mt-1 text-xs text-muted-foreground">{config.body.length}/5000</p>
-      </div>
+
+      {/* ── Custom body textarea (hidden when bioSource is active) ──── */}
+      {!config.bioSource && (
+        <div>
+          <label className="mb-1 block text-sm font-medium">{t('body')}</label>
+          <textarea
+            value={config.body}
+            onChange={(e) => onChange({ ...config, body: e.target.value })}
+            placeholder={t('body_placeholder')}
+            className="min-h-[180px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            maxLength={5000}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">{config.body.length}/5000</p>
+        </div>
+      )}
       <p className="text-xs text-muted-foreground">{t('body_locale_hint')}</p>
     </div>
   );

@@ -66,6 +66,7 @@ function localizeArtistTextFields(
   artist: {
     displayName: string;
     bio: string | null;
+    fullBio?: string | null;
     seoTitle: string | null;
     seoDescription: string | null;
     baseLocale?: string | null;
@@ -105,6 +106,12 @@ function localizeArtistTextFields(
     bio: resolveDocumentText(
       artist.bio,
       translations.bio,
+      contentLocale,
+      artist.baseLocale ?? DEFAULT_LOCALE,
+    ),
+    fullBio: resolveDocumentText(
+      artist.fullBio ?? null,
+      translations.fullBio,
       contentLocale,
       artist.baseLocale ?? DEFAULT_LOCALE,
     ),
@@ -784,7 +791,7 @@ export class PublicPagesService {
         username: page.artist.username,
         displayName: localizedArtist.displayName,
         bio: localizedArtist.bio,
-        fullBio: page.artist.fullBio,
+        fullBio: localizedArtist.fullBio,
         avatarUrl: page.artist.avatarUrl,
         coverUrl: page.artist.coverUrl,
         category: page.artist.category,

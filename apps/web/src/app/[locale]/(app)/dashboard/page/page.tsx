@@ -54,7 +54,8 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
   const textSourceLabels =
     locale === 'es'
       ? {
-          profileBio: 'Bio del perfil',
+          profileBio: 'Bio corta del perfil',
+          profileFullBio: 'Bio completa del perfil',
           epkShortBio: 'Bio corta del Press Kit',
           epkFullBio: 'Bio completa del Press Kit',
           availability: 'Disponibilidad y logística',
@@ -63,7 +64,8 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
           pressQuote: 'Cita de prensa',
         }
       : {
-          profileBio: 'Profile bio',
+          profileBio: 'Short bio (profile)',
+          profileFullBio: 'Full bio (profile)',
           epkShortBio: 'Press Kit short bio',
           epkFullBio: 'Press Kit full bio',
           availability: 'Availability and logistics',
@@ -104,6 +106,13 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
                 id: 'profile-bio',
                 label: textSourceLabels.profileBio,
                 body: artist.bio,
+              }
+            : null,
+          artist?.fullBio
+            ? {
+                id: 'profile-full-bio',
+                label: textSourceLabels.profileFullBio,
+                body: artist.fullBio,
               }
             : null,
           epkData?.epk.shortBio

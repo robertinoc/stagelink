@@ -164,11 +164,15 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
   const additionalInfoBlocks = [...textBlocks, ...remainingBlocks];
   const normalizedArtistBio = normalizeTextForComparison(artist.bio);
   const hasCustomAboutBlock = textBlocks.some((block) => {
+    const config = block.config as { body?: string; bioSource?: string };
     const title = normalizeTextForComparison(block.title);
-    const body =
-      'body' in block.config && typeof block.config.body === 'string'
-        ? normalizeTextForComparison(block.config.body)
-        : '';
+    const body = typeof config.body === 'string' ? normalizeTextForComparison(config.body) : '';
+
+    // A text block that pulls from profile bio counts as the "about" block —
+    // suppress the auto-rendered About section so the bio isn't shown twice.
+    if (config.bioSource === 'short_bio' || config.bioSource === 'full_bio') {
+      return true;
+    }
 
     return (
       title.includes('about') ||

@@ -43,9 +43,15 @@ const galleryImageUrlSchema = z
   .url('Gallery images must be valid URLs')
   .max(2048, 'Gallery image URLs must be 2048 characters or less');
 
+const optionalLocalizedFullBioText = z
+  .string()
+  .max(5000, 'Full bio must be 5000 characters or less')
+  .optional();
+
 const localizedProfileFieldsSchema = z.object({
   displayName: z.string().max(100, 'Artist name must be 100 characters or less').optional(),
   bio: optionalLocalizedText,
+  fullBio: optionalLocalizedFullBioText,
   seoTitle: optionalLocalizedTitle,
   seoDescription: optionalLocalizedDescription,
 });

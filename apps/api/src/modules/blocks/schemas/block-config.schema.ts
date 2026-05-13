@@ -409,7 +409,24 @@ function validateEmailCaptureConfig(c: Record<string, unknown>): void {
   }
 }
 
+const VALID_TEXT_BIO_SOURCES = ['short_bio', 'full_bio'] as const;
+
 function validateTextConfig(c: Record<string, unknown>): void {
+  // When bioSource is set the block renders the profile bio dynamically — body may be empty.
+  if (c['bioSource'] !== undefined) {
+    if (
+      !VALID_TEXT_BIO_SOURCES.includes(c['bioSource'] as (typeof VALID_TEXT_BIO_SOURCES)[number])
+    ) {
+      throw new BadRequestException(
+        `text config.bioSource must be one of: ${VALID_TEXT_BIO_SOURCES.join(', ')}`,
+      );
+    }
+    // body is still persisted but ignored at render time
+    if (c['body'] !== undefined && typeof c['body'] !== 'string') {
+      throw new BadRequestException('text config.body must be a string');
+    }
+    return;
+  }
   assertNonEmptyString(c['body'], 'text config.body', MAX_TEXT_BODY_LENGTH);
 }
 

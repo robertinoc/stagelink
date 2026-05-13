@@ -19,6 +19,7 @@ interface LocalizedProfileContentSectionProps {
 }
 
 type LocaleTab = 'en' | 'es';
+type BioField = 'bio' | 'fullBio';
 
 const LOCALE_TABS: LocaleTab[] = ['en', 'es'];
 
@@ -43,7 +44,7 @@ export function LocalizedProfileContentSection({
   const baseLocale = watch('baseLocale');
   const defaultTranslatedLocale = getDefaultTranslatedLocale(baseLocale);
   const [activeLocale, setActiveLocale] = useState<LocaleTab>(defaultTranslatedLocale);
-  const baseValues = watch(['displayName', 'bio', 'seoTitle', 'seoDescription']);
+  const baseValues = watch(['displayName', 'bio', 'fullBio', 'seoTitle', 'seoDescription']);
   const translationsValues = watch('translations');
   const activeLocaleLabel = useMemo(
     () => t(`translations.locales.${activeLocale}`),
@@ -54,6 +55,7 @@ export function LocalizedProfileContentSection({
   const translatedValues = watch(`translations.${activeLocale}`) ?? {};
   const translatedErrors = errors.translations?.[activeLocale];
 
+  // ── Short Bio (bio) refs ────────────────────────────────────────────────────
   const bioTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const { ref: bioRegisterRef, ...bioRegisterRest } = register(`translations.${activeLocale}.bio`);
 
@@ -62,8 +64,24 @@ export function LocalizedProfileContentSection({
     bioTextareaRef.current = el;
   }
 
-  function insertMarkdown(prefix: string, suffix: string = '') {
-    const el = bioTextareaRef.current;
+  // ── Full Bio (fullBio) refs ─────────────────────────────────────────────────
+  const fullBioTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const { ref: fullBioRegisterRef, ...fullBioRegisterRest } = register(
+    `translations.${activeLocale}.fullBio`,
+  );
+
+  function combinedFullBioRef(el: HTMLTextAreaElement | null) {
+    fullBioRegisterRef(el);
+    fullBioTextareaRef.current = el;
+  }
+
+  // ── Markdown helpers (parametrized by field) ───────────────────────────────
+  function getRef(field: BioField) {
+    return field === 'bio' ? bioTextareaRef : fullBioTextareaRef;
+  }
+
+  function insertMarkdown(field: BioField, prefix: string, suffix: string = '') {
+    const el = getRef(field).current;
     if (!el || fieldsDisabled) return;
     const start = el.selectionStart;
     const end = el.selectionEnd;
@@ -71,15 +89,15 @@ export function LocalizedProfileContentSection({
     const before = el.value.slice(0, start);
     const after = el.value.slice(end);
     const newValue = `${before}${prefix}${selected}${suffix}${after}`;
-    setValue(`translations.${activeLocale}.bio`, newValue, { shouldDirty: true });
+    setValue(`translations.${activeLocale}.${field}`, newValue, { shouldDirty: true });
     requestAnimationFrame(() => {
       el.focus();
       el.setSelectionRange(start + prefix.length, end + prefix.length);
     });
   }
 
-  function insertBulletList() {
-    const el = bioTextareaRef.current;
+  function insertBulletList(field: BioField) {
+    const el = getRef(field).current;
     if (!el || fieldsDisabled) return;
     const start = el.selectionStart;
     const before = el.value.slice(0, start);
@@ -87,13 +105,15 @@ export function LocalizedProfileContentSection({
     const needsNewline = before.length > 0 && !before.endsWith('\n');
     const prefix = needsNewline ? '\n- ' : '- ';
     const newValue = `${before}${prefix}${after}`;
-    setValue(`translations.${activeLocale}.bio`, newValue, { shouldDirty: true });
+    setValue(`translations.${activeLocale}.${field}`, newValue, { shouldDirty: true });
     requestAnimationFrame(() => {
       el.focus();
       const pos = start + prefix.length;
       el.setSelectionRange(pos, pos);
     });
   }
+
+  // ── Translation status ──────────────────────────────────────────────────────
   const [translationStatus, setTranslationStatus] = useState<'idle' | 'loading' | 'success'>(
     'idle',
   );
@@ -118,6 +138,7 @@ export function LocalizedProfileContentSection({
           return acc;
         }
 
+        // Check displayName and bio for completeness
         const sourceFields = [baseValues[0], baseValues[1]];
         const translatedFields = [
           translationsValues?.[locale]?.displayName,
@@ -146,8 +167,9 @@ export function LocalizedProfileContentSection({
         values: {
           displayName: baseValues[0] ?? '',
           bio: baseValues[1] ?? '',
-          seoTitle: baseValues[2] ?? '',
-          seoDescription: baseValues[3] ?? '',
+          fullBio: baseValues[2] ?? '',
+          seoTitle: baseValues[3] ?? '',
+          seoDescription: baseValues[4] ?? '',
         },
       });
 
@@ -155,6 +177,9 @@ export function LocalizedProfileContentSection({
         shouldDirty: true,
       });
       setValue(`translations.${locale}.bio`, translations.bio ?? '', { shouldDirty: true });
+      setValue(`translations.${locale}.fullBio`, translations.fullBio ?? '', {
+        shouldDirty: true,
+      });
       setValue(`translations.${locale}.seoTitle`, translations.seoTitle ?? '', {
         shouldDirty: true,
       });
@@ -300,6 +325,7 @@ export function LocalizedProfileContentSection({
         )}
 
         <div key={activeLocale} className="grid gap-5">
+          {/* Display Name */}
           <div className="space-y-1.5">
             <label
               htmlFor={`translations.${activeLocale}.displayName`}
@@ -318,6 +344,7 @@ export function LocalizedProfileContentSection({
             )}
           </div>
 
+          {/* Short Bio */}
           <div className="space-y-1.5">
             <label htmlFor={`translations.${activeLocale}.bio`} className="text-sm font-medium">
               {t('fields.bio')}
@@ -330,7 +357,7 @@ export function LocalizedProfileContentSection({
                 disabled={fieldsDisabled}
                 className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
                 title="Bold"
-                onClick={() => insertMarkdown('**', '**')}
+                onClick={() => insertMarkdown('bio', '**', '**')}
               >
                 <Bold className="h-3.5 w-3.5" />
               </Button>
@@ -341,7 +368,7 @@ export function LocalizedProfileContentSection({
                 disabled={fieldsDisabled}
                 className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
                 title="Italic"
-                onClick={() => insertMarkdown('_', '_')}
+                onClick={() => insertMarkdown('bio', '_', '_')}
               >
                 <Italic className="h-3.5 w-3.5" />
               </Button>
@@ -352,7 +379,7 @@ export function LocalizedProfileContentSection({
                 disabled={fieldsDisabled}
                 className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
                 title="Bullet list"
-                onClick={insertBulletList}
+                onClick={() => insertBulletList('bio')}
               >
                 <List className="h-3.5 w-3.5" />
               </Button>
@@ -383,6 +410,74 @@ export function LocalizedProfileContentSection({
             </div>
           </div>
 
+          {/* Full Bio */}
+          <div className="space-y-1.5">
+            <label htmlFor={`translations.${activeLocale}.fullBio`} className="text-sm font-medium">
+              {t('fields.full_bio')}
+            </label>
+            <p className="text-xs text-muted-foreground">{t('hints.full_bio')}</p>
+            <div className="flex items-center gap-1 rounded-t-md border border-b-0 border-input bg-muted/30 px-2 py-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={fieldsDisabled}
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                title="Bold"
+                onClick={() => insertMarkdown('fullBio', '**', '**')}
+              >
+                <Bold className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={fieldsDisabled}
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                title="Italic"
+                onClick={() => insertMarkdown('fullBio', '_', '_')}
+              >
+                <Italic className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={fieldsDisabled}
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                title="Bullet list"
+                onClick={() => insertBulletList('fullBio')}
+              >
+                <List className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+            <Textarea
+              id={`translations.${activeLocale}.fullBio`}
+              placeholder={t('translations.placeholders.full_bio')}
+              disabled={fieldsDisabled}
+              className="min-h-[240px] rounded-t-none"
+              ref={combinedFullBioRef}
+              {...fullBioRegisterRest}
+            />
+            <div className="flex justify-between">
+              {translatedErrors?.fullBio ? (
+                <p className="text-xs text-destructive">{translatedErrors.fullBio.message}</p>
+              ) : (
+                <span />
+              )}
+              <span
+                className={`text-xs ${
+                  (translatedValues.fullBio?.length ?? 0) > 4500
+                    ? 'text-amber-500'
+                    : 'text-muted-foreground'
+                }`}
+              >
+                {translatedValues.fullBio?.length ?? 0}/5000
+              </span>
+            </div>
+          </div>
+
+          {/* SEO Title */}
           <div className="space-y-1.5">
             <label
               htmlFor={`translations.${activeLocale}.seoTitle`}
@@ -414,6 +509,7 @@ export function LocalizedProfileContentSection({
             </div>
           </div>
 
+          {/* SEO Description */}
           <div className="space-y-1.5">
             <label
               htmlFor={`translations.${activeLocale}.seoDescription`}
