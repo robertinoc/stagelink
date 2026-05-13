@@ -5,6 +5,7 @@ import { SUPPORTED_LOCALES } from '@stagelink/types';
 import type { Locale } from '@/i18n/request';
 import { spaceGrotesk, inter } from '@/lib/fonts';
 import { PostHogProvider } from '@/lib/analytics/PostHogProvider';
+import { ConsentManager } from '@/features/privacy/components/ConsentManager';
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
@@ -25,7 +26,10 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
     >
       <body className="antialiased">
         <NextIntlClientProvider messages={messages}>
-          <PostHogProvider>{children}</PostHogProvider>
+          <PostHogProvider>
+            {children}
+            <ConsentManager />
+          </PostHogProvider>
         </NextIntlClientProvider>
       </body>
     </html>

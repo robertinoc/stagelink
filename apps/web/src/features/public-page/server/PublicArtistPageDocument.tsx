@@ -6,7 +6,6 @@ import type { SupportedLocale } from '@stagelink/types';
 import { getTranslations } from 'next-intl/server';
 import { fetchPublicPage } from '@/lib/public-api';
 import { ArtistPageView } from '@/features/public-page/components/ArtistPageView';
-import { AnalyticsConsentBanner } from '@/features/public-page/components/AnalyticsConsentBanner';
 import { QaModeInitializer } from '@/features/public-page/components/QaModeInitializer';
 import { serializeJsonLd } from '@/lib/json-ld';
 
@@ -128,7 +127,6 @@ export async function PublicArtistPageDocument({
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <ArtistPageView page={page} />
-      <AnalyticsConsentBanner />
       <Suspense fallback={null}>
         <QaModeInitializer />
       </Suspense>

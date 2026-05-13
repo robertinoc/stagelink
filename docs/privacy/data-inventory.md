@@ -5,17 +5,17 @@ living document and must be updated when new features are added.
 
 ## Data Stores
 
-| Store | Current use | Data types |
-| --- | --- | --- |
-| PostgreSQL / Railway | Primary application database | Users, artists, EPKs, pages, blocks, analytics events, subscribers, subscriptions, integrations, assets, audit logs |
-| WorkOS AuthKit | Authentication and sessions | Identity, email, auth methods, session/auth metadata |
-| Stripe | Billing and subscriptions | Customer/payment/subscription data, invoice/payment event data |
-| S3/R2-compatible storage | Artist uploads | Image assets, object keys, delivery URLs, file metadata |
-| PostHog | Product/behavior analytics | Client/server analytics events, pseudonymous identifiers |
-| Vercel | Web deployment/runtime | Request logs, environment variables, deployment logs |
-| Railway | API/database deployment/runtime | API logs, environment variables, deployment logs, database |
-| Upstash Redis | Rate limiting/operational cache where enabled | Request counters, abuse-control metadata |
-| Email provider (Resend/EmailJS) | Transactional/contact email | Sender/recipient email, message content, delivery metadata |
+| Store                           | Current use                                   | Data types                                                                                                          |
+| ------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| PostgreSQL / Railway            | Primary application database                  | Users, artists, EPKs, pages, blocks, analytics events, subscribers, subscriptions, integrations, assets, audit logs |
+| WorkOS AuthKit                  | Authentication and sessions                   | Identity, email, auth methods, session/auth metadata                                                                |
+| Stripe                          | Billing and subscriptions                     | Customer/payment/subscription data, invoice/payment event data                                                      |
+| S3/R2-compatible storage        | Artist uploads                                | Image assets, object keys, delivery URLs, file metadata                                                             |
+| PostHog                         | Product/behavior analytics                    | Client/server analytics events, pseudonymous identifiers                                                            |
+| Vercel                          | Web deployment/runtime                        | Request logs, environment variables, deployment logs                                                                |
+| Railway                         | API/database deployment/runtime               | API logs, environment variables, deployment logs, database                                                          |
+| Upstash Redis                   | Rate limiting/operational cache where enabled | Request counters, abuse-control metadata                                                                            |
+| Email provider (Resend/EmailJS) | Transactional/contact email                   | Sender/recipient email, message content, delivery metadata                                                          |
 
 ## Data Categories
 
@@ -238,16 +238,16 @@ Privacy notes:
 
 These retention periods are recommendations, not final legal policy:
 
-| Data category | Recommended baseline |
-| --- | --- |
-| Account data | Active account life; delete/anonymize within 30-90 days after verified deletion request unless legal retention applies |
-| Public profile/EPK/page data | Until user edits/deletes/unpublishes; remove from public delivery promptly after deletion |
-| Subscriber/fan data | Until unsubscribe/deletion request, artist deletes list, or retention period expires |
-| Analytics raw events | 13 months for raw events; longer only as aggregated/anonymized metrics |
-| Security/audit logs | 12-24 months unless incident/legal hold applies |
-| Billing records | Legal/accounting period to be confirmed by counsel |
-| Uploaded assets | Until deleted by artist/account; define CDN/cache/backups purge behavior |
-| Integration tokens | Until disconnected, account deletion, token expiry, or reauth failure cleanup |
+| Data category                | Recommended baseline                                                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Account data                 | Active account life; delete/anonymize within 30-90 days after verified deletion request unless legal retention applies |
+| Public profile/EPK/page data | Until user edits/deletes/unpublishes; remove from public delivery promptly after deletion                              |
+| Subscriber/fan data          | Until unsubscribe/deletion request, artist deletes list, or retention period expires                                   |
+| Analytics raw events         | 13 months for raw events; longer only as aggregated/anonymized metrics                                                 |
+| Security/audit logs          | 12-24 months unless incident/legal hold applies                                                                        |
+| Billing records              | Legal/accounting period to be confirmed by counsel                                                                     |
+| Uploaded assets              | Until deleted by artist/account; define CDN/cache/backups purge behavior                                               |
+| Integration tokens           | Until disconnected, account deletion, token expiry, or reauth failure cleanup                                          |
 
 ## Missing Inventory Inputs
 

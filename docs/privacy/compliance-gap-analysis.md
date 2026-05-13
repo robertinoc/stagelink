@@ -20,24 +20,20 @@ Fix:
 - Convert structures in this folder into final public policies.
 - Obtain legal review before public launch.
 
-### Non-essential analytics consent is not GDPR-ready
+### Non-essential analytics consent was not GDPR-ready
 
-Existing analytics documentation describes an opt-out/default-allow model for
-basic analytics and PostHog gating based on the `sl_ac` cookie. For EU/ePrivacy
-readiness, non-essential analytics and third-party tracking should not run before
-opt-in consent.
+Privacy Plan E2 replaced the opt-out/default-allow model with explicit,
+versioned, granular opt-in consent for StageLink-owned analytics and PostHog.
 
 Risk:
 
-- EU consent non-compliance.
-- Weak cookie transparency.
-- Difficult defense if tracking grows beyond strictly necessary metrics.
+- Residual risk remains for third-party embeds and future analytics/marketing
+  providers.
 
 Fix:
 
-- Implement granular consent categories.
-- Block PostHog/non-essential analytics before opt-in where required.
-- Store consent category, timestamp, and policy version.
+- Keep `docs/privacy/tracking-inventory.md` updated.
+- Audit third-party embeds before public privacy launch.
 
 ## High
 

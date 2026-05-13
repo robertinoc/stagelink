@@ -20,17 +20,22 @@ This baseline covers:
 
 ## Documents
 
-| File | Purpose |
-| --- | --- |
-| `legal-foundations.md` | Legal role, applicable regulations, lawful bases, age, jurisdiction. |
-| `data-inventory.md` | Initial data inventory, storage, purposes, retention rationale. |
-| `providers-and-transfers.md` | Third-party providers, subprocessors, transfers, and review needs. |
-| `privacy-policy-structure.md` | StageLink-specific Privacy Policy structure. |
-| `terms-of-service-structure.md` | StageLink-specific Terms of Service structure. |
-| `cookie-policy-structure.md` | Cookie categories, consent posture, opt-out/opt-in plan. |
-| `implementation-checklist.md` | Missing information and implementation checklist. |
-| `compliance-gap-analysis.md` | Severity-ranked privacy/compliance gaps. |
-| `legal-foundations-validation-audit.md` | Independent validation audit of this documentation set. |
+| File                                    | Purpose                                                              |
+| --------------------------------------- | -------------------------------------------------------------------- |
+| `legal-foundations.md`                  | Legal role, applicable regulations, lawful bases, age, jurisdiction. |
+| `data-inventory.md`                     | Initial data inventory, storage, purposes, retention rationale.      |
+| `providers-and-transfers.md`            | Third-party providers, subprocessors, transfers, and review needs.   |
+| `privacy-policy-structure.md`           | StageLink-specific Privacy Policy structure.                         |
+| `terms-of-service-structure.md`         | StageLink-specific Terms of Service structure.                       |
+| `cookie-policy-structure.md`            | Cookie categories, consent posture, opt-out/opt-in plan.             |
+| `cookie-architecture.md`                | Implemented consent categories, storage, versioning, withdrawal.     |
+| `consent-flow.md`                       | Runtime consent UX and tracking blocking flow.                       |
+| `tracking-inventory.md`                 | Current tracking systems and no-consent behavior.                    |
+| `implementation-notes.md`               | E2 implementation summary and technical compliance checklist.        |
+| `consent-validation-audit.md`           | Validation audit for consent/cookie implementation.                  |
+| `implementation-checklist.md`           | Missing information and implementation checklist.                    |
+| `compliance-gap-analysis.md`            | Severity-ranked privacy/compliance gaps.                             |
+| `legal-foundations-validation-audit.md` | Independent validation audit of this documentation set.              |
 
 ## Legal review boundary
 

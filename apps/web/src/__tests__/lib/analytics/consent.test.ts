@@ -1,97 +1,80 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  readConsentCookie,
-  isAnalyticsAllowed,
-  setConsentCookie,
-  getConsentHeaderValue,
+  acceptAllConsent,
+  clearConsentForTesting,
   CONSENT_COOKIE,
-  CONSENT_ACCEPTED,
-  CONSENT_REJECTED,
+  getConsentHeaderValue,
+  getConsentPreferences,
+  hasConsentChoice,
+  isAnalyticsAllowed,
+  isMarketingAllowed,
+  readConsentCookie,
+  readConsentRecord,
+  rejectNonEssentialConsent,
+  setConsentCookie,
+  setConsentPreferences,
 } from '@/lib/analytics/consent';
 
-/**
- * jsdom provides document.cookie — we manually manage it between tests.
- */
-function clearConsentCookie() {
-  // Expire the cookie immediately
-  document.cookie = `${CONSENT_COOKIE}=; Max-Age=0; Path=/`;
-}
+describe('GDPR consent helpers', () => {
+  beforeEach(() => {
+    clearConsentForTesting();
+  });
 
-describe('readConsentCookie()', () => {
-  beforeEach(clearConsentCookie);
-
-  it('returns null when no consent cookie is set', () => {
+  it('defaults to no optional consent when no record is present', () => {
+    expect(readConsentRecord()).toBeNull();
     expect(readConsentCookie()).toBeNull();
-  });
-
-  it('returns true when cookie is "1" (accepted)', () => {
-    document.cookie = `${CONSENT_COOKIE}=${CONSENT_ACCEPTED}`;
-    expect(readConsentCookie()).toBe(true);
-  });
-
-  it('returns false when cookie is "0" (rejected)', () => {
-    document.cookie = `${CONSENT_COOKIE}=${CONSENT_REJECTED}`;
-    expect(readConsentCookie()).toBe(false);
-  });
-
-  it('returns null for an unexpected cookie value', () => {
-    document.cookie = `${CONSENT_COOKIE}=maybe`;
-    expect(readConsentCookie()).toBeNull();
-  });
-});
-
-describe('isAnalyticsAllowed()', () => {
-  beforeEach(clearConsentCookie);
-
-  it('returns true when no cookie is set (opt-out model — default allow)', () => {
-    expect(isAnalyticsAllowed()).toBe(true);
-  });
-
-  it('returns true when cookie is accepted ("1")', () => {
-    document.cookie = `${CONSENT_COOKIE}=${CONSENT_ACCEPTED}`;
-    expect(isAnalyticsAllowed()).toBe(true);
-  });
-
-  it('returns false when cookie is rejected ("0")', () => {
-    document.cookie = `${CONSENT_COOKIE}=${CONSENT_REJECTED}`;
+    expect(hasConsentChoice()).toBe(false);
     expect(isAnalyticsAllowed()).toBe(false);
-  });
-});
-
-describe('setConsentCookie()', () => {
-  beforeEach(clearConsentCookie);
-
-  it('writes the accepted value ("1") to document.cookie', () => {
-    setConsentCookie(true);
-    expect(readConsentCookie()).toBe(true);
+    expect(isMarketingAllowed()).toBe(false);
+    expect(getConsentHeaderValue()).toBe('0');
   });
 
-  it('writes the rejected value ("0") to document.cookie', () => {
-    setConsentCookie(false);
-    expect(readConsentCookie()).toBe(false);
-  });
+  it('stores granular preferences with timestamp, expiry, and version', () => {
+    const record = setConsentPreferences({ analytics: true, marketing: false });
 
-  it('overwrites a previous value when called again', () => {
-    setConsentCookie(true);
-    setConsentCookie(false);
-    expect(readConsentCookie()).toBe(false);
-  });
-});
-
-describe('getConsentHeaderValue()', () => {
-  beforeEach(clearConsentCookie);
-
-  it('returns "" when no cookie is present (consent unknown)', () => {
-    expect(getConsentHeaderValue()).toBe('');
-  });
-
-  it('returns "1" when consent is accepted', () => {
-    document.cookie = `${CONSENT_COOKIE}=${CONSENT_ACCEPTED}`;
+    expect(record.categories).toEqual({
+      necessary: true,
+      analytics: true,
+      marketing: false,
+    });
+    expect(record.timestamp).toEqual(expect.any(String));
+    expect(record.expiresAt).toEqual(expect.any(String));
+    expect(document.cookie).toContain(`${CONSENT_COOKIE}=`);
+    expect(readConsentRecord()?.categories.analytics).toBe(true);
+    expect(isAnalyticsAllowed()).toBe(true);
+    expect(isMarketingAllowed()).toBe(false);
     expect(getConsentHeaderValue()).toBe('1');
   });
 
-  it('returns "0" when consent is rejected', () => {
-    document.cookie = `${CONSENT_COOKIE}=${CONSENT_REJECTED}`;
+  it('accepts all optional categories', () => {
+    acceptAllConsent();
+
+    expect(getConsentPreferences()).toEqual({
+      necessary: true,
+      analytics: true,
+      marketing: true,
+    });
+  });
+
+  it('rejects all non-essential categories', () => {
+    rejectNonEssentialConsent();
+
+    expect(getConsentPreferences()).toEqual({
+      necessary: true,
+      analytics: false,
+      marketing: false,
+    });
+    expect(isAnalyticsAllowed()).toBe(false);
     expect(getConsentHeaderValue()).toBe('0');
+  });
+
+  it('keeps the legacy setter as explicit analytics consent only', () => {
+    setConsentCookie(true);
+    expect(readConsentCookie()).toBe(true);
+    expect(isAnalyticsAllowed()).toBe(true);
+
+    setConsentCookie(false);
+    expect(readConsentCookie()).toBe(false);
+    expect(isAnalyticsAllowed()).toBe(false);
   });
 });

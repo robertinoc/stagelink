@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { detectLocale } from '@/lib/detect-locale';
 import { PostHogProvider } from '@/lib/analytics/PostHogProvider';
+import { ConsentManager } from '@/features/privacy/components/ConsentManager';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -31,7 +32,10 @@ export default async function PublicArtistLayout({ children }: PublicLayoutProps
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <PostHogProvider>{children}</PostHogProvider>
+      <PostHogProvider>
+        {children}
+        <ConsentManager />
+      </PostHogProvider>
     </NextIntlClientProvider>
   );
 }
