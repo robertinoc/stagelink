@@ -15,6 +15,9 @@ export default (): Record<string, unknown> => ({
     apiKey: process.env.WORKOS_API_KEY,
     jwtIssuer: process.env.WORKOS_JWT_ISSUER,
   },
+  behind: {
+    redisUrl: process.env.UPSTASH_REDIS_KV_REST_API_URL,
+  },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminSession } from '@/lib/admin-guard';
+import { requireOwnerSession } from '@/lib/admin-guard';
 import { resolveApiBaseUrl } from '@/lib/server/api-base-url';
 
 /**
@@ -9,11 +9,10 @@ import { resolveApiBaseUrl } from '@/lib/server/api-base-url';
  *
  * Proxies to NestJS POST /api/admin/invitations, which calls WorkOS
  * sendInvitation so the user receives a sign-up link via email.
- * The owner check is enforced here (requireAdminSession) and again
- * on the NestJS side (AdminOwnerGuard).
+ * Owner-only at the web edge and API layer.
  */
 export async function POST(request: NextRequest) {
-  const guarded = await requireAdminSession();
+  const guarded = await requireOwnerSession();
   if (guarded.error) return guarded.error;
 
   const apiBaseUrl = resolveApiBaseUrl();

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminSession } from '@/lib/admin-guard';
+import { requireOwnerSession } from '@/lib/admin-guard';
 import { resolveApiBaseUrl } from '@/lib/server/api-base-url';
 
 interface RouteContext {
@@ -12,11 +12,10 @@ interface RouteContext {
  * Body: { "isSuspended": true | false }
  *
  * Proxies to NestJS PATCH /api/admin/users/:id/status.
- * The owner check is enforced here (requireAdminSession) and again
- * on the NestJS side (AdminOwnerGuard).
+ * Owner-only at the web edge and API layer.
  */
 export async function PATCH(request: NextRequest, context: RouteContext) {
-  const guarded = await requireAdminSession();
+  const guarded = await requireOwnerSession();
   if (guarded.error) return guarded.error;
 
   const apiBaseUrl = resolveApiBaseUrl();

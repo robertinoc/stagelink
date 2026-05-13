@@ -7,21 +7,19 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import type { User } from '@prisma/client';
-import { isBehindOwnerEmail } from './admin.config';
+import { AdminRoleService } from './admin-role.service';
 
 /**
- * AdminOwnerGuard — restricts access to platform owner emails only.
+ * AdminAccessGuard — allows Behind owners and read-only admins.
  *
  * Must run AFTER JwtAuthGuard (which is the global APP_GUARD), so
  * request.user is already validated and set when this guard runs.
- *
- * Returns:
- *   401 — if request.user is missing (should not happen; defensive)
- *   403 — if user.email is not in BEHIND_OWNER_EMAILS
  */
 @Injectable()
-export class AdminOwnerGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean {
+export class AdminAccessGuard implements CanActivate {
+  constructor(private readonly adminRoles: AdminRoleService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request & { user?: User }>();
     const user = request.user;
 
@@ -29,7 +27,34 @@ export class AdminOwnerGuard implements CanActivate {
       throw new UnauthorizedException('Not authenticated');
     }
 
-    if (!isBehindOwnerEmail(user.email)) {
+    if (!(await this.adminRoles.hasAccess(user.email))) {
+      throw new ForbiddenException('Access restricted to Behind admins');
+    }
+
+    return true;
+  }
+}
+
+/**
+ * AdminOwnerGuard — restricts access to Behind platform owners only.
+ *
+ * Returns:
+ *   401 — if request.user is missing (should not happen; defensive)
+ *   403 — if user.email is not an env or Redis owner
+ */
+@Injectable()
+export class AdminOwnerGuard implements CanActivate {
+  constructor(private readonly adminRoles: AdminRoleService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest<Request & { user?: User }>();
+    const user = request.user;
+
+    if (!user) {
+      throw new UnauthorizedException('Not authenticated');
+    }
+
+    if (!(await this.adminRoles.isOwner(user.email))) {
       throw new ForbiddenException('Access restricted to platform owners');
     }
 

@@ -12,6 +12,9 @@ export const validationSchema = Joi.object({
   CORS_ALLOWED_ORIGINS: optionalString,
   // Optional owner/admin allowlist for Behind the Stage API endpoints.
   BEHIND_ADMIN_EMAILS: optionalString,
+  // Optional Redis role store for Behind dynamic owners/admins.
+  UPSTASH_REDIS_KV_REST_API_URL: optionalString,
+  UPSTASH_REDIS_KV_REST_API_TOKEN: optionalString,
 
   // Required in production, optional in development
   DATABASE_URL: Joi.when('NODE_ENV', {

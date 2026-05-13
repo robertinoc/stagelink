@@ -219,6 +219,7 @@ function UserRow({
   const [suspending, setSuspending] = useState(false);
 
   const canManageRoles = currentUserRole === 'owner' && !isCurrentUser && !locked;
+  const canManageUsers = currentUserRole === 'owner';
 
   async function toggleSuspend() {
     setSuspending(true);
@@ -307,22 +308,26 @@ function UserRow({
 
       <td className="px-4 py-3">
         <div className="flex items-center gap-1 flex-wrap">
-          <Button variant="ghost" size="sm" onClick={() => onEdit(user)}>
-            Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={suspending}
-            onClick={toggleSuspend}
-            className={
-              user.isSuspended
-                ? 'text-green-400 hover:text-green-300'
-                : 'text-yellow-400 hover:text-yellow-300'
-            }
-          >
-            {suspending ? '…' : user.isSuspended ? 'Unsuspend' : 'Suspend'}
-          </Button>
+          {canManageUsers && (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => onEdit(user)}>
+                Edit
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={suspending}
+                onClick={toggleSuspend}
+                className={
+                  user.isSuspended
+                    ? 'text-green-400 hover:text-green-300'
+                    : 'text-yellow-400 hover:text-yellow-300'
+                }
+              >
+                {suspending ? '…' : user.isSuspended ? 'Unsuspend' : 'Suspend'}
+              </Button>
+            </>
+          )}
 
           {canManageRoles && (
             <>
@@ -369,14 +374,18 @@ function UserRow({
             </>
           )}
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDelete(user)}
-            className="text-red-400 hover:text-red-300"
-          >
-            Delete
-          </Button>
+          {canManageUsers && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(user)}
+              className="text-red-400 hover:text-red-300"
+            >
+              Delete
+            </Button>
+          )}
+
+          {!canManageUsers && <span style={{ color: 'rgba(255,255,255,0.3)' }}>Read-only</span>}
         </div>
       </td>
     </tr>
@@ -973,9 +982,11 @@ export function UsersTable({
                     : `${allUsers.length} ${allUsers.length === 1 ? 'user' : 'users'} registered`)}
               </CardDescription>
             </div>
-            <Button size="sm" onClick={() => setModal({ type: 'invite' })}>
-              Invite user
-            </Button>
+            {currentUserRole === 'owner' && (
+              <Button size="sm" onClick={() => setModal({ type: 'invite' })}>
+                Invite user
+              </Button>
+            )}
           </div>
 
           {/* Search bar */}

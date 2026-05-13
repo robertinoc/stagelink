@@ -8,16 +8,21 @@ import {
   Body,
   UseGuards,
   HttpCode,
+  Req,
 } from '@nestjs/common';
-import { AdminOwnerGuard } from './admin-owner.guard';
+import type { Request } from 'express';
+import type { User } from '@prisma/client';
+import { AdminAccessGuard, AdminOwnerGuard } from './admin-owner.guard';
 import { AdminService } from './admin.service';
 import { UpdateUserStatusDto, SendInvitationDto, UpdateUserDto } from './dto';
+import { CurrentUser } from '../../common/decorators';
+import { extractClientIp } from '../../common/utils/request.utils';
 
 /**
  * AdminController — Behind the Stage internal endpoints.
  *
- * All routes are protected by JwtAuthGuard (global APP_GUARD) +
- * AdminOwnerGuard (applied at controller level).
+ * All routes are protected by JwtAuthGuard (global APP_GUARD).
+ * Read-only list access allows Behind owners/admins; mutations require owner.
  *
  * Routes:
  *   GET    /api/admin/users             → list registered users (excludes soft-deleted)
@@ -27,12 +32,12 @@ import { UpdateUserStatusDto, SendInvitationDto, UpdateUserDto } from './dto';
  *   POST   /api/admin/invitations       → send WorkOS invitation email
  */
 @Controller('admin')
-@UseGuards(AdminOwnerGuard)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   /** GET /api/admin/users */
   @Get('users')
+  @UseGuards(AdminAccessGuard)
   async listUsers() {
     const users = await this.adminService.listUsers();
     return { users };
@@ -45,9 +50,21 @@ export class AdminController {
    * Not editable: email (WorkOS identity), handle (Artist.username — immutable).
    */
   @Patch('users/:id')
+  @UseGuards(AdminOwnerGuard)
   @HttpCode(200)
-  async updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    const user = await this.adminService.updateUser(id, dto.firstName, dto.lastName);
+  async updateUser(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDto,
+    @CurrentUser() actor: User,
+    @Req() req: Request,
+  ) {
+    const user = await this.adminService.updateUser(
+      id,
+      dto.firstName,
+      dto.lastName,
+      actor.id,
+      extractClientIp(req),
+    );
     return { user };
   }
 
@@ -59,9 +76,10 @@ export class AdminController {
    * WorkOS identity remains; auth layers (layout + onboarding) block access.
    */
   @Delete('users/:id')
+  @UseGuards(AdminOwnerGuard)
   @HttpCode(204)
-  async deleteUser(@Param('id') id: string) {
-    await this.adminService.softDeleteUser(id);
+  async deleteUser(@Param('id') id: string, @CurrentUser() actor: User, @Req() req: Request) {
+    await this.adminService.softDeleteUser(id, actor.id, extractClientIp(req));
   }
 
   /**
@@ -73,9 +91,18 @@ export class AdminController {
    * OAuth/magic-link flow. Returns the WorkOS invitation id and expiry.
    */
   @Post('invitations')
+  @UseGuards(AdminOwnerGuard)
   @HttpCode(201)
-  async sendInvitation(@Body() dto: SendInvitationDto) {
-    const invitation = await this.adminService.sendInvitation(dto.email);
+  async sendInvitation(
+    @Body() dto: SendInvitationDto,
+    @CurrentUser() actor: User,
+    @Req() req: Request,
+  ) {
+    const invitation = await this.adminService.sendInvitation(
+      dto.email,
+      actor.id,
+      extractClientIp(req),
+    );
     return { invitation };
   }
 
@@ -91,9 +118,20 @@ export class AdminController {
    * Returns the updated user summary.
    */
   @Patch('users/:id/status')
+  @UseGuards(AdminOwnerGuard)
   @HttpCode(200)
-  async updateUserStatus(@Param('id') id: string, @Body() dto: UpdateUserStatusDto) {
-    const user = await this.adminService.updateUserStatus(id, dto.isSuspended);
+  async updateUserStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserStatusDto,
+    @CurrentUser() actor: User,
+    @Req() req: Request,
+  ) {
+    const user = await this.adminService.updateUserStatus(
+      id,
+      dto.isSuspended,
+      actor.id,
+      extractClientIp(req),
+    );
     return { user };
   }
 }

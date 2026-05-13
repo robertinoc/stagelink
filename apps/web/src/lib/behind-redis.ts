@@ -14,6 +14,17 @@ export type BehindRole = 'owner' | 'admin';
 export type RolesMap = Record<string, BehindRole>;
 
 const ROLES_KEY = 'behind:roles';
+const ROLE_AUDIT_KEY = 'behind:role_audit';
+const MAX_ROLE_AUDIT_EVENTS = 200;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+interface RoleAuditEvent {
+  action: 'set_role';
+  actorEmail: string;
+  targetEmail: string;
+  role: BehindRole | 'none';
+  createdAt: string;
+}
 
 function getRedisClient(): Redis | null {
   const url = process.env.UPSTASH_REDIS_KV_REST_API_URL;
@@ -76,13 +87,14 @@ export async function setRole(
   role: BehindRole | 'none',
   actorEmail: string,
 ): Promise<void> {
-  const normalized = email.toLowerCase();
+  const normalized = normalizeBehindEmail(email);
+  const normalizedActor = normalizeBehindEmail(actorEmail);
 
   if (BEHIND_OWNER_EMAILS.includes(normalized)) {
     throw new Error('Cannot modify env-var owners via the UI. Edit BEHIND_ADMIN_EMAILS in Vercel.');
   }
 
-  if (normalized === actorEmail.toLowerCase()) {
+  if (normalized === normalizedActor) {
     throw new Error('You cannot change your own role.');
   }
 
@@ -98,4 +110,28 @@ export async function setRole(
   }
 
   await redis.set(ROLES_KEY, roles);
+  await appendRoleAudit(redis, {
+    action: 'set_role',
+    actorEmail: normalizedActor,
+    targetEmail: normalized,
+    role,
+    createdAt: new Date().toISOString(),
+  });
+}
+
+function normalizeBehindEmail(email: string): string {
+  const normalized = email.trim().toLowerCase();
+  if (!EMAIL_PATTERN.test(normalized) || normalized.length > 254) {
+    throw new Error('email must be a valid email address');
+  }
+  return normalized;
+}
+
+async function appendRoleAudit(redis: Redis, event: RoleAuditEvent): Promise<void> {
+  try {
+    await redis.lpush(ROLE_AUDIT_KEY, JSON.stringify(event));
+    await redis.ltrim(ROLE_AUDIT_KEY, 0, MAX_ROLE_AUDIT_EVENTS - 1);
+  } catch (error) {
+    console.error('[behind][roles] Failed to write role audit event', error);
+  }
 }

@@ -180,6 +180,7 @@ docs/
 ├── security-audit-e2-dependencies.md # E2.8 dependencies: audit, upgrades, overrides y Dependabot
 ├── security-audit-e2-repo-ci-cd.md # E2.9 repo/CI-CD: GitHub Actions, secrets, artifacts y Dependabot
 ├── security-audit-e2-workos-authkit-config.md # E2.12 WorkOS/AuthKit/Radar: redirects, issuer, MFA, sessions y auth methods
+├── security-audit-e2-admin-behind-security.md # E2.13 Behind/admin security: roles, access, search exposure y auditability
 ├── security-audit-e3-critical-hardening.md # E3 hardening critico, debug endpoint y notas pre-launch
 ├── security-audit-e4-advanced-hardening.md # E4 hardening avanzado: rate limits, uploads, anti-spam y tenancy
 └── security-audit-e5-infra-ci-cd-security.md # E5 infra/CI-CD security: workflows, secrets, environments y storage
@@ -528,6 +529,8 @@ WORKOS_CLIENT_ID=                       # Para construir URL JWKS
 WORKOS_API_KEY=                         # Para fetchear perfil en 1er login
 WORKOS_JWT_ISSUER=                      # Opcional; solo si WorkOS usa custom auth domain
 BEHIND_ADMIN_EMAILS=                    # misma allowlist owner/admin que web
+UPSTASH_REDIS_KV_REST_API_URL=          # server-only, Behind dynamic role lookup
+UPSTASH_REDIS_KV_REST_API_TOKEN=        # server-only, Behind dynamic role lookup
 AWS_S3_BUCKET=                          # Nombre del bucket (ej: stagelink-assets)
 AWS_S3_REGION=                          # auto (R2) o us-east-1 (AWS)
 AWS_ACCESS_KEY_ID=                      # R2 o IAM access key
@@ -619,6 +622,12 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - `/api/auth/signup` usa `getSignUpUrl()` para mantener intención de create-account.
   - Behind auth redirect parsea `WORKOS_REDIRECT_URI` de forma segura y cae a `NEXT_PUBLIC_APP_URL`/`stagelink.art`.
   - Decisión: Radar production estricto; staging puede relajar bot detection para E2E; MFA global diferido, revisar MFA admin/Behind antes de launch público.
+- **Security Audit E2.13 — Behind/Admin security cerrado**
+  - Behind queda con `owner` full-access y `admin` read-only para la postura de launch actual.
+  - Mutaciones de usuarios, invitaciones y role management son owner-only en web edge y API.
+  - `setRole()` valida/normaliza emails, bloquea self/env-owner edits y agrega audit trail Redis `behind:role_audit`.
+  - API admin mutations escriben `AuditLog` para update/suspend/unsuspend/soft-delete/invitation.
+  - Backlog: MFA para owners/admins, paginacion/search server-side y vista owner-only de role audit.
 
 ### T3-1 — Artist Onboarding (completed)
 
