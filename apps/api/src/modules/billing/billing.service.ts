@@ -40,6 +40,7 @@ import {
 } from './billing.helpers';
 
 export const STRIPE_CLIENT = Symbol('STRIPE_CLIENT');
+export const STRIPE_WEBHOOK_TOLERANCE_SECONDS = 300;
 
 export interface BillingPlanCatalogItem {
   plan: PlanTier | 'enterprise';
@@ -291,11 +292,14 @@ export class BillingService {
 
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(req.rawBody, signature, webhookSecret);
-    } catch (error) {
-      this.logger.warn(
-        `Stripe webhook verification failed: ${error instanceof Error ? error.message : String(error)}`,
+      event = stripe.webhooks.constructEvent(
+        req.rawBody,
+        signature,
+        webhookSecret,
+        STRIPE_WEBHOOK_TOLERANCE_SECONDS,
       );
+    } catch {
+      this.logger.warn('Stripe webhook verification failed');
       throw new BadRequestException('Invalid Stripe webhook signature');
     }
 

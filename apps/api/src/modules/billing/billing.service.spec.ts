@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { PlanTier, Prisma, SubscriptionStatus } from '@prisma/client';
-import { BillingService } from './billing.service';
+import { BillingService, STRIPE_WEBHOOK_TOLERANCE_SECONDS } from './billing.service';
 
 describe('BillingService', () => {
   interface PrismaMock {
@@ -257,6 +257,7 @@ describe('BillingService', () => {
 
   it('syncs subscription data from Stripe webhook events', async () => {
     const { service, prisma, stripe } = createService();
+    const rawBody = Buffer.from('{}');
 
     (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
       id: 'evt_123',
@@ -286,9 +287,15 @@ describe('BillingService', () => {
 
     await service.handleWebhook({
       headers: { 'stripe-signature': 'sig_123' },
-      rawBody: Buffer.from('{}'),
+      rawBody,
     } as never);
 
+    expect(stripe.webhooks.constructEvent).toHaveBeenCalledWith(
+      rawBody,
+      'sig_123',
+      'whsec_test',
+      STRIPE_WEBHOOK_TOLERANCE_SECONDS,
+    );
     expect(prisma.stripeWebhookEvent.create).toHaveBeenCalledWith({
       data: {
         stripeEventId: 'evt_123',
@@ -322,6 +329,51 @@ describe('BillingService', () => {
         lastStripeEventAt: new Date('2026-04-08T21:20:00.000Z'),
       },
     });
+  });
+
+  it('rejects Stripe webhooks without a signature before processing the body', async () => {
+    const { service, prisma, stripe } = createService();
+
+    await expect(
+      service.handleWebhook({
+        headers: {},
+        rawBody: Buffer.from('{}'),
+      } as never),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(stripe.webhooks.constructEvent).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('rejects Stripe webhooks without raw body before recording the event', async () => {
+    const { service, prisma, stripe } = createService();
+
+    await expect(
+      service.handleWebhook({
+        headers: { 'stripe-signature': 'sig_123' },
+      } as never),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(stripe.webhooks.constructEvent).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid Stripe webhook signatures without recording the event', async () => {
+    const { service, prisma, stripe } = createService();
+
+    (stripe.webhooks.constructEvent as jest.Mock).mockImplementation(() => {
+      throw new Error('signature mismatch: attacker controlled detail');
+    });
+
+    await expect(
+      service.handleWebhook({
+        headers: { 'stripe-signature': 'sig_123' },
+        rawBody: Buffer.from('{}'),
+      } as never),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(prisma.stripeWebhookEvent.create).not.toHaveBeenCalled();
   });
 
   it('syncs subscription data from invoice payment events', async () => {
