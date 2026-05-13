@@ -29,6 +29,7 @@ export interface Artist {
   username: string;
   displayName: string;
   bio: string | null;
+  fullBio: string | null;
   baseLocale: SupportedLocale;
   avatarUrl: string | null;
   coverUrl: string | null;
@@ -85,6 +86,7 @@ export interface PublicArtist {
   username: string;
   displayName: string;
   bio: string | null;
+  fullBio: string | null;
   locale: SupportedLocale;
   baseLocale: SupportedLocale;
   avatarUrl: string | null;

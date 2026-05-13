@@ -68,6 +68,7 @@ export class PublicEpkService {
             username: true,
             displayName: true,
             bio: true,
+            fullBio: true,
             baseLocale: true,
             translations: true,
             avatarUrl: true,
@@ -178,8 +179,13 @@ export class PublicEpkService {
           contentLocale,
           artist.baseLocale ?? baseLocale,
         ),
+      // Fallback chain for fullBio:
+      // 1. EPK's own fullBio (override)
+      // 2. Artist's fullBio from My Profile
+      // 3. Artist's short bio (last resort if no full bio set anywhere)
       fullBio:
         resolveDocumentText(epk.fullBio, epkTranslations.fullBio, contentLocale, baseLocale) ??
+        artist.fullBio ??
         resolveDocumentText(
           artist.bio,
           artistTranslations.bio,

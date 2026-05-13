@@ -177,7 +177,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
     );
   });
 
-  const hasAboutSection = Boolean(artist.bio) && !hasCustomAboutBlock;
+  const hasAboutSection = (Boolean(artist.bio) || Boolean(artist.fullBio)) && !hasCustomAboutBlock;
   const hasAdditionalInfo = additionalInfoBlocks.length > 0;
   const hasAnyPublicContent =
     linkBlocks.length > 0 ||
@@ -459,6 +459,45 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                                 {artist.bio}
                               </ReactMarkdown>
                             </div>
+                          )}
+                          {artist.fullBio && (
+                            <>
+                              {artist.bio && (
+                                <div className="my-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                              )}
+                              <div className="bio-prose">
+                                <ReactMarkdown
+                                  components={{
+                                    p: ({ children }) => (
+                                      <p className="mb-4 text-sm leading-7 text-zinc-300 last:mb-0 sm:text-base">
+                                        {children}
+                                      </p>
+                                    ),
+                                    strong: ({ children }) => (
+                                      <strong className="font-semibold text-white">
+                                        {children}
+                                      </strong>
+                                    ),
+                                    em: ({ children }) => (
+                                      <em className="italic text-zinc-300">{children}</em>
+                                    ),
+                                    ul: ({ children }) => (
+                                      <ul className="mb-4 ml-4 list-disc space-y-1 text-sm leading-7 text-zinc-300 sm:text-base">
+                                        {children}
+                                      </ul>
+                                    ),
+                                    ol: ({ children }) => (
+                                      <ol className="mb-4 ml-4 list-decimal space-y-1 text-sm leading-7 text-zinc-300 sm:text-base">
+                                        {children}
+                                      </ol>
+                                    ),
+                                    li: ({ children }) => <li>{children}</li>,
+                                  }}
+                                >
+                                  {artist.fullBio}
+                                </ReactMarkdown>
+                              </div>
+                            </>
                           )}
                         </div>
                       </div>

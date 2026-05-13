@@ -97,6 +97,11 @@ export class CreateArtistDto {
   bio?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(5000)
+  fullBio?: string;
+
+  @IsOptional()
   @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
   avatarUrl?: string;
 }
@@ -127,6 +132,14 @@ export class UpdateArtistDto {
     typeof value === 'string' && value.trim() === '' ? null : value,
   )
   bio?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(5000)
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  fullBio?: string | null;
 
   @IsOptional()
   @IsEnum(ArtistCategory, { message: 'category must be a valid ArtistCategory' })

@@ -11,6 +11,7 @@ export interface Artist {
   username: string;
   displayName: string;
   bio: string | null;
+  fullBio: string | null;
   baseLocale: SupportedLocale;
   category: ArtistCategory;
   secondaryCategories: ArtistCategory[];
@@ -46,6 +47,7 @@ export interface Artist {
 export interface UpdateArtistPayload {
   displayName?: string;
   bio?: string | null;
+  fullBio?: string | null;
   baseLocale?: SupportedLocale;
   category?: ArtistCategory;
   secondaryCategories?: ArtistCategory[];

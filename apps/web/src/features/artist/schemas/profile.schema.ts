@@ -81,6 +81,7 @@ export const profileSchema = z
       .min(1, 'Artist name is required')
       .max(100, 'Artist name must be 100 characters or less'),
     bio: z.string().max(1000, 'Bio must be 1000 characters or less').optional(),
+    fullBio: z.string().max(5000, 'Full bio must be 5000 characters or less').optional(),
     baseLocale: z.enum(supportedLocales).default('en'),
     categories: z
       .array(z.enum(ARTIST_CATEGORIES))

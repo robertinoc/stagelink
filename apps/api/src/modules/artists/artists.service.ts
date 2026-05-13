@@ -22,6 +22,7 @@ interface CreateArtistPayload {
   username: string;
   displayName: string;
   bio?: string;
+  fullBio?: string;
 }
 
 /**
@@ -32,6 +33,7 @@ interface CreateArtistPayload {
 interface UpdateArtistPayload {
   displayName?: string;
   bio?: string | null;
+  fullBio?: string | null;
   baseLocale?: SupportedLocale;
   category?: ArtistCategory;
   secondaryCategories?: ArtistCategory[];
@@ -138,6 +140,7 @@ export class ArtistsService {
           username: payload.username,
           displayName: payload.displayName,
           bio: payload.bio ?? null,
+          fullBio: payload.fullBio ?? null,
           userId,
         },
       });
@@ -203,6 +206,7 @@ export class ArtistsService {
         // This avoids accidentally clearing fields that weren't sent.
         ...(payload.displayName !== undefined && { displayName: payload.displayName }),
         ...(payload.bio !== undefined && { bio: payload.bio }),
+        ...(payload.fullBio !== undefined && { fullBio: payload.fullBio }),
         ...(payload.baseLocale !== undefined && { baseLocale: payload.baseLocale }),
         ...(payload.category !== undefined && { category: payload.category }),
         ...(secondaryCategories !== undefined && { secondaryCategories }),

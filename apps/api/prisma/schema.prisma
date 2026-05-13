@@ -89,6 +89,7 @@ model Artist {
   username    String   @unique
   displayName String   @map("display_name")
   bio         String?
+  fullBio     String?  @map("full_bio")
   category    ArtistCategory @default(other) @map("category")
   secondaryCategories ArtistCategory[] @default([]) @map("secondary_categories")
   tags        String[] @default([])
