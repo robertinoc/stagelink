@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { formatSecurityEvent, sanitizeLogPath, sanitizeLogValue } from '../utils/security-log';
 
 interface ErrorBody {
   requestId: string;
@@ -72,7 +73,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? sanitizeString((exceptionResponse as { error: string }).error)
         : (HttpStatus[status] ?? 'Error');
 
-    const path = sanitizePath(request.originalUrl ?? request.url);
+    const path = sanitizeLogPath(request.originalUrl ?? request.url);
 
     const extras =
       exceptionResponse !== null &&
@@ -88,13 +89,24 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(
-        `[${requestId}] ${request.method} ${path} → ${status}`,
+        formatSecurityEvent('http.error', {
+          requestId,
+          method: request.method,
+          path,
+          statusCode: status,
+        }),
         exception instanceof Error ? exception.stack : String(exception),
       );
     } else {
       const printableMessage = Array.isArray(message) ? message.join(', ') : message;
       this.logger.warn(
-        `[${requestId}] ${request.method} ${path} → ${status} (${printableMessage})`,
+        formatSecurityEvent('http.client_error', {
+          requestId,
+          method: request.method,
+          path,
+          statusCode: status,
+          message: printableMessage,
+        }),
       );
     }
 
@@ -112,11 +124,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 }
 
-function sanitizePath(path: string): string {
-  const [pathname] = path.split('?');
-  return pathname || '/';
-}
-
 function sanitizeMessage(message: string | string[]): string | string[] {
   if (Array.isArray(message)) return message.map((item) => sanitizeString(item));
 
@@ -124,5 +131,5 @@ function sanitizeMessage(message: string | string[]): string | string[] {
 }
 
 function sanitizeString(message: string): string {
-  return message.replace(/[\r\n\t]/g, ' ').slice(0, MAX_ERROR_MESSAGE_LENGTH);
+  return sanitizeLogValue(message).slice(0, MAX_ERROR_MESSAGE_LENGTH);
 }
