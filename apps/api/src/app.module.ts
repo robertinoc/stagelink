@@ -27,6 +27,7 @@ import { SmartLinksModule } from './modules/smart-links/smart-links.module';
 import { SubscribersModule } from './modules/subscribers/subscribers.module';
 import { TenantModule } from './modules/tenant/tenant.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { PrivacyModule } from './modules/privacy/privacy.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { AdminModule } from './modules/admin/admin.module';
     EpkModule,
     ShopifyModule,
     AdminModule,
+    PrivacyModule,
   ],
   providers: [
     {

@@ -924,7 +924,8 @@
         "plans_billing": "Plans & Billing",
         "insights_connections": "Insights Connections",
         "shopify_store": "Shopify Store",
-        "smart_merch": "Smart Merch (Printful)"
+        "smart_merch": "Smart Merch (Printful)",
+        "privacy": "Privacy & Data Rights"
       },
       "overview": {
         "open_section": "Open section",
@@ -932,6 +933,7 @@
         "insights_connections": "Connect the artist platforms StageLink uses for Insights, then read metrics later inside Analytics.",
         "shopify_store": "Validate your Shopify storefront, decide what merch to show, and keep that setup tied to this artist workspace.",
         "smart_merch": "Connect Printful, review product availability, and control the merch source your blocks can use.",
+        "privacy": "Download your data, correct account details, and manage account deletion from one privacy home.",
         "badges": {
           "enabled": "Enabled",
           "connected": "Connected",
@@ -943,6 +945,39 @@
         "title": "Need help with your setup?",
         "description": "If you run into a bug, want a change, or need help connecting one of these tools, contact the support center and we will take a look.",
         "cta": "Contact support center"
+      },
+      "privacy": {
+        "title": "Privacy & Data Rights",
+        "description": "Manage your GDPR/CCPA privacy rights for this StageLink account.",
+        "personal": {
+          "title": "Correct personal data",
+          "description": "Update the account name StageLink stores for your profile. Email remains managed by WorkOS authentication.",
+          "first_name": "First name",
+          "last_name": "Last name",
+          "email_note": "Authenticated email: {email}. Contact support if this identity is incorrect.",
+          "save": "Save changes"
+        },
+        "export": {
+          "title": "Download my data",
+          "description": "Export a structured JSON file with your account, artist workspaces, public page, EPK, integrations metadata, and recent audit activity.",
+          "cta": "Download JSON export"
+        },
+        "delete": {
+          "title": "Delete my account",
+          "description": "Request account erasure. StageLink removes public visibility, deletes sole-owner artist workspaces, and anonymizes the account record.",
+          "warning": "This is irreversible. Billing, WorkOS, infrastructure, and security logs may retain legally required records for limited periods.",
+          "open": "Delete account",
+          "modal_title": "Confirm account deletion",
+          "modal_description": "To protect your account, type your authenticated email before deleting. You will be signed out after completion.",
+          "confirm_label": "Type {email} to confirm",
+          "cancel": "Cancel",
+          "confirm": "Delete account"
+        },
+        "messages": {
+          "updated": "Personal data updated.",
+          "update_failed": "Could not update your personal data.",
+          "delete_failed": "Could not delete your account."
+        }
       },
       "summary": {
         "title": "Billing overview",

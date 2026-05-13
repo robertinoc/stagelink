@@ -879,6 +879,26 @@ docs/brand/
 
 ---
 
+## Privacy Plan
+
+Privacy documentation lives in `docs/privacy/`.
+
+| Phase             | Status      | Notes                                                                                  |
+| ----------------- | ----------- | -------------------------------------------------------------------------------------- |
+| Legal foundations | Documented  | GDPR-first baseline, roles, lawful bases, policy structures, provider gaps.            |
+| Consent/cookies   | Implemented | Granular consent UI blocks PostHog/Umami until analytics consent is granted.           |
+| DSAR/user rights  | Implemented | Self-service export, rectification, account anonymization/deletion, audit log records. |
+
+DSAR implementation:
+
+- API endpoints: `GET /api/privacy/export`, `PATCH /api/privacy/me`, `DELETE /api/privacy/account`.
+- Web UI: `/{locale}/dashboard/settings/privacy`.
+- Request audit table: `dsar_requests`.
+- Account erasure strategy: anonymize the local `users` row, delete sole-owner artist workspaces, remove shared memberships, and document retained external/provider records.
+- Known follow-ups before broad public scale: provider-side deletion runbooks/automation for WorkOS, Stripe, PostHog/Umami; optional Behind admin DSAR dashboard; stronger step-up verification for destructive actions.
+
+---
+
 ## QA & Testing
 
 ### Infraestructura

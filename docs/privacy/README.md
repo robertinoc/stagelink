@@ -1,10 +1,10 @@
 # StageLink Privacy Program
 
-Status: legal foundations baseline for the Privacy Plan.
+Status: legal foundations, cookie consent, and DSAR baseline for the Privacy Plan.
 
 This folder contains StageLink's privacy architecture documentation for the
-pre-launch privacy workstream. It is intentionally documentation-only: no
-production code is changed by this phase.
+pre-launch privacy workstream. The first phase was documentation-only; later
+phases include consent and DSAR product/backend implementation notes.
 
 ## Scope
 
@@ -16,6 +16,8 @@ This baseline covers:
 - Minimum age and jurisdiction recommendations.
 - Data inventory and provider/transfer mapping.
 - Privacy Policy, Terms of Service, and Cookie Policy structures.
+- Cookie consent architecture and validation.
+- DSAR access, rectification, erasure, portability, and request logging.
 - Compliance gaps and validation findings.
 
 ## Documents
@@ -33,6 +35,13 @@ This baseline covers:
 | `tracking-inventory.md`                 | Current tracking systems and no-consent behavior.                    |
 | `implementation-notes.md`               | E2 implementation summary and technical compliance checklist.        |
 | `consent-validation-audit.md`           | Validation audit for consent/cookie implementation.                  |
+| `dsar-architecture.md`                  | DSAR rights support, endpoint flow, identity, auditability.          |
+| `deletion-policy.md`                    | Account deletion/anonymization strategy and retained data rationale. |
+| `data-export-structure.md`              | JSON export scope, redactions, and format decisions.                 |
+| `identity-verification.md`              | DSAR authentication and destructive-action verification posture.     |
+| `request-lifecycle.md`                  | DSAR status model, SLA targets, and operational review.              |
+| `dsar-compliance-checklist.md`          | GDPR/CCPA DSAR checklist and testing edge cases.                     |
+| `dsar-validation-audit.md`              | Validation audit for DSAR implementation.                            |
 | `implementation-checklist.md`           | Missing information and implementation checklist.                    |
 | `compliance-gap-analysis.md`            | Severity-ranked privacy/compliance gaps.                             |
 | `legal-foundations-validation-audit.md` | Independent validation audit of this documentation set.              |

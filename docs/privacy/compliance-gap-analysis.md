@@ -37,15 +37,17 @@ Fix:
 
 ## High
 
-### DSAR process is not defined
+### Provider-side DSAR automation is incomplete
 
-Access, export, correction, deletion, portability, and consent-withdrawal
-processes are not yet documented end-to-end.
+Privacy Plan E3 added self-service DSAR endpoints/UI for access,
+rectification, erasure, portability, consent withdrawal references, and request
+logging. Provider-side deletion/revocation remains operational/manual.
 
 Fix:
 
-- Create manual DSAR SOP first.
-- Later build self-service export/delete UI and endpoints.
+- Add WorkOS/Stripe/PostHog provider deletion runbook.
+- Later automate provider deletion/revocation tasks.
+- Add Behind DSAR dashboard before broad public launch.
 
 ### Retention is not enforced
 

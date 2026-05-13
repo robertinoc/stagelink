@@ -6,9 +6,15 @@ import { apiFetch } from '@/lib/auth';
  * the backend adds new fields (e.g. role, defaultArtistId).
  */
 export interface AuthMeResponse {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  avatarUrl: string | null;
   artistIds: string[];
   isSuspended?: boolean;
   isDeleted?: boolean;
+  createdAt: string;
 }
 
 export function getCurrentArtistId(me: AuthMeResponse | null): string | null {

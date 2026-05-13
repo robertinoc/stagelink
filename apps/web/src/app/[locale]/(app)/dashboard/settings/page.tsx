@@ -68,6 +68,13 @@ export default async function DashboardSettingsPage({
       href: `/${locale}/dashboard/settings/smart-merch`,
       muted: !data.summary.entitlements.smart_merch,
     },
+    {
+      slug: 'privacy',
+      label: t('navigation.privacy'),
+      description: t('overview.privacy'),
+      badge: t('overview.badges.ready'),
+      href: `/${locale}/dashboard/settings/privacy`,
+    },
   ];
 
   return (
