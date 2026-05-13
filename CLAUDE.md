@@ -180,7 +180,8 @@ docs/
 ├── security-audit-e2-dependencies.md # E2.8 dependencies: audit, upgrades, overrides y Dependabot
 ├── security-audit-e2-repo-ci-cd.md # E2.9 repo/CI-CD: GitHub Actions, secrets, artifacts y Dependabot
 ├── security-audit-e3-critical-hardening.md # E3 hardening critico, debug endpoint y notas pre-launch
-└── security-audit-e4-advanced-hardening.md # E4 hardening avanzado: rate limits, uploads, anti-spam y tenancy
+├── security-audit-e4-advanced-hardening.md # E4 hardening avanzado: rate limits, uploads, anti-spam y tenancy
+└── security-audit-e5-infra-ci-cd-security.md # E5 infra/CI-CD security: workflows, secrets, environments y storage
 ```
 
 ---
@@ -604,6 +605,12 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - `S3Service.verifyUploadedObject()` verifica objeto real en S3/R2 antes de confirmar uploads
   - Contact form backend no se reintrodujo: `main` usa landing API con rate limit/honeypot/escape HTML y public artist contact via EmailJS
   - `docs/security-audit-e4-advanced-hardening.md` documenta decisiones, validacion y backlog residual
+- **Security Audit E5 — Infra & CI/CD Security cerrado**
+  - Workflows GitHub Actions mantienen token global read-only, `persist-credentials: false`, artifacts sin `.auth` y secrets solo en environments.
+  - Se agregaron `timeout-minutes` a CI y Final QA Evidence para evitar runners colgados.
+  - `final-qa-evidence.yml` evita interpolar inputs manuales directamente en shell; usa variables de entorno y `printf`.
+  - Se conserva el override de `protobufjs >=7.5.6` incorporado en `main` tras el fail de dependency audit.
+  - `docs/security-audit-e5-infra-ci-cd-security.md` documenta dev/staging/prod, secret management, storage posture y backlog T7-8.
 
 ### T3-1 — Artist Onboarding (completed)
 

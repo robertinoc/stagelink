@@ -20,13 +20,15 @@ Browser                      API (NestJS)                     S3
   │                              │ generate presigned PUT URL   │
   │<──────────────────────────────│                              │
   │ {assetId, uploadUrl,         │                              │
-  │  objectKey, expiresAt}       │                              │
+  │  expiresAt}                  │                              │
   │                              │                              │
   │ PUT {uploadUrl} (raw bytes)  │                              │
   │──────────────────────────────────────────────────────────────>
   │                              │                              │
   │ POST /api/assets/{id}/confirm│                              │
   │──────────────────────────────>│                              │
+  │                              │ HEAD object in S3/R2          │
+  │                              │ validate size + Content-Type  │
   │                              │ UPDATE Asset (status:uploaded)│
   │                              │ UPDATE Artist {avatarAssetId} │
   │<──────────────────────────────│                              │
@@ -95,14 +97,14 @@ All validation is enforced server-side. Client-side validation is a UX convenien
 
 ### Backend (`apps/api/.env`)
 
-| Variable                 | Required in prod | Description                   |
-| ------------------------ | ---------------- | ----------------------------- |
-| `AWS_S3_BUCKET`          | ✅               | Bucket name                   |
-| `AWS_S3_REGION`          | ✅               | AWS region (e.g. `us-east-1`) |
-| `AWS_ACCESS_KEY_ID`      | ✅               | IAM access key                |
-| `AWS_SECRET_ACCESS_KEY`  | ✅               | IAM secret key                |
-| `AWS_S3_ENDPOINT`        | ❌               | MinIO endpoint for local dev  |
-| `AWS_S3_PUBLIC_BASE_URL` | ✅               | Public base URL for delivery  |
+| Variable                 | Required in prod | Description                     |
+| ------------------------ | ---------------- | ------------------------------- |
+| `AWS_S3_BUCKET`          | ✅               | Bucket name                     |
+| `AWS_S3_REGION`          | ✅               | AWS region (e.g. `us-east-1`)   |
+| `AWS_ACCESS_KEY_ID`      | ✅               | IAM access key                  |
+| `AWS_SECRET_ACCESS_KEY`  | ✅               | IAM secret key                  |
+| `AWS_S3_ENDPOINT`        | ❌               | R2/MinIO S3-compatible endpoint |
+| `AWS_S3_PUBLIC_BASE_URL` | ✅               | Public base URL for delivery    |
 
 ### Frontend (`apps/web/.env`)
 
@@ -124,8 +126,10 @@ Add this CORS policy to your S3 bucket:
     "AllowedOrigins": [
       "http://localhost:4000",
       "https://your-vercel-domain.vercel.app",
+      "https://stagelink.art",
       "https://stagelink.link",
-      "https://staging.stagelink.link"
+      "https://staging.stagelink.link",
+      "https://*.vercel.app"
     ],
     "ExposeHeaders": ["ETag"],
     "MaxAgeSeconds": 3000
@@ -150,13 +154,21 @@ Add this CORS policy to your S3 bucket:
 
 ### Bucket ACL / Public Access
 
-For this phase, assets are served via **public URL** (bucket must allow public GET).
+For this phase, assets are served via **public URL** (bucket/CDN must allow public GET).
 
 Options:
 
 1. **Public bucket** + `AWS_S3_PUBLIC_BASE_URL=https://stagelink-assets.s3.us-east-1.amazonaws.com`
 2. **Private bucket** + **CloudFront** distribution → set `AWS_S3_PUBLIC_BASE_URL` to CloudFront URL
-3. **Cloudflare R2** → set `AWS_S3_PUBLIC_BASE_URL` to R2 custom domain
+3. **Cloudflare R2** → set `AWS_S3_PUBLIC_BASE_URL` to the R2 public/custom domain
+
+Security posture for launch:
+
+- API credentials must be scoped to the single StageLink bucket only.
+- Browser uploads use short-lived presigned PUT URLs; AWS/R2 keys never reach the client.
+- `confirmUpload` verifies the uploaded object with `HEAD` before marking it `uploaded`.
+- Public delivery is intentional for artist media; do not store private documents or secrets in this bucket.
+- Prefer a custom CDN/R2 public domain for `AWS_S3_PUBLIC_BASE_URL` instead of exposing provider internals in product URLs.
 
 ## Serving Assets
 
@@ -174,14 +186,13 @@ This URL is stable and CDN-compatible. To add Cloudflare in front:
 
 ## Risks & Pending Work
 
-| Risk                                  | Status       | Notes                                                                                            |
-| ------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------ |
-| No server-side magic bytes validation | ⚠️ Pending   | Currently trusts declared mimeType from client; future: validate bytes after upload via S3 event |
-| No cleanup of `pending` assets        | ⚠️ Pending   | Assets that never get confirmed accumulate; future: S3 lifecycle rule + cron cleanup job         |
-| No rate limiting on upload-intent     | ⚠️ Pending   | Could be abused to generate many presigned URLs; add rate limiter in T3                          |
-| Old assets not deleted from S3        | ⚠️ Pending   | Replacing avatar/cover leaves old object in bucket; future: S3 lifecycle rules                   |
-| No signed delivery URLs               | ℹ️ By design | Assets are public for now; future: CloudFront signed URLs for private assets                     |
-| Image dimensions not validated        | ℹ️ By design | No server-side resize/crop yet; future feature                                                   |
+| Risk                                  | Status       | Notes                                                                                                                     |
+| ------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| No server-side magic bytes validation | ⚠️ Pending   | `confirmUpload` verifies existence, size and stored Content-Type; future: validate bytes after upload via worker/S3 event |
+| No cleanup of `pending` assets        | ⚠️ Pending   | Assets that never get confirmed accumulate; configure S3/R2 lifecycle rule + scheduled DB cleanup before larger traffic   |
+| Old assets not deleted from S3        | ⚠️ Pending   | Replacing avatar/cover leaves old object in bucket; future: lifecycle rules or explicit deletion job                      |
+| No signed delivery URLs               | ℹ️ By design | Artist media is public for now; use signed URLs only for future private assets                                            |
+| Image dimensions not validated        | ℹ️ By design | No server-side resize/crop yet; future feature                                                                            |
 
 ## Local Development with MinIO
 

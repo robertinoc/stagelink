@@ -20,6 +20,7 @@ jobs:
   dependency-audit:
     name: Dependency audit
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,6 +44,7 @@ jobs:
   typecheck:
     name: TypeScript check
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -93,6 +95,7 @@ jobs:
   api-tests:
     name: API unit tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       checks: write # JUnit test annotations
@@ -177,6 +180,7 @@ jobs:
   web-tests:
     name: Web unit tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       checks: write # JUnit test annotations
@@ -252,6 +256,7 @@ jobs:
   api-integration-tests:
     name: API integration tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       checks: write # JUnit test annotations
@@ -339,6 +344,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [typecheck, api-tests, web-tests, api-integration-tests]
     env:
       # Placeholders para build time — no son secrets reales
@@ -404,6 +410,7 @@ jobs:
   e2e:
     name: E2E tests (staging)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [build]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: staging
@@ -489,6 +496,7 @@ jobs:
   smoke:
     name: Smoke tests (production)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [e2e]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: production
