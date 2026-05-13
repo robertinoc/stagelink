@@ -179,6 +179,7 @@ docs/
 ├── security-audit-e2-infra-headers.md # E2.7 infra/headers: HTTPS/HSTS, security headers y CORS
 ├── security-audit-e2-dependencies.md # E2.8 dependencies: audit, upgrades, overrides y Dependabot
 ├── security-audit-e2-repo-ci-cd.md # E2.9 repo/CI-CD: GitHub Actions, secrets, artifacts y Dependabot
+├── security-audit-e2-workos-authkit-config.md # E2.12 WorkOS/AuthKit/Radar: redirects, issuer, MFA, sessions y auth methods
 ├── security-audit-e3-critical-hardening.md # E3 hardening critico, debug endpoint y notas pre-launch
 ├── security-audit-e4-advanced-hardening.md # E4 hardening avanzado: rate limits, uploads, anti-spam y tenancy
 └── security-audit-e5-infra-ci-cd-security.md # E5 infra/CI-CD security: workflows, secrets, environments y storage
@@ -525,6 +526,7 @@ DIRECT_URL=                             # Prisma migrate / conexión directa
 PORT=                                   # Inyectado por Railway automáticamente
 WORKOS_CLIENT_ID=                       # Para construir URL JWKS
 WORKOS_API_KEY=                         # Para fetchear perfil en 1er login
+WORKOS_JWT_ISSUER=                      # Opcional; solo si WorkOS usa custom auth domain
 BEHIND_ADMIN_EMAILS=                    # misma allowlist owner/admin que web
 AWS_S3_BUCKET=                          # Nombre del bucket (ej: stagelink-assets)
 AWS_S3_REGION=                          # auto (R2) o us-east-1 (AWS)
@@ -611,6 +613,12 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - `final-qa-evidence.yml` evita interpolar inputs manuales directamente en shell; usa variables de entorno y `printf`.
   - Se conserva el override de `protobufjs >=7.5.6` incorporado en `main` tras el fail de dependency audit.
   - `docs/security-audit-e5-infra-ci-cd-security.md` documenta dev/staging/prod, secret management, storage posture y backlog T7-8.
+- **Security Audit E2.12 — WorkOS/Radar/AuthKit config cerrado**
+  - API JWT guard valida issuer WorkOS permitido y claims mínimos `sub=user_*` + `sid=session_*`.
+  - `WORKOS_JWT_ISSUER` queda opcional para custom auth domains; dejar vacío con issuer estándar de WorkOS.
+  - `/api/auth/signup` usa `getSignUpUrl()` para mantener intención de create-account.
+  - Behind auth redirect parsea `WORKOS_REDIRECT_URI` de forma segura y cae a `NEXT_PUBLIC_APP_URL`/`stagelink.art`.
+  - Decisión: Radar production estricto; staging puede relajar bot detection para E2E; MFA global diferido, revisar MFA admin/Behind antes de launch público.
 
 ### T3-1 — Artist Onboarding (completed)
 

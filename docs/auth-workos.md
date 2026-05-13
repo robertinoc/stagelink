@@ -66,6 +66,7 @@ NEXT_PUBLIC_API_URL=http://localhost:4001
 # WorkOS
 WORKOS_CLIENT_ID=client_XXXXXXXX      # Para construir la URL del JWKS
 WORKOS_API_KEY=sk-XXXXXXXXXXXXXXXX    # Para fetchear perfil en el primer login
+WORKOS_JWT_ISSUER=                   # Opcional: issuer custom si WorkOS usa auth domain propio
 
 # Database
 DATABASE_URL=postgresql://...
@@ -79,7 +80,16 @@ DATABASE_URL=postgresql://...
    - `https://stagelink.art/api/auth/callback` (producción canónica)
    - `https://staging.stagelink.link/api/auth/callback` (staging, si está activo)
    - `https://*.vercel.app/api/auth/callback` (preview)
-3. Configurar los **Auth Methods** que corresponda (Email + Password es suficiente para MVP)
+3. Configurar los **Auth Methods** que corresponda:
+   - Google;
+   - Email + Password;
+   - Magic Auth / one-time code, si se mantiene habilitado para UX.
+4. Mantener WorkOS Radar activo en producción:
+   - Bot detection: enabled;
+   - Brute force attack: enabled;
+   - Staging puede relajar bot detection para evitar desafíos manuales en E2E.
+5. MFA global queda diferido para MVP/private QA. Re-evaluar MFA para
+   operadores/admins de Behind antes de broad public launch.
 
 `stagelink.link` y `www.stagelink.link` son dominios legacy que redirigen hacia
 `stagelink.art`; no deberían configurarse como callback principal salvo que se
@@ -196,7 +206,9 @@ JwtAuthGuard.canActivate()
          ↓
 jwtVerify(token, jwks) ← JWKS endpoint: api.workos.com/user_management/jwks/{clientId}
          ↓
-payload.sub = workosUserId
+issuer permitido + payload.sub=user_* + payload.sid=session_*
+         ↓
+workosUserId = payload.sub
          ↓
 prisma.user.findUnique({ where: { workosId } })
          ↓
@@ -206,6 +218,11 @@ request.user = User (internal DB record)
 La validación es **local**: `jose` cachea el JWKS y verifica la firma criptográfica
 sin round-trips extra a WorkOS por cada request. Solo el primer login genera una
 llamada a la API de WorkOS (para fetchear el perfil).
+
+Por defecto el backend acepta el issuer estándar de WorkOS
+(`https://api.workos.com`, con o sin slash final). Si WorkOS se configura con
+un custom auth domain que cambia el `iss` del JWT, setear
+`WORKOS_JWT_ISSUER` en el API y repetir smoke/auth tests.
 
 ## Próximos pasos — Ownership y Memberships
 
@@ -260,4 +277,5 @@ en `artists.user_id`.
 | Múltiples requests paralelos del mismo usuario nuevo | `upsert` en `resolveUser()` garantiza idempotencia                             |
 | Token expirado entre requests SSR                    | `withAuth()` refresca el token automáticamente vía `refreshToken` en cookie    |
 | `WORKOS_COOKIE_PASSWORD` rotado → sesiones invalidas | Coordinar rotación con downtime o implementar keychain multi-key               |
+| Issuer WorkOS custom sin env API                     | Setear `WORKOS_JWT_ISSUER` y validar login/API smoke                           |
 | Stub controllers (artists, pages, blocks) expuestos  | Por ser stubs, requieren JWT pero no retornan datos reales — OK en development |

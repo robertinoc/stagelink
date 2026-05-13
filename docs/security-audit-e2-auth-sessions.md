@@ -30,14 +30,14 @@ Relevant files:
 
 Findings and actions:
 
-| Item                     | Status | Notes                                                                                                                                                                                       |
-| ------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Hosted login/signup      | OK     | Auth UI delegates to WorkOS; app does not store user passwords.                                                                                                                             |
-| Callback error handling  | OK     | Callback errors redirect to localized login with `error=auth_failed` instead of exposing raw callback failures.                                                                             |
-| Dedicated Behind login   | OK     | `/api/auth/behind-signin` uses a fixed `returnTo: '/behind'`, which avoids user-controlled redirects for the admin dashboard entry point.                                                   |
-| Dynamic login `returnTo` | Fixed  | `/api/auth/signin?returnTo=...` now allows only same-origin relative paths before forwarding the value to WorkOS AuthKit. Absolute, protocol-relative and ambiguous values are discarded.   |
-| Signup route behavior    | Note   | `/api/auth/signup` currently falls back to WorkOS signin URL. The localized signup page uses `getSignUpUrl()` directly. Keep this documented if the route remains only a compatibility URL. |
-| WorkOS Radar in staging  | OK     | Staging was adjusted manually after repeated one-time code challenges: bot detection disabled, brute force enabled with challenge decision. Production remains stricter.                    |
+| Item                     | Status | Notes                                                                                                                                                                                     |
+| ------------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hosted login/signup      | OK     | Auth UI delegates to WorkOS; app does not store user passwords.                                                                                                                           |
+| Callback error handling  | OK     | Callback errors redirect to localized login with `error=auth_failed` instead of exposing raw callback failures.                                                                           |
+| Dedicated Behind login   | OK     | `/api/auth/behind-signin` uses a fixed `returnTo: '/behind'`, which avoids user-controlled redirects for the admin dashboard entry point.                                                 |
+| Dynamic login `returnTo` | Fixed  | `/api/auth/signin?returnTo=...` now allows only same-origin relative paths before forwarding the value to WorkOS AuthKit. Absolute, protocol-relative and ambiguous values are discarded. |
+| Signup route behavior    | Fixed  | `/api/auth/signup` now uses `getSignUpUrl()` so direct compatibility links express the same create-account intent as the localized signup page.                                           |
+| WorkOS Radar in staging  | OK     | Staging was adjusted manually after repeated one-time code challenges: bot detection disabled, brute force enabled with challenge decision. Production remains stricter.                  |
 
 ## T2.1.2 — Sessions / Tokens
 
@@ -62,7 +62,7 @@ Findings and actions:
 
 | Item                                 | Status    | Notes                                                                                                                                                                     |
 | ------------------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| JWT validation                       | OK        | API validates access tokens through WorkOS JWKS and does not trust user data directly from the client payload.                                                            |
+| JWT validation                       | Fixed     | API validates access tokens through WorkOS JWKS, checks the allowed issuer and requires WorkOS user/session claims before resolving the internal user.                    |
 | Missing/invalid token behavior       | OK        | API rejects missing, invalid or expired Bearer tokens with `401`.                                                                                                         |
 | Suspended/deleted users              | Fixed     | API guard now rejects direct API calls for suspended or soft-deleted users even if the WorkOS access token is still cryptographically valid.                              |
 | First-login provisioning             | OK        | WorkOS profile is fetched server-side only when the internal user row does not exist. Existing users use the DB path.                                                     |
@@ -97,6 +97,10 @@ Audit result:
 - Hardened `/api/auth/signin` so unsafe `returnTo` values are ignored.
 - Hardened the API JWT guard so suspended or deleted StageLink users cannot
   continue using direct API calls with otherwise valid WorkOS tokens.
+- Hardened the API JWT guard further in E2.12 so tokens must match the expected
+  WorkOS issuer and session/user claim shape.
+- Aligned the direct `/api/auth/signup` compatibility route with WorkOS
+  `getSignUpUrl()`.
 - Added unit coverage for both auth redirect sanitization and inactive-user
   authentication rejection.
 

@@ -39,6 +39,8 @@ export const validationSchema = Joi.object({
     then: Joi.string().required(),
     otherwise: optionalString,
   }),
+  // Optional custom AuthKit issuer. Leave empty for WorkOS default issuer.
+  WORKOS_JWT_ISSUER: optionalString,
 
   // Payments — required in production (Stripe integration is live)
   STRIPE_SECRET_KEY: Joi.when('NODE_ENV', {
