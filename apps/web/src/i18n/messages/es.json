@@ -1277,7 +1277,7 @@
       "image_gallery": "Mostrá una galería usando imágenes de tu galería de Perfil.",
       "shopify_store": "Mostrá merch seleccionada desde tu storefront conectado de Shopify.",
       "smart_merch": "Elegí productos reales desde Printful y agregá un link externo de compra para cada uno.",
-      "technical_rider": "Mostrá tu rider técnico y de producción desde tu Prensa.",
+      "technical_rider": "Mostrá tu rider técnico y de producción desde tu Press Kit.",
       "contact_form": "Dejá que los visitantes te envíen un mensaje directamente desde tu página."
     },
     "fields": {
@@ -1383,8 +1383,8 @@
       "smart_merch_localized_headline": "Título localizado",
       "smart_merch_localized_subtitle": "Subtítulo localizado (opcional)",
       "smart_merch_localized_cta": "Texto localizado del CTA (opcional)",
-      "technical_rider_info_title": "Datos tomados de tu Prensa",
-      "technical_rider_info_body": "Este bloque muestra automáticamente tu Rider técnico y Requisitos técnicos de tu Prensa. Actualizá ese contenido en Dashboard > Prensa.",
+      "technical_rider_info_title": "Datos tomados de tu Press Kit",
+      "technical_rider_info_body": "Este bloque muestra automáticamente tu Rider técnico y Requisitos técnicos de tu Press Kit. Actualizá ese contenido en Dashboard > Press Kit.",
       "contact_form_info_title": "Un formulario simple de contacto para los visitantes",
       "contact_form_info_body": "Los visitantes escriben su nombre y mensaje, y se abre su cliente de correo pre-completado. Dejá el campo email vacío para usar el email de contacto de tu Perfil.",
       "contact_form_email_label": "Email de destino (opcional)",
@@ -1584,7 +1584,8 @@
       "record_labels": "Sellos discográficos",
       "availability": "Disponibilidad",
       "artist_requirements": "Requerimientos del artista",
-      "technical_rider": "Rider técnico"
+      "technical_rider": "Rider técnico",
+      "rider_section_heading": "Info de booking & rider"
     },
     "contact": {
       "booking": "Bookings",

@@ -295,43 +295,59 @@ export async function PublicEpkView({
 
             {/* ── Availability / Rider sections ── */}
             {epk.riderInfo || epk.techRequirements || epk.availabilityNotes ? (
-              <section className="grid gap-4 md:grid-cols-3 print:grid-cols-1">
-                {epk.availabilityNotes ? (
-                  <div className={`space-y-2 rounded-2xl border p-5 ${cardClass}`}>
-                    <h3
-                      className={`text-sm font-semibold uppercase tracking-[0.18em] ${mutedHeadingClass}`}
-                    >
-                      {t('sections.availability')}
-                    </h3>
-                    <p className={`whitespace-pre-line text-sm leading-7 ${bodyTextClass}`}>
-                      {epk.availabilityNotes}
-                    </p>
-                  </div>
-                ) : null}
-                {epk.riderInfo ? (
-                  <div className={`space-y-2 rounded-2xl border p-5 ${cardClass}`}>
-                    <h3
-                      className={`text-sm font-semibold uppercase tracking-[0.18em] ${mutedHeadingClass}`}
-                    >
-                      {t('sections.artist_requirements')}
-                    </h3>
-                    <p className={`whitespace-pre-line text-sm leading-7 ${bodyTextClass}`}>
-                      {epk.riderInfo}
-                    </p>
-                  </div>
-                ) : null}
-                {epk.techRequirements ? (
-                  <div className={`space-y-2 rounded-2xl border p-5 ${cardClass}`}>
-                    <h3
-                      className={`text-sm font-semibold uppercase tracking-[0.18em] ${mutedHeadingClass}`}
-                    >
-                      {t('sections.technical_rider')}
-                    </h3>
-                    <p className={`whitespace-pre-line text-sm leading-7 ${bodyTextClass}`}>
-                      {epk.techRequirements}
-                    </p>
-                  </div>
-                ) : null}
+              <section className="space-y-4">
+                <h2
+                  className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
+                >
+                  {t('sections.rider_section_heading')}
+                </h2>
+                <div className="flex flex-col gap-4 print:gap-6">
+                  {epk.availabilityNotes ? (
+                    <div className={`space-y-3 rounded-2xl border p-6 ${cardClass}`}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">📅</span>
+                        <h3
+                          className={`text-sm font-semibold uppercase tracking-[0.18em] ${mutedHeadingClass}`}
+                        >
+                          {t('sections.availability')}
+                        </h3>
+                      </div>
+                      <p className={`whitespace-pre-line text-sm leading-7 ${bodyTextClass}`}>
+                        {epk.availabilityNotes}
+                      </p>
+                    </div>
+                  ) : null}
+                  {epk.riderInfo ? (
+                    <div className={`space-y-3 rounded-2xl border p-6 ${cardClass}`}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">🎤</span>
+                        <h3
+                          className={`text-sm font-semibold uppercase tracking-[0.18em] ${mutedHeadingClass}`}
+                        >
+                          {t('sections.artist_requirements')}
+                        </h3>
+                      </div>
+                      <p className={`whitespace-pre-line text-sm leading-7 ${bodyTextClass}`}>
+                        {epk.riderInfo}
+                      </p>
+                    </div>
+                  ) : null}
+                  {epk.techRequirements ? (
+                    <div className={`space-y-3 rounded-2xl border p-6 ${cardClass}`}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">🎛️</span>
+                        <h3
+                          className={`text-sm font-semibold uppercase tracking-[0.18em] ${mutedHeadingClass}`}
+                        >
+                          {t('sections.technical_rider')}
+                        </h3>
+                      </div>
+                      <p className={`whitespace-pre-line text-sm leading-7 ${bodyTextClass}`}>
+                        {epk.techRequirements}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
               </section>
             ) : null}
 
@@ -353,7 +369,7 @@ export async function PublicEpkView({
                 <div className="space-y-1">
                   <p className="text-xs text-zinc-500">{t('footer.shared_via')}</p>
                   <a
-                    href="https://stagelink.io"
+                    href="https://stagelink.art"
                     target="_blank"
                     rel="noreferrer"
                     className="text-xs text-zinc-400 transition hover:text-white"

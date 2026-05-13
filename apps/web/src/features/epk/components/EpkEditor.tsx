@@ -1148,44 +1148,79 @@ export function EpkEditor({
       </Card>
 
       {/* ── Availability, logistics, and rider ── */}
-      <Card className={sectionCardClass}>
-        <CardHeader>
-          <CardTitle>Availability, logistics, and rider details</CardTitle>
-          <CardDescription>
+      <div className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-base font-semibold text-white">Booking info &amp; rider</h2>
+          <p className="text-sm text-muted-foreground">
             Keep the practical information clear and separated so promoters know what is logistics,
-            what is artist-side, and what belongs to the technical setup.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 xl:grid-cols-3">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Availability and logistics</label>
+            what is artist-side, and what belongs to the technical setup. Up to 5,000 characters per
+            section.
+          </p>
+        </div>
+
+        <Card className={sectionCardClass}>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <span>📅</span> Availability and logistics
+            </CardTitle>
+            <CardDescription>
+              Touring windows, airport transfers, hotel needs, in/out logistics, or event timing
+              notes.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <Textarea
-              rows={10}
-              placeholder="Touring windows, airport transfers, hotel needs, in/out logistics, or event timing notes…"
+              rows={14}
+              placeholder="e.g. Available for bookings across South America and Europe. Travel from Buenos Aires (EZE). Requires roundtrip flights + 2 hotel nights for events outside Buenos Aires…"
               disabled={formDisabled}
+              maxLength={5000}
               {...register('availabilityNotes')}
             />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Artist requirements</label>
+          </CardContent>
+        </Card>
+
+        <Card className={sectionCardClass}>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <span>🎤</span> Artist requirements
+            </CardTitle>
+            <CardDescription>
+              Hospitality, staff, guest list, catering, dressing room notes, or other artist-side
+              requirements.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <Textarea
-              rows={10}
-              placeholder="Hospitality, staff, guest list, catering, dressing room notes, or other artist-side requirements…"
+              rows={14}
+              placeholder="e.g. 1 dressing room with lockable door. Guest list: up to 4 people. Catering: water, juice, snacks. No media access to dressing room before the show…"
               disabled={formDisabled}
+              maxLength={5000}
               {...register('riderInfo')}
             />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white">Technical rider</label>
+          </CardContent>
+        </Card>
+
+        <Card className={sectionCardClass}>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <span>🎛️</span> Technical rider
+            </CardTitle>
+            <CardDescription>
+              DJ setup, mixers, CDJs, sound system, monitors, lights, screens, stage plot, or
+              production notes.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <Textarea
-              rows={10}
-              placeholder="DJ setup, mixers, CDJs, sound system, monitors, lights, screens, stage plot, or production notes…"
+              rows={14}
+              placeholder="e.g. SETUP 01: CDJ+MIXER&#10;• (1) Pioneer DJM-900 NEXUS&#10;• (2) Pioneer CDJ-3000&#10;• (2) Monitor speakers – 1 to 2m from DJ&#10;&#10;SETUP 02: TRAKTOR&#10;• (1) Traktor Kontrol Z1…"
               disabled={formDisabled}
+              maxLength={5000}
               {...register('techRequirements')}
             />
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* ── Save bar ── */}
       <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-card p-4 sm:flex-row sm:items-center sm:justify-between">

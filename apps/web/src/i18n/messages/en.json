@@ -1584,7 +1584,8 @@
       "record_labels": "Record labels",
       "availability": "Availability",
       "artist_requirements": "Artist requirements",
-      "technical_rider": "Technical rider"
+      "technical_rider": "Technical rider",
+      "rider_section_heading": "Booking info & rider"
     },
     "contact": {
       "booking": "Booking",

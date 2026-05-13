@@ -348,19 +348,25 @@ export function LocalizedEpkContentSection({
             />
           </div>
 
-          <div className="grid gap-5 xl:grid-cols-3">
+          {/* ── Rider / availability translations ── */}
+          <div className="space-y-3 border-t border-white/10 pt-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Booking info &amp; rider
+            </p>
+
             <div className="space-y-1.5">
               <label
                 htmlFor={`translations.${activeLocale}.availabilityNotes`}
-                className="text-sm font-medium"
+                className="flex items-center gap-1.5 text-sm font-medium"
               >
-                {t('fields.availability')}
+                <span>📅</span> {t('fields.availability')}
               </label>
               <Textarea
                 id={`translations.${activeLocale}.availabilityNotes`}
                 placeholder={t('translations.placeholders.availability')}
                 disabled={fieldsDisabled}
-                className="min-h-[180px]"
+                className="min-h-[220px]"
+                maxLength={5000}
                 {...register(`translations.${activeLocale}.availabilityNotes`)}
               />
             </div>
@@ -368,15 +374,16 @@ export function LocalizedEpkContentSection({
             <div className="space-y-1.5">
               <label
                 htmlFor={`translations.${activeLocale}.riderInfo`}
-                className="text-sm font-medium"
+                className="flex items-center gap-1.5 text-sm font-medium"
               >
-                {t('fields.rider')}
+                <span>🎤</span> {t('fields.rider')}
               </label>
               <Textarea
                 id={`translations.${activeLocale}.riderInfo`}
                 placeholder={t('translations.placeholders.rider')}
                 disabled={fieldsDisabled}
-                className="min-h-[180px]"
+                className="min-h-[220px]"
+                maxLength={5000}
                 {...register(`translations.${activeLocale}.riderInfo`)}
               />
             </div>
@@ -384,15 +391,16 @@ export function LocalizedEpkContentSection({
             <div className="space-y-1.5">
               <label
                 htmlFor={`translations.${activeLocale}.techRequirements`}
-                className="text-sm font-medium"
+                className="flex items-center gap-1.5 text-sm font-medium"
               >
-                {t('fields.tech_requirements')}
+                <span>🎛️</span> {t('fields.tech_requirements')}
               </label>
               <Textarea
                 id={`translations.${activeLocale}.techRequirements`}
                 placeholder={t('translations.placeholders.tech_requirements')}
                 disabled={fieldsDisabled}
-                className="min-h-[180px]"
+                className="min-h-[220px]"
+                maxLength={5000}
                 {...register(`translations.${activeLocale}.techRequirements`)}
               />
             </div>
