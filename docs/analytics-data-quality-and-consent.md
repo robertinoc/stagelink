@@ -44,29 +44,35 @@ All raw events are retained — this filter only applies to aggregation queries 
 
 ## Consent Strategy
 
-**Model: opt-out with notice.**
+**Model: explicit opt-in for non-essential analytics.**
 
-Basic aggregate analytics (page view counts, link clicks) run under **legitimate interest**:
+StageLink no longer treats an absent analytics cookie as permission to track.
+Public page analytics, PostHog browser analytics, SmartLink analytics, and
+public link-click analytics remain blocked until the visitor grants analytics
+consent.
 
-- No cross-site tracking
-- No advertising profiles
-- No personal data sold or shared
-- IP is always SHA-256 hashed before storage — never persisted raw
+Strictly necessary cookies for authentication, security, localization, and
+platform operation are not blocked by the consent system.
 
 ### Consent Cookie
 
-| Cookie  | Values                          | Lifetime |
-| ------- | ------------------------------- | -------- |
-| `sl_ac` | `1` = accepted · `0` = rejected | 365 days |
+| Cookie       | Values                                    | Lifetime |
+| ------------ | ----------------------------------------- | -------- |
+| `sl_consent` | Versioned JSON category/timestamp record  | 180 days |
+| `sl_ac`      | `1` = analytics accepted · `0` = rejected | 180 days |
 
-- Set by `AnalyticsConsentBanner` on the public artist page
-- Absent cookie = first visit = default allow (opt-out model)
-- Read server-side in `public-api.ts` → forwarded as `X-SL-AC` header → persisted as `has_tracking_consent`
+- Set by `ConsentManager`
+- Absent/expired cookie = no optional analytics consent
+- Read server-side in `public-api.ts` and SmartLink redirects → forwarded as
+  `X-SL-AC` header → persisted as `has_tracking_consent` only when events are
+  allowed
 
 ### PostHog
 
-- **Client-side**: `isAnalyticsAllowed()` gates all `ph.capture()` calls in `track.ts`
-- **Server-side**: PostHog events are not fired for bot / internal / QA traffic (see `public-pages.service.ts`)
+- **Client-side**: `PostHogProvider` initializes PostHog only after analytics
+  consent; `isAnalyticsAllowed()` gates all `ph.capture()` calls in `track.ts`.
+- **Server-side**: public PostHog events are not fired unless analytics consent
+  is present, and bot/internal/QA traffic is still filtered.
 
 ---
 

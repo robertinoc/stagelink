@@ -15,7 +15,8 @@
  */
 
 import { useEffect } from 'react';
-import { initPostHog } from './posthog';
+import { CONSENT_CHANGED_EVENT, isAnalyticsAllowed } from './consent';
+import { disablePostHog, initPostHog } from './posthog';
 
 interface PostHogProviderProps {
   children: React.ReactNode;
@@ -23,8 +24,20 @@ interface PostHogProviderProps {
 
 export function PostHogProvider({ children }: PostHogProviderProps) {
   useEffect(() => {
-    // Initialize once after mount. Safe to call multiple times — idempotent.
-    initPostHog();
+    function syncAnalyticsConsent() {
+      if (isAnalyticsAllowed()) {
+        initPostHog();
+      } else {
+        disablePostHog();
+      }
+    }
+
+    syncAnalyticsConsent();
+    window.addEventListener(CONSENT_CHANGED_EVENT, syncAnalyticsConsent);
+
+    return () => {
+      window.removeEventListener(CONSENT_CHANGED_EVENT, syncAnalyticsConsent);
+    };
   }, []);
 
   return <>{children}</>;

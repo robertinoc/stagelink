@@ -11,18 +11,18 @@ Score: 64 / 100
 
 Category breakdown:
 
-| Category | Score | Notes |
-| --- | ---: | --- |
-| Legal role classification | 75 | Hybrid controller/processor analysis is coherent but needs counsel approval for fan/subscriber data. |
-| Regulation coverage | 70 | GDPR, CCPA/CPRA, and Argentina Ley 25.326 are covered at a baseline level. |
-| Lawful basis mapping | 68 | Practical and StageLink-specific, but final retention and marketing bases need legal review. |
-| Minimum age policy | 72 | 18+ recommendation is conservative and operationally clean. |
-| Jurisdiction approach | 55 | Sensible placeholder, but not launch-ready without legal entity and counsel decision. |
-| Privacy Policy structure | 68 | Strong structure, not final public copy. |
-| Terms structure | 66 | Good product specificity, but liability/refund/dispute terms require counsel. |
-| Cookie Policy structure | 58 | Correctly identifies the analytics consent gap; implementation remains open. |
-| Data inventory | 72 | Strong initial map from Prisma and docs; provider/region details missing. |
-| Production readiness | 50 | Documentation baseline exists, but key controls are not implemented yet. |
+| Category                  | Score | Notes                                                                                                |
+| ------------------------- | ----: | ---------------------------------------------------------------------------------------------------- |
+| Legal role classification |    75 | Hybrid controller/processor analysis is coherent but needs counsel approval for fan/subscriber data. |
+| Regulation coverage       |    70 | GDPR, CCPA/CPRA, and Argentina Ley 25.326 are covered at a baseline level.                           |
+| Lawful basis mapping      |    68 | Practical and StageLink-specific, but final retention and marketing bases need legal review.         |
+| Minimum age policy        |    72 | 18+ recommendation is conservative and operationally clean.                                          |
+| Jurisdiction approach     |    55 | Sensible placeholder, but not launch-ready without legal entity and counsel decision.                |
+| Privacy Policy structure  |    68 | Strong structure, not final public copy.                                                             |
+| Terms structure           |    66 | Good product specificity, but liability/refund/dispute terms require counsel.                        |
+| Cookie Policy structure   |    58 | Correctly identifies the analytics consent gap; implementation remains open.                         |
+| Data inventory            |    72 | Strong initial map from Prisma and docs; provider/region details missing.                            |
+| Production readiness      |    50 | Documentation baseline exists, but key controls are not implemented yet.                             |
 
 ## Critical Risks
 

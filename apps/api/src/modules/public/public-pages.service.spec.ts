@@ -254,7 +254,7 @@ describe('PublicPagesService', () => {
       expect(result.publicEpkAvailable).toBe(false);
     });
 
-    it('fires analytics page_view when ctx is provided', async () => {
+    it('fires analytics page_view when ctx includes analytics consent', async () => {
       const { service, prisma, tenantResolver } = createService();
 
       tenantResolver.resolveByUsername.mockResolvedValue({
@@ -268,6 +268,7 @@ describe('PublicPagesService', () => {
         ip: '1.2.3.4',
         locale: 'en',
         userAgent: 'Mozilla/5.0',
+        slAc: '1',
       });
 
       // Give the fire-and-forget a tick to execute
@@ -281,6 +282,27 @@ describe('PublicPagesService', () => {
           }),
         }),
       );
+    });
+
+    it('does NOT fire analytics page_view before analytics consent', async () => {
+      const { service, prisma, tenantResolver } = createService();
+
+      tenantResolver.resolveByUsername.mockResolvedValue({
+        artistId: 'artist-no-consent',
+        username: 'no-consent-artist',
+      });
+
+      prisma.page.findUnique.mockResolvedValue(makePageRow());
+
+      await service.getPageByUsername('no-consent-artist', {
+        ip: '1.2.3.4',
+        locale: 'en',
+        userAgent: 'Mozilla/5.0',
+      });
+
+      await new Promise((r) => setImmediate(r));
+
+      expect(prisma.analyticsEvent.create).not.toHaveBeenCalled();
     });
 
     it('does NOT fire analytics when ctx is omitted', async () => {
@@ -393,12 +415,17 @@ describe('PublicPagesService', () => {
         isActive: true,
       });
 
-      await service.recordLinkClick('artist-1', {
-        blockId: 'block-1',
-        smartLinkId: 'smart-link-1',
-        linkItemId: 'item-1',
-        isSmartLink: true,
-      });
+      await service.recordLinkClick(
+        'artist-1',
+        {
+          blockId: 'block-1',
+          smartLinkId: 'smart-link-1',
+          linkItemId: 'item-1',
+          isSmartLink: true,
+        },
+        undefined,
+        { slAc: '1' },
+      );
 
       expect(prisma.analyticsEvent.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -409,6 +436,22 @@ describe('PublicPagesService', () => {
           }),
         }),
       );
+    });
+
+    it('does NOT record link clicks before analytics consent', async () => {
+      const { service, prisma } = createService();
+
+      prisma.block.findUnique.mockResolvedValue({
+        isPublished: true,
+        page: { artistId: 'artist-1' },
+      });
+
+      await service.recordLinkClick('artist-1', {
+        blockId: 'block-1',
+        linkItemId: 'item-1',
+      });
+
+      expect(prisma.analyticsEvent.create).not.toHaveBeenCalled();
     });
 
     it('drops link clicks when block belongs to another artist', async () => {

@@ -155,7 +155,9 @@ export class PublicSubscribeService {
       success: true,
     };
 
-    this.posthog.capture(ANALYTICS_EVENTS.FAN_CAPTURE_SUBMITTED, artistId, eventProps);
+    if (flags.hasTrackingConsent) {
+      this.posthog.capture(ANALYTICS_EVENTS.FAN_CAPTURE_SUBMITTED, artistId, eventProps);
+    }
 
     // Local DB event (source of truth for basic analytics dashboard).
     // analytics_events.ip_hash is NOT NULL (schema constraint), so we must
@@ -163,17 +165,19 @@ export class PublicSubscribeService {
     // = SHA256('unknown'). This differs from subscriber.ip_hash (nullable) —
     // an accepted schema-level inconsistency until analytics is migrated to
     // allow NULL ip_hash as well.
-    this.prisma.analyticsEvent
-      .create({
-        data: {
-          artistId,
-          blockId,
-          eventType: EventType.fan_capture_submit,
-          ipHash: ip ? hashIp(ip) : hashIp(undefined),
-          ...flags,
-        },
-      })
-      .catch(() => {});
+    if (flags.hasTrackingConsent) {
+      this.prisma.analyticsEvent
+        .create({
+          data: {
+            artistId,
+            blockId,
+            eventType: EventType.fan_capture_submit,
+            ipHash: ip ? hashIp(ip) : hashIp(undefined),
+            ...flags,
+          },
+        })
+        .catch(() => {});
+    }
 
     return { created: true };
   }

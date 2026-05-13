@@ -9,7 +9,7 @@
  *   - Silent when PostHog is not configured (local dev, CI)
  *   - Typed — wrong property shapes cause compile errors
  *
- * T4-4 additions:
+ * Privacy additions:
  *   - PostHog is opt-in: only fires when `isAnalyticsAllowed()` returns true.
  *   - X-SL-* quality headers are included in all backend API calls so the API
  *     can persist consent state and flag internal/QA traffic.
@@ -62,8 +62,8 @@ function buildQualityHeaders(): Record<string, string> {
  * Called from PublicPageClient when a block link is clicked.
  * Both calls are fire-and-forget — never awaited, never throw.
  *
- * T4-4: PostHog only fires when the visitor has not opted out.
- *       X-SL-* quality headers are always included in the API call.
+ * GDPR-first: no analytics request is sent unless analytics consent is granted.
+ *              X-SL-* quality headers are included when the API call is allowed.
  *
  * @param props  Click event payload (destination_url is used for domain extraction only).
  */
@@ -74,32 +74,32 @@ export function trackPublicLinkClick(
     label?: string;
   },
 ): void {
-  // 1. PostHog — only when analytics is allowed (opt-out consent check)
-  if (isAnalyticsAllowed()) {
-    const ph = getPostHog();
-    if (ph) {
-      let destination_domain: string | undefined;
-      if (props.destination_url) {
-        try {
-          destination_domain = new URL(props.destination_url).hostname;
-        } catch {
-          // Malformed URL — skip domain extraction
-        }
+  if (!isAnalyticsAllowed()) return;
+
+  // 1. PostHog — only after explicit analytics consent.
+  const ph = getPostHog();
+  if (ph) {
+    let destination_domain: string | undefined;
+    if (props.destination_url) {
+      try {
+        destination_domain = new URL(props.destination_url).hostname;
+      } catch {
+        // Malformed URL — skip domain extraction
       }
-
-      const { destination_url: _url, blockId: _bid, label: _lbl, ...rest } = props;
-      void _url;
-      void _bid;
-      void _lbl;
-
-      ph.capture(ANALYTICS_EVENTS.PUBLIC_LINK_CLICKED, {
-        ...rest,
-        ...(destination_domain && { destination_domain }),
-      });
     }
+
+    const { destination_url: _url, blockId: _bid, label: _lbl, ...rest } = props;
+    void _url;
+    void _bid;
+    void _lbl;
+
+    ph.capture(ANALYTICS_EVENTS.PUBLIC_LINK_CLICKED, {
+      ...rest,
+      ...(destination_domain && { destination_domain }),
+    });
   }
 
-  // 2. Backend DB — always call (quality flags on the API side gate the data).
+  // 2. Backend DB — only after explicit analytics consent.
   // X-SL-AC / X-SL-QA headers let the API persist consent state per event.
   const apiUrl = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4001';
   void fetch(`${apiUrl}/api/public/events/link-click`, {

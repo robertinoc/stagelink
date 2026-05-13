@@ -1613,6 +1613,37 @@
     "edit": "Editar",
     "delete": "Eliminar"
   },
+  "privacy": {
+    "consent": {
+      "banner_label": "Consentimiento de cookies",
+      "title": "Opciones de privacidad",
+      "description": "Usamos cookies necesarias para que StageLink funcione. Analytics y marketing quedan desactivados salvo que elijas habilitarlos.",
+      "accept": "Aceptar todo",
+      "reject": "Rechazar no esenciales",
+      "customize": "Personalizar",
+      "settings": "Privacidad",
+      "save": "Guardar preferencias",
+      "modal_title": "Preferencias de cookies",
+      "modal_description": "Gestioná categorías opcionales de tracking. Las cookies necesarias siempre están activas porque mantienen funcionando autenticación, seguridad e idioma.",
+      "categories": {
+        "necessary": {
+          "title": "Necesarias",
+          "description": "Requeridas para autenticación, seguridad, idioma, rate limiting y funciones centrales de la plataforma.",
+          "legal_basis": "Base legal: contrato e intereses legítimos. No requieren consentimiento."
+        },
+        "analytics": {
+          "title": "Analytics",
+          "description": "Ayudan a artistas a entender visitas, clics y uso del producto. Incluye PostHog y cualquier uso futuro de Umami.",
+          "legal_basis": "Base legal: consentimiento para analytics no esenciales."
+        },
+        "marketing": {
+          "title": "Marketing",
+          "description": "Reservado para atribución de campañas, píxeles publicitarios o retargeting futuros. StageLink no lo habilita por defecto.",
+          "legal_basis": "Base legal: consentimiento."
+        }
+      }
+    }
+  },
   "onboarding": {
     "title": "StageLink",
     "subtitle": "Configuremos tu página de artista",

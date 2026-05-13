@@ -236,17 +236,6 @@ export class SmartLinksService {
       ipAddress: context?.ipAddress,
     });
 
-    // PostHog event — artist dashboard metrics.
-    // distinctId = artistId so all events for the same artist are grouped.
-    this.posthog.capture(ANALYTICS_EVENTS.SMART_LINK_RESOLVED, smartLink.artistId, {
-      smart_link_id: smartLinkId,
-      artist_id: smartLink.artistId,
-      platform_detected: platform,
-      resolved_platform: resolved.platform,
-      fallback_used: !exact,
-      environment: process.env.NODE_ENV ?? 'development',
-    });
-
     // T4-4: Resolve quality flags and persist with all events.
     const flags = resolveTrafficFlags({
       userAgent: context?.userAgent,
@@ -255,21 +244,36 @@ export class SmartLinksService {
       slInternalHeader: context?.slInternal,
     });
 
-    // Persist to local DB — source of truth for the basic analytics dashboard.
-    void this.prisma.analyticsEvent
-      .create({
-        data: {
-          artistId: smartLink.artistId,
-          eventType: 'smart_link_resolution',
-          ipHash: hashIp(context?.ipAddress),
-          isSmartLink: true,
-          smartLinkId,
-          ...flags,
-        },
-      })
-      .catch(() => {
-        // Fire-and-forget — recording failure must never block the redirect.
+    // PostHog event — only after explicit analytics consent.
+    // distinctId = artistId so all events for the same artist are grouped.
+    if (flags.hasTrackingConsent) {
+      this.posthog.capture(ANALYTICS_EVENTS.SMART_LINK_RESOLVED, smartLink.artistId, {
+        smart_link_id: smartLinkId,
+        artist_id: smartLink.artistId,
+        platform_detected: platform,
+        resolved_platform: resolved.platform,
+        fallback_used: !exact,
+        environment: process.env.NODE_ENV ?? 'development',
       });
+    }
+
+    // Persist to local DB — source of truth for the basic analytics dashboard.
+    if (flags.hasTrackingConsent) {
+      void this.prisma.analyticsEvent
+        .create({
+          data: {
+            artistId: smartLink.artistId,
+            eventType: 'smart_link_resolution',
+            ipHash: hashIp(context?.ipAddress),
+            isSmartLink: true,
+            smartLinkId,
+            ...flags,
+          },
+        })
+        .catch(() => {
+          // Fire-and-forget — recording failure must never block the redirect.
+        });
+    }
 
     return { url: resolved.url };
   }

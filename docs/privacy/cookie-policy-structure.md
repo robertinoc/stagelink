@@ -95,14 +95,14 @@ Public Cookie Policy should include:
 
 Before publication, confirm actual cookies in production:
 
-| Cookie/storage item | Category | Provider | Purpose | Lifetime | Notes |
-| --- | --- | --- | --- | --- | --- |
-| WorkOS session cookie | Necessary | WorkOS/StageLink | Auth session | TODO | Confirm exact name/lifetime |
-| PKCE/state cookie | Necessary | StageLink/WorkOS | OAuth security | TODO | Confirm exact name/lifetime |
-| `NEXT_LOCALE` | Necessary/preference | StageLink | Locale | TODO | Confirm lifetime |
-| `sl_ac` | Analytics preference | StageLink | Analytics consent state | 365 days currently | Needs granular consent model |
-| `sl_qa` | Necessary/internal QA | StageLink | QA traffic exclusion | Session | Do not use in public UX |
-| PostHog cookies/local storage | Analytics | PostHog | Product analytics | TODO | Only after consent where required |
+| Cookie/storage item           | Category              | Provider         | Purpose                 | Lifetime           | Notes                             |
+| ----------------------------- | --------------------- | ---------------- | ----------------------- | ------------------ | --------------------------------- |
+| WorkOS session cookie         | Necessary             | WorkOS/StageLink | Auth session            | TODO               | Confirm exact name/lifetime       |
+| PKCE/state cookie             | Necessary             | StageLink/WorkOS | OAuth security          | TODO               | Confirm exact name/lifetime       |
+| `NEXT_LOCALE`                 | Necessary/preference  | StageLink        | Locale                  | TODO               | Confirm lifetime                  |
+| `sl_ac`                       | Analytics preference  | StageLink        | Analytics consent state | 365 days currently | Needs granular consent model      |
+| `sl_qa`                       | Necessary/internal QA | StageLink        | QA traffic exclusion    | Session            | Do not use in public UX           |
+| PostHog cookies/local storage | Analytics             | PostHog          | Product analytics       | TODO               | Only after consent where required |
 
 ## Launch Blocker
 

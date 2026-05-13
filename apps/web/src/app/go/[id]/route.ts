@@ -152,9 +152,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   resolveUrl.searchParams.set('platform', platform);
   if (from) resolveUrl.searchParams.set('from', from);
 
+  const resolveHeaders: Record<string, string> = {};
+  const slAc = request.cookies.get('sl_ac')?.value;
+  if (slAc === '1' || slAc === '0') resolveHeaders['X-SL-AC'] = slAc;
+
   let resolveResponse: Response;
   try {
-    resolveResponse = await fetch(resolveUrl.toString(), { cache: 'no-store' });
+    resolveResponse = await fetch(resolveUrl.toString(), {
+      cache: 'no-store',
+      headers: resolveHeaders,
+    });
   } catch {
     return new NextResponse('Service unavailable', { status: 503 });
   }

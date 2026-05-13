@@ -436,6 +436,8 @@ export class PublicPagesService {
       slInternalHeader: qualityCtx?.slInternal,
     });
 
+    if (!flags.hasTrackingConsent) return;
+
     // Silently swallow errors: FK violations (invalid artistId/blockId) or
     // transient DB failures must never surface to the visitor.
     await this.prisma.analyticsEvent
@@ -610,9 +612,9 @@ export class PublicPagesService {
         )
       : null;
 
-    // T4-4: Persist page_view for ALL requests (including bots) — flag at write time,
-    // filter at query time. Only skip when no analytics context is available (e.g.
-    // generateMetadata calls that don't carry visitor context).
+    // Privacy E2: persist/emit page_view only after explicit analytics consent.
+    // Public content must load normally before consent, without writing analytics
+    // rows or initializing PostHog tracking.
     if (ctx) {
       const flags = resolveTrafficFlags({
         userAgent: ctx.userAgent,
@@ -621,25 +623,27 @@ export class PublicPagesService {
         slInternalHeader: ctx.slInternal,
       });
 
-      // Persist to local DB — source of truth for the basic analytics dashboard.
-      // Errors are silently dropped to never impact page load latency.
-      void this.prisma.analyticsEvent
-        .create({
-          data: {
-            artistId,
-            eventType: 'page_view',
-            ipHash: hashIp(ctx.ip),
-            ...flags,
-          },
-        })
-        .catch(() => {
-          // DB write failure must never propagate to the visitor response.
-        });
+      if (flags.hasTrackingConsent) {
+        // Persist to local DB — source of truth for the basic analytics dashboard.
+        // Errors are silently dropped to never impact page load latency.
+        void this.prisma.analyticsEvent
+          .create({
+            data: {
+              artistId,
+              eventType: 'page_view',
+              ipHash: hashIp(ctx.ip),
+              ...flags,
+            },
+          })
+          .catch(() => {
+            // DB write failure must never propagate to the visitor response.
+          });
+      }
 
-      // PostHog — only emit for non-bot, non-internal, non-QA traffic.
+      // PostHog — only emit after analytics consent and for non-bot/non-QA traffic.
       // PostHog has its own bot filtering but we filter here too to keep
       // event counts consistent with the local DB dashboard.
-      if (!flags.isBotSuspected && !flags.isInternal && !flags.isQa) {
+      if (flags.hasTrackingConsent && !flags.isBotSuspected && !flags.isInternal && !flags.isQa) {
         let referrer_domain: string | undefined;
         if (ctx.referrer) {
           try {
