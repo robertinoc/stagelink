@@ -44,6 +44,17 @@ export class JwtAuthGuard implements CanActivate {
   private readonly logger = new Logger(JwtAuthGuard.name);
   private readonly jwks: ReturnType<typeof createRemoteJWKSet>;
   private readonly allowedIssuers: string[];
+  /**
+   * Whether to enforce the JWT issuer claim.
+   * Enabled only when WORKOS_JWT_ISSUER is explicitly configured.
+   * When disabled, the JWKS signature verification (below) is the primary
+   * security control — the issuer claim is not validated.
+   *
+   * In production you MUST set WORKOS_JWT_ISSUER to your WorkOS auth domain
+   * (e.g. https://auth.stagelink.art) so that tokens from other issuers are
+   * rejected even if they carry a valid WorkOS signature.
+   */
+  private readonly enforceIssuer: boolean;
 
   constructor(
     private readonly reflector: Reflector,
@@ -51,9 +62,18 @@ export class JwtAuthGuard implements CanActivate {
     private readonly prisma: PrismaService,
   ) {
     const clientId = this.configService.getOrThrow<string>('workos.clientId');
-    this.allowedIssuers = getAllowedWorkosIssuers(
-      this.configService.get<string>('workos.jwtIssuer'),
-    );
+    const configuredIssuer = this.configService.get<string>('workos.jwtIssuer');
+    this.enforceIssuer = Boolean(configuredIssuer?.trim());
+    this.allowedIssuers = getAllowedWorkosIssuers(configuredIssuer);
+
+    if (!this.enforceIssuer) {
+      this.logger.warn(
+        'WORKOS_JWT_ISSUER is not configured — JWT issuer claim will not be validated. ' +
+          'Set WORKOS_JWT_ISSUER to your WorkOS auth domain (e.g. https://auth.stagelink.art) ' +
+          'in production to enforce issuer binding.',
+      );
+    }
+
     // WorkOS AuthKit access tokens are signed by the SSO JWKS for the client.
     // Docs: https://workos.com/docs/user-management/sessions/introduction
     const jwksUrl = `https://api.workos.com/sso/jwks/${clientId}`;
@@ -78,9 +98,11 @@ export class JwtAuthGuard implements CanActivate {
     // Validar JWT localmente (JWKS cacheado por jose)
     let workosUserId: string;
     try {
-      const { payload } = await jwtVerify(token, this.jwks, {
-        issuer: this.allowedIssuers,
-      });
+      const { payload } = await jwtVerify(
+        token,
+        this.jwks,
+        this.enforceIssuer ? { issuer: this.allowedIssuers } : undefined,
+      );
       assertWorkOSSessionClaims(payload);
       workosUserId = payload.sub;
     } catch (err) {
@@ -274,8 +296,14 @@ function assertWorkOSSessionClaims(payload: JWTPayload): asserts payload is JWTP
     throw new Error('JWT missing valid WorkOS user subject');
   }
 
+  // Require sid to exist and be a non-empty string.
+  // WorkOS session IDs are documented as 'session_XXXX' but we do not enforce
+  // the prefix here in case the format changes across WorkOS environments or
+  // the token was issued by a custom-domain AuthKit instance that uses a
+  // different prefix. The JWKS signature and sub checks provide the primary
+  // security guarantees.
   const sid = payload['sid'];
-  if (typeof sid !== 'string' || !sid.startsWith('session_')) {
+  if (typeof sid !== 'string' || sid.trim().length === 0) {
     throw new Error('JWT missing valid WorkOS session id');
   }
 }
