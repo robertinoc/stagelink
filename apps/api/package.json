@@ -37,7 +37,7 @@
     "@workos-inc/node": "^8.10.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
-    "joi": "^17.13.3",
+    "joi": "^18.2.1",
     "jose": "^6.2.2",
     "posthog-node": "^5.34.1",
     "reflect-metadata": "^0.2.0",
