@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { RecordLabel } from '@stagelink/types';
 
 // ── Reusable refinements ──────────────────────────────────────────────────────
 
@@ -95,6 +96,7 @@ export const profileSchema = z
       .max(3, 'Choose up to 3 categories')
       .default([]),
     tags: z.array(descriptorSchema).max(6, 'Choose up to 6 descriptors').default([]),
+    recordLabels: z.array(z.custom<RecordLabel>()).max(10).default([]),
     galleryImageUrls: z
       .array(galleryImageUrlSchema)
       .max(6, 'Upload up to 6 gallery images')

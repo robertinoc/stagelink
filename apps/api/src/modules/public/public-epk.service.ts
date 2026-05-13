@@ -4,6 +4,7 @@ import {
   type EpkFeaturedLinkItem,
   type EpkFeaturedMediaItem,
   type EpkTranslations,
+  type RecordLabel,
   type SupportedLocale,
 } from '@stagelink/types';
 import { PrismaService } from '../../lib/prisma.service';
@@ -61,7 +62,6 @@ export class PublicEpkService {
         techRequirements: true,
         location: true,
         availabilityNotes: true,
-        recordLabels: true,
         artist: {
           select: {
             id: true,
@@ -79,6 +79,7 @@ export class PublicEpkService {
             youtubeUrl: true,
             spotifyUrl: true,
             soundcloudUrl: true,
+            recordLabels: true,
           },
         },
       },
@@ -225,7 +226,7 @@ export class PublicEpkService {
         contentLocale,
         baseLocale,
       ),
-      recordLabels: epk.recordLabels,
+      recordLabels: (artist.recordLabels as unknown as RecordLabel[]) ?? [],
       locale,
       contentLocale,
     };

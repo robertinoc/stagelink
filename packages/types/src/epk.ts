@@ -1,5 +1,13 @@
 import type { LocalizedTextMap, SupportedLocale } from './i18n';
 
+export interface RecordLabel {
+  id: string;
+  name: string;
+  websiteUrl: string | null;
+  /** Explicit logo URL. Falls back to Clearbit (logo.clearbit.com) from websiteUrl. */
+  logoUrl: string | null;
+}
+
 export interface EpkFeaturedMediaItem {
   id: string;
   title: string;
@@ -76,7 +84,6 @@ export interface Epk {
   techRequirements: string | null;
   location: string | null;
   availabilityNotes: string | null;
-  recordLabels: string | null;
   translations: EpkTranslations;
   createdAt: string;
   updatedAt: string;
@@ -110,7 +117,6 @@ export interface UpdateEpkPayload {
   techRequirements?: string | null;
   location?: string | null;
   availabilityNotes?: string | null;
-  recordLabels?: string | null;
   translations?: EpkTranslations;
 }
 
@@ -133,6 +139,9 @@ export interface EpkInheritedArtistSnapshot {
    *  EPK editor can offer them as a pick-from-gallery source without a
    *  separate API call. Up to 6 items, same limit as ProfileGallerySection. */
   profileGalleryUrls: string[];
+  /** Record labels from the artist profile — passed through so the EPK editor
+   *  can show an inherited preview without a separate API call. */
+  recordLabels: RecordLabel[];
 }
 
 export interface EpkEditorResponse {
@@ -176,7 +185,7 @@ export interface PublicEpkResponse {
   techRequirements: string | null;
   location: string | null;
   availabilityNotes: string | null;
-  recordLabels: string | null;
+  recordLabels: RecordLabel[];
   locale?: SupportedLocale;
   contentLocale?: SupportedLocale;
 }

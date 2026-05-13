@@ -160,12 +160,6 @@ export class UpdateEpkDto {
   @IsString()
   @MaxLength(500)
   availabilityNotes?: string | null;
-
-  @IsOptional()
-  @Transform(({ value }) => emptyStringToNull(value))
-  @IsString()
-  @MaxLength(500)
-  recordLabels?: string | null;
 }
 
 export class GenerateBioDto {
