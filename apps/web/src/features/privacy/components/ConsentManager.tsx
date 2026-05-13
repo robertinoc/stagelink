@@ -120,7 +120,7 @@ export function ConsentManager() {
       )}
 
       <Dialog open={preferencesOpen} onOpenChange={setPreferencesOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border border-white/10 bg-[#101015] text-white sm:max-w-xl">
+        <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] overflow-x-hidden overflow-y-auto border border-white/10 bg-[#101015] p-4 text-white sm:max-w-xl sm:p-6">
           <DialogHeader>
             <DialogTitle>{t('modal_title')}</DialogTitle>
             <DialogDescription className="text-white/68">
@@ -150,14 +150,24 @@ export function ConsentManager() {
             ))}
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-2">
-            <Button type="button" variant="ghost" onClick={rejectNonEssential}>
+          <DialogFooter className="gap-2 sm:flex-wrap sm:gap-2 sm:space-x-0">
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full sm:w-auto"
+              onClick={rejectNonEssential}
+            >
               {t('reject')}
             </Button>
-            <Button type="button" variant="outline" onClick={savePreferences}>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={savePreferences}
+            >
               {t('save')}
             </Button>
-            <Button type="button" onClick={acceptAll}>
+            <Button type="button" className="w-full sm:w-auto" onClick={acceptAll}>
               {t('accept')}
             </Button>
           </DialogFooter>
@@ -185,9 +195,9 @@ function ConsentCategoryRow({
   onToggle,
 }: ConsentCategoryRowProps) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
+    <div className="min-w-0 rounded-lg border border-white/10 bg-white/[0.03] p-4">
       <div className="flex items-start justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-semibold text-white">{title}</p>
           <p className="mt-1 text-sm leading-6 text-white/68">{description}</p>
           <p className="mt-2 text-xs leading-5 text-white/48">{legalBasis}</p>
