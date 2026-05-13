@@ -1470,6 +1470,8 @@
         "success_heading": "¡Mensaje enviado!",
         "success_body": "El artista te va a responder pronto.",
         "error": "Algo salió mal. Intentá de nuevo.",
+        "error_validation": "Completá nombre, email válido y mensaje.",
+        "error_not_configured": "El formulario no está configurado. El admin del sitio debe agregar las credenciales de EmailJS.",
         "anonymous": "un fan"
       }
     }

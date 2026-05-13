@@ -12,6 +12,7 @@ interface ContactFormRendererProps {
 }
 
 type Status = 'idle' | 'sending' | 'success' | 'error';
+type ErrorKind = 'validation' | 'not_configured' | 'send_failed' | null;
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -21,6 +22,7 @@ export function ContactFormRenderer({ title, config }: ContactFormRendererProps)
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<Status>('idle');
+  const [errorKind, setErrorKind] = useState<ErrorKind>(null);
 
   if (!config.email) return null;
 
@@ -32,7 +34,9 @@ export function ContactFormRenderer({ title, config }: ContactFormRendererProps)
     const trimmedEmail = email.trim();
     const trimmedMessage = message.trim();
 
-    if (trimmedName.length < 2 || trimmedMessage.length < 5 || !EMAIL_REGEX.test(trimmedEmail)) {
+    // Validación mínima — pareo con el patrón original de Resend (mensaje no vacío).
+    if (!trimmedName || !trimmedMessage || !EMAIL_REGEX.test(trimmedEmail)) {
+      setErrorKind('validation');
       setStatus('error');
       return;
     }
@@ -41,11 +45,19 @@ export function ContactFormRenderer({ title, config }: ContactFormRendererProps)
     const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
     const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
     if (!publicKey || !serviceId || !templateId) {
+      // eslint-disable-next-line no-console
+      console.error('[ContactForm] EmailJS env vars missing', {
+        publicKey: Boolean(publicKey),
+        serviceId: Boolean(serviceId),
+        templateId: Boolean(templateId),
+      });
+      setErrorKind('not_configured');
       setStatus('error');
       return;
     }
 
     setStatus('sending');
+    setErrorKind(null);
     try {
       const safeName = trimmedName.replace(/[\r\n\t]/g, '').slice(0, 100);
       const safeEmail = trimmedEmail.slice(0, 254);
@@ -65,10 +77,20 @@ export function ContactFormRenderer({ title, config }: ContactFormRendererProps)
         { publicKey },
       );
       setStatus('success');
-    } catch {
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[ContactForm] EmailJS send failed', err);
+      setErrorKind('send_failed');
       setStatus('error');
     }
   }
+
+  const errorMessage =
+    errorKind === 'validation'
+      ? t('error_validation')
+      : errorKind === 'not_configured'
+        ? t('error_not_configured')
+        : t('error');
 
   return (
     <div className="neon-card-border rounded-[1.5rem] p-[1px]">
@@ -126,7 +148,7 @@ export function ContactFormRenderer({ title, config }: ContactFormRendererProps)
                 maxLength={2000}
               />
             </div>
-            {status === 'error' && <p className="text-xs text-red-400">{t('error')}</p>}
+            {status === 'error' && <p className="text-xs text-red-400">{errorMessage}</p>}
             <button
               type="submit"
               disabled={!message.trim() || status === 'sending'}
