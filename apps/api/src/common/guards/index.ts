@@ -10,6 +10,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
+import type { JWTPayload } from 'jose';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import type { User } from '@prisma/client';
 import { IS_PUBLIC_KEY, OWNERSHIP_KEY, type OwnershipMeta } from '../decorators';
@@ -42,6 +43,7 @@ import { requireActiveAuthUser } from './auth-user-status';
 export class JwtAuthGuard implements CanActivate {
   private readonly logger = new Logger(JwtAuthGuard.name);
   private readonly jwks: ReturnType<typeof createRemoteJWKSet>;
+  private readonly allowedIssuers: string[];
 
   constructor(
     private readonly reflector: Reflector,
@@ -49,6 +51,9 @@ export class JwtAuthGuard implements CanActivate {
     private readonly prisma: PrismaService,
   ) {
     const clientId = this.configService.getOrThrow<string>('workos.clientId');
+    this.allowedIssuers = getAllowedWorkosIssuers(
+      this.configService.get<string>('workos.jwtIssuer'),
+    );
     // WorkOS AuthKit access tokens are signed by the SSO JWKS for the client.
     // Docs: https://workos.com/docs/user-management/sessions/introduction
     const jwksUrl = `https://api.workos.com/sso/jwks/${clientId}`;
@@ -73,8 +78,10 @@ export class JwtAuthGuard implements CanActivate {
     // Validar JWT localmente (JWKS cacheado por jose)
     let workosUserId: string;
     try {
-      const { payload } = await jwtVerify(token, this.jwks);
-      if (!payload.sub) throw new Error('JWT missing sub claim');
+      const { payload } = await jwtVerify(token, this.jwks, {
+        issuer: this.allowedIssuers,
+      });
+      assertWorkOSSessionClaims(payload);
       workosUserId = payload.sub;
     } catch (err) {
       this.logger.error(
@@ -242,4 +249,33 @@ function extractBearerToken(request: Request): string | null {
   if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
   const token = authHeader.slice(7).trim();
   return token.length > 0 ? token : null;
+}
+
+function getAllowedWorkosIssuers(configuredIssuer: string | undefined): string[] {
+  const rawIssuers = configuredIssuer?.trim()
+    ? [configuredIssuer.trim()]
+    : ['https://api.workos.com'];
+
+  return Array.from(
+    new Set(
+      rawIssuers.flatMap((issuer) => {
+        const withoutTrailingSlash = issuer.replace(/\/+$/, '');
+        return [withoutTrailingSlash, `${withoutTrailingSlash}/`];
+      }),
+    ),
+  );
+}
+
+function assertWorkOSSessionClaims(payload: JWTPayload): asserts payload is JWTPayload & {
+  sub: string;
+  sid: string;
+} {
+  if (typeof payload.sub !== 'string' || !payload.sub.startsWith('user_')) {
+    throw new Error('JWT missing valid WorkOS user subject');
+  }
+
+  const sid = payload['sid'];
+  if (typeof sid !== 'string' || !sid.startsWith('session_')) {
+    throw new Error('JWT missing valid WorkOS session id');
+  }
 }

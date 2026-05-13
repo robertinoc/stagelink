@@ -13,6 +13,7 @@ export default (): Record<string, unknown> => ({
   workos: {
     clientId: process.env.WORKOS_CLIENT_ID,
     apiKey: process.env.WORKOS_API_KEY,
+    jwtIssuer: process.env.WORKOS_JWT_ISSUER,
   },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,

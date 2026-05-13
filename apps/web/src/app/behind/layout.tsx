@@ -7,6 +7,24 @@ interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
+const DEFAULT_MAIN_AUTH_ORIGIN = 'https://stagelink.art';
+
+function getMainAuthOrigin(): string {
+  const candidates = [process.env.WORKOS_REDIRECT_URI, process.env.NEXT_PUBLIC_APP_URL];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    try {
+      const url = new URL(candidate);
+      if (url.protocol === 'https:' || url.protocol === 'http:') return url.origin;
+    } catch {
+      // Try the next candidate; auth redirect should not render a stack trace.
+    }
+  }
+
+  return DEFAULT_MAIN_AUTH_ORIGIN;
+}
+
 export default async function AdminLayout({ children }: AdminLayoutProps) {
   const session = await getSession();
 
@@ -26,9 +44,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   //    blocked with 403 before the route handler runs. The dedicated endpoint
   //    has no query parameters and hardcodes the return path server-side.
   if (!session) {
-    const redirectUri = process.env.WORKOS_REDIRECT_URI;
-    const mainOrigin = redirectUri ? new URL(redirectUri).origin : '';
-    redirect(`${mainOrigin}/api/auth/behind-signin`);
+    redirect(`${getMainAuthOrigin()}/api/auth/behind-signin`);
   }
 
   // Authenticated but no behind access (not owner or admin) → silent redirect.
