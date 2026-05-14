@@ -2,7 +2,8 @@
 
 Status: legal foundations, cookie consent, DSAR baseline, data mapping,
 Privacy-by-Design baseline, retention/lifecycle baseline, and third-party
-integrations and international-transfer baseline for the Privacy Plan.
+integrations, international-transfer, and incident/breach response baseline for
+the Privacy Plan.
 
 This folder contains StageLink's privacy architecture documentation for the
 pre-launch privacy workstream. The first phase was documentation-only; later
@@ -33,62 +34,73 @@ This baseline covers:
 - International transfer architecture covering transfer mechanism selection,
   provider transfer evidence, supplementary measures, and transfer impact
   assessment questions.
+- Incident response and data breach management covering classification,
+  detection, triage, containment, evidence handling, GDPR 72-hour assessment,
+  communications, third-party dependencies, and response playbooks.
 - Compliance gaps and validation findings.
 
 ## Documents
 
-| File                                           | Purpose                                                                                                |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `legal-foundations.md`                         | Legal role, applicable regulations, lawful bases, age, jurisdiction.                                   |
-| `data-inventory.md`                            | Operational inventory of current data categories and purposes.                                         |
-| `data-classification.md`                       | Classification labels, field risk, public/private boundaries.                                          |
-| `data-flow-mapping.md`                         | End-to-end data flows across web, API, DB, auth, payments, providers.                                  |
-| `storage-locations.md`                         | PostgreSQL, providers, browser storage, logs, artifacts, backups.                                      |
-| `retention-policy.md`                          | Proposed retention, deletion, anonymization, and automation gaps.                                      |
-| `account-lifecycle.md`                         | Active/inactive/suspended/deleted account and workspace states.                                        |
-| `deletion-strategy.md`                         | Safe local/provider deletion ordering and guardrails.                                                  |
-| `inactive-account-policy.md`                   | Inactivity thresholds, notification, archival, deletion policy.                                        |
-| `downgrade-retention-policy.md`                | FREE/PRO/PRO+ downgrade retention, grace, and cleanup behavior.                                        |
-| `cleanup-jobs.md`                              | Read-only retention candidate reporting and future cleanup jobs.                                       |
-| `third-party-processors.md`                    | Provider/processor matrix and launch confirmation checklist.                                           |
-| `providers-and-transfers.md`                   | Third-party providers, subprocessors, transfers, and review needs.                                     |
-| `integrations-inventory.md`                    | Active/planned provider inventory and launch decisions.                                                |
-| `external-data-flows.md`                       | External provider data-flow mapping across auth, billing, analytics, media, email, storage, and CI.    |
-| `oauth-architecture.md`                        | OAuth, token, and provider credential posture.                                                         |
-| `api-scope-review.md`                          | Least-privilege scope review and future scope gates.                                                   |
-| `provider-compliance-matrix.md`                | DPA/SCC/region/retention evidence register template.                                                   |
-| `third-party-risk-analysis.md`                 | Severity-ranked third-party privacy and vendor risks.                                                  |
-| `third-party-integrations-validation-audit.md` | Validation audit for third-party/integration readiness.                                                |
-| `international-transfer-impact-assessment.md`  | Transfer mechanism model, provider transfer register, supplementary measures, and policy requirements. |
-| `international-transfers-validation-audit.md`  | Validation audit for international transfer readiness.                                                 |
-| `privacy-policy-structure.md`                  | StageLink-specific Privacy Policy structure.                                                           |
-| `terms-of-service-structure.md`                | StageLink-specific Terms of Service structure.                                                         |
-| `cookie-policy-structure.md`                   | Cookie categories, consent posture, opt-out/opt-in plan.                                               |
-| `cookie-architecture.md`                       | Implemented consent categories, storage, versioning, withdrawal.                                       |
-| `consent-flow.md`                              | Runtime consent UX and tracking blocking flow.                                                         |
-| `tracking-inventory.md`                        | Current tracking systems and no-consent behavior.                                                      |
-| `implementation-notes.md`                      | E2 implementation summary and technical compliance checklist.                                          |
-| `consent-validation-audit.md`                  | Validation audit for consent/cookie implementation.                                                    |
-| `dsar-architecture.md`                         | DSAR rights support, endpoint flow, identity, auditability.                                            |
-| `deletion-policy.md`                           | Account deletion/anonymization strategy and retained data rationale.                                   |
-| `data-export-structure.md`                     | JSON export scope, redactions, and format decisions.                                                   |
-| `identity-verification.md`                     | DSAR authentication and destructive-action verification posture.                                       |
-| `request-lifecycle.md`                         | DSAR status model, SLA targets, and operational review.                                                |
-| `dsar-compliance-checklist.md`                 | GDPR/CCPA DSAR checklist and testing edge cases.                                                       |
-| `dsar-validation-audit.md`                     | Validation audit for DSAR implementation.                                                              |
-| `data-mapping-validation-audit.md`             | Validation audit for data inventory and data-flow mapping.                                             |
-| `privacy-by-design.md`                         | Privacy principles, minimization strategy, risk analysis.                                              |
-| `multi-tenant-isolation.md`                    | Artist tenant boundary, membership checks, isolation gaps.                                             |
-| `encryption-strategy.md`                       | HTTPS, at-rest assumptions, secret and token handling rules.                                           |
-| `logging-policy.md`                            | Privacy-safe logging, audit log boundaries, retention recommendations.                                 |
-| `anonymization-policy.md`                      | Deleted-user, analytics, audit, and provider pseudonymization rules.                                   |
-| `rbac-architecture.md`                         | Artist and Behind role models, least privilege, test checklist.                                        |
-| `access-audit-strategy.md`                     | Sensitive action audit event strategy and retention posture.                                           |
-| `privacy-by-design-validation-audit.md`        | Validation audit for Privacy-by-Design readiness.                                                      |
-| `retention-lifecycle-validation-audit.md`      | Validation audit for retention/lifecycle readiness.                                                    |
-| `implementation-checklist.md`                  | Missing information and implementation checklist.                                                      |
-| `compliance-gap-analysis.md`                   | Severity-ranked privacy/compliance gaps.                                                               |
-| `legal-foundations-validation-audit.md`        | Independent validation audit of this documentation set.                                                |
+| File                                           | Purpose                                                                                                                                                    |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `legal-foundations.md`                         | Legal role, applicable regulations, lawful bases, age, jurisdiction.                                                                                       |
+| `data-inventory.md`                            | Operational inventory of current data categories and purposes.                                                                                             |
+| `data-classification.md`                       | Classification labels, field risk, public/private boundaries.                                                                                              |
+| `data-flow-mapping.md`                         | End-to-end data flows across web, API, DB, auth, payments, providers.                                                                                      |
+| `storage-locations.md`                         | PostgreSQL, providers, browser storage, logs, artifacts, backups.                                                                                          |
+| `retention-policy.md`                          | Proposed retention, deletion, anonymization, and automation gaps.                                                                                          |
+| `account-lifecycle.md`                         | Active/inactive/suspended/deleted account and workspace states.                                                                                            |
+| `deletion-strategy.md`                         | Safe local/provider deletion ordering and guardrails.                                                                                                      |
+| `inactive-account-policy.md`                   | Inactivity thresholds, notification, archival, deletion policy.                                                                                            |
+| `downgrade-retention-policy.md`                | FREE/PRO/PRO+ downgrade retention, grace, and cleanup behavior.                                                                                            |
+| `cleanup-jobs.md`                              | Read-only retention candidate reporting and future cleanup jobs.                                                                                           |
+| `third-party-processors.md`                    | Provider/processor matrix and launch confirmation checklist.                                                                                               |
+| `providers-and-transfers.md`                   | Third-party providers, subprocessors, transfers, and review needs.                                                                                         |
+| `integrations-inventory.md`                    | Active/planned provider inventory and launch decisions.                                                                                                    |
+| `external-data-flows.md`                       | External provider data-flow mapping across auth, billing, analytics, media, email, storage, and CI.                                                        |
+| `oauth-architecture.md`                        | OAuth, token, and provider credential posture.                                                                                                             |
+| `api-scope-review.md`                          | Least-privilege scope review and future scope gates.                                                                                                       |
+| `provider-compliance-matrix.md`                | DPA/SCC/region/retention evidence register template.                                                                                                       |
+| `third-party-risk-analysis.md`                 | Severity-ranked third-party privacy and vendor risks.                                                                                                      |
+| `third-party-integrations-validation-audit.md` | Validation audit for third-party/integration readiness.                                                                                                    |
+| `international-transfer-impact-assessment.md`  | Transfer mechanism model, provider transfer register, supplementary measures, and policy requirements.                                                     |
+| `international-transfers-validation-audit.md`  | Validation audit for international transfer readiness.                                                                                                     |
+| `incident-response-plan.md`                    | Startup-ready privacy/security incident response workflow.                                                                                                 |
+| `breach-classification.md`                     | Incident categories, severity matrix, escalation rules, and breach reporting matrix.                                                                       |
+| `breach-notification-workflow.md`              | GDPR 72-hour authority/user notification workflow and decision criteria.                                                                                   |
+| `incident-registry-structure.md`               | Incident registry fields, evidence handling, timestamp, and audit-safe logging standards.                                                                  |
+| `response-playbooks.md`                        | Practical playbooks for account takeover, token leaks, cross-tenant exposure, analytics, credentials, public exposure, DB, provider, and backup incidents. |
+| `breach-communication-templates.md`            | Internal, executive, regulator, user, provider, and public-status communication templates.                                                                 |
+| `detection-strategy.md`                        | Detection surfaces, alert priorities, monitoring gaps, and startup-ready alerting plan.                                                                    |
+| `incident-response-validation-audit.md`        | Validation audit for incident and breach response readiness.                                                                                               |
+| `privacy-policy-structure.md`                  | StageLink-specific Privacy Policy structure.                                                                                                               |
+| `terms-of-service-structure.md`                | StageLink-specific Terms of Service structure.                                                                                                             |
+| `cookie-policy-structure.md`                   | Cookie categories, consent posture, opt-out/opt-in plan.                                                                                                   |
+| `cookie-architecture.md`                       | Implemented consent categories, storage, versioning, withdrawal.                                                                                           |
+| `consent-flow.md`                              | Runtime consent UX and tracking blocking flow.                                                                                                             |
+| `tracking-inventory.md`                        | Current tracking systems and no-consent behavior.                                                                                                          |
+| `implementation-notes.md`                      | E2 implementation summary and technical compliance checklist.                                                                                              |
+| `consent-validation-audit.md`                  | Validation audit for consent/cookie implementation.                                                                                                        |
+| `dsar-architecture.md`                         | DSAR rights support, endpoint flow, identity, auditability.                                                                                                |
+| `deletion-policy.md`                           | Account deletion/anonymization strategy and retained data rationale.                                                                                       |
+| `data-export-structure.md`                     | JSON export scope, redactions, and format decisions.                                                                                                       |
+| `identity-verification.md`                     | DSAR authentication and destructive-action verification posture.                                                                                           |
+| `request-lifecycle.md`                         | DSAR status model, SLA targets, and operational review.                                                                                                    |
+| `dsar-compliance-checklist.md`                 | GDPR/CCPA DSAR checklist and testing edge cases.                                                                                                           |
+| `dsar-validation-audit.md`                     | Validation audit for DSAR implementation.                                                                                                                  |
+| `data-mapping-validation-audit.md`             | Validation audit for data inventory and data-flow mapping.                                                                                                 |
+| `privacy-by-design.md`                         | Privacy principles, minimization strategy, risk analysis.                                                                                                  |
+| `multi-tenant-isolation.md`                    | Artist tenant boundary, membership checks, isolation gaps.                                                                                                 |
+| `encryption-strategy.md`                       | HTTPS, at-rest assumptions, secret and token handling rules.                                                                                               |
+| `logging-policy.md`                            | Privacy-safe logging, audit log boundaries, retention recommendations.                                                                                     |
+| `anonymization-policy.md`                      | Deleted-user, analytics, audit, and provider pseudonymization rules.                                                                                       |
+| `rbac-architecture.md`                         | Artist and Behind role models, least privilege, test checklist.                                                                                            |
+| `access-audit-strategy.md`                     | Sensitive action audit event strategy and retention posture.                                                                                               |
+| `privacy-by-design-validation-audit.md`        | Validation audit for Privacy-by-Design readiness.                                                                                                          |
+| `retention-lifecycle-validation-audit.md`      | Validation audit for retention/lifecycle readiness.                                                                                                        |
+| `implementation-checklist.md`                  | Missing information and implementation checklist.                                                                                                          |
+| `compliance-gap-analysis.md`                   | Severity-ranked privacy/compliance gaps.                                                                                                                   |
+| `legal-foundations-validation-audit.md`        | Independent validation audit of this documentation set.                                                                                                    |
 
 ## Legal review boundary
 
@@ -138,3 +150,7 @@ law clause.
   https://eur-lex.europa.eu/eli/dec_impl/2023/1795/oj
 - Data Privacy Framework official program:
   https://www.dataprivacyframework.gov/
+- GDPR Articles 33 and 34 on personal data breach notification:
+  https://eur-lex.europa.eu/eli/reg/2016/679/oj
+- EDPB Guidelines 9/2022 on personal data breach notification:
+  https://www.edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-92022-personal-data-breach-notification-under_en

@@ -48,6 +48,11 @@ Status: missing information and implementation backlog for the Privacy Plan.
   deletion.
 - Whether Behind admin user search/detail access needs per-event audit trails
   before launch.
+- Final privacy/security incident contact email, legal escalation path,
+  supervisory authority posture, and owner responsible for breach decisions.
+- Final provider security/privacy escalation contacts and incident-notice
+  channels for WorkOS, Vercel, Railway, Stripe, PostHog, Resend/EmailJS,
+  storage, GitHub, and integration providers.
 - Whether inactive-account automation should exist at launch or remain manual.
 - Final downgrade grace periods and feature-specific cleanup rules for FREE,
   PRO, and PRO+.
@@ -70,6 +75,9 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Complete provider compliance/evidence register.
 - Decide SoundCloud and EmailJS launch posture.
 - Confirm object-storage provider, region, lifecycle, and deletion behavior.
+- Adopt incident response and breach notification baseline for private QA.
+- Create an owner-only incident registry template and evidence-storage
+  location outside git.
 
 ### High Before Paid Growth
 
@@ -83,6 +91,12 @@ Status: missing information and implementation backlog for the Privacy Plan.
   `pnpm data:retention:candidates` and archive the output as launch evidence.
 - Add provider-side deletion/revocation runbook for WorkOS, Stripe, PostHog,
   object storage, Resend/email, Vercel/Railway logs, and connected providers.
+- Add central alerting/log drain for Critical/High incident signals.
+- Add audit/alerts for admin user search/detail views, DSAR exports,
+  subscriber exports, cross-tenant denied access, and repeated privacy exports.
+- Enable managed database backups/PITR or document equivalent production
+  recovery capability.
+- Confirm owner/admin MFA or step-up for high-risk admin actions.
 - Verify object-storage deletion behavior during account/workspace erasure.
 - Add Behind admin access audit events for user search, detail view, status
   changes, role changes, invitations, debug-header access, and destructive
@@ -92,6 +106,8 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Add subscriber unsubscribe/delete support.
 - Add privacy settings page.
 - Document incident/data breach process with 72-hour GDPR assessment workflow.
+- Add breach communication templates to the launch runbook with final
+  privacy/security contact details.
 
 ### Medium
 
@@ -132,6 +148,14 @@ tracking event, cookie, export, or admin access path must update:
 - `provider-compliance-matrix.md`
 - `international-transfer-impact-assessment.md`
 - `international-transfers-validation-audit.md`
+- `incident-response-plan.md`
+- `breach-classification.md`
+- `breach-notification-workflow.md`
+- `incident-registry-structure.md`
+- `response-playbooks.md`
+- `breach-communication-templates.md`
+- `detection-strategy.md`
+- `incident-response-validation-audit.md`
 - `third-party-risk-analysis.md`
 - `compliance-gap-analysis.md`
 - Relevant public policy structure

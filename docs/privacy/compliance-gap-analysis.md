@@ -2,7 +2,7 @@
 
 Status: baseline risk analysis for privacy legal foundations, consent, DSAR,
 data mapping, Privacy-by-Design, retention/lifecycle governance, third-party
-integrations, and international transfers.
+integrations, international transfers, and incident/breach response.
 
 ## Current Baseline
 
@@ -25,6 +25,9 @@ StageLink now has:
 - international transfer documentation for transfer mechanisms, provider
   evidence, supplementary measures, transfer impact questions, and transfer
   readiness validation.
+- incident and breach response documentation for classification, severity,
+  detection, response workflows, registry structure, GDPR notification,
+  communications, third-party dependencies, playbooks, and readiness audit.
 
 Privacy Plan Data Mapping produced these operational documents:
 
@@ -73,6 +76,18 @@ International Transfers produced these operational documents:
 
 - `international-transfer-impact-assessment.md`
 - `international-transfers-validation-audit.md`
+
+Incident Response and Data Breach Management produced these operational
+documents:
+
+- `incident-response-plan.md`
+- `breach-classification.md`
+- `breach-notification-workflow.md`
+- `incident-registry-structure.md`
+- `response-playbooks.md`
+- `breach-communication-templates.md`
+- `detection-strategy.md`
+- `incident-response-validation-audit.md`
 
 ## Critical
 
@@ -213,6 +228,43 @@ Fix:
 - Record UK IDTA/addendum and Swiss transfer terms where StageLink serves those
   users.
 - Keep Article 49 derogations out of routine cloud transfer posture.
+
+### Incident detection and breach operations are not fully implemented
+
+StageLink now has a startup-ready incident response and breach notification
+framework, but several detection and operational controls remain manual.
+
+Risk:
+
+- Breaches may be detected too late to support fast containment and GDPR
+  72-hour assessment.
+- Cross-tenant, admin, DSAR export, and subscriber export anomalies may not be
+  visible enough.
+- Provider incidents may be harder to scope without evidence contacts,
+  retention, and escalation paths.
+
+Fix:
+
+- Configure central alerting/log drain for Critical/High signals before public
+  scale.
+- Add audit events for admin user search/detail views and export actions.
+- Add structured denied-access signals for sensitive tenant checks.
+- Create an owner-only incident registry and secure evidence storage location.
+- Finalize privacy/security contact, legal escalation path, and supervisory
+  authority posture.
+
+### Production recovery capability is incomplete
+
+Railway managed database backups/PITR are not enabled in the current Hobby plan,
+and backup restoration can create privacy risk if it reintroduces deleted,
+exposed, or unlawful data.
+
+Fix:
+
+- Enable managed backups/PITR before public launch or 100 users.
+- Test restore against a disposable target.
+- Add recovery checks for DSAR erasure, account deletion, tenant isolation, and
+  provider-token revocation.
 
 ### SoundCloud production posture needs a launch decision
 
