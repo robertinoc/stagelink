@@ -27,6 +27,15 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Whether marketing emails are planned at launch.
 - Final provider regions, DPAs/SCCs, and log retention for Vercel, Railway,
   WorkOS, Stripe, PostHog, Resend, storage, and Upstash if used.
+- Final provider evidence register for WorkOS, Vercel, Railway, Stripe,
+  PostHog, Resend, EmailJS, storage, Upstash, Spotify, YouTube/Google,
+  SoundCloud, Shopify, Printful, and any future provider.
+- Final SoundCloud production posture: official API use confirmed, or
+  server-side SoundCloud sync disabled.
+- Final EmailJS posture: DPA/retention/subprocessors accepted, or public
+  contact forms moved to a reviewed server-side email provider.
+- Final YouTube launch posture: API-key public data only, unless OAuth receives
+  separate scope/revocation/deletion review.
 - Final backup policy once Railway Pro is enabled.
 - Final fan/subscriber DSAR ownership model: artist-handled, StageLink-handled,
   or shared intake.
@@ -53,6 +62,9 @@ Status: missing information and implementation backlog for the Privacy Plan.
   portability, consent withdrawal.
 - Define account deletion behavior and subscriber deletion routing.
 - Confirm provider DPAs/SCCs and production regions.
+- Complete provider compliance/evidence register.
+- Decide SoundCloud and EmailJS launch posture.
+- Confirm object-storage provider, region, lifecycle, and deletion behavior.
 
 ### High Before Paid Growth
 
@@ -81,6 +93,9 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Add Global Privacy Control support if marketing/analytics expands.
 - Add consent versioning and audit history.
 - Add privacy review checklist for new integrations.
+- Add mandatory provider/scope review for new OAuth providers, write scopes,
+  Shopify Admin API, Printful/Printify order/customer access, new analytics
+  vendors, email/support vendors, and third-party embed providers.
 - Add periodic data inventory review.
 - Add Spanish translation of public legal documents.
 - Add server-side consent event ledger if regulator-grade consent history is
@@ -103,6 +118,12 @@ tracking event, cookie, export, or admin access path must update:
 - `retention-policy.md`
 - `third-party-processors.md`
 - `providers-and-transfers.md`
+- `integrations-inventory.md`
+- `external-data-flows.md`
+- `oauth-architecture.md`
+- `api-scope-review.md`
+- `provider-compliance-matrix.md`
+- `third-party-risk-analysis.md`
 - `compliance-gap-analysis.md`
 - Relevant public policy structure
 - `privacy-by-design.md`
