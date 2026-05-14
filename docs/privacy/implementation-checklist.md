@@ -100,6 +100,8 @@ Status: missing information and implementation backlog for the Privacy Plan.
   create the confidential compliance evidence register outside git.
 - Complete `ropa.md` controller/contact fields and Article 30 review note before
   public launch.
+- Adopt Privacy UX/transparency baseline and QA privacy settings, consent,
+  onboarding cues, and integration transparency in English and Spanish.
 
 ### High Before Paid Growth
 
@@ -139,6 +141,8 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Add PR/ticket privacy review prompts for providers, analytics, auth, payments,
   retention, DSAR, public visibility, and tenant-isolation changes.
 - Complete provider evidence entries referenced by `evidence-inventory.md`.
+- Add public/private visibility badges to profile fields, page builder publish
+  controls, and EPK publish/share controls.
 
 ### Medium
 
@@ -146,6 +150,8 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Add consent versioning and audit history.
 - Add privacy review checklist for new integrations.
 - Add quarterly ROPA/data-inventory/provider-evidence review reminder.
+- Move onboarding privacy cue strings into shared i18n messages if onboarding
+  copy expands.
 - Add analytics/profiling review checklist for new events, dashboards,
   segmentation, recommendations, AI insights, marketing pixels, session replay,
   autocapture, and cross-device tracking.
@@ -208,6 +214,13 @@ tracking event, cookie, export, or admin access path must update:
 - `change-management.md`
 - `periodic-review-framework.md`
 - `governance-validation-audit.md`
+- `privacy-ux-guidelines.md`
+- `onboarding-privacy.md`
+- `transparency-copy.md`
+- `visibility-model.md`
+- `consent-ux-review.md`
+- `integrations-transparency.md`
+- `privacy-ux-validation-audit.md`
 - `third-party-risk-analysis.md`
 - `compliance-gap-analysis.md`
 - Relevant public policy structure

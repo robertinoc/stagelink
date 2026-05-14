@@ -88,7 +88,7 @@ export function ConsentManager() {
               <p className="mt-1 text-sm leading-6 text-white/72">{t('description')}</p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <Button type="button" variant="ghost" size="sm" onClick={rejectNonEssential}>
+              <Button type="button" variant="outline" size="sm" onClick={rejectNonEssential}>
                 {t('reject')}
               </Button>
               <Button
@@ -153,7 +153,7 @@ export function ConsentManager() {
           <DialogFooter className="gap-2 sm:flex-wrap sm:gap-2 sm:space-x-0">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               className="w-full sm:w-auto"
               onClick={rejectNonEssential}
             >

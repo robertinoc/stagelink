@@ -96,6 +96,11 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
       label: t('dashboard.settings.navigation.smart_merch'),
       href: `${settingsBaseHref}/smart-merch`,
     },
+    {
+      id: 'privacy',
+      label: t('dashboard.settings.navigation.privacy'),
+      href: `${settingsBaseHref}/privacy`,
+    },
   ];
 
   /** Returns true when the nav item should render as active. */

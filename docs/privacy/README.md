@@ -3,7 +3,8 @@
 Status: legal foundations, cookie consent, DSAR baseline, data mapping,
 Privacy-by-Design baseline, retention/lifecycle baseline, and third-party
 integrations, international-transfer, and incident/breach response baseline for
-the Privacy Plan, plus analytics/profiling and governance/ROPA baseline.
+the Privacy Plan, plus analytics/profiling, governance/ROPA, and Privacy UX
+baseline.
 
 This folder contains StageLink's privacy architecture documentation for the
 pre-launch privacy workstream. The first phase was documentation-only; later
@@ -43,6 +44,9 @@ This baseline covers:
 - Internal privacy governance covering documentation architecture, ROPA,
   ownership, change management, audit readiness, evidence inventory, operational
   checklists, periodic review cadence, and governance validation.
+- Privacy UX and transparency covering privacy settings, consent UX,
+  onboarding cues, public/private visibility, integration transparency,
+  analytics explanations, component inventory, and UX validation.
 - Compliance gaps and validation findings.
 
 ## Documents
@@ -96,6 +100,13 @@ This baseline covers:
 | `change-management.md`                         | Privacy change classification, provider/analytics/retention/auth gates, release posture, and change evidence.                                              |
 | `periodic-review-framework.md`                 | Monthly, quarterly, annual, incident-driven, and feature-driven review framework.                                                                          |
 | `governance-validation-audit.md`               | Validation audit for privacy governance, documentation, ROPA, evidence, reviews, and readiness.                                                            |
+| `privacy-ux-guidelines.md`                     | Product privacy UX principles, settings architecture, component inventory, risk analysis, and recommendations.                                             |
+| `onboarding-privacy.md`                        | Onboarding public/private cues, step-level privacy model, copy strategy, and future improvements.                                                          |
+| `transparency-copy.md`                         | Approved plain-language privacy copy patterns and product copy risks.                                                                                      |
+| `visibility-model.md`                          | Public/private/shared/analytics visibility labels, exposure hotspots, and future UI requirements.                                                          |
+| `consent-ux-review.md`                         | Consent banner/modal/dashboard UX review, dark-pattern risks, and recommendations.                                                                         |
+| `integrations-transparency.md`                 | Provider transparency model for Spotify, YouTube, SoundCloud, Shopify, Printful, and future integration UX.                                                |
+| `privacy-ux-validation-audit.md`               | Validation audit for privacy settings, transparency, consent, onboarding, visibility, integrations, analytics, and discoverability.                        |
 | `privacy-policy-structure.md`                  | StageLink-specific Privacy Policy structure.                                                                                                               |
 | `terms-of-service-structure.md`                | StageLink-specific Terms of Service structure.                                                                                                             |
 | `cookie-policy-structure.md`                   | Cookie categories, consent posture, opt-out/opt-in plan.                                                                                                   |
@@ -183,4 +194,6 @@ law clause.
   decision-making and profiling:
   https://ec.europa.eu/newsroom/article29/items/612053
 - GDPR Article 30 records of processing activities:
+  https://eur-lex.europa.eu/eli/reg/2016/679/oj
+- GDPR Article 12 transparency and Article 7 consent conditions:
   https://eur-lex.europa.eu/eli/reg/2016/679/oj
