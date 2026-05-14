@@ -948,7 +948,98 @@
       },
       "privacy": {
         "title": "Privacidad y derechos de datos",
-        "description": "Gestioná tus derechos GDPR/CCPA para esta cuenta de StageLink.",
+        "description": "Controlá qué guarda StageLink, qué se vuelve público y qué preferencias opcionales de tracking están activas.",
+        "labels": {
+          "public": "Público",
+          "private": "Privado",
+          "optional": "Opcional",
+          "on": "Activo",
+          "off": "Inactivo",
+          "always_on": "Siempre activo",
+          "visibility_controlled": "Vos lo controlás"
+        },
+        "trust": {
+          "title": "Tus datos, sin misterio",
+          "description": "StageLink separa los datos privados de cuenta del contenido de artista que elegís publicar.",
+          "points": {
+            "public_private": "El perfil público y el EPK solo se vuelven públicos cuando los publicás.",
+            "choice": "Podés cambiar analytics opcionales y marketing desde acá cuando quieras.",
+            "providers": "Los proveedores conectados se usan solo para las funciones que configurás."
+          }
+        },
+        "consent": {
+          "title": "Preferencias de cookies y analytics",
+          "description": "Gestioná tracking opcional sin salir de tu dashboard.",
+          "analytics_description": "Ayuda a mostrar visitas, clics, tendencias de capturas de fans y señales de uso del producto. El tracking público queda apagado salvo que permitas analytics.",
+          "marketing_description": "Reservado para atribución de campañas o píxeles publicitarios futuros. StageLink no lo activa por defecto.",
+          "note": "Las cookies necesarias y los logs de seguridad mantienen funcionando login, idioma, billing y prevención de abuso. No se usan para publicidad.",
+          "turn_on": "Activar",
+          "turn_off": "Desactivar",
+          "reject_optional": "Rechazar tracking opcional",
+          "saved": "Preferencias de privacidad guardadas."
+        },
+        "data_use": {
+          "title": "Cómo se usan tus datos",
+          "description": "Versión corta: usamos tus datos para operar tu workspace de artista, publicar lo que elegís y mostrar métricas útiles.",
+          "items": {
+            "public_profile": {
+              "title": "Página de artista",
+              "description": "Tu nombre artístico, bio, links, media y bloques seleccionados pueden aparecer públicamente cuando tu página está publicada."
+            },
+            "epk": {
+              "title": "Press Kit",
+              "description": "El EPK puede incluir datos de booking, imágenes, quotes y notas de rider. Mantené los detalles privados afuera hasta que estés listo para publicar o compartir."
+            },
+            "analytics": {
+              "title": "Analytics",
+              "description": "StageLink cuenta visitas, clics, actividad de smart links y totales de capturas de fans. Evitamos guardar IP cruda en analytics local."
+            },
+            "integrations": {
+              "title": "Integraciones",
+              "description": "Spotify, YouTube, SoundCloud, Shopify y Printful se usan solo para las funciones conectadas que configurás."
+            },
+            "account": {
+              "title": "Cuenta y seguridad",
+              "description": "Tu login, billing, solicitudes de datos y registros de seguridad quedan privados y se usan para operar y proteger tu cuenta."
+            }
+          }
+        },
+        "integrations": {
+          "title": "Transparencia de integraciones",
+          "description": "Una vista simple de para qué usa StageLink cada proveedor.",
+          "items": {
+            "spotify": {
+              "title": "Spotify",
+              "description": "Se usa para Insights de artista como referencias públicas del perfil, seguidores, oyentes mensuales, mercados principales y top tracks cuando están disponibles.",
+              "not_accessed": "No se usa para publicar en Spotify ni administrar tu cuenta de Spotify.",
+              "status": "Insights"
+            },
+            "youtube": {
+              "title": "YouTube",
+              "description": "Se usa para Insights del canal como suscriptores, vistas y señales de rendimiento de videos cuando configurás la referencia.",
+              "not_accessed": "No se usa para subir, editar ni eliminar videos.",
+              "status": "Insights"
+            },
+            "soundcloud": {
+              "title": "SoundCloud",
+              "description": "Hoy se trata como referencia pública de perfil mientras la sincronización completa sigue en roadmap.",
+              "not_accessed": "No hay administración completa de cuenta de SoundCloud activa hoy.",
+              "status": "Referencia"
+            },
+            "shopify": {
+              "title": "Shopify",
+              "description": "Se usa para mostrar productos seleccionados de tu storefront en la página pública cuando conectás una tienda.",
+              "not_accessed": "StageLink no recolecta datos de tarjeta ni ejecuta checkout de Shopify.",
+              "status": "Tienda"
+            },
+            "printful": {
+              "title": "Printful",
+              "description": "Se usa para validar productos de Smart Merch y dejarlos disponibles dentro de tus bloques.",
+              "not_accessed": "StageLink no expone el API token guardado en tu página pública.",
+              "status": "Merch"
+            }
+          }
+        },
         "personal": {
           "title": "Corregir datos personales",
           "description": "Actualizá el nombre de cuenta que StageLink guarda para tu perfil. El email queda gestionado por WorkOS.",

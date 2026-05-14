@@ -2,8 +2,9 @@
 
 Status: baseline risk analysis for privacy legal foundations, consent, DSAR,
 data mapping, Privacy-by-Design, retention/lifecycle governance, third-party
-integrations, international transfers, incident/breach response, and
-analytics/profiling privacy, plus governance/ROPA readiness.
+integrations, international transfers, incident/breach response,
+analytics/profiling privacy, governance/ROPA readiness, and Privacy UX
+transparency.
 
 ## Current Baseline
 
@@ -36,6 +37,9 @@ StageLink now has:
 - privacy governance documentation for documentation architecture, ROPA,
   ownership, evidence inventory, audit readiness, review processes, change
   management, operational checklists, periodic review, and governance audit.
+- privacy UX documentation and implementation for dashboard privacy settings,
+  consent controls, onboarding privacy cues, integration transparency, data-use
+  explanations, visibility model, and UX validation.
 
 Privacy Plan Data Mapping produced these operational documents:
 
@@ -119,6 +123,16 @@ Privacy Governance and ROPA produced these operational documents:
 - `change-management.md`
 - `periodic-review-framework.md`
 - `governance-validation-audit.md`
+
+Privacy UX and Transparency produced these operational documents:
+
+- `privacy-ux-guidelines.md`
+- `onboarding-privacy.md`
+- `transparency-copy.md`
+- `visibility-model.md`
+- `consent-ux-review.md`
+- `integrations-transparency.md`
+- `privacy-ux-validation-audit.md`
 
 ## Critical
 
@@ -270,6 +284,26 @@ Fix:
 - Add PR/ticket privacy review prompts.
 - Add quarterly ROPA and data-inventory review reminders.
 - Treat `ropa.md` and `evidence-inventory.md` as required launch audit docs.
+
+### Public/private visibility labels are incomplete
+
+Privacy Settings and onboarding now provide clear privacy explanations, but
+profile, page-builder, and EPK editing surfaces still need field-level
+visibility indicators.
+
+Risk:
+
+- Artists may publish contact, booking, rider, or platform details without
+  fully understanding where the data appears.
+- Future profile fields reused across public page, EPK, and Insights may create
+  accidental exposure.
+
+Fix:
+
+- Add `Public`, `Private`, `Public when published`, and `Used for Insights`
+  labels to relevant editors.
+- Add a public preview/review path before first publication.
+- Mirror provider transparency copy inside individual integration settings.
 
 ### International transfer evidence is incomplete
 

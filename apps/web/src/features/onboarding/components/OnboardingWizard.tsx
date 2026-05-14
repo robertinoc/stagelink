@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Eye, Loader2, ShieldCheck } from 'lucide-react';
 import type { ArtistCategory } from '@stagelink/types';
 import type {
   CompleteOnboardingPayload,
@@ -24,6 +24,31 @@ function suggestUsername(displayName: string): string {
 
 type WizardStep = 1 | 2 | 3 | 4;
 
+const PRIVACY_NOTES = {
+  en: {
+    eyebrow: 'Privacy note',
+    steps: {
+      1: 'Your artist name is used to set up your workspace and can appear on your public page once you publish.',
+      2: 'Your username becomes part of your public StageLink URL. You can review your public page before sharing it.',
+      3: 'Categories help shape your profile and discovery context. You can update them later from Profile.',
+      4: 'Your avatar is optional. Add it when you want it to appear across your public page and Press Kit.',
+    },
+    privateLabel: 'Private setup',
+    publicLabel: 'Public when published',
+  },
+  es: {
+    eyebrow: 'Nota de privacidad',
+    steps: {
+      1: 'Tu nombre de artista se usa para crear tu workspace y puede aparecer en tu página pública cuando la publiques.',
+      2: 'Tu username forma parte de tu URL pública de StageLink. Podés revisar tu página pública antes de compartirla.',
+      3: 'Las categorías ayudan a ordenar tu perfil y contexto de descubrimiento. Después podés cambiarlas desde Perfil.',
+      4: 'Tu avatar es opcional. Agregalo cuando quieras que aparezca en tu página pública y Press Kit.',
+    },
+    privateLabel: 'Setup privado',
+    publicLabel: 'Público al publicar',
+  },
+} as const;
+
 interface WizardState {
   displayName: string;
   username: string;
@@ -37,10 +62,7 @@ interface OnboardingWizardProps {
   ) => Promise<CompleteOnboardingActionResult>;
 }
 
-export function OnboardingWizard({
-  locale,
-  completeOnboardingAction,
-}: OnboardingWizardProps) {
+export function OnboardingWizard({ locale, completeOnboardingAction }: OnboardingWizardProps) {
   const router = useRouter();
   const [step, setStep] = useState<WizardStep>(1);
   const [data, setData] = useState<WizardState>({
@@ -92,6 +114,10 @@ export function OnboardingWizard({
   function handleSkipAvatar() {
     router.push(`/${locale}/dashboard`);
   }
+
+  const privacyCopy = locale === 'es' ? PRIVACY_NOTES.es : PRIVACY_NOTES.en;
+  const privacyBadge =
+    step === 1 || step === 2 || step === 4 ? privacyCopy.publicLabel : privacyCopy.privateLabel;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -171,6 +197,22 @@ export function OnboardingWizard({
               onSkip={handleSkipAvatar}
             />
           )}
+        </div>
+
+        <div className="rounded-xl border border-border/70 bg-card/70 p-4">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="mt-0.5 h-4 w-4 text-primary" aria-hidden="true" />
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-medium">{privacyCopy.eyebrow}</p>
+                <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                  <Eye className="h-3 w-3" aria-hidden="true" />
+                  {privacyBadge}
+                </span>
+              </div>
+              <p className="text-sm leading-6 text-muted-foreground">{privacyCopy.steps[step]}</p>
+            </div>
+          </div>
         </div>
 
         <div className="flex justify-center gap-2">
