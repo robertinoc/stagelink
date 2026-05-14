@@ -310,9 +310,6 @@ export async function PublicEpkView({
                             src={logoSrc}
                             alt={label.name}
                             className="h-6 w-6 flex-shrink-0 rounded-sm bg-white object-contain"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
                           />
                         ) : null}
                         <span className={`text-sm font-medium ${bodyTextClass}`}>{label.name}</span>
