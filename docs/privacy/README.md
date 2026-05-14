@@ -1,6 +1,7 @@
 # StageLink Privacy Program
 
-Status: legal foundations, cookie consent, and DSAR baseline for the Privacy Plan.
+Status: legal foundations, cookie consent, DSAR baseline, and data mapping for
+the Privacy Plan.
 
 This folder contains StageLink's privacy architecture documentation for the
 pre-launch privacy workstream. The first phase was documentation-only; later
@@ -18,6 +19,8 @@ This baseline covers:
 - Privacy Policy, Terms of Service, and Cookie Policy structures.
 - Cookie consent architecture and validation.
 - DSAR access, rectification, erasure, portability, and request logging.
+- Data classification, data-flow mapping, storage locations, processor
+  inventory, and retention baseline.
 - Compliance gaps and validation findings.
 
 ## Documents
@@ -25,7 +28,12 @@ This baseline covers:
 | File                                    | Purpose                                                              |
 | --------------------------------------- | -------------------------------------------------------------------- |
 | `legal-foundations.md`                  | Legal role, applicable regulations, lawful bases, age, jurisdiction. |
-| `data-inventory.md`                     | Initial data inventory, storage, purposes, retention rationale.      |
+| `data-inventory.md`                     | Operational inventory of current data categories and purposes.       |
+| `data-classification.md`                | Classification labels, field risk, public/private boundaries.        |
+| `data-flow-mapping.md`                  | End-to-end data flows across web, API, DB, auth, payments, providers. |
+| `storage-locations.md`                  | PostgreSQL, providers, browser storage, logs, artifacts, backups.    |
+| `retention-policy.md`                   | Proposed retention, deletion, anonymization, and automation gaps.    |
+| `third-party-processors.md`             | Provider/processor matrix and launch confirmation checklist.         |
 | `providers-and-transfers.md`            | Third-party providers, subprocessors, transfers, and review needs.   |
 | `privacy-policy-structure.md`           | StageLink-specific Privacy Policy structure.                         |
 | `terms-of-service-structure.md`         | StageLink-specific Terms of Service structure.                       |
@@ -42,6 +50,7 @@ This baseline covers:
 | `request-lifecycle.md`                  | DSAR status model, SLA targets, and operational review.              |
 | `dsar-compliance-checklist.md`          | GDPR/CCPA DSAR checklist and testing edge cases.                     |
 | `dsar-validation-audit.md`              | Validation audit for DSAR implementation.                            |
+| `data-mapping-validation-audit.md`      | Validation audit for data inventory and data-flow mapping.           |
 | `implementation-checklist.md`           | Missing information and implementation checklist.                    |
 | `compliance-gap-analysis.md`            | Severity-ranked privacy/compliance gaps.                             |
 | `legal-foundations-validation-audit.md` | Independent validation audit of this documentation set.              |

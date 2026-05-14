@@ -1,6 +1,29 @@
 # Compliance Gap Analysis
 
-Status: baseline risk analysis for privacy legal foundations.
+Status: baseline risk analysis for privacy legal foundations, consent, DSAR,
+and data mapping.
+
+## Current Baseline
+
+StageLink now has:
+
+- legal role and lawful-basis documentation;
+- privacy policy, terms, and cookie policy structures;
+- provider/transfer inventory;
+- GDPR-first consent architecture;
+- DSAR access, rectification, erasure, portability, and request logging;
+- data inventory, data classification, data-flow mapping, storage mapping,
+  processor inventory, and retention baseline.
+
+Privacy Plan Data Mapping produced these operational documents:
+
+- `data-inventory.md`
+- `data-classification.md`
+- `data-flow-mapping.md`
+- `storage-locations.md`
+- `retention-policy.md`
+- `third-party-processors.md`
+- `data-mapping-validation-audit.md`
 
 ## Critical
 
@@ -51,14 +74,26 @@ Fix:
 
 ### Retention is not enforced
 
-Raw analytics are currently documented as never automatically deleted. Other
-data categories have no final retention schedule.
+Raw analytics, QA/internal analytics, platform insights snapshots, Stripe
+webhook idempotency records, audit logs, failed uploads, and object-storage
+orphans do not yet have automated retention/deletion jobs.
 
 Fix:
 
 - Define retention periods.
 - Implement deletion/anonymization jobs.
 - Document backup/cache behavior.
+
+### Object storage deletion is not proven end-to-end
+
+Uploaded asset rows are scoped to artists, but the privacy program still needs
+evidence that object-storage files are deleted or cleaned up when assets,
+workspaces, or accounts are erased.
+
+Fix:
+
+- Add object deletion/orphan cleanup job.
+- Test account/workspace erasure against disposable uploaded files.
 
 ### Provider DPA/SCC review is incomplete
 
