@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getEpkPublishReadiness } from '@stagelink/types';
 import Link from 'next/link';
-import { Building2, ChevronDown, ChevronUp, ExternalLink, Pencil } from 'lucide-react';
+import { ChevronDown, ChevronUp, ExternalLink, Pencil } from 'lucide-react';
 import type {
   AssetDto,
   EpkEditorResponse,
@@ -34,6 +34,7 @@ import { EpkBioGenerator } from './EpkBioGenerator';
 import { EpkGallerySection } from './EpkGallerySection';
 import { EpkImageUploader } from './EpkImageUploader';
 import { LocalizedEpkContentSection } from './LocalizedEpkContentSection';
+import { RecordLabelLogo } from './RecordLabelLogo';
 import { epkFormSchema, type EpkFormValues } from '../schemas/epk.schema';
 
 interface EpkEditorProps {
@@ -1278,21 +1279,11 @@ export function EpkEditor({
                     })();
                   return (
                     <div key={label.id} className="flex items-center gap-3 px-5 py-3">
-                      {logoSrc ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={logoSrc}
-                          alt={label.name}
-                          className="h-8 w-8 flex-shrink-0 rounded-md border border-white/10 bg-white object-contain p-0.5"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/5">
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      )}
+                      <RecordLabelLogo
+                        logoSrc={logoSrc}
+                        alt={label.name}
+                        className="h-8 w-8 flex-shrink-0 rounded-md border border-white/10 bg-white object-contain p-0.5"
+                      />
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-white">{label.name}</p>
                         {label.websiteUrl ? (
