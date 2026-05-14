@@ -8,7 +8,12 @@ jest.mock('jose', () => ({
   jwtVerify: jest.fn(),
 }));
 
+jest.mock('../../lib/workos', () => ({
+  getWorkOS: jest.fn(),
+}));
+
 import { jwtVerify } from 'jose';
+import { getWorkOS } from '../../lib/workos';
 import { JwtAuthGuard } from './index';
 
 const user = {
@@ -24,7 +29,18 @@ const user = {
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
 };
 
-function makeGuard(options: { issuer?: string } = {}) {
+function makeGuard(
+  options: {
+    issuer?: string;
+    prisma?: {
+      user: {
+        findUnique: jest.Mock;
+        update?: jest.Mock;
+        upsert?: jest.Mock;
+      };
+    };
+  } = {},
+) {
   const reflector = {
     getAllAndOverride: jest.fn(() => false),
   } as unknown as Reflector;
@@ -38,7 +54,7 @@ function makeGuard(options: { issuer?: string } = {}) {
       return undefined;
     }),
   } as unknown as ConfigService;
-  const prisma = {
+  const prisma = options.prisma ?? {
     user: {
       findUnique: jest.fn(() => Promise.resolve(user)),
     },
@@ -65,9 +81,20 @@ function makeContext(token = 'valid-token') {
 
 describe('JwtAuthGuard token validation', () => {
   const jwtVerifyMock = jest.mocked(jwtVerify);
+  const getWorkOSMock = jest.mocked(getWorkOS);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    getWorkOSMock.mockReturnValue({
+      userManagement: {
+        getUser: jest.fn().mockResolvedValue({
+          email: 'artist@example.com',
+          firstName: 'Ada',
+          lastName: 'Lovelace',
+          profilePictureUrl: null,
+        }),
+      },
+    } as never);
   });
 
   function mockVerifiedPayload(payload: Record<string, unknown>) {
@@ -123,5 +150,56 @@ describe('JwtAuthGuard token validation', () => {
 
     const guard = makeGuard();
     await expect(guard.canActivate(makeContext())).resolves.toBe(true);
+  });
+
+  it('releases a deleted account tombstone and provisions a clean user for onboarding', async () => {
+    mockVerifiedPayload({ sub: 'user_workos_1', sid: 'session_1' });
+    const deletedUser = {
+      ...user,
+      id: 'deleted_user_1',
+      deletedAt: new Date('2026-05-14T20:00:00.000Z'),
+      isSuspended: true,
+      email: 'deleted-deleted_user_1@deleted.stagelink.local',
+    };
+    const cleanUser = {
+      ...user,
+      id: 'clean_user_1',
+      email: 'artist@example.com',
+    };
+    const prisma = {
+      user: {
+        findUnique: jest
+          .fn()
+          .mockResolvedValueOnce(deletedUser)
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(null),
+        update: jest.fn().mockResolvedValue({
+          ...deletedUser,
+          workosId: `deleted:${deletedUser.id}:${deletedUser.workosId}`,
+        }),
+        upsert: jest.fn().mockResolvedValue(cleanUser),
+      },
+    };
+
+    const guard = makeGuard({ prisma });
+    const context = makeContext();
+    await expect(guard.canActivate(context)).resolves.toBe(true);
+
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: deletedUser.id },
+      data: { workosId: `deleted:${deletedUser.id}:${deletedUser.workosId}` },
+    });
+    expect(prisma.user.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { workosId: deletedUser.workosId },
+        create: expect.objectContaining({
+          workosId: deletedUser.workosId,
+          email: 'artist@example.com',
+        }),
+      }),
+    );
+    expect((context.switchToHttp().getRequest() as { user?: { id: string } }).user?.id).toBe(
+      cleanUser.id,
+    );
   });
 });
