@@ -17,6 +17,10 @@ Status: missing information and implementation backlog for the Privacy Plan.
 ## Product/Technical Inputs Needed
 
 - Final analytics stack: PostHog, Umami, both, or one.
+- Final authenticated product analytics lawful basis and opt-out/objection
+  posture.
+- Final PostHog project region, retention, autocapture, session replay,
+  person-profile, IP handling, and data export settings.
 - Production region for Railway DB/API.
 - Storage provider and region.
 - Email provider for contact/transactional mail.
@@ -44,6 +48,10 @@ Status: missing information and implementation backlog for the Privacy Plan.
   or shared intake.
 - Final raw analytics, audit-log, provider-snapshot, failed-upload, and runtime
   log retention periods.
+- Final raw analytics pseudonymization strategy: current SHA-256 IP hash,
+  keyed HMAC, rotating salt, or aggregate-only long-term model.
+- Final StageLink Insights retention/disconnect/delete behavior and public
+  disclosure for cross-platform artist performance profiling.
 - Whether WorkOS step-up or delayed deletion is required before public account
   deletion.
 - Whether Behind admin user search/detail access needs per-event audit trails
@@ -75,6 +83,10 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Complete provider compliance/evidence register.
 - Decide SoundCloud and EmailJS launch posture.
 - Confirm object-storage provider, region, lifecycle, and deletion behavior.
+- Adopt analytics/profiling privacy baseline and update public policy language
+  for public analytics, product analytics, and StageLink Insights.
+- Confirm PostHog settings: autocapture/session replay/heatmaps off, region,
+  retention, IP handling, person-profile posture, and no unreviewed exports.
 - Adopt incident response and breach notification baseline for private QA.
 - Create an owner-only incident registry template and evidence-storage
   location outside git.
@@ -84,6 +96,8 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Build self-service data export.
 - Build self-service account deletion or verified deletion request flow.
 - Implement retention/anonymization jobs for analytics and deleted accounts.
+- Implement raw analytics retention/anonymization or aggregate-after-retention
+  strategy.
 - Add retention/anonymization jobs for QA/internal analytics, platform insights
   snapshots, Stripe webhook idempotency records, audit logs, failed uploads,
   and orphaned object-storage assets.
@@ -92,6 +106,10 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Add provider-side deletion/revocation runbook for WorkOS, Stripe, PostHog,
   object storage, Resend/email, Vercel/Railway logs, and connected providers.
 - Add central alerting/log drain for Critical/High incident signals.
+- Add authenticated product analytics preference or documented objection
+  workflow before public scale.
+- Replace or review stable unsalted IP hashing before long-term public
+  analytics retention.
 - Add audit/alerts for admin user search/detail views, DSAR exports,
   subscriber exports, cross-tenant denied access, and repeated privacy exports.
 - Enable managed database backups/PITR or document equivalent production
@@ -114,6 +132,9 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Add Global Privacy Control support if marketing/analytics expands.
 - Add consent versioning and audit history.
 - Add privacy review checklist for new integrations.
+- Add analytics/profiling review checklist for new events, dashboards,
+  segmentation, recommendations, AI insights, marketing pixels, session replay,
+  autocapture, and cross-device tracking.
 - Add recurring transfer review workflow for new providers, new regions, new
   OAuth scopes, marketing pixels, support tools, and CI/CD artifact changes.
 - Add mandatory provider/scope review for new OAuth providers, write scopes,
@@ -156,6 +177,14 @@ tracking event, cookie, export, or admin access path must update:
 - `breach-communication-templates.md`
 - `detection-strategy.md`
 - `incident-response-validation-audit.md`
+- `analytics-inventory.md`
+- `profiling-analysis.md`
+- `analytics-consent.md`
+- `telemetry-minimization.md`
+- `anonymization-strategy.md`
+- `analytics-optout.md`
+- `provider-analytics-review.md`
+- `analytics-profiling-validation-audit.md`
 - `third-party-risk-analysis.md`
 - `compliance-gap-analysis.md`
 - Relevant public policy structure

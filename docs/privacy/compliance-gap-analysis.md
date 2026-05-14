@@ -2,7 +2,8 @@
 
 Status: baseline risk analysis for privacy legal foundations, consent, DSAR,
 data mapping, Privacy-by-Design, retention/lifecycle governance, third-party
-integrations, international transfers, and incident/breach response.
+integrations, international transfers, incident/breach response, and
+analytics/profiling privacy.
 
 ## Current Baseline
 
@@ -28,6 +29,10 @@ StageLink now has:
 - incident and breach response documentation for classification, severity,
   detection, response workflows, registry structure, GDPR notification,
   communications, third-party dependencies, playbooks, and readiness audit.
+- analytics/profiling documentation for analytics inventory, consent,
+  opt-out, minimization, pseudonymization, provider exposure, public analytics
+  visibility, StageLink Insights, GDPR Article 22 assessment, and readiness
+  audit.
 
 Privacy Plan Data Mapping produced these operational documents:
 
@@ -88,6 +93,17 @@ documents:
 - `breach-communication-templates.md`
 - `detection-strategy.md`
 - `incident-response-validation-audit.md`
+
+Analytics and Profiling produced these operational documents:
+
+- `analytics-inventory.md`
+- `profiling-analysis.md`
+- `analytics-consent.md`
+- `telemetry-minimization.md`
+- `anonymization-strategy.md`
+- `analytics-optout.md`
+- `provider-analytics-review.md`
+- `analytics-profiling-validation-audit.md`
 
 ## Critical
 
@@ -265,6 +281,63 @@ Fix:
 - Test restore against a disposable target.
 - Add recovery checks for DSAR erasure, account deletion, tenant isolation, and
   provider-token revocation.
+
+### Authenticated product analytics governance is incomplete
+
+Public/visitor analytics is consent-gated, but server-side authenticated
+product events still send actor user IDs to PostHog when configured.
+
+Risk:
+
+- Artist-user product behavior could be profiled without a final account-level
+  preference, objection path, or lawful-basis decision.
+- PostHog provider retention and project settings may not match the intended
+  privacy posture.
+
+Fix:
+
+- Decide whether authenticated product analytics is consent/preference-based or
+  legitimate-interests with objection handling.
+- Keep product payloads minimal and avoid content, email, tokens, payment data,
+  and free text.
+- Confirm PostHog retention, region, person-profile, IP, autocapture, replay,
+  heatmap, and export settings.
+
+### Analytics pseudonymization and retention need hardening
+
+StageLink avoids raw IP storage in local analytics, but `ipHash` is a stable
+unsalted SHA-256 hash and raw analytics retention is not enforced.
+
+Risk:
+
+- Repeat-visitor inference may be possible over long retention windows.
+- Raw event tables may outlive their operational purpose.
+- Low-volume future breakdowns could re-identify visitor behavior.
+
+Fix:
+
+- Define and implement raw analytics retention/anonymization.
+- Review HMAC or rotating-salt IP hash strategy.
+- Add threshold rules before country, device, referrer, or segment breakdowns.
+
+### Cross-platform StageLink Insights needs profiling transparency
+
+Spotify, YouTube, and SoundCloud insights create a cross-platform performance
+profile for an artist/account.
+
+Risk:
+
+- Public policy may under-disclose provider data sources, retention,
+  disconnect/delete behavior, and profiling implications.
+- Future AI or recommendation features could move closer to significant
+  automated inference.
+
+Fix:
+
+- Add clear public policy/dashboard language for StageLink Insights.
+- Define snapshot retention and local deletion on disconnect/account deletion.
+- Run a new profiling review before recommendations, ranking, segmentation, or
+  AI insight features.
 
 ### SoundCloud production posture needs a launch decision
 
