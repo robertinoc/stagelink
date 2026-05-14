@@ -15,6 +15,8 @@ import { ProfileSocialLinks } from './ProfileSocialLinks';
 import { ProfileSeoSection } from './ProfileSeoSection';
 import { LocalizedProfileContentSection } from './LocalizedProfileContentSection';
 import { ProfileRecordLabelsSection } from './ProfileRecordLabelsSection';
+import { ProfileReleasesSection } from './ProfileReleasesSection';
+import { ProfileCountersSection } from './ProfileCountersSection';
 
 interface ArtistProfileSettingsProps {
   artist: Artist;
@@ -57,6 +59,10 @@ export function ArtistProfileSettings({
       categories: [artist.category, ...(artist.secondaryCategories ?? [])],
       tags: artist.tags ?? [],
       recordLabels: artist.recordLabels ?? [],
+      // REQ-10 + REQ-11 — releases catalog and manual counters.
+      releases: artist.releases ?? [],
+      epsReleasedCount: artist.epsReleasedCount ?? null,
+      externalCollabsCount: artist.externalCollabsCount ?? null,
       galleryImageUrls: artist.galleryImageUrls ?? [],
       instagramUrl: artist.instagramUrl ?? '',
       tiktokUrl: artist.tiktokUrl ?? '',
@@ -176,6 +182,10 @@ export function ArtistProfileSettings({
       secondaryCategories,
       tags: values.tags,
       recordLabels: values.recordLabels,
+      // REQ-10 + REQ-11
+      releases: values.releases,
+      epsReleasedCount: values.epsReleasedCount,
+      externalCollabsCount: values.externalCollabsCount,
       galleryImageUrls: values.galleryImageUrls,
       instagramUrl: values.instagramUrl || null,
       tiktokUrl: values.tiktokUrl || null,
@@ -209,6 +219,10 @@ export function ArtistProfileSettings({
         categories: [updated.category, ...(updated.secondaryCategories ?? [])],
         tags: updated.tags ?? [],
         recordLabels: updated.recordLabels ?? [],
+        // REQ-10 + REQ-11
+        releases: updated.releases ?? [],
+        epsReleasedCount: updated.epsReleasedCount ?? null,
+        externalCollabsCount: updated.externalCollabsCount ?? null,
         galleryImageUrls: updated.galleryImageUrls ?? [],
         instagramUrl: updated.instagramUrl ?? '',
         tiktokUrl: updated.tiktokUrl ?? '',
@@ -288,7 +302,26 @@ export function ArtistProfileSettings({
           onChange={(labels) => form.setValue('recordLabels', labels, { shouldDirty: true })}
         />
 
-        {/* 6 — Additional locale content */}
+        {/* 6 — Releases (REQ-10) */}
+        <ProfileReleasesSection
+          releases={form.watch('releases')}
+          disabled={isBusy}
+          onChange={(releases) => form.setValue('releases', releases, { shouldDirty: true })}
+        />
+
+        {/* 7 — Public counters (REQ-11) */}
+        <ProfileCountersSection
+          epsReleasedCount={form.watch('epsReleasedCount')}
+          externalCollabsCount={form.watch('externalCollabsCount')}
+          recordLabelsCount={form.watch('recordLabels').length}
+          disabled={isBusy}
+          onChange={({ epsReleasedCount, externalCollabsCount }) => {
+            form.setValue('epsReleasedCount', epsReleasedCount, { shouldDirty: true });
+            form.setValue('externalCollabsCount', externalCollabsCount, { shouldDirty: true });
+          }}
+        />
+
+        {/* 8 — Additional locale content */}
         <LocalizedProfileContentSection
           form={form}
           disabled={isBusy}

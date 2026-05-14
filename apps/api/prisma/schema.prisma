@@ -157,6 +157,12 @@ model Artist {
   seoTitle      String?  @map("seo_title")
   seoDescription String? @map("seo_description")
   recordLabels  Json     @default("[]") @map("record_labels")
+  // Releases / EPs / Albums (REQ-10) — JSONB array of ArtistRelease items.
+  // Structure: { id, title, type, releaseDate, coverUrl, spotifyUrl, label, description }
+  releases      Json     @default("[]")
+  // Public counters (REQ-11) — manual values, hidden on the landing page when null/0.
+  epsReleasedCount      Int?    @map("eps_released_count")
+  externalCollabsCount  Int?    @map("external_collabs_count")
   baseLocale    String   @default("en") @map("base_locale")
   translations  Json     @default("{}")
   createdAt     DateTime @default(now()) @map("created_at")

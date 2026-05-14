@@ -6,7 +6,10 @@ import { AuditService } from '../audit/audit.service';
 import { PostHogService } from '../analytics/posthog.service';
 import {
   ANALYTICS_EVENTS,
+  ARTIST_RELEASE_TYPES,
   DEFAULT_LOCALE,
+  type ArtistRelease,
+  type ArtistReleaseType,
   type ArtistTranslations,
   type RecordLabel,
   type SupportedLocale,
@@ -61,6 +64,18 @@ interface UpdateArtistPayload {
     websiteUrl?: string | null;
     logoUrl?: string | null;
   }[];
+  releases?: {
+    id: string;
+    title: string;
+    type: ArtistReleaseType;
+    releaseDate?: string | null;
+    coverUrl?: string | null;
+    spotifyUrl?: string | null;
+    label?: string | null;
+    description?: string | null;
+  }[];
+  epsReleasedCount?: number | null;
+  externalCollabsCount?: number | null;
   translations?: ArtistTranslations;
 }
 
@@ -111,6 +126,46 @@ function sanitizeRecordLabels(
     }));
 }
 
+/**
+ * Defensive sanitizer for the `releases` JSONB payload. Same shape as
+ * `sanitizeRecordLabels`: trim, normalize empty strings to null, drop entries
+ * without a title (which would render as empty cards on the public page), and
+ * cap at 50 entries to match the DTO's `@ArrayMaxSize`.
+ *
+ * Unknown release `type` values fall back to `'other'` so we never persist a
+ * union-bypass value via the JSONB column.
+ */
+function sanitizeReleases(
+  releases?: {
+    id: string;
+    title: string;
+    type: ArtistReleaseType;
+    releaseDate?: string | null;
+    coverUrl?: string | null;
+    spotifyUrl?: string | null;
+    label?: string | null;
+    description?: string | null;
+  }[],
+): ArtistRelease[] | undefined {
+  if (releases === undefined) return undefined;
+
+  return releases
+    .filter((release) => release.title?.trim())
+    .slice(0, 50)
+    .map((release) => ({
+      id: release.id,
+      title: release.title.trim().slice(0, 200),
+      type: (ARTIST_RELEASE_TYPES as readonly string[]).includes(release.type)
+        ? release.type
+        : 'other',
+      releaseDate: release.releaseDate?.trim() || null,
+      coverUrl: release.coverUrl?.trim() || null,
+      spotifyUrl: release.spotifyUrl?.trim() || null,
+      label: release.label?.trim().slice(0, 100) || null,
+      description: release.description?.trim().slice(0, 500) || null,
+    }));
+}
+
 @Injectable()
 export class ArtistsService {
   constructor(
@@ -129,6 +184,7 @@ export class ArtistsService {
           ? (artist.baseLocale as SupportedLocale)
           : DEFAULT_LOCALE,
       recordLabels: (artist.recordLabels as RecordLabel[] | null) ?? [],
+      releases: (artist.releases as ArtistRelease[] | null) ?? [],
       translations: (artist.translations as ArtistTranslations | null) ?? {},
     };
   }
@@ -224,6 +280,7 @@ export class ArtistsService {
     const tags = sanitizeTags(payload.tags);
     const galleryImageUrls = sanitizeGalleryImageUrls(payload.galleryImageUrls);
     const recordLabels = sanitizeRecordLabels(payload.recordLabels);
+    const releases = sanitizeReleases(payload.releases);
 
     const artist = await this.prisma.artist.update({
       where: { id },
@@ -255,6 +312,15 @@ export class ArtistsService {
         ...(payload.seoDescription !== undefined && { seoDescription: payload.seoDescription }),
         ...(recordLabels !== undefined && {
           recordLabels: recordLabels as unknown as Prisma.InputJsonValue,
+        }),
+        ...(releases !== undefined && {
+          releases: releases as unknown as Prisma.InputJsonValue,
+        }),
+        ...(payload.epsReleasedCount !== undefined && {
+          epsReleasedCount: payload.epsReleasedCount,
+        }),
+        ...(payload.externalCollabsCount !== undefined && {
+          externalCollabsCount: payload.externalCollabsCount,
         }),
         ...(payload.translations !== undefined && {
           translations: translations as unknown as Prisma.InputJsonValue,

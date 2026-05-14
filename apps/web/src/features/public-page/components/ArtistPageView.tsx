@@ -11,6 +11,8 @@ import { PublicPageClient } from './PublicPageClient';
 import { PublicAvatarImage } from './PublicAvatarImage';
 import { PublicCoverImage } from './PublicCoverImage';
 import { SocialIconLink } from './SocialIconLink';
+import { ArtistStatsRow } from './ArtistStatsRow';
+import { ReleasesSection } from './ReleasesSection';
 import {
   SpotifyIcon,
   YouTubeIcon,
@@ -305,6 +307,16 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                     ))}
                   </div>
                 )}
+
+                {/* REQ-11 — public counters social-proof row. Component itself
+                    returns null when all three values are missing/zero, so we
+                    don't need an outer conditional here. */}
+                <ArtistStatsRow
+                  epsReleasedCount={artist.epsReleasedCount}
+                  recordLabelsCount={artist.recordLabelsCount}
+                  externalCollabsCount={artist.externalCollabsCount}
+                  locale={artist.locale}
+                />
               </div>
 
               <div className="mx-auto mt-10 max-w-5xl space-y-10">
@@ -397,6 +409,12 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                     })}
                   </section>
                 )}
+
+                {/* REQ-10 — Releases / EPs / Albums. Section returns null when
+                    `releases` is empty, so the header doesn't leak onto a
+                    brand-new artist page. Sits between featured media (typical
+                    "single Spotify embed") and merch — natural musical flow. */}
+                <ReleasesSection releases={artist.releases} locale={artist.locale} />
 
                 {merchBlocks.length > 0 && (
                   <section className="space-y-4">

@@ -1,5 +1,6 @@
 import type {
   ArtistCategory,
+  ArtistRelease,
   BlockType,
   PublicPromoSlotKind,
   SupportedLocale,
@@ -55,6 +56,16 @@ export interface PublicArtistDto {
   seoTitle: string | null;
   seoDescription: string | null;
   locale: SupportedLocale;
+  // REQ-10 — releases visible on the public landing page.
+  // Always returned (possibly empty); the FE hides the section when length === 0.
+  releases: ArtistRelease[];
+  // REQ-11 — public counters.
+  // `recordLabelsCount` is server-derived from `recordLabels.length` so the
+  // artist's curated list and the public number can never drift.
+  // `epsReleasedCount` and `externalCollabsCount` are manual; `null` means "hide".
+  epsReleasedCount: number | null;
+  externalCollabsCount: number | null;
+  recordLabelsCount: number;
 }
 
 // ── Respuesta completa de página pública ──────────────────────
