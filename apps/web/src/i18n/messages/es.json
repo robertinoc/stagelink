@@ -1063,7 +1063,12 @@
           "modal_description": "Para proteger tu cuenta, escribí tu email autenticado antes de eliminar. Se cerrará tu sesión al completar.",
           "confirm_label": "Escribí {email} para confirmar",
           "cancel": "Cancelar",
-          "confirm": "Eliminar cuenta"
+          "confirm": "Eliminar cuenta",
+          "success_title": "Cuenta eliminada",
+          "success_description": "Tu usuario {username} ha sido eliminado definitivamente.",
+          "success_description_fallback": "Tu cuenta de StageLink ha sido eliminada definitivamente.",
+          "success_redirect": "Al continuar, serás redirigido al sitio stagelink.art.",
+          "success_cta": "Aceptar"
         },
         "messages": {
           "updated": "Datos personales actualizados.",

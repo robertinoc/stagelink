@@ -1063,7 +1063,12 @@
           "modal_description": "To protect your account, type your authenticated email before deleting. You will be signed out after completion.",
           "confirm_label": "Type {email} to confirm",
           "cancel": "Cancel",
-          "confirm": "Delete account"
+          "confirm": "Delete account",
+          "success_title": "Account deleted",
+          "success_description": "Your user {username} has been permanently deleted.",
+          "success_description_fallback": "Your StageLink account has been permanently deleted.",
+          "success_redirect": "When you continue, you will be redirected to stagelink.art.",
+          "success_cta": "Accept"
         },
         "messages": {
           "updated": "Personal data updated.",

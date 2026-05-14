@@ -18,6 +18,7 @@ export interface UpdatePersonalDataResponse {
 export interface DeleteAccountResponse {
   requestId: string;
   status: 'completed';
+  deletedUsername: string | null;
   deletedArtistCount: number;
   removedMembershipCount: number;
   retained: string[];

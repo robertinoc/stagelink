@@ -216,8 +216,8 @@ function ConsentCategoryRow({
         >
           <span
             className={cn(
-              'absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-white transition-transform',
-              checked ? 'translate-x-4' : 'translate-x-1',
+              'absolute left-1 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-white shadow-sm transition-transform',
+              checked ? 'translate-x-5' : 'translate-x-0',
             )}
           />
         </button>
