@@ -1,7 +1,7 @@
 # Compliance Gap Analysis
 
 Status: baseline risk analysis for privacy legal foundations, consent, DSAR,
-and data mapping.
+data mapping, and Privacy-by-Design.
 
 ## Current Baseline
 
@@ -14,6 +14,8 @@ StageLink now has:
 - DSAR access, rectification, erasure, portability, and request logging;
 - data inventory, data classification, data-flow mapping, storage mapping,
   processor inventory, and retention baseline.
+- Privacy-by-Design documentation for minimization, tenant isolation,
+  encryption, logging, anonymization, RBAC, and access auditing.
 
 Privacy Plan Data Mapping produced these operational documents:
 
@@ -24,6 +26,17 @@ Privacy Plan Data Mapping produced these operational documents:
 - `retention-policy.md`
 - `third-party-processors.md`
 - `data-mapping-validation-audit.md`
+
+Privacy-by-Design produced these operational documents:
+
+- `privacy-by-design.md`
+- `multi-tenant-isolation.md`
+- `encryption-strategy.md`
+- `logging-policy.md`
+- `anonymization-policy.md`
+- `rbac-architecture.md`
+- `access-audit-strategy.md`
+- `privacy-by-design-validation-audit.md`
 
 ## Critical
 
@@ -71,6 +84,28 @@ Fix:
 - Add WorkOS/Stripe/PostHog provider deletion runbook.
 - Later automate provider deletion/revocation tasks.
 - Add Behind DSAR dashboard before broad public launch.
+
+### Admin access audit coverage is incomplete
+
+Behind the Stage has owner/admin guards and role-change audit events, but broad
+admin access to user search/detail/status/debug actions is not fully audited.
+
+Fix:
+
+- Add explicit audit events for Behind user search, user detail view, user
+  status changes, user deletion/suspension, invitations, role changes, and
+  debug-header access.
+- Limit admin responses to fields that are necessary for the operator task.
+
+### WorkOS step-up before account deletion is missing
+
+DSAR deletion requires an authenticated session and confirmation, but there is
+no WorkOS step-up/email challenge before destructive account deletion.
+
+Fix:
+
+- Add WorkOS step-up or an email challenge before broad public launch.
+- Consider delayed deletion/grace period for consumer accounts.
 
 ### Retention is not enforced
 
@@ -148,6 +183,18 @@ Fix:
 - Avoid secrets/PII in metadata.
 - Define log retention.
 - Restrict admin access.
+
+### Application-level tenant isolation depends on endpoint discipline
+
+The `ArtistMembership` model and `MembershipService` provide a strong API
+pattern, but there is no documented PostgreSQL RLS layer. Future endpoints must
+not bypass membership checks.
+
+Fix:
+
+- Add endpoint authorization checklist to PR reviews.
+- Add cross-tenant integration tests for new private resources.
+- Reconsider RLS if direct DB reporting or non-API access is introduced.
 
 ### Public content removal expectations need clarity
 

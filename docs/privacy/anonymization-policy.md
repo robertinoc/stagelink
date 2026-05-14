@@ -1,0 +1,109 @@
+# Anonymization and Pseudonymization Policy
+
+Status: Privacy-by-Design baseline.
+Date: 2026-05-14
+
+## Definitions
+
+Pseudonymization:
+
+- Replaces directly identifying data with stable internal IDs or hashes.
+- Re-identification is still possible with additional data.
+- GDPR still treats it as personal data.
+
+Anonymization:
+
+- Irreversibly removes the ability to identify a person.
+- Must account for indirect identifiers and retained context.
+
+StageLink should be conservative: most retained operational records are
+pseudonymized, not truly anonymous.
+
+## Current Pseudonymization Controls
+
+- `analytics_events.ip_hash` stores SHA-256 IP hashes rather than raw IP.
+- Local user IDs and artist IDs are used in audit logs instead of full account
+  profiles.
+- DSAR deletion anonymizes local user fields and sets `workosId` to a deleted
+  marker.
+- Deleted user relation in `audit_logs` can be set null through relational
+  behavior.
+- Provider tokens are redacted in exports.
+
+## Data That Can Be Anonymized
+
+| Data | Strategy |
+| --- | --- |
+| Deleted local user profile | Replace email/name/avatar with non-identifying deleted placeholders. |
+| Historical analytics | Aggregate by day/artist/event type; drop or rotate IP hashes after retention window. |
+| QA/internal analytics | Delete rather than anonymize where possible. |
+| Failed/pending uploads | Delete DB row and object if not confirmed. |
+| Abandoned accounts with no paid/subscriber/legal obligations | Anonymize user row and delete private workspaces. |
+| Contact/support messages after support retention | Delete message bodies; retain only aggregate ticket counts if needed. |
+
+## Data That Should Usually Be Retained or Pseudonymized
+
+| Data | Reason |
+| --- | --- |
+| Stripe billing IDs and subscription event records | Legal, tax, fraud, and billing dispute needs. |
+| Stripe webhook event IDs | Idempotency and replay safety. |
+| Audit logs for sensitive actions | Security accountability. |
+| DSAR request records | Compliance accountability. |
+| Public content published by a shared artist workspace | May belong to a tenant with remaining owners. |
+
+## Deleted Account Strategy
+
+Current local behavior:
+
+- User account is anonymized.
+- Sole-owner artist workspaces are deleted.
+- Shared workspace membership is removed if another owner exists.
+- Privacy/audit records retain minimal accountability data.
+
+Required disclosures:
+
+- Public content may remain if it belongs to a shared workspace.
+- Billing/payment records may remain in Stripe and local metadata where legally
+  required.
+- Provider-side deletion may require a manual runbook.
+- External caches/search engines/social previews may outlive StageLink deletion.
+
+## Analytics Anonymization
+
+Recommended flow:
+
+1. Keep raw event rows only for the active analytics window.
+2. After the raw window, aggregate to daily metrics.
+3. Drop or rotate `ip_hash`.
+4. Delete QA/internal events early.
+5. Preserve only non-identifying aggregate counts needed for dashboards.
+
+Open decision:
+
+- Final raw analytics retention period must be chosen before public launch.
+
+## Re-Identification Risks
+
+High-risk combinations:
+
+- hashed IP + timestamp + user agent/device + rare country
+- EPK location/availability + booking email
+- subscriber email + source page path + artist ID
+- provider external account ID + platform profile URL
+- admin audit events + target email
+
+Controls:
+
+- Avoid collecting exact user-agent strings.
+- Do not expose analytics row-level data to artists unless needed.
+- Prefer aggregate dashboards.
+- Avoid exporting internal correlation metadata to users unless required.
+
+## Future Improvements
+
+- Scheduled anonymization job for old analytics.
+- Provider-side deletion/revocation tracking table.
+- Data retention dashboard for Behind.
+- Token rotation and stale provider connection cleanup.
+- Aggregate-only long-term analytics tables.
+

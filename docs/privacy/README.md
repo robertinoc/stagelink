@@ -1,7 +1,7 @@
 # StageLink Privacy Program
 
-Status: legal foundations, cookie consent, DSAR baseline, and data mapping for
-the Privacy Plan.
+Status: legal foundations, cookie consent, DSAR baseline, data mapping, and
+Privacy-by-Design baseline for the Privacy Plan.
 
 This folder contains StageLink's privacy architecture documentation for the
 pre-launch privacy workstream. The first phase was documentation-only; later
@@ -21,6 +21,8 @@ This baseline covers:
 - DSAR access, rectification, erasure, portability, and request logging.
 - Data classification, data-flow mapping, storage locations, processor
   inventory, and retention baseline.
+- Privacy-by-Design architecture covering minimization, tenant isolation,
+  encryption, logging, anonymization, RBAC, and access auditing.
 - Compliance gaps and validation findings.
 
 ## Documents
@@ -51,6 +53,14 @@ This baseline covers:
 | `dsar-compliance-checklist.md`          | GDPR/CCPA DSAR checklist and testing edge cases.                     |
 | `dsar-validation-audit.md`              | Validation audit for DSAR implementation.                            |
 | `data-mapping-validation-audit.md`      | Validation audit for data inventory and data-flow mapping.           |
+| `privacy-by-design.md`                  | Privacy principles, minimization strategy, risk analysis.            |
+| `multi-tenant-isolation.md`             | Artist tenant boundary, membership checks, isolation gaps.           |
+| `encryption-strategy.md`                | HTTPS, at-rest assumptions, secret and token handling rules.         |
+| `logging-policy.md`                     | Privacy-safe logging, audit log boundaries, retention recommendations. |
+| `anonymization-policy.md`               | Deleted-user, analytics, audit, and provider pseudonymization rules. |
+| `rbac-architecture.md`                  | Artist and Behind role models, least privilege, test checklist.      |
+| `access-audit-strategy.md`              | Sensitive action audit event strategy and retention posture.         |
+| `privacy-by-design-validation-audit.md` | Validation audit for Privacy-by-Design readiness.                    |
 | `implementation-checklist.md`           | Missing information and implementation checklist.                    |
 | `compliance-gap-analysis.md`            | Severity-ranked privacy/compliance gaps.                             |
 | `legal-foundations-validation-audit.md` | Independent validation audit of this documentation set.              |

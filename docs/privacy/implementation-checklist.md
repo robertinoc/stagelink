@@ -30,6 +30,12 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Final backup policy once Railway Pro is enabled.
 - Final fan/subscriber DSAR ownership model: artist-handled, StageLink-handled,
   or shared intake.
+- Final raw analytics, audit-log, provider-snapshot, failed-upload, and runtime
+  log retention periods.
+- Whether WorkOS step-up or delayed deletion is required before public account
+  deletion.
+- Whether Behind admin user search/detail access needs per-event audit trails
+  before launch.
 
 ## Implementation Backlog
 
@@ -56,6 +62,11 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Add provider-side deletion/revocation runbook for WorkOS, Stripe, PostHog,
   object storage, Resend/email, Vercel/Railway logs, and connected providers.
 - Verify object-storage deletion behavior during account/workspace erasure.
+- Add Behind admin access audit events for user search, detail view, status
+  changes, role changes, invitations, debug-header access, and destructive
+  actions.
+- Add WorkOS step-up/email challenge or delayed deletion for destructive account
+  deletion before public scale.
 - Add subscriber unsubscribe/delete support.
 - Add privacy settings page.
 - Document incident/data breach process with 72-hour GDPR assessment workflow.
@@ -67,6 +78,10 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Add privacy review checklist for new integrations.
 - Add periodic data inventory review.
 - Add Spanish translation of public legal documents.
+- Add server-side consent event ledger if regulator-grade consent history is
+  needed.
+- Add database RLS or read-only reporting views if StageLink introduces direct
+  database reporting outside the API.
 
 ## Documentation Maintenance Rule
 
@@ -82,3 +97,7 @@ tracking event, cookie, export, or admin access path must update:
 - `providers-and-transfers.md`
 - `compliance-gap-analysis.md`
 - Relevant public policy structure
+- `privacy-by-design.md`
+- `multi-tenant-isolation.md`
+- `logging-policy.md`
+- `access-audit-strategy.md`
