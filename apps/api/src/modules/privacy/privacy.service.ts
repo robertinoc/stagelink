@@ -206,6 +206,11 @@ export class PrivacyService {
         },
       });
 
+      const affectedUsernames = memberships
+        .map((membership) => membership.artist.username)
+        .filter(
+          (username): username is string => typeof username === 'string' && username.length > 0,
+        );
       const deletedArtistIds: string[] = [];
       const removedMembershipArtistIds: string[] = [];
 
@@ -232,7 +237,6 @@ export class PrivacyService {
         where: { id: user.id },
         data: {
           email: anonymizedEmail,
-          workosId: `deleted:${user.id}`,
           firstName: null,
           lastName: null,
           avatarUrl: null,
@@ -254,7 +258,7 @@ export class PrivacyService {
         },
       });
 
-      return { deletedArtistIds, removedMembershipArtistIds };
+      return { deletedArtistIds, removedMembershipArtistIds, affectedUsernames };
     });
 
     this.auditService.log({
@@ -273,11 +277,13 @@ export class PrivacyService {
     return {
       requestId: request.id,
       status: 'completed',
+      deletedUsername: result.affectedUsernames[0] ?? null,
       deletedArtistCount: result.deletedArtistIds.length,
       removedMembershipCount: result.removedMembershipArtistIds.length,
       retained: [
         'Privacy-safe audit logs',
         'DSAR request record',
+        'WorkOS user id tombstone retained locally to prevent deleted account reprovisioning',
         'External provider records subject to their own legal retention requirements',
       ],
     };

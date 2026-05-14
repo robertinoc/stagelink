@@ -189,17 +189,18 @@ describe('PrivacyService', () => {
       where: { id: user.id },
       data: expect.objectContaining({
         email: `deleted-${user.id}@deleted.stagelink.local`,
-        workosId: `deleted:${user.id}`,
         firstName: null,
         lastName: null,
         avatarUrl: null,
         isSuspended: true,
       }),
     });
+    expect(prisma.user.update.mock.calls[0][0].data).not.toHaveProperty('workosId');
     expect(result).toEqual(
       expect.objectContaining({
         requestId: 'dsar_123',
         status: 'completed',
+        deletedUsername: 'owned',
         deletedArtistCount: 1,
         removedMembershipCount: 1,
       }),

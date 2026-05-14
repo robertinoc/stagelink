@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import type { ReactNode } from 'react';
 import {
   BarChart3,
+  CheckCircle2,
   Download,
   Eye,
   Globe2,
@@ -47,6 +48,8 @@ export function PrivacyRightsPanel({ email, firstName, lastName }: PrivacyRights
   const [lastNameValue, setLastNameValue] = useState(lastName ?? '');
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteSuccessOpen, setDeleteSuccessOpen] = useState(false);
+  const [deletedUsername, setDeletedUsername] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -91,12 +94,19 @@ export function PrivacyRightsPanel({ email, firstName, lastName }: PrivacyRights
     setStatus(null);
 
     try {
-      await deleteAccount(deleteConfirmation);
-      window.location.href = '/api/auth/signout';
+      const result = await deleteAccount(deleteConfirmation);
+      setDeletedUsername(result.deletedUsername);
+      setDeleteOpen(false);
+      setDeleteSuccessOpen(true);
+      setBusy(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('messages.delete_failed'));
       setBusy(false);
     }
+  }
+
+  function finishDeletedAccountFlow() {
+    window.location.href = '/api/auth/signout';
   }
 
   function updateConsent(nextPreferences: Partial<ConsentPreferences>, message: string) {
@@ -383,6 +393,28 @@ export function PrivacyRightsPanel({ email, firstName, lastName }: PrivacyRights
               onClick={handleDelete}
             >
               {t('delete.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteSuccessOpen} onOpenChange={() => undefined}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-lg">
+          <DialogHeader>
+            <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
+              <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <DialogTitle>{t('delete.success_title')}</DialogTitle>
+            <DialogDescription>
+              {deletedUsername
+                ? t('delete.success_description', { username: `@${deletedUsername}` })
+                : t('delete.success_description_fallback')}
+            </DialogDescription>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">{t('delete.success_redirect')}</p>
+          <DialogFooter>
+            <Button type="button" onClick={finishDeletedAccountFlow}>
+              {t('delete.success_cta')}
             </Button>
           </DialogFooter>
         </DialogContent>
