@@ -1,8 +1,8 @@
 # StageLink Privacy Program
 
 Status: legal foundations, cookie consent, DSAR baseline, data mapping,
-Privacy-by-Design baseline, and retention/lifecycle baseline for the Privacy
-Plan.
+Privacy-by-Design baseline, retention/lifecycle baseline, and third-party
+integrations baseline for the Privacy Plan.
 
 This folder contains StageLink's privacy architecture documentation for the
 pre-launch privacy workstream. The first phase was documentation-only; later
@@ -27,6 +27,9 @@ This baseline covers:
 - Data retention and lifecycle management for account states, deletion,
   inactivity, downgrade behavior, cleanup jobs, and retention candidate
   reporting.
+- Third-party integration privacy architecture covering provider inventory,
+  external data flows, OAuth/token posture, API scope review, provider
+  compliance evidence, and third-party risk analysis.
 - Compliance gaps and validation findings.
 
 ## Documents
@@ -46,6 +49,13 @@ This baseline covers:
 | `cleanup-jobs.md`                       | Read-only retention candidate reporting and future cleanup jobs.     |
 | `third-party-processors.md`             | Provider/processor matrix and launch confirmation checklist.         |
 | `providers-and-transfers.md`            | Third-party providers, subprocessors, transfers, and review needs.   |
+| `integrations-inventory.md`             | Active/planned provider inventory and launch decisions.              |
+| `external-data-flows.md`                | External provider data-flow mapping across auth, billing, analytics, media, email, storage, and CI. |
+| `oauth-architecture.md`                 | OAuth, token, and provider credential posture.                       |
+| `api-scope-review.md`                   | Least-privilege scope review and future scope gates.                 |
+| `provider-compliance-matrix.md`         | DPA/SCC/region/retention evidence register template.                 |
+| `third-party-risk-analysis.md`          | Severity-ranked third-party privacy and vendor risks.                |
+| `third-party-integrations-validation-audit.md` | Validation audit for third-party/integration readiness.        |
 | `privacy-policy-structure.md`           | StageLink-specific Privacy Policy structure.                         |
 | `terms-of-service-structure.md`         | StageLink-specific Terms of Service structure.                       |
 | `cookie-policy-structure.md`            | Cookie categories, consent posture, opt-out/opt-in plan.             |
@@ -97,3 +107,15 @@ law clause.
   https://www.argentina.gob.ar/normativa/nacional/ley-25326-64790
 - FTC Children's Privacy / COPPA business guidance:
   https://www.ftc.gov/business-guidance/privacy-security/childrens-privacy
+- Spotify Developer Policy:
+  https://developer.spotify.com/policy
+- YouTube API Services Developer Policies:
+  https://developers.google.com/youtube/terms/developer-policies
+- Google API Services User Data Policy:
+  https://developers.google.com/terms/api-services-user-data-policy
+- Stripe Data Processing Agreement:
+  https://stripe.com/legal/dpa
+- Vercel Data Processing Addendum:
+  https://vercel.com/legal/dpa
+- Railway Data Processing Addendum:
+  https://railway.com/legal/dpa

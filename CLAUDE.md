@@ -896,6 +896,8 @@ DSAR implementation:
 - Request audit table: `dsar_requests`.
 - Account erasure strategy: anonymize the local `users` row, delete sole-owner artist workspaces, remove shared memberships, and document retained external/provider records.
 - Known follow-ups before broad public scale: provider-side deletion runbooks/automation for WorkOS, Stripe, PostHog/Umami; optional Behind admin DSAR dashboard; stronger step-up verification for destructive actions.
+- Third-party and integrations privacy baseline is documented in `docs/privacy/integrations-inventory.md`, `external-data-flows.md`, `oauth-architecture.md`, `api-scope-review.md`, `provider-compliance-matrix.md`, `third-party-risk-analysis.md`, and `third-party-integrations-validation-audit.md`.
+- Launch-sensitive third-party decisions to preserve for T7-8: complete provider DPA/SCC/region evidence register, decide SoundCloud server-side API posture, confirm EmailJS legal/retention posture or replace with server-side email, confirm object-storage provider/lifecycle/deletion behavior, and keep YouTube OAuth/Shopify Admin/Printful order-customer scopes out of launch unless separately reviewed.
 
 ---
 

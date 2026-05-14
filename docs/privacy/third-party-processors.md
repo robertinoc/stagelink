@@ -19,10 +19,11 @@ regions, and legal role language require final legal/business confirmation.
 | PostHog | Product analytics after consent | product events, identifiers, properties, page/product usage | Processor if configured as service provider | EU/US hosting and retention must be confirmed | Active/consent-gated |
 | Umami | Possible/future analytics | web analytics identifiers/events | Processor if enabled | Not confirmed active | Future/unknown |
 | Upstash Redis | Rate limiting/abuse counters if configured | IP/request counters, pseudonymous abuse metadata | Processor | Region and TTLs need confirmation | Optional/decision pending |
-| Resend | Landing/contact email delivery | names, emails, message content, recipient/sender metadata | Processor | DPA/retention need confirmation | Active if `RESEND_API_KEY` set |
-| Spotify | Artist insights/reference validation | artist profile/reference/metrics, OAuth data if enabled | Independent provider/controller; StageLink receives authorized data | API terms and scopes need review | Active/reference/sync |
-| YouTube/Google | Artist insights/reference validation | channel/profile/metrics/OAuth data if enabled | Independent provider/controller | Google API Services policies and transfer terms apply | Active/reference/sync |
-| SoundCloud | Artist insights/reference validation | profile/metrics/OAuth or reference data | Independent provider/controller | API terms/scopes need review | Active/reference/sync |
+| Resend | Landing contact email delivery | names, emails, message content, recipient/sender metadata | Processor | DPA/retention need confirmation | Active if `RESEND_API_KEY` set |
+| EmailJS | Public artist contact-form delivery | visitor name/email/message, artist destination email, browser delivery metadata | Processor/vendor; browser-side exposure | DPA/retention/subprocessors need confirmation | Active if `NEXT_PUBLIC_EMAILJS_*` set |
+| Spotify | Artist insights/reference validation | artist profile/reference/metrics; no user OAuth in current implementation | Independent provider/controller; StageLink receives public provider data | API terms and scopes need review | Active/reference/sync |
+| YouTube/Google | Artist insights/reference validation | channel identifiers, public channel metrics; no user OAuth in current implementation | Independent provider/controller | Google/YouTube API Services policies and transfer terms apply | Active/reference/sync |
+| SoundCloud | Artist insights/reference validation | profile/metrics from API v2 `client_id` requests | Independent provider/controller | Official API/terms posture needs confirmation | Active/reference/sync; launch decision needed |
 | Shopify | Storefront/merch integration | store domain, storefront token, product/collection handles | Independent provider/controller; token processor relationship depends setup | Shopify API terms apply | Active/configurable |
 | Printful/Printify | Merch provider integration | API token, store metadata, products | Independent provider/controller | Terms and token handling need review | Configurable/future |
 | GitHub Actions | CI/CD, artifacts, logs | build logs, test screenshots/videos, masked secret references | Processor/tooling | Artifacts can retain private screenshots | Active |
@@ -73,6 +74,21 @@ simple subprocessors in all contexts. They may be independent controllers for
 their own services while StageLink receives user-authorized data. StageLink
 must avoid claiming provider-side deletion/control it does not have.
 
+Current scope decisions:
+
+- Spotify uses Client Credentials and public artist data; no user Spotify OAuth
+  scopes are active.
+- YouTube uses API-key public channel data; owner-only YouTube OAuth is not part
+  of the launch baseline.
+- SoundCloud server-side sync needs explicit launch acceptance because the
+  current API v2 usage is operationally fragile.
+- Shopify must remain Storefront read-only unless a new Admin API scope review
+  is completed.
+- Printful is read-oriented today; Printify/order/customer scopes require a new
+  review before activation.
+- EmailJS must be either accepted as a reviewed browser-side email provider or
+  replaced by a server-side email path.
+
 ## Missing Contract/Configuration Evidence
 
 Before launch checklist:
@@ -85,6 +101,10 @@ Before launch checklist:
 - Confirmation whether PostHog is EU-hosted or US-hosted.
 - Confirmation that no provider receives data for advertising/model-training
   purposes without explicit opt-in and disclosure.
+- Confirmation that active providers match `integrations-inventory.md` and
+  public policies disclose active providers only.
+- Confirmation whether EmailJS remains in production public contact forms.
+- Confirmation whether SoundCloud server-side insights are launch-approved.
 
 ## Subprocessor Update Rule
 

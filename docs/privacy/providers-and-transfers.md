@@ -16,10 +16,11 @@ business/legal confirmation.
 | PostHog                  | Product analytics                           | Product events, pseudonymous IDs, page events                  | Processor/subprocessor if configured as service provider                                                        | Confirm EU/US hosting, data retention, IP handling, DPA                    |
 | Umami                    | Possible analytics                          | Web analytics                                                  | Processor if used                                                                                               | Confirm whether active at launch                                           |
 | Upstash Redis            | Rate limiting/cache                         | IP/request counters or pseudonymous abuse metadata             | Processor                                                                                                       | Confirm whether used in production, region, TTLs                           |
-| Resend/EmailJS           | Transactional/contact emails                | Sender/recipient email, message content, delivery metadata     | Processor                                                                                                       | Confirm final provider, DPA, retention, abuse controls                     |
-| Spotify                  | Artist insights/reference data              | External artist profile, metrics, OAuth data if used           | Independent controller/provider                                                                                 | Confirm API terms, OAuth scopes, deletion/disconnect                       |
-| YouTube/Google           | Artist insights/reference data              | Channel identifiers, metrics, OAuth data if used               | Independent controller/provider                                                                                 | Confirm API Services policies, scopes, retention                           |
-| SoundCloud               | Artist insights/reference data              | Profile/metrics/OAuth or reference data                        | Independent controller/provider                                                                                 | Confirm API terms and scopes                                               |
+| Resend                   | Landing contact emails                      | Sender/recipient email, message content, delivery metadata     | Processor                                                                                                       | Confirm DPA, retention, abuse controls                                     |
+| EmailJS                  | Public artist contact-form emails           | Visitor email/message, destination email, browser metadata     | Processor/vendor; browser-side                                                                                  | Confirm DPA, retention, subprocessors, or replace with server-side email   |
+| Spotify                  | Artist insights/reference data              | External artist profile, metrics, app client-credentials flow  | Independent controller/provider                                                                                 | Confirm API terms, public-data usage, deletion/disconnect                  |
+| YouTube/Google           | Artist insights/reference data              | Channel identifiers, public metrics via API key                | Independent controller/provider                                                                                 | Confirm API Services policies, avoid OAuth without separate review         |
+| SoundCloud               | Artist insights/reference data              | Profile/metrics through API v2 `client_id` requests            | Independent controller/provider                                                                                 | Confirm official API posture before public launch                          |
 | Shopify                  | Storefront/merch integration                | Store domain, product handles, storefront token                | Independent controller/provider                                                                                 | Confirm API terms and storefront token exposure rules                      |
 | Printful/Printify        | Merch provider integration                  | API token, store ID/name, product data                         | Independent controller/provider                                                                                 | Confirm whether active at launch and data deletion                         |
 | GitHub Actions           | CI/CD                                       | Build logs, secrets references                                 | Processor/tooling                                                                                               | Confirm secrets masking and least privilege                                |
@@ -47,6 +48,8 @@ Before public launch:
 - Confirm whether any provider receives data for advertising or model training.
 - Document whether StageLink sells or shares personal information under
   CCPA/CPRA definitions. Current product intent: no sale of personal data.
+- Capture EmailJS, SoundCloud, object-storage, and PostHog decisions before
+  public launch.
 
 ## High-Risk Transfer Areas
 
@@ -55,3 +58,5 @@ Before public launch:
 - Email providers because message content can contain personal data.
 - Asset storage/CDN because public media may include identifiable likenesses.
 - Logs if they include IPs, emails, tokens, or request payload fragments.
+- Public embeds because the visitor browser may contact third-party providers
+  directly before or during media rendering.

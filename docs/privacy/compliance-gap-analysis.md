@@ -1,7 +1,8 @@
 # Compliance Gap Analysis
 
 Status: baseline risk analysis for privacy legal foundations, consent, DSAR,
-data mapping, Privacy-by-Design, and retention/lifecycle governance.
+data mapping, Privacy-by-Design, retention/lifecycle governance, and
+third-party integrations.
 
 ## Current Baseline
 
@@ -18,6 +19,9 @@ StageLink now has:
   encryption, logging, anonymization, RBAC, and access auditing.
 - retention/lifecycle documentation for account states, deletion strategy,
   inactive accounts, downgrade behavior, cleanup jobs, and candidate reporting.
+- third-party/integrations documentation for provider inventory, external data
+  flows, OAuth/token posture, API scopes, provider compliance evidence, and
+  third-party risk analysis.
 
 Privacy Plan Data Mapping produced these operational documents:
 
@@ -51,6 +55,16 @@ Data Retention and Lifecycle produced these operational documents:
 - `retention-lifecycle-validation-audit.md`
 - `scripts/data/retention-candidates.sql`
 - `scripts/data/run-retention-candidates.mjs`
+
+Third-Party and Integrations produced these operational documents:
+
+- `integrations-inventory.md`
+- `external-data-flows.md`
+- `oauth-architecture.md`
+- `api-scope-review.md`
+- `provider-compliance-matrix.md`
+- `third-party-risk-analysis.md`
+- `third-party-integrations-validation-audit.md`
 
 ## Critical
 
@@ -159,13 +173,36 @@ Fix:
 
 ### Provider DPA/SCC review is incomplete
 
-Providers and transfers are listed, but contracts, DPAs, SCCs, regions, and
-retention settings are not confirmed.
+Providers and transfers are listed in detail, but contracts, DPAs, SCCs,
+regions, subprocessors, and retention settings are not fully confirmed in a
+provider evidence register.
 
 Fix:
 
 - Build provider evidence register.
 - Confirm each provider's region, DPA, subprocessors, and transfer safeguards.
+
+### SoundCloud production posture needs a launch decision
+
+Current SoundCloud insights use API v2 requests with a `client_id`; the provider
+code notes that this API surface is undocumented and may reject server-side use.
+
+Fix:
+
+- Confirm official SoundCloud API permission/terms posture before public
+  launch, or keep SoundCloud to public links/embeds and disable server-side
+  metric sync.
+
+### EmailJS public contact provider needs review
+
+The public artist contact form can send visitor name/email/message content
+through EmailJS from the browser. This provider was identified during the
+third-party audit and needs DPA/retention/subprocessor confirmation.
+
+Fix:
+
+- Confirm EmailJS legal/privacy posture, or migrate public contact forms to the
+  reviewed server-side email provider path.
 
 ### Fan/subscriber controller-processor role needs legal review
 
@@ -191,14 +228,16 @@ Fix:
 
 ### OAuth/integration scopes need privacy review
 
-Spotify, YouTube, SoundCloud, Shopify, and merch providers may expose tokens,
-external account IDs, profile data, and metrics.
+Spotify, YouTube, SoundCloud, Shopify, and merch providers expose external
+account IDs, profile data, metrics, and in some cases encrypted provider tokens.
 
 Fix:
 
 - Minimize scopes.
 - Document disconnect/delete behavior.
 - Review provider terms before enabling paid/public use.
+- Keep YouTube OAuth, Shopify Admin API, Printful/Printify order/customer
+  scopes, and marketing pixels out of launch unless separately reviewed.
 
 ### Logs may contain personal data
 
