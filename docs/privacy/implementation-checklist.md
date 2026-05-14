@@ -36,6 +36,9 @@ Status: missing information and implementation backlog for the Privacy Plan.
   deletion.
 - Whether Behind admin user search/detail access needs per-event audit trails
   before launch.
+- Whether inactive-account automation should exist at launch or remain manual.
+- Final downgrade grace periods and feature-specific cleanup rules for FREE,
+  PRO, and PRO+.
 
 ## Implementation Backlog
 
@@ -59,6 +62,8 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Add retention/anonymization jobs for QA/internal analytics, platform insights
   snapshots, Stripe webhook idempotency records, audit logs, failed uploads,
   and orphaned object-storage assets.
+- Run retention candidate reports in staging with
+  `pnpm data:retention:candidates` and archive the output as launch evidence.
 - Add provider-side deletion/revocation runbook for WorkOS, Stripe, PostHog,
   object storage, Resend/email, Vercel/Railway logs, and connected providers.
 - Verify object-storage deletion behavior during account/workspace erasure.
@@ -82,6 +87,9 @@ Status: missing information and implementation backlog for the Privacy Plan.
   needed.
 - Add database RLS or read-only reporting views if StageLink introduces direct
   database reporting outside the API.
+- Add `lastActiveAt` or equivalent local activity signal before inactive
+  account automation.
+- Add entitlement-aware downgrade cleanup only after product limits are final.
 
 ## Documentation Maintenance Rule
 
@@ -101,3 +109,6 @@ tracking event, cookie, export, or admin access path must update:
 - `multi-tenant-isolation.md`
 - `logging-policy.md`
 - `access-audit-strategy.md`
+- `retention-policy.md`
+- `account-lifecycle.md`
+- `cleanup-jobs.md`

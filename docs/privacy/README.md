@@ -1,7 +1,8 @@
 # StageLink Privacy Program
 
-Status: legal foundations, cookie consent, DSAR baseline, data mapping, and
-Privacy-by-Design baseline for the Privacy Plan.
+Status: legal foundations, cookie consent, DSAR baseline, data mapping,
+Privacy-by-Design baseline, and retention/lifecycle baseline for the Privacy
+Plan.
 
 This folder contains StageLink's privacy architecture documentation for the
 pre-launch privacy workstream. The first phase was documentation-only; later
@@ -23,6 +24,9 @@ This baseline covers:
   inventory, and retention baseline.
 - Privacy-by-Design architecture covering minimization, tenant isolation,
   encryption, logging, anonymization, RBAC, and access auditing.
+- Data retention and lifecycle management for account states, deletion,
+  inactivity, downgrade behavior, cleanup jobs, and retention candidate
+  reporting.
 - Compliance gaps and validation findings.
 
 ## Documents
@@ -35,6 +39,11 @@ This baseline covers:
 | `data-flow-mapping.md`                  | End-to-end data flows across web, API, DB, auth, payments, providers. |
 | `storage-locations.md`                  | PostgreSQL, providers, browser storage, logs, artifacts, backups.    |
 | `retention-policy.md`                   | Proposed retention, deletion, anonymization, and automation gaps.    |
+| `account-lifecycle.md`                  | Active/inactive/suspended/deleted account and workspace states.      |
+| `deletion-strategy.md`                  | Safe local/provider deletion ordering and guardrails.                |
+| `inactive-account-policy.md`            | Inactivity thresholds, notification, archival, deletion policy.      |
+| `downgrade-retention-policy.md`         | FREE/PRO/PRO+ downgrade retention, grace, and cleanup behavior.      |
+| `cleanup-jobs.md`                       | Read-only retention candidate reporting and future cleanup jobs.     |
 | `third-party-processors.md`             | Provider/processor matrix and launch confirmation checklist.         |
 | `providers-and-transfers.md`            | Third-party providers, subprocessors, transfers, and review needs.   |
 | `privacy-policy-structure.md`           | StageLink-specific Privacy Policy structure.                         |
@@ -61,6 +70,7 @@ This baseline covers:
 | `rbac-architecture.md`                  | Artist and Behind role models, least privilege, test checklist.      |
 | `access-audit-strategy.md`              | Sensitive action audit event strategy and retention posture.         |
 | `privacy-by-design-validation-audit.md` | Validation audit for Privacy-by-Design readiness.                    |
+| `retention-lifecycle-validation-audit.md` | Validation audit for retention/lifecycle readiness.                |
 | `implementation-checklist.md`           | Missing information and implementation checklist.                    |
 | `compliance-gap-analysis.md`            | Severity-ranked privacy/compliance gaps.                             |
 | `legal-foundations-validation-audit.md` | Independent validation audit of this documentation set.              |

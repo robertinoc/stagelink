@@ -1,7 +1,7 @@
 # Compliance Gap Analysis
 
 Status: baseline risk analysis for privacy legal foundations, consent, DSAR,
-data mapping, and Privacy-by-Design.
+data mapping, Privacy-by-Design, and retention/lifecycle governance.
 
 ## Current Baseline
 
@@ -16,6 +16,8 @@ StageLink now has:
   processor inventory, and retention baseline.
 - Privacy-by-Design documentation for minimization, tenant isolation,
   encryption, logging, anonymization, RBAC, and access auditing.
+- retention/lifecycle documentation for account states, deletion strategy,
+  inactive accounts, downgrade behavior, cleanup jobs, and candidate reporting.
 
 Privacy Plan Data Mapping produced these operational documents:
 
@@ -37,6 +39,18 @@ Privacy-by-Design produced these operational documents:
 - `rbac-architecture.md`
 - `access-audit-strategy.md`
 - `privacy-by-design-validation-audit.md`
+
+Data Retention and Lifecycle produced these operational documents:
+
+- `retention-policy.md`
+- `account-lifecycle.md`
+- `deletion-strategy.md`
+- `inactive-account-policy.md`
+- `downgrade-retention-policy.md`
+- `cleanup-jobs.md`
+- `retention-lifecycle-validation-audit.md`
+- `scripts/data/retention-candidates.sql`
+- `scripts/data/run-retention-candidates.mjs`
 
 ## Critical
 
@@ -107,17 +121,19 @@ Fix:
 - Add WorkOS step-up or an email challenge before broad public launch.
 - Consider delayed deletion/grace period for consumer accounts.
 
-### Retention is not enforced
+### Retention is not destructively enforced yet
 
 Raw analytics, QA/internal analytics, platform insights snapshots, Stripe
 webhook idempotency records, audit logs, failed uploads, and object-storage
-orphans do not yet have automated retention/deletion jobs.
+orphans now have a read-only candidate report, but destructive cleanup remains
+disabled by design.
 
 Fix:
 
-- Define retention periods.
-- Implement deletion/anonymization jobs.
-- Document backup/cache behavior.
+- Run `pnpm data:retention:candidates` in staging and review output.
+- Finalize legal retention periods and provider runbooks.
+- Implement deletion/anonymization jobs only after dry-run evidence, backup
+  policy, and owner approval.
 
 ### Object storage deletion is not proven end-to-end
 
@@ -129,6 +145,17 @@ Fix:
 
 - Add object deletion/orphan cleanup job.
 - Test account/workspace erasure against disposable uploaded files.
+
+### Inactive account automation lacks a local activity signal
+
+StageLink now has an inactive-account policy, but local `users` records do not
+yet have a reliable `lastActiveAt` or equivalent lifecycle signal.
+
+Fix:
+
+- Add local last-activity tracking before enabling inactive-account automation.
+- Keep inactive deletion manual/dry-run only until notification and recovery
+  windows exist.
 
 ### Provider DPA/SCC review is incomplete
 
