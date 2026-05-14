@@ -1,6 +1,41 @@
 import type { LocalizedTextMap, SupportedLocale } from './i18n';
 import type { RecordLabel } from './epk';
 
+// ── Releases / EPs / Albums (REQ-10) ───────────────────────────
+
+/**
+ * Release types supported by the manual releases editor.
+ * Mirrors common Spotify/Apple Music classifications so future automation
+ * (`/v1/artists/{id}/albums`) can map cleanly into this union.
+ */
+export const ARTIST_RELEASE_TYPES = [
+  'single',
+  'ep',
+  'album',
+  'remix',
+  'compilation',
+  'other',
+] as const;
+
+export type ArtistReleaseType = (typeof ARTIST_RELEASE_TYPES)[number];
+
+/**
+ * A single release (EP / album / single / remix / etc.) owned by an artist.
+ * Stored as JSONB on the `artists.releases` column — same persistence pattern
+ * as `recordLabels`. `releaseDate` is a string (either `YYYY` or `YYYY-MM-DD`)
+ * so we can keep validation cheap and avoid timezone bugs.
+ */
+export interface ArtistRelease {
+  id: string;
+  title: string;
+  type: ArtistReleaseType;
+  releaseDate: string | null;
+  coverUrl: string | null;
+  spotifyUrl: string | null;
+  label: string | null;
+  description: string | null;
+}
+
 export type ArtistRole = 'owner' | 'admin' | 'editor' | 'viewer';
 
 export interface ArtistMembership {
@@ -54,6 +89,11 @@ export interface Artist {
   seoTitle: string | null;
   seoDescription: string | null;
   recordLabels: RecordLabel[];
+  // REQ-10
+  releases: ArtistRelease[];
+  // REQ-11 — null/0 means "hide on public page"
+  epsReleasedCount: number | null;
+  externalCollabsCount: number | null;
   translations: ArtistTranslations;
   createdAt: string;
   updatedAt: string;
@@ -113,6 +153,14 @@ export interface PublicArtist {
   traxsourceUrl: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
+  // REQ-10 — releases visible on the public landing page (always returned; FE hides when empty).
+  releases: ArtistRelease[];
+  // REQ-11 — public counters. `recordLabelsCount` is server-derived from
+  // `recordLabels.length` so the artist's curated list and the public number can never drift.
+  // `epsReleasedCount` and `externalCollabsCount` are manual; `null` means "hide".
+  epsReleasedCount: number | null;
+  externalCollabsCount: number | null;
+  recordLabelsCount: number;
 }
 
 export type PublicPromoSlotKind = 'none' | 'free_branding';

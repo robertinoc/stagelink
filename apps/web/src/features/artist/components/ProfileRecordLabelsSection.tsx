@@ -212,6 +212,9 @@ export function ProfileRecordLabelsSection({
   const [modalState, setModalState] = useState<
     { mode: 'add' } | { mode: 'edit'; index: number; initial: Omit<RecordLabel, 'id'> } | null
   >(null);
+  // Delete confirmation dialog state. Trash click sets this; the dialog only
+  // calls `handleRemove` after the user explicitly confirms.
+  const [deleteState, setDeleteState] = useState<{ index: number; name: string } | null>(null);
 
   function handleAdd(data: Omit<RecordLabel, 'id'>) {
     onChange([...labels, { id: crypto.randomUUID(), ...data }]);
@@ -286,7 +289,7 @@ export function ProfileRecordLabelsSection({
                       variant="ghost"
                       size="icon"
                       disabled={disabled}
-                      onClick={() => handleRemove(index)}
+                      onClick={() => setDeleteState({ index, name: label.name })}
                       className="h-8 w-8 text-destructive hover:text-destructive"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -335,6 +338,37 @@ export function ProfileRecordLabelsSection({
           onSave={handleModalSave}
           onClose={() => setModalState(null)}
         />
+      ) : null}
+
+      {/* Delete-confirmation dialog. Mounted only while a row's trash icon was
+       * clicked — same mount-when-open pattern as the LabelModal above. */}
+      {deleteState !== null ? (
+        <Dialog open onOpenChange={(isOpen) => !isOpen && setDeleteState(null)}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Delete record label?</DialogTitle>
+              <DialogDescription>
+                &ldquo;{deleteState.name || 'This label'}&rdquo; will be removed from your profile.
+                This action only takes effect after you save the form.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDeleteState(null)}>
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  handleRemove(deleteState.index);
+                  setDeleteState(null);
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       ) : null}
     </>
   );

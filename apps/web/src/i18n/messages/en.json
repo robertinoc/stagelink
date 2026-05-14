@@ -1662,6 +1662,24 @@
       "fan_list": "Fan list",
       "additional_info": "Additional info"
     },
+    "releases": {
+      "title": "Releases",
+      "listen_on_spotify": "Listen on Spotify",
+      "types": {
+        "single": "Single",
+        "ep": "EP",
+        "album": "Album",
+        "remix": "Remix",
+        "compilation": "Compilation",
+        "other": "Other"
+      }
+    },
+    "stats": {
+      "aria_label": "Artist highlights",
+      "eps_released": "EPs released",
+      "record_labels": "Record labels",
+      "external_collabs": "External collabs"
+    },
     "actions": {
       "book_artist": "Book this artist",
       "send_email": "Send email",

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { RecordLabel } from '@stagelink/types';
+import type { ArtistRelease, RecordLabel } from '@stagelink/types';
 
 // ── Reusable refinements ──────────────────────────────────────────────────────
 
@@ -97,6 +97,24 @@ export const profileSchema = z
       .default([]),
     tags: z.array(descriptorSchema).max(6, 'Choose up to 6 descriptors').default([]),
     recordLabels: z.array(z.custom<RecordLabel>()).max(10).default([]),
+    // REQ-10 — releases / EPs / albums catalog
+    releases: z.array(z.custom<ArtistRelease>()).max(50).default([]),
+    // REQ-11 — public counters. Nullable: leaving the field empty hides the
+    // matching row on the public page. The form maps "" → null on submit.
+    epsReleasedCount: z
+      .number()
+      .int('Must be a whole number')
+      .min(0, 'Must be 0 or greater')
+      .max(99999, 'Must be 99999 or less')
+      .nullable()
+      .default(null),
+    externalCollabsCount: z
+      .number()
+      .int('Must be a whole number')
+      .min(0, 'Must be 0 or greater')
+      .max(99999, 'Must be 99999 or less')
+      .nullable()
+      .default(null),
     galleryImageUrls: z
       .array(galleryImageUrlSchema)
       .max(6, 'Upload up to 6 gallery images')

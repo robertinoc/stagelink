@@ -9,8 +9,10 @@ import {
   DEFAULT_LOCALE,
   buildTenantEntitlements,
   hasFeature,
+  type ArtistRelease,
   type ArtistTranslations,
   type EpkTranslations,
+  type RecordLabel,
   type BlockLocalizedContent,
   type EmailCaptureBlockConfig,
   type LinksBlockConfig,
@@ -547,6 +549,12 @@ export class PublicPagesService {
             seoDescription: true,
             baseLocale: true,
             translations: true,
+            // REQ-10 + REQ-11 — releases catalog, manual counters,
+            // and `recordLabels` (used solely to compute `recordLabelsCount`).
+            releases: true,
+            epsReleasedCount: true,
+            externalCollabsCount: true,
+            recordLabels: true,
             epk: {
               select: {
                 isPublished: true,
@@ -818,6 +826,17 @@ export class PublicPagesService {
         seoDescription: localizedArtist.seoDescription,
         baseLocale: normalizeBaseLocale(page.artist.baseLocale ?? DEFAULT_LOCALE),
         locale,
+        // REQ-10 — releases catalog. Defensive filter drops empty entries so a
+        // partially-saved record can never render an empty card on the public page.
+        releases: ((page.artist.releases as ArtistRelease[] | null) ?? []).filter(
+          (release) => release && release.title?.trim(),
+        ),
+        // REQ-11 — public counters. `recordLabelsCount` is derived from the
+        // existing curated list (no separate column needed). The two manual
+        // counters round-trip the stored values; `null` means "hide" on the FE.
+        epsReleasedCount: page.artist.epsReleasedCount ?? null,
+        externalCollabsCount: page.artist.externalCollabsCount ?? null,
+        recordLabelsCount: ((page.artist.recordLabels as RecordLabel[] | null) ?? []).length,
       },
       blocks: localizedBlocks,
       promoSlot,

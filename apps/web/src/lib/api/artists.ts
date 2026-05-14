@@ -1,6 +1,7 @@
 import { apiFetch } from '@/lib/auth';
 import type {
   ArtistCategory,
+  ArtistRelease,
   ArtistTranslations,
   RecordLabel,
   SupportedLocale,
@@ -44,6 +45,11 @@ export interface Artist {
   seoTitle: string | null;
   seoDescription: string | null;
   recordLabels: RecordLabel[];
+  // REQ-10
+  releases: ArtistRelease[];
+  // REQ-11
+  epsReleasedCount: number | null;
+  externalCollabsCount: number | null;
   translations: ArtistTranslations;
   createdAt: string;
   updatedAt: string;
@@ -75,6 +81,10 @@ export interface UpdateArtistPayload {
   seoTitle?: string | null;
   seoDescription?: string | null;
   recordLabels?: RecordLabel[];
+  // REQ-10 + REQ-11
+  releases?: ArtistRelease[];
+  epsReleasedCount?: number | null;
+  externalCollabsCount?: number | null;
   translations?: ArtistTranslations;
 }
 

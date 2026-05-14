@@ -14,6 +14,9 @@ import {
   IsObject,
   ValidateNested,
   IsUUID,
+  IsInt,
+  Min,
+  Max,
   registerDecorator,
   ValidationOptions,
   ValidatorConstraint,
@@ -22,6 +25,7 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ArtistCategory } from '@prisma/client';
+import { ARTIST_RELEASE_TYPES, type ArtistReleaseType } from '@stagelink/types';
 import {
   normalizeUsername,
   validateUsernameFormat,
@@ -337,6 +341,103 @@ export class UpdateArtistDto {
   @ValidateNested({ each: true })
   @Type(() => RecordLabelDto)
   recordLabels?: RecordLabelDto[];
+
+  // ── Releases / EPs / Albums (REQ-10) ─────────────────────────
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(50, { message: 'You can add up to 50 releases' })
+  @ValidateNested({ each: true })
+  @Type(() => ReleaseDto)
+  releases?: ReleaseDto[];
+
+  // ── Public counters (REQ-11) ──────────────────────────────────
+  // Both counters are nullable on purpose: `null` (or empty string from the
+  // form) clears the value and hides the corresponding row on the landing page.
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) => {
+    if (value === null || value === undefined) return null;
+    if (typeof value === 'string' && value.trim() === '') return null;
+    return value;
+  })
+  @IsInt({ message: 'epsReleasedCount must be a whole number' })
+  @Min(0, { message: 'epsReleasedCount must be 0 or greater' })
+  @Max(99999, { message: 'epsReleasedCount must be 99999 or less' })
+  epsReleasedCount?: number | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) => {
+    if (value === null || value === undefined) return null;
+    if (typeof value === 'string' && value.trim() === '') return null;
+    return value;
+  })
+  @IsInt({ message: 'externalCollabsCount must be a whole number' })
+  @Min(0, { message: 'externalCollabsCount must be 0 or greater' })
+  @Max(99999, { message: 'externalCollabsCount must be 99999 or less' })
+  externalCollabsCount?: number | null;
+}
+
+/**
+ * ReleaseDto — single entry in `UpdateArtistDto.releases`.
+ *
+ * Mirrors the `RecordLabelDto` style: `id` is a UUID generated client-side,
+ * URL fields use the `emptyToNull` transform so the editor can clear them.
+ * `releaseDate` is a string ("YYYY" or "YYYY-MM-DD") for cheap validation.
+ */
+export class ReleaseDto {
+  @IsString()
+  @IsUUID()
+  id!: string;
+
+  @IsString()
+  @MinLength(1, { message: 'Release title is required' })
+  @MaxLength(200, { message: 'Release title must be 200 characters or less' })
+  title!: string;
+
+  @IsIn(ARTIST_RELEASE_TYPES, { message: 'Release type must be one of the supported values' })
+  type!: ArtistReleaseType;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsString()
+  @MaxLength(10, { message: 'releaseDate must be a year (YYYY) or full date (YYYY-MM-DD)' })
+  @Matches(/^\d{4}(-\d{2}-\d{2})?$/, {
+    message: 'releaseDate must match YYYY or YYYY-MM-DD',
+  })
+  releaseDate?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'coverUrl must be a valid URL' })
+  coverUrl?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsUrl({ require_protocol: true }, { message: 'spotifyUrl must be a valid URL' })
+  spotifyUrl?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsString()
+  @MaxLength(100, { message: 'label must be 100 characters or less' })
+  label?: string | null;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' && value.trim() === '' ? null : value,
+  )
+  @IsString()
+  @MaxLength(500, { message: 'description must be 500 characters or less' })
+  description?: string | null;
 }
 
 export class RecordLabelDto {
