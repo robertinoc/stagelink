@@ -3,7 +3,7 @@
 Status: baseline risk analysis for privacy legal foundations, consent, DSAR,
 data mapping, Privacy-by-Design, retention/lifecycle governance, third-party
 integrations, international transfers, incident/breach response, and
-analytics/profiling privacy.
+analytics/profiling privacy, plus governance/ROPA readiness.
 
 ## Current Baseline
 
@@ -33,6 +33,9 @@ StageLink now has:
   opt-out, minimization, pseudonymization, provider exposure, public analytics
   visibility, StageLink Insights, GDPR Article 22 assessment, and readiness
   audit.
+- privacy governance documentation for documentation architecture, ROPA,
+  ownership, evidence inventory, audit readiness, review processes, change
+  management, operational checklists, periodic review, and governance audit.
 
 Privacy Plan Data Mapping produced these operational documents:
 
@@ -105,6 +108,18 @@ Analytics and Profiling produced these operational documents:
 - `provider-analytics-review.md`
 - `analytics-profiling-validation-audit.md`
 
+Privacy Governance and ROPA produced these operational documents:
+
+- `governance-overview.md`
+- `ropa.md`
+- `audit-readiness.md`
+- `privacy-review-process.md`
+- `compliance-checklists.md`
+- `evidence-inventory.md`
+- `change-management.md`
+- `periodic-review-framework.md`
+- `governance-validation-audit.md`
+
 ## Critical
 
 ### Public legal documents are not final
@@ -122,6 +137,25 @@ Fix:
 
 - Convert structures in this folder into final public policies.
 - Obtain legal review before public launch.
+
+### Governance evidence could be incomplete at launch
+
+StageLink now has an internal governance framework and ROPA structure, but
+controller/contact fields, named owners, confidential evidence storage, provider
+evidence, and public policy counsel review are not final.
+
+Risk:
+
+- StageLink could have good documentation but weak proof during a privacy audit.
+- Public policy claims may outrun implemented/evidenced controls.
+- ROPA could be structurally complete but factually incomplete.
+
+Fix:
+
+- Assign named privacy governance owners.
+- Create a private evidence register/folder outside git.
+- Complete controller legal entity, privacy contact, representative assessment,
+  provider evidence, and quarterly ROPA review notes.
 
 ### Non-essential analytics consent was not GDPR-ready
 
@@ -220,6 +254,22 @@ Fix:
 
 - Build provider evidence register.
 - Confirm each provider's region, DPA, subprocessors, and transfer safeguards.
+
+### ROPA maintenance is not yet operationalized
+
+The ROPA baseline covers StageLink's major processing activities, but review
+triggers must be wired into product and engineering work.
+
+Risk:
+
+- New features, providers, analytics events, retention changes, or AI/profiling
+  work may ship without updating Article 30 records.
+
+Fix:
+
+- Add PR/ticket privacy review prompts.
+- Add quarterly ROPA and data-inventory review reminders.
+- Treat `ropa.md` and `evidence-inventory.md` as required launch audit docs.
 
 ### International transfer evidence is incomplete
 

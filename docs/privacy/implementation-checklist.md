@@ -8,6 +8,9 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Legal address.
 - Privacy contact email.
 - Support/DSAR email.
+- Named Privacy Owner and backup owner.
+- Named Engineering Privacy Reviewer, Provider Owner, Support/Admin Owner, and
+  Security/Incident Owner.
 - Governing law and dispute venue.
 - Whether StageLink will appoint a DPO or EU representative.
 - Whether StageLink will offer a DPA to artists.
@@ -58,6 +61,9 @@ Status: missing information and implementation backlog for the Privacy Plan.
   before launch.
 - Final privacy/security incident contact email, legal escalation path,
   supervisory authority posture, and owner responsible for breach decisions.
+- Final confidential evidence storage location for provider evidence, counsel
+  notes, incident evidence, DSAR evidence, and audit artifacts.
+- Final ROPA controller/contact fields and EU/UK representative assessment.
 - Final provider security/privacy escalation contacts and incident-notice
   channels for WorkOS, Vercel, Railway, Stripe, PostHog, Resend/EmailJS,
   storage, GitHub, and integration providers.
@@ -90,6 +96,10 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Adopt incident response and breach notification baseline for private QA.
 - Create an owner-only incident registry template and evidence-storage
   location outside git.
+- Adopt governance/ROPA baseline, assign named privacy governance owners, and
+  create the confidential compliance evidence register outside git.
+- Complete `ropa.md` controller/contact fields and Article 30 review note before
+  public launch.
 
 ### High Before Paid Growth
 
@@ -126,12 +136,16 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Document incident/data breach process with 72-hour GDPR assessment workflow.
 - Add breach communication templates to the launch runbook with final
   privacy/security contact details.
+- Add PR/ticket privacy review prompts for providers, analytics, auth, payments,
+  retention, DSAR, public visibility, and tenant-isolation changes.
+- Complete provider evidence entries referenced by `evidence-inventory.md`.
 
 ### Medium
 
 - Add Global Privacy Control support if marketing/analytics expands.
 - Add consent versioning and audit history.
 - Add privacy review checklist for new integrations.
+- Add quarterly ROPA/data-inventory/provider-evidence review reminder.
 - Add analytics/profiling review checklist for new events, dashboards,
   segmentation, recommendations, AI insights, marketing pixels, session replay,
   autocapture, and cross-device tracking.
@@ -185,6 +199,15 @@ tracking event, cookie, export, or admin access path must update:
 - `analytics-optout.md`
 - `provider-analytics-review.md`
 - `analytics-profiling-validation-audit.md`
+- `governance-overview.md`
+- `ropa.md`
+- `audit-readiness.md`
+- `privacy-review-process.md`
+- `compliance-checklists.md`
+- `evidence-inventory.md`
+- `change-management.md`
+- `periodic-review-framework.md`
+- `governance-validation-audit.md`
 - `third-party-risk-analysis.md`
 - `compliance-gap-analysis.md`
 - Relevant public policy structure

@@ -3,7 +3,7 @@
 Status: legal foundations, cookie consent, DSAR baseline, data mapping,
 Privacy-by-Design baseline, retention/lifecycle baseline, and third-party
 integrations, international-transfer, and incident/breach response baseline for
-the Privacy Plan, plus analytics/profiling privacy baseline.
+the Privacy Plan, plus analytics/profiling and governance/ROPA baseline.
 
 This folder contains StageLink's privacy architecture documentation for the
 pre-launch privacy workstream. The first phase was documentation-only; later
@@ -40,6 +40,9 @@ This baseline covers:
 - Analytics and profiling privacy architecture covering tracking inventory,
   consent, opt-out, minimization, pseudonymization, provider exposure, public
   analytics visibility, StageLink Insights, and GDPR Article 22 assessment.
+- Internal privacy governance covering documentation architecture, ROPA,
+  ownership, change management, audit readiness, evidence inventory, operational
+  checklists, periodic review cadence, and governance validation.
 - Compliance gaps and validation findings.
 
 ## Documents
@@ -84,6 +87,15 @@ This baseline covers:
 | `analytics-optout.md`                          | Opt-out semantics, UX requirements, withdrawal behavior, and account-level product analytics gap.                                                          |
 | `provider-analytics-review.md`                 | PostHog/Umami/provider analytics exposure review, fingerprinting risks, and provider evidence requirements.                                                |
 | `analytics-profiling-validation-audit.md`      | Validation audit for analytics and profiling privacy readiness.                                                                                            |
+| `governance-overview.md`                       | Privacy governance model, documentation architecture, role ownership, governance matrix, risk analysis, and recommendations.                               |
+| `ropa.md`                                      | GDPR Article 30-ready Record of Processing Activities covering StageLink's major processing activities.                                                    |
+| `audit-readiness.md`                           | Compliance evidence checklist, audit preparation guidance, and evidence quality rules.                                                                     |
+| `privacy-review-process.md`                    | Review triggers, review flow, cadence, documentation-update rules, and escalation paths.                                                                   |
+| `compliance-checklists.md`                     | Operational checklists for features, integrations, analytics, retention, auth, public profiles/EPK, fan capture, payments, and incidents.                  |
+| `evidence-inventory.md`                        | Evidence categories, ownership, storage expectations, review cadence, and known evidence gaps.                                                             |
+| `change-management.md`                         | Privacy change classification, provider/analytics/retention/auth gates, release posture, and change evidence.                                              |
+| `periodic-review-framework.md`                 | Monthly, quarterly, annual, incident-driven, and feature-driven review framework.                                                                          |
+| `governance-validation-audit.md`               | Validation audit for privacy governance, documentation, ROPA, evidence, reviews, and readiness.                                                            |
 | `privacy-policy-structure.md`                  | StageLink-specific Privacy Policy structure.                                                                                                               |
 | `terms-of-service-structure.md`                | StageLink-specific Terms of Service structure.                                                                                                             |
 | `cookie-policy-structure.md`                   | Cookie categories, consent posture, opt-out/opt-in plan.                                                                                                   |
@@ -170,3 +182,5 @@ law clause.
 - Article 29 Working Party / EDPB-endorsed Guidelines on automated individual
   decision-making and profiling:
   https://ec.europa.eu/newsroom/article29/items/612053
+- GDPR Article 30 records of processing activities:
+  https://eur-lex.europa.eu/eli/reg/2016/679/oj
