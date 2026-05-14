@@ -1,8 +1,8 @@
 # Compliance Gap Analysis
 
 Status: baseline risk analysis for privacy legal foundations, consent, DSAR,
-data mapping, Privacy-by-Design, retention/lifecycle governance, and
-third-party integrations.
+data mapping, Privacy-by-Design, retention/lifecycle governance, third-party
+integrations, and international transfers.
 
 ## Current Baseline
 
@@ -22,6 +22,9 @@ StageLink now has:
 - third-party/integrations documentation for provider inventory, external data
   flows, OAuth/token posture, API scopes, provider compliance evidence, and
   third-party risk analysis.
+- international transfer documentation for transfer mechanisms, provider
+  evidence, supplementary measures, transfer impact questions, and transfer
+  readiness validation.
 
 Privacy Plan Data Mapping produced these operational documents:
 
@@ -65,6 +68,11 @@ Third-Party and Integrations produced these operational documents:
 - `provider-compliance-matrix.md`
 - `third-party-risk-analysis.md`
 - `third-party-integrations-validation-audit.md`
+
+International Transfers produced these operational documents:
+
+- `international-transfer-impact-assessment.md`
+- `international-transfers-validation-audit.md`
 
 ## Critical
 
@@ -181,6 +189,30 @@ Fix:
 
 - Build provider evidence register.
 - Confirm each provider's region, DPA, subprocessors, and transfer safeguards.
+
+### International transfer evidence is incomplete
+
+StageLink now has an international transfer impact assessment baseline, but it
+has not yet recorded provider-by-provider transfer mechanisms for active
+processors and independent providers.
+
+Risk:
+
+- Privacy Policy claims could overstate transfer safeguards.
+- EEA/UK/Swiss transfers may lack documented adequacy, SCCs, DPF certification,
+  UK/Swiss addenda, or supplementary measures.
+- Provider support/log/subprocessor access from third countries may be
+  undocumented.
+
+Fix:
+
+- Complete `provider-compliance-matrix.md` evidence fields for active
+  providers.
+- Verify exact EU-US Data Privacy Framework entity certification before relying
+  on it.
+- Record UK IDTA/addendum and Swiss transfer terms where StageLink serves those
+  users.
+- Keep Article 49 derogations out of routine cloud transfer posture.
 
 ### SoundCloud production posture needs a launch decision
 

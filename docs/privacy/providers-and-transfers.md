@@ -3,6 +3,13 @@
 Status: initial provider map. Contracts, DPAs, SCCs, and region settings require
 business/legal confirmation.
 
+See also:
+
+- `international-transfer-impact-assessment.md` for transfer mechanism
+  selection, supplementary measures, and provider transfer questions.
+- `provider-compliance-matrix.md` for evidence fields that must be completed
+  before public launch.
+
 ## Provider Inventory
 
 | Provider                 | Purpose                                     | Data potentially processed                                     | Role assumption                                                                                                 | Review need                                                                |
@@ -36,6 +43,24 @@ should disclose:
   comparable transfer mechanisms.
 - Users may have local rights that continue to apply despite transfers.
 
+StageLink should not rely on a generic statement that a provider is "US-based"
+or "EU-hosted" as a transfer mechanism. For every active provider, record:
+
+- exact provider legal entity;
+- production data/log region;
+- DPA or equivalent processor terms;
+- Standard Contractual Clauses, UK/Swiss addendum, adequacy decision, or
+  verified EU-US Data Privacy Framework certification where applicable;
+- subprocessor list and update-notice process;
+- provider deletion/DSAR assistance path;
+- retention settings for product data, logs, backups, artifacts, and support
+  tickets.
+
+Use Article 49 derogations only for exceptional, non-routine transfers. Routine
+cloud, auth, analytics, payment, email, storage, and CI/CD processing should use
+provider transfer terms, adequacy/DPF evidence where applicable, and
+supplementary measures.
+
 ## Transfer Review Checklist
 
 Before public launch:
@@ -43,6 +68,10 @@ Before public launch:
 - Confirm StageLink operating entity and export/import role.
 - Collect provider DPA links or signed agreements.
 - Confirm whether each provider offers SCCs or equivalent transfer terms.
+- Confirm whether each US provider is covered by the EU-US Data Privacy
+  Framework only after verifying the exact entity and certification scope.
+- Confirm UK and Swiss transfer addenda where StageLink serves users in those
+  jurisdictions.
 - Confirm production regions for database, storage, analytics, auth, and email.
 - Confirm whether PostHog is EU-hosted or US-hosted.
 - Confirm whether any provider receives data for advertising or model training.
