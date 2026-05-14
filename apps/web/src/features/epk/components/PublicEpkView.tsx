@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { DEFAULT_LOCALE, type PublicEpkResponse, type SupportedLocale } from '@stagelink/types';
+import { RecordLabelLogo } from './RecordLabelLogo';
 
 interface PublicEpkViewProps {
   epk: PublicEpkResponse;
@@ -304,14 +305,11 @@ export async function PublicEpkView({
                       <div
                         className={`flex items-center gap-2.5 rounded-2xl border px-4 py-2.5 ${cardClass}`}
                       >
-                        {logoSrc ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={logoSrc}
-                            alt={label.name}
-                            className="h-6 w-6 flex-shrink-0 rounded-sm bg-white object-contain"
-                          />
-                        ) : null}
+                        <RecordLabelLogo
+                          logoSrc={logoSrc}
+                          alt={label.name}
+                          className="h-6 w-6 flex-shrink-0 rounded-sm bg-white object-contain"
+                        />
                         <span className={`text-sm font-medium ${bodyTextClass}`}>{label.name}</span>
                       </div>
                     );

@@ -320,12 +320,22 @@ export function ProfileRecordLabelsSection({
         </CardContent>
       </Card>
 
-      <LabelModal
-        open={modalOpen}
-        initial={modalInitial}
-        onSave={handleModalSave}
-        onClose={() => setModalState(null)}
-      />
+      {/*
+       * Mount the modal only while open. `useState` initializers in LabelModal
+       * run on mount, so unmounting/remounting guarantees that "Add another"
+       * after a previous save starts with empty fields instead of leaking the
+       * last saved label's data. (Without this, the modal stayed mounted and
+       * the controlled <Input> state from the previous "Add" survived across
+       * close→reopen cycles.)
+       */}
+      {modalOpen ? (
+        <LabelModal
+          open
+          initial={modalInitial}
+          onSave={handleModalSave}
+          onClose={() => setModalState(null)}
+        />
+      ) : null}
     </>
   );
 }
