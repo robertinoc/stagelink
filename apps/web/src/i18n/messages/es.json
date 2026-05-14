@@ -724,6 +724,7 @@
         "placeholders": {
           "display_name": "Nombre artístico localizado",
           "bio": "Bio corta traducida para este idioma…",
+          "full_bio": "Bio completa traducida para este idioma — soporta markdown.",
           "seo_title": "Título SEO localizado",
           "seo_description": "Meta descripción localizada"
         },

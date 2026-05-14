@@ -195,10 +195,11 @@ export class ArtistsService {
     await this.membershipService.validateAccess(userId, id, 'write');
 
     const translations = sanitizeTranslationFieldMap<ArtistTranslations>(payload.translations, {
-      allowedFields: ['displayName', 'bio', 'seoTitle', 'seoDescription'],
+      allowedFields: ['displayName', 'bio', 'fullBio', 'seoTitle', 'seoDescription'],
       maxLengthByField: {
         displayName: 100,
         bio: 500,
+        fullBio: 5000,
         seoTitle: 60,
         seoDescription: 160,
       },

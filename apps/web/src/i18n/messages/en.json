@@ -724,6 +724,7 @@
         "placeholders": {
           "display_name": "Localized artist name",
           "bio": "Translated short bio for this locale…",
+          "full_bio": "Translated full bio for this locale — supports markdown.",
           "seo_title": "Localized SEO title",
           "seo_description": "Localized meta description"
         },
