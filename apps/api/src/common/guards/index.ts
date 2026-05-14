@@ -137,12 +137,22 @@ export class JwtAuthGuard implements CanActivate {
     const existing = await this.prisma.user.findUnique({
       where: { workosId: workosUserId },
     });
-    if (existing) return requireActiveAuthUser(existing);
+    if (existing && existing.deletedAt === null) return requireActiveAuthUser(existing);
 
     // Slow path: primer login — obtener perfil desde WorkOS
     try {
       const workos = getWorkOS();
       const workosUser = await workos.userManagement.getUser(workosUserId);
+
+      if (existing) {
+        this.logger.warn(
+          `Deleted StageLink account ${existing.id} attempted login with WorkOS ID ${workosUserId}. Releasing tombstone and provisioning a clean account.`,
+        );
+        await this.prisma.user.update({
+          where: { id: existing.id },
+          data: { workosId: `deleted:${existing.id}:${workosUserId}` },
+        });
+      }
 
       // Email fallback: handles workosId rotation after domain/app migration.
       // If a User row already exists with this email but a different workosId,
@@ -152,14 +162,38 @@ export class JwtAuthGuard implements CanActivate {
         where: { email: workosUser.email },
       });
       if (byEmail) {
-        this.logger.warn(
-          `WorkOS ID changed for ${workosUser.email}: ${byEmail.workosId} → ${workosUserId}. Reconnecting existing user.`,
-        );
-        const reconnectedUser = await this.prisma.user.update({
-          where: { id: byEmail.id },
-          data: { workosId: workosUserId },
-        });
-        return requireActiveAuthUser(reconnectedUser);
+        if (byEmail.deletedAt !== null) {
+          this.logger.warn(
+            `Deleted StageLink account ${byEmail.id} still matched email ${workosUser.email}. Releasing tombstone and provisioning a clean account.`,
+          );
+          await this.prisma.user.update({
+            where: { id: byEmail.id },
+            data: {
+              email: `deleted-${byEmail.id}@deleted.stagelink.local`,
+              workosId: `deleted:${byEmail.id}:${byEmail.workosId}`,
+            },
+          });
+        } else {
+          this.logger.warn(
+            `WorkOS ID changed for ${workosUser.email}: ${byEmail.workosId} → ${workosUserId}. Reconnecting existing user.`,
+          );
+          const reconnectedUser = await this.prisma.user.update({
+            where: { id: byEmail.id },
+            data: { workosId: workosUserId },
+          });
+          return requireActiveAuthUser(reconnectedUser);
+        }
+      }
+
+      const activeAfterTombstoneRelease = await this.prisma.user.findUnique({
+        where: { workosId: workosUserId },
+      });
+      if (activeAfterTombstoneRelease && activeAfterTombstoneRelease.deletedAt === null) {
+        return requireActiveAuthUser(activeAfterTombstoneRelease);
+      }
+
+      if (activeAfterTombstoneRelease) {
+        throw new UnauthorizedException('Unable to release deleted user identity');
       }
 
       // Truly new user — upsert para manejar race conditions

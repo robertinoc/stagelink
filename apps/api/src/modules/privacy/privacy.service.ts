@@ -237,6 +237,7 @@ export class PrivacyService {
         where: { id: user.id },
         data: {
           email: anonymizedEmail,
+          workosId: `deleted:${user.id}:${user.workosId}`,
           firstName: null,
           lastName: null,
           avatarUrl: null,
@@ -283,7 +284,7 @@ export class PrivacyService {
       retained: [
         'Privacy-safe audit logs',
         'DSAR request record',
-        'WorkOS user id tombstone retained locally to prevent deleted account reprovisioning',
+        'Anonymized local tombstone for auditability without blocking future signup',
         'External provider records subject to their own legal retention requirements',
       ],
     };
