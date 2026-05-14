@@ -27,6 +27,9 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Whether marketing emails are planned at launch.
 - Final provider regions, DPAs/SCCs, and log retention for Vercel, Railway,
   WorkOS, Stripe, PostHog, Resend, storage, and Upstash if used.
+- Final international transfer mechanism per active provider: adequacy, SCCs,
+  EU-US Data Privacy Framework certification if applicable, UK/Swiss addenda,
+  and supplementary measures.
 - Final provider evidence register for WorkOS, Vercel, Railway, Stripe,
   PostHog, Resend, EmailJS, storage, Upstash, Spotify, YouTube/Google,
   SoundCloud, Shopify, Printful, and any future provider.
@@ -62,6 +65,8 @@ Status: missing information and implementation backlog for the Privacy Plan.
   portability, consent withdrawal.
 - Define account deletion behavior and subscriber deletion routing.
 - Confirm provider DPAs/SCCs and production regions.
+- Complete international transfer impact assessment evidence for active
+  providers, including DPF entity checks where relied on.
 - Complete provider compliance/evidence register.
 - Decide SoundCloud and EmailJS launch posture.
 - Confirm object-storage provider, region, lifecycle, and deletion behavior.
@@ -93,6 +98,8 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Add Global Privacy Control support if marketing/analytics expands.
 - Add consent versioning and audit history.
 - Add privacy review checklist for new integrations.
+- Add recurring transfer review workflow for new providers, new regions, new
+  OAuth scopes, marketing pixels, support tools, and CI/CD artifact changes.
 - Add mandatory provider/scope review for new OAuth providers, write scopes,
   Shopify Admin API, Printful/Printify order/customer access, new analytics
   vendors, email/support vendors, and third-party embed providers.
@@ -123,6 +130,8 @@ tracking event, cookie, export, or admin access path must update:
 - `oauth-architecture.md`
 - `api-scope-review.md`
 - `provider-compliance-matrix.md`
+- `international-transfer-impact-assessment.md`
+- `international-transfers-validation-audit.md`
 - `third-party-risk-analysis.md`
 - `compliance-gap-analysis.md`
 - Relevant public policy structure
