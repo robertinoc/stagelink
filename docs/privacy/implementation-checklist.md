@@ -25,6 +25,11 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Whether account deletion is soft-delete only or hard-delete/anonymization.
 - Retention periods by data category.
 - Whether marketing emails are planned at launch.
+- Final provider regions, DPAs/SCCs, and log retention for Vercel, Railway,
+  WorkOS, Stripe, PostHog, Resend, storage, and Upstash if used.
+- Final backup policy once Railway Pro is enabled.
+- Final fan/subscriber DSAR ownership model: artist-handled, StageLink-handled,
+  or shared intake.
 
 ## Implementation Backlog
 
@@ -45,6 +50,12 @@ Status: missing information and implementation backlog for the Privacy Plan.
 - Build self-service data export.
 - Build self-service account deletion or verified deletion request flow.
 - Implement retention/anonymization jobs for analytics and deleted accounts.
+- Add retention/anonymization jobs for QA/internal analytics, platform insights
+  snapshots, Stripe webhook idempotency records, audit logs, failed uploads,
+  and orphaned object-storage assets.
+- Add provider-side deletion/revocation runbook for WorkOS, Stripe, PostHog,
+  object storage, Resend/email, Vercel/Railway logs, and connected providers.
+- Verify object-storage deletion behavior during account/workspace erasure.
 - Add subscriber unsubscribe/delete support.
 - Add privacy settings page.
 - Document incident/data breach process with 72-hour GDPR assessment workflow.
@@ -63,6 +74,11 @@ Any feature that adds a new personal data category, provider, integration,
 tracking event, cookie, export, or admin access path must update:
 
 - `data-inventory.md`
+- `data-classification.md`
+- `data-flow-mapping.md`
+- `storage-locations.md`
+- `retention-policy.md`
+- `third-party-processors.md`
 - `providers-and-transfers.md`
 - `compliance-gap-analysis.md`
 - Relevant public policy structure
