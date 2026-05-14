@@ -1,6 +1,6 @@
 # Anonymization and Pseudonymization Policy
 
-Status: Privacy-by-Design baseline.
+Status: Privacy-by-Design and Data Retention baseline.
 Date: 2026-05-14
 
 ## Definitions
@@ -82,6 +82,50 @@ Open decision:
 
 - Final raw analytics retention period must be chosen before public launch.
 
+Retention baseline:
+
+- Raw first-party analytics: 13 months.
+- QA/internal/non-production/bot analytics: 90 days.
+- Long-term analytics: aggregate-only where possible.
+- PostHog: configure provider retention to 12-13 months unless legal/product
+  review chooses a shorter window.
+
+Implementation posture:
+
+- The current retention candidate report identifies rows that would be eligible
+  for future cleanup.
+- Destructive analytics cleanup is intentionally disabled until staging dry-run
+  evidence and final retention approval exist.
+
+## Downgrade Anonymization
+
+Downgrade from PRO+/PRO should not immediately delete user-created content.
+
+Use this sequence:
+
+1. Lock or make premium data read-only when entitlement ends.
+2. Preserve data for a 90-day grace period.
+3. Notify the user before cleanup.
+4. Export must remain available during the grace period.
+5. After grace, delete or aggregate premium-only raw records that exceed the new
+   plan's retention window.
+
+Do not anonymize billing records that must be retained for payment, tax,
+dispute, or fraud reasons.
+
+## Inactive Account Anonymization
+
+Automatic inactive-account anonymization is not enabled.
+
+Before enabling it, StageLink needs:
+
+- a reliable local `lastActiveAt` or equivalent activity signal;
+- notice and recovery windows;
+- exclusion rules for paid, suspended, shared-owner, DSAR, billing, and legal
+  hold cases;
+- provider deletion runbook;
+- backup/restore implications documented.
+
 ## Re-Identification Risks
 
 High-risk combinations:
@@ -106,4 +150,5 @@ Controls:
 - Data retention dashboard for Behind.
 - Token rotation and stale provider connection cleanup.
 - Aggregate-only long-term analytics tables.
-
+- Legal hold support if disputes or formal law-enforcement requests appear.
+- Object-storage deletion verification and orphan cleanup reporting.
