@@ -3,7 +3,7 @@
 Status: legal foundations, cookie consent, DSAR baseline, data mapping,
 Privacy-by-Design baseline, retention/lifecycle baseline, and third-party
 integrations, international-transfer, and incident/breach response baseline for
-the Privacy Plan.
+the Privacy Plan, plus analytics/profiling privacy baseline.
 
 This folder contains StageLink's privacy architecture documentation for the
 pre-launch privacy workstream. The first phase was documentation-only; later
@@ -37,6 +37,9 @@ This baseline covers:
 - Incident response and data breach management covering classification,
   detection, triage, containment, evidence handling, GDPR 72-hour assessment,
   communications, third-party dependencies, and response playbooks.
+- Analytics and profiling privacy architecture covering tracking inventory,
+  consent, opt-out, minimization, pseudonymization, provider exposure, public
+  analytics visibility, StageLink Insights, and GDPR Article 22 assessment.
 - Compliance gaps and validation findings.
 
 ## Documents
@@ -73,6 +76,14 @@ This baseline covers:
 | `breach-communication-templates.md`            | Internal, executive, regulator, user, provider, and public-status communication templates.                                                                 |
 | `detection-strategy.md`                        | Detection surfaces, alert priorities, monitoring gaps, and startup-ready alerting plan.                                                                    |
 | `incident-response-validation-audit.md`        | Validation audit for incident and breach response readiness.                                                                                               |
+| `analytics-inventory.md`                       | Analytics data matrix covering local analytics, PostHog, Umami status, product events, public dashboards, insights, identifiers, and consent requirements. |
+| `profiling-analysis.md`                        | GDPR profiling and Article 22 assessment for visitor engagement, product analytics, artist performance, and cross-platform insights.                       |
+| `analytics-consent.md`                         | Analytics consent handling, public tracking blocking, withdrawal, and product analytics consent gap.                                                       |
+| `telemetry-minimization.md`                    | Minimum viable telemetry, metadata reduction, retention minimization, and no-go tracking list.                                                             |
+| `anonymization-strategy.md`                    | Pseudonymization/anonymization strategy for IP hashes, aggregates, product analytics, dashboards, and insights.                                            |
+| `analytics-optout.md`                          | Opt-out semantics, UX requirements, withdrawal behavior, and account-level product analytics gap.                                                          |
+| `provider-analytics-review.md`                 | PostHog/Umami/provider analytics exposure review, fingerprinting risks, and provider evidence requirements.                                                |
+| `analytics-profiling-validation-audit.md`      | Validation audit for analytics and profiling privacy readiness.                                                                                            |
 | `privacy-policy-structure.md`                  | StageLink-specific Privacy Policy structure.                                                                                                               |
 | `terms-of-service-structure.md`                | StageLink-specific Terms of Service structure.                                                                                                             |
 | `cookie-policy-structure.md`                   | Cookie categories, consent posture, opt-out/opt-in plan.                                                                                                   |
@@ -154,3 +165,8 @@ law clause.
   https://eur-lex.europa.eu/eli/reg/2016/679/oj
 - EDPB Guidelines 9/2022 on personal data breach notification:
   https://www.edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-92022-personal-data-breach-notification-under_en
+- GDPR Article 4 profiling definition and Article 22 automated decision-making:
+  https://eur-lex.europa.eu/eli/reg/2016/679/oj
+- Article 29 Working Party / EDPB-endorsed Guidelines on automated individual
+  decision-making and profiling:
+  https://ec.europa.eu/newsroom/article29/items/612053

@@ -29,9 +29,10 @@ import {
  * NOTE — isInternal is intentionally absent until the preview flow forwards
  * the X-SL-Internal header from the web tier.
  *
- * NOTE — hasTrackingConsent is intentionally absent. StageLink's first-party
- * aggregate analytics remain legitimate-interest metrics for the artist, and
- * excluding opted-out traffic here would undercount real engagement.
+ * NOTE — hasTrackingConsent is intentionally absent from this query-time filter
+ * because current public analytics ingestion already blocks no-consent events.
+ * Historical rows can still carry null/legacy consent state, so consent remains
+ * an ingestion rule rather than a dashboard aggregation rule.
  */
 const QUALITY_FILTER = {
   isBotSuspected: false,
