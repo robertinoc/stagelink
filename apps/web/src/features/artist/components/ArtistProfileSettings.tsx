@@ -305,6 +305,9 @@ export function ArtistProfileSettings({
         {/* 6 — Releases (REQ-10) */}
         <ProfileReleasesSection
           releases={form.watch('releases')}
+          // Threaded down so the release modal's Label dropdown can offer the
+          // artist's already-curated record labels instead of free text.
+          recordLabels={form.watch('recordLabels')}
           disabled={isBusy}
           onChange={(releases) => form.setValue('releases', releases, { shouldDirty: true })}
         />
