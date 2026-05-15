@@ -47,6 +47,7 @@ export interface LandingTranslation {
     socialProof: string;
     ctaPrimary: string;
     ctaSecondary: string;
+    installCta: string;
     ctaNote: string;
     ctaSubnote: string;
     previewLabel: string;
@@ -122,8 +123,22 @@ export interface LandingTranslation {
     body: string;
     primary: string;
     secondary: string;
+    install: string;
     note: string;
     subnote: string;
+  };
+  install: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    androidTitle: string;
+    androidSteps: string[];
+    iosTitle: string;
+    iosSteps: string[];
+    noteTitle: string;
+    note: string;
+    primaryCta: string;
+    secondaryCta: string;
   };
   contact: {
     eyebrow: string;
@@ -207,6 +222,7 @@ const en: LandingTranslation = {
     socialProof: '1,000+ independent artists are building their presence with StageLink',
     ctaPrimary: 'Create my artist profile',
     ctaSecondary: 'See how it looks',
+    installCta: 'Install StageLink',
     ctaNote: 'Free. No credit card required.',
     ctaSubnote: 'Set it up in minutes.',
     previewLabel: 'Artist page preview',
@@ -385,8 +401,31 @@ const en: LandingTranslation = {
     body: 'Create one artist profile for your music, sets, links, social profiles, and content so the right people know where to go.',
     primary: 'Show my music',
     secondary: 'See how it works',
+    install: 'Install StageLink',
     note: 'Free. No credit card required.',
     subnote: 'Set it up in minutes.',
+  },
+  install: {
+    eyebrow: 'Install StageLink',
+    title: 'Add StageLink to your home screen',
+    description:
+      'StageLink works in your browser and can be saved like an app on supported phones and tablets. No app store download is required.',
+    androidTitle: 'Android / Chrome',
+    androidSteps: [
+      'Open StageLink in Chrome.',
+      'Tap Install app if Chrome shows it, or open the browser menu.',
+      'Choose Add to Home Screen and confirm.',
+    ],
+    iosTitle: 'iPhone / Safari',
+    iosSteps: [
+      'Open StageLink in Safari.',
+      'Tap the Share button.',
+      'Choose Add to Home Screen, then tap Add.',
+    ],
+    noteTitle: 'Good to know',
+    note: 'This is the web version of StageLink. It does not add offline mode, push notifications, or a native mobile app in this phase.',
+    primaryCta: 'Open StageLink',
+    secondaryCta: 'Create your StageLink',
   },
   contact: {
     eyebrow: 'Contact',
@@ -510,6 +549,7 @@ const es: LandingTranslation = {
       'Más de 1.000 artistas independientes están construyendo su presencia con StageLink',
     ctaPrimary: 'Crear mi perfil artístico',
     ctaSecondary: 'Ver cómo se ve',
+    installCta: 'Instalar StageLink',
     ctaNote: 'Gratis. Sin tarjeta.',
     ctaSubnote: 'Lo podés armar en minutos.',
     previewLabel: 'Preview de página de artista',
@@ -691,8 +731,31 @@ const es: LandingTranslation = {
     body: 'Creá un perfil artístico para tu música, tus sets, tus links, tus perfiles sociales y tu contenido para que la gente indicada sepa adónde ir.',
     primary: 'Mostrar mi música',
     secondary: 'Ver cómo funciona',
+    install: 'Instalar StageLink',
     note: 'Gratis. Sin tarjeta.',
     subnote: 'Lo podés armar en minutos.',
+  },
+  install: {
+    eyebrow: 'Instalar StageLink',
+    title: 'Agregá StageLink a tu pantalla de inicio',
+    description:
+      'StageLink funciona en el navegador y se puede guardar como una app en teléfonos y tablets compatibles. No hace falta descargar nada desde una tienda.',
+    androidTitle: 'Android / Chrome',
+    androidSteps: [
+      'Abrí StageLink en Chrome.',
+      'Tocá Instalar app si Chrome lo muestra, o abrí el menú del navegador.',
+      'Elegí Agregar a la pantalla principal y confirmá.',
+    ],
+    iosTitle: 'iPhone / Safari',
+    iosSteps: [
+      'Abrí StageLink en Safari.',
+      'Tocá el botón Compartir.',
+      'Elegí Agregar a pantalla de inicio y después Agregar.',
+    ],
+    noteTitle: 'Para tener en cuenta',
+    note: 'Esta es la versión web de StageLink. En esta etapa no agrega modo offline, notificaciones push ni una app mobile nativa.',
+    primaryCta: 'Abrir StageLink',
+    secondaryCta: 'Crear tu StageLink',
   },
   contact: {
     eyebrow: 'Contacto',

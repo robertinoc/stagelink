@@ -1,7 +1,10 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://stagelink.art';
+
 export const metadata: Metadata = {
+  applicationName: 'StageLink',
   title: {
     template: '%s | StageLink',
     default: 'StageLink — Artist Landing Page & Link in Bio for Musicians',
@@ -31,9 +34,33 @@ export const metadata: Metadata = {
     title: 'StageLink — Artist Landing Page & Link in Bio',
     description: 'A modern link-in-bio platform for musicians, DJs, producers, and creators.',
   },
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'StageLink',
+    statusBarStyle: 'black-translucent',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
   // Always resolve relative canonical/OG URLs against the canonical production
   // domain. The env var overrides this in staging/preview deployments if needed.
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://stagelink.art'),
+  metadataBase: new URL(appUrl),
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0b0b0f',
+  colorScheme: 'dark',
 };
 
 /**
