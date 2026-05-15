@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { DEFAULT_LOCALE, type PublicEpkResponse, type SupportedLocale } from '@stagelink/types';
 import { RecordLabelLogo } from './RecordLabelLogo';
+import { ArtistStatsRow } from '@/features/public-page/components/ArtistStatsRow';
 
 interface PublicEpkViewProps {
   epk: PublicEpkResponse;
@@ -99,6 +100,16 @@ export async function PublicEpkView({
                   <p className={`max-w-3xl text-base leading-relaxed ${secondaryBodyTextClass}`}>
                     {epk.shortBio}
                   </p>
+                ) : null}
+
+                {/* REQ-11 — social-proof counters (hidden when all zero) */}
+                {!printMode ? (
+                  <ArtistStatsRow
+                    epsReleasedCount={epk.epsReleasedCount}
+                    recordLabelsCount={epk.recordLabelsCount}
+                    externalCollabsCount={epk.externalCollabsCount}
+                    locale={locale}
+                  />
                 ) : null}
               </div>
 

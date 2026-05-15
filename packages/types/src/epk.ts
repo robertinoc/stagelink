@@ -186,6 +186,10 @@ export interface PublicEpkResponse {
   location: string | null;
   availabilityNotes: string | null;
   recordLabels: RecordLabel[];
+  // REQ-11 counters surfaced on the EPK
+  epsReleasedCount: number | null;
+  externalCollabsCount: number | null;
+  recordLabelsCount: number;
   locale?: SupportedLocale;
   contentLocale?: SupportedLocale;
 }

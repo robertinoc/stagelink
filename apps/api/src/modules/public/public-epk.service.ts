@@ -80,6 +80,8 @@ export class PublicEpkService {
             spotifyUrl: true,
             soundcloudUrl: true,
             recordLabels: true,
+            epsReleasedCount: true,
+            externalCollabsCount: true,
           },
         },
       },
@@ -227,6 +229,10 @@ export class PublicEpkService {
         baseLocale,
       ),
       recordLabels: (artist.recordLabels as unknown as RecordLabel[]) ?? [],
+      // REQ-11 counters
+      epsReleasedCount: artist.epsReleasedCount ?? null,
+      externalCollabsCount: artist.externalCollabsCount ?? null,
+      recordLabelsCount: ((artist.recordLabels as unknown as RecordLabel[]) ?? []).length,
       locale,
       contentLocale,
     };
