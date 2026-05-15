@@ -84,6 +84,12 @@ export function Footer({ locale }: { locale: string }) {
                 >
                   {t.footer.links.docs}
                 </Link>
+                <Link
+                  href={`/${locale}/install`}
+                  className="font-medium text-white/72 transition-colors hover:text-white"
+                >
+                  {t.footer.links.install}
+                </Link>
               </nav>
             </div>
           </div>
