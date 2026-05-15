@@ -41,19 +41,19 @@ export async function ArtistStatsRow({
       className="flex flex-wrap items-center justify-center gap-2 text-xs sm:gap-3"
     >
       {epsVisible ? (
-        <li className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-white">
+        <li className="inline-flex cursor-default items-center gap-1.5 rounded-full border border-violet-500/25 bg-white/5 px-3 py-1.5 text-white shadow-[0_0_0_1px_rgba(139,92,246,0.06)] transition-all duration-200 hover:scale-[1.04] hover:border-fuchsia-400/45 hover:shadow-[0_0_18px_rgba(168,85,247,0.2)]">
           <span className="font-semibold tabular-nums">{epsReleasedCount}</span>
           <span className="text-zinc-300">{t('eps_released')}</span>
         </li>
       ) : null}
       {labelsVisible ? (
-        <li className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-white">
+        <li className="inline-flex cursor-default items-center gap-1.5 rounded-full border border-violet-500/25 bg-white/5 px-3 py-1.5 text-white shadow-[0_0_0_1px_rgba(139,92,246,0.06)] transition-all duration-200 hover:scale-[1.04] hover:border-fuchsia-400/45 hover:shadow-[0_0_18px_rgba(168,85,247,0.2)]">
           <span className="font-semibold tabular-nums">{recordLabelsCount}</span>
           <span className="text-zinc-300">{t('record_labels')}</span>
         </li>
       ) : null}
       {collabsVisible ? (
-        <li className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-white">
+        <li className="inline-flex cursor-default items-center gap-1.5 rounded-full border border-violet-500/25 bg-white/5 px-3 py-1.5 text-white shadow-[0_0_0_1px_rgba(139,92,246,0.06)] transition-all duration-200 hover:scale-[1.04] hover:border-fuchsia-400/45 hover:shadow-[0_0_18px_rgba(168,85,247,0.2)]">
           <span className="font-semibold tabular-nums">{externalCollabsCount}</span>
           <span className="text-zinc-300">{t('external_collabs')}</span>
         </li>
