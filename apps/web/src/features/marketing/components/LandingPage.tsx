@@ -275,6 +275,12 @@ export function LandingPage({ locale }: LandingPageProps) {
               >
                 {t.hero.ctaSecondary}
               </a>
+              <Link
+                href={`/${locale}/install`}
+                className="landing-button-secondary w-full rounded-full px-6 text-center sm:w-auto"
+              >
+                {t.hero.installCta}
+              </Link>
             </div>
             <p className="landing-small mt-3 text-white/88">{t.hero.ctaNote}</p>
             <p className="landing-small mt-1 text-white/80">{t.hero.ctaSubnote}</p>
@@ -695,6 +701,12 @@ export function LandingPage({ locale }: LandingPageProps) {
             >
               {t.cta.secondary}
             </a>
+            <Link
+              href={`/${locale}/install`}
+              className="landing-button-secondary w-full rounded-full px-6 sm:w-auto"
+            >
+              {t.cta.install}
+            </Link>
           </div>
           <p className="landing-small mt-3 text-white/88">{t.cta.note}</p>
           <p className="landing-small mt-1 text-white/80">{t.cta.subnote}</p>
