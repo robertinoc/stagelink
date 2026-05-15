@@ -47,7 +47,6 @@ export interface LandingTranslation {
     socialProof: string;
     ctaPrimary: string;
     ctaSecondary: string;
-    installCta: string;
     ctaNote: string;
     ctaSubnote: string;
     previewLabel: string;
@@ -173,6 +172,7 @@ export interface LandingTranslation {
       contact: string;
       blog: string;
       docs: string;
+      install: string;
     };
     copyright: string;
   };
@@ -222,7 +222,6 @@ const en: LandingTranslation = {
     socialProof: '1,000+ independent artists are building their presence with StageLink',
     ctaPrimary: 'Create my artist profile',
     ctaSecondary: 'See how it looks',
-    installCta: 'Install StageLink',
     ctaNote: 'Free. No credit card required.',
     ctaSubnote: 'Set it up in minutes.',
     previewLabel: 'Artist page preview',
@@ -497,6 +496,7 @@ const en: LandingTranslation = {
       contact: 'Contact',
       blog: 'Blog',
       docs: 'Docs',
+      install: 'Install for mobile',
     },
     copyright: '© {year} StageLink. All rights reserved.',
   },
@@ -549,7 +549,6 @@ const es: LandingTranslation = {
       'Más de 1.000 artistas independientes están construyendo su presencia con StageLink',
     ctaPrimary: 'Crear mi perfil artístico',
     ctaSecondary: 'Ver cómo se ve',
-    installCta: 'Instalar StageLink',
     ctaNote: 'Gratis. Sin tarjeta.',
     ctaSubnote: 'Lo podés armar en minutos.',
     previewLabel: 'Preview de página de artista',
@@ -827,6 +826,7 @@ const es: LandingTranslation = {
       contact: 'Contacto',
       blog: 'Blog',
       docs: 'Docs',
+      install: 'Instalar en mobile',
     },
     copyright: '© {year} StageLink. Todos los derechos reservados.',
   },
