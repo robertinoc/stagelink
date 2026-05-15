@@ -2,7 +2,12 @@
 
 import { useState } from 'react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { ARTIST_RELEASE_TYPES, type ArtistRelease, type ArtistReleaseType } from '@stagelink/types';
+import {
+  ARTIST_RELEASE_TYPES,
+  type ArtistRelease,
+  type ArtistReleaseType,
+  type RecordLabel,
+} from '@stagelink/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -15,6 +20,50 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+
+// ── Module-level constants ────────────────────────────────────────────────────
+
+const CURRENT_YEAR = new Date().getFullYear();
+const EARLIEST_RELEASE_YEAR = 1980;
+/**
+ * Year options for the "Year" date-mode dropdown.
+ * Newest first so the most likely choice is at the top of the list.
+ *   [2026, 2025, 2024, … 1980]
+ */
+const YEAR_OPTIONS = Array.from(
+  { length: CURRENT_YEAR - EARLIEST_RELEASE_YEAR + 1 },
+  (_, i) => CURRENT_YEAR - i,
+);
+
+/** Sentinel value for the "Custom…" option in the Label dropdown.
+ * Picked so it can never collide with a real label name (`__` prefix is
+ * vanishingly rare and the ellipsis is non-ASCII for extra distance). */
+const CUSTOM_LABEL_OPTION = '__custom__';
+
+type DateMode = 'year' | 'full';
+
+/**
+ * Infer the right date editor mode from a stored release date string.
+ * "YYYY-MM-DD" → full picker; "YYYY" or empty → year dropdown.
+ * Anything malformed defaults to year mode (the dropdown will just show
+ * an empty selection).
+ */
+function detectDateMode(value: string | null | undefined): DateMode {
+  if (!value) return 'year';
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? 'full' : 'year';
+}
+
+/** Compute the initial Label dropdown selection from an existing release.
+ * Returns the matching label name when it exists in `recordLabels`, the
+ * `CUSTOM_LABEL_OPTION` sentinel when it doesn't, and `''` (the empty
+ * "no label" option) when the release has no label set. */
+function initialLabelOption(
+  initialLabel: string | null | undefined,
+  recordLabels: RecordLabel[],
+): string {
+  if (!initialLabel) return '';
+  return recordLabels.some((l) => l.name === initialLabel) ? initialLabel : CUSTOM_LABEL_OPTION;
+}
 
 // ── Cover thumbnail ───────────────────────────────────────────────────────────
 
@@ -55,11 +104,14 @@ function ReleaseCoverThumb({ coverUrl, alt }: { coverUrl: string | null; alt: st
 interface ReleaseModalProps {
   open: boolean;
   initial: Omit<ArtistRelease, 'id'> | null;
+  /** Artist's record labels — used to populate the Label dropdown.
+   * When the artist has none, the modal falls back to a free-text input. */
+  recordLabels: RecordLabel[];
   onSave: (data: Omit<ArtistRelease, 'id'>) => void;
   onClose: () => void;
 }
 
-function ReleaseModal({ open, initial, onSave, onClose }: ReleaseModalProps) {
+function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseModalProps) {
   const isEditing = initial !== null;
 
   // Controlled state for each field. The `<ReleaseModal>` is mounted only when
@@ -67,22 +119,52 @@ function ReleaseModal({ open, initial, onSave, onClose }: ReleaseModalProps) {
   // `initial` — no extra "reset on reopen" logic needed.
   const [title, setTitle] = useState(initial?.title ?? '');
   const [type, setType] = useState<ArtistReleaseType>(initial?.type ?? 'single');
+  const [dateMode, setDateMode] = useState<DateMode>(detectDateMode(initial?.releaseDate));
   const [releaseDate, setReleaseDate] = useState(initial?.releaseDate ?? '');
   const [coverUrl, setCoverUrl] = useState(initial?.coverUrl ?? '');
   const [spotifyUrl, setSpotifyUrl] = useState(initial?.spotifyUrl ?? '');
-  const [label, setLabel] = useState(initial?.label ?? '');
+  // Label has TWO controlled bits: the dropdown selection (which can be a
+  // record-label name, the empty "no label" option, or the CUSTOM_LABEL_OPTION
+  // sentinel) and the freeform value used when the dropdown is on Custom… or
+  // when the artist has zero record labels and we render the legacy input.
+  const [labelOption, setLabelOption] = useState<string>(
+    initialLabelOption(initial?.label, recordLabels),
+  );
+  const [customLabel, setCustomLabel] = useState(
+    initial?.label && !recordLabels.some((l) => l.name === initial.label) ? initial.label : '',
+  );
   const [description, setDescription] = useState(initial?.description ?? '');
+
+  const showLabelDropdown = recordLabels.length > 0;
+
+  function handleDateModeChange(next: DateMode) {
+    if (next === dateMode) return;
+    // Clear the value when switching modes so we never persist a stale
+    // half-formed date (e.g. user picks 2024-08-15, switches to Year, the
+    // dropdown would otherwise still hold the literal "2024-08-15" string).
+    setReleaseDate('');
+    setDateMode(next);
+  }
 
   function handleSave() {
     const trimmedTitle = title.trim();
     if (!trimmedTitle) return;
+
+    // Resolve the final label string from the two-input picker.
+    const finalLabel = (() => {
+      if (!showLabelDropdown) return customLabel.trim() || null;
+      if (labelOption === '') return null;
+      if (labelOption === CUSTOM_LABEL_OPTION) return customLabel.trim() || null;
+      return labelOption;
+    })();
+
     onSave({
       title: trimmedTitle,
       type,
       releaseDate: releaseDate.trim() || null,
       coverUrl: coverUrl.trim() || null,
       spotifyUrl: spotifyUrl.trim() || null,
-      label: label.trim() || null,
+      label: finalLabel,
       description: description.trim() || null,
     });
     onClose();
@@ -94,7 +176,7 @@ function ReleaseModal({ open, initial, onSave, onClose }: ReleaseModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit release' : 'Add release'}</DialogTitle>
           <DialogDescription>
@@ -102,7 +184,7 @@ function ReleaseModal({ open, initial, onSave, onClose }: ReleaseModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        {/* Cover preview */}
+        {/* Cover preview — full width for visibility */}
         <div className="flex items-center gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
           <ReleaseCoverThumb coverUrl={coverUrl.trim() || null} alt={title || 'Release cover'} />
           <div className="min-w-0">
@@ -116,20 +198,23 @@ function ReleaseModal({ open, initial, onSave, onClose }: ReleaseModalProps) {
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label htmlFor="release-title" className="text-sm font-medium leading-none">
-              Title <span className="text-destructive">*</span>
-            </label>
-            <Input
-              id="release-title"
-              placeholder="e.g. Midnight Cycles"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              maxLength={200}
-            />
-          </div>
+        {/* Title — full width because it's the longest field */}
+        <div className="space-y-1.5">
+          <label htmlFor="release-title" className="text-sm font-medium leading-none">
+            Title <span className="text-destructive">*</span>
+          </label>
+          <Input
+            id="release-title"
+            placeholder="e.g. Midnight Cycles"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            maxLength={200}
+          />
+        </div>
 
+        {/* 2-column grid for the four short fields. Auto-stacks on mobile. */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {/* Type */}
           <div className="space-y-1.5">
             <label htmlFor="release-type" className="text-sm font-medium leading-none">
               Type
@@ -148,20 +233,63 @@ function ReleaseModal({ open, initial, onSave, onClose }: ReleaseModalProps) {
             </select>
           </div>
 
+          {/* Release date — segmented Year/Full toggle + conditional control */}
           <div className="space-y-1.5">
-            <label htmlFor="release-date" className="text-sm font-medium leading-none">
-              Release date (year or full date)
-            </label>
-            <Input
-              id="release-date"
-              placeholder="2024  or  2024-08-15"
-              value={releaseDate}
-              onChange={(e) => setReleaseDate(e.target.value)}
-              maxLength={10}
-            />
-            <p className="text-xs text-muted-foreground">Accepts YYYY or YYYY-MM-DD.</p>
+            <label className="text-sm font-medium leading-none">Release date</label>
+            <div className="inline-flex w-full overflow-hidden rounded-md border border-input">
+              <button
+                type="button"
+                onClick={() => handleDateModeChange('year')}
+                className={`flex-1 px-3 py-1.5 text-xs font-medium transition ${
+                  dateMode === 'year'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Year
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDateModeChange('full')}
+                className={`flex-1 border-l border-input px-3 py-1.5 text-xs font-medium transition ${
+                  dateMode === 'full'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Full date
+              </button>
+            </div>
+
+            {dateMode === 'year' ? (
+              <select
+                id="release-date-year"
+                value={releaseDate}
+                onChange={(e) => setReleaseDate(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="" className="bg-background text-foreground">
+                  Select a year…
+                </option>
+                {YEAR_OPTIONS.map((year) => (
+                  <option key={year} value={String(year)} className="bg-background text-foreground">
+                    {year}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <Input
+                id="release-date-full"
+                type="date"
+                value={releaseDate}
+                onChange={(e) => setReleaseDate(e.target.value)}
+                max={`${CURRENT_YEAR + 1}-12-31`}
+                min={`${EARLIEST_RELEASE_YEAR}-01-01`}
+              />
+            )}
           </div>
 
+          {/* Cover URL — Cover Upload deferred (see backlog). */}
           <div className="space-y-1.5">
             <label htmlFor="release-cover" className="text-sm font-medium leading-none">
               Cover URL (optional)
@@ -175,6 +303,7 @@ function ReleaseModal({ open, initial, onSave, onClose }: ReleaseModalProps) {
             />
           </div>
 
+          {/* Spotify URL */}
           <div className="space-y-1.5">
             <label htmlFor="release-spotify" className="text-sm font-medium leading-none">
               Spotify URL (optional)
@@ -187,33 +316,75 @@ function ReleaseModal({ open, initial, onSave, onClose }: ReleaseModalProps) {
               type="url"
             />
           </div>
+        </div>
 
-          <div className="space-y-1.5">
-            <label htmlFor="release-label" className="text-sm font-medium leading-none">
-              Label (optional)
-            </label>
-            <Input
-              id="release-label"
-              placeholder="e.g. Defected Records"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              maxLength={100}
-            />
-          </div>
+        {/* Label — dropdown when the artist has record labels, plain input otherwise */}
+        <div className="space-y-1.5">
+          <label htmlFor="release-label" className="text-sm font-medium leading-none">
+            Label (optional)
+          </label>
+          {showLabelDropdown ? (
+            <>
+              <select
+                id="release-label"
+                value={labelOption}
+                onChange={(e) => setLabelOption(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="" className="bg-background text-foreground">
+                  No label
+                </option>
+                {recordLabels.map((rl) => (
+                  <option key={rl.id} value={rl.name} className="bg-background text-foreground">
+                    {rl.name}
+                  </option>
+                ))}
+                <option value={CUSTOM_LABEL_OPTION} className="bg-background text-foreground">
+                  Custom…
+                </option>
+              </select>
+              {labelOption === CUSTOM_LABEL_OPTION ? (
+                <Input
+                  id="release-label-custom"
+                  placeholder="Type a custom label"
+                  value={customLabel}
+                  onChange={(e) => setCustomLabel(e.target.value)}
+                  maxLength={100}
+                />
+              ) : null}
+              <p className="text-xs text-muted-foreground">
+                Pick from your Record labels above, or choose Custom… to type a one-off.
+              </p>
+            </>
+          ) : (
+            <>
+              <Input
+                id="release-label"
+                placeholder="e.g. Defected Records"
+                value={customLabel}
+                onChange={(e) => setCustomLabel(e.target.value)}
+                maxLength={100}
+              />
+              <p className="text-xs text-muted-foreground">
+                Add labels to your Record labels card above to reuse them here as a dropdown.
+              </p>
+            </>
+          )}
+        </div>
 
-          <div className="space-y-1.5">
-            <label htmlFor="release-description" className="text-sm font-medium leading-none">
-              Description (optional)
-            </label>
-            <Textarea
-              id="release-description"
-              placeholder="A short note about this release…"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              maxLength={500}
-              rows={3}
-            />
-          </div>
+        {/* Description — full width */}
+        <div className="space-y-1.5">
+          <label htmlFor="release-description" className="text-sm font-medium leading-none">
+            Description (optional)
+          </label>
+          <Textarea
+            id="release-description"
+            placeholder="A short note about this release…"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            maxLength={500}
+            rows={3}
+          />
         </div>
 
         <DialogFooter>
@@ -273,12 +444,15 @@ function DeleteConfirmDialog({ open, releaseTitle, onConfirm, onClose }: DeleteC
 
 interface ProfileReleasesSectionProps {
   releases: ArtistRelease[];
+  /** Artist's record labels — threaded into the modal to populate the Label dropdown. */
+  recordLabels: RecordLabel[];
   disabled: boolean;
   onChange: (releases: ArtistRelease[]) => void;
 }
 
 export function ProfileReleasesSection({
   releases,
+  recordLabels,
   disabled,
   onChange,
 }: ProfileReleasesSectionProps) {
@@ -407,6 +581,7 @@ export function ProfileReleasesSection({
         <ReleaseModal
           open
           initial={modalInitial}
+          recordLabels={recordLabels}
           onSave={handleModalSave}
           onClose={() => setModalState(null)}
         />
