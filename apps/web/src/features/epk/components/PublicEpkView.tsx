@@ -101,16 +101,6 @@ export async function PublicEpkView({
                     {epk.shortBio}
                   </p>
                 ) : null}
-
-                {/* REQ-11 — social-proof counters (hidden when all zero) */}
-                {!printMode ? (
-                  <ArtistStatsRow
-                    epsReleasedCount={epk.epsReleasedCount}
-                    recordLabelsCount={epk.recordLabelsCount}
-                    externalCollabsCount={epk.externalCollabsCount}
-                    locale={locale}
-                  />
-                ) : null}
               </div>
 
               {/* Contacts sidebar */}
@@ -221,40 +211,79 @@ export async function PublicEpkView({
               </section>
             ) : null}
 
-            {/* ── Links (all equal pills) ── */}
-            {allFeaturedLinks.length > 0 ? (
-              <section className="space-y-4">
-                <h2
-                  className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
-                >
-                  {t('sections.links')}
-                </h2>
-                {printMode ? (
-                  <div className="space-y-3">
-                    {allFeaturedLinks.map((item) => (
-                      <div key={item.id} className={`rounded-2xl border px-4 py-3 ${cardClass}`}>
-                        <p className={`text-sm font-semibold ${bodyTextClass}`}>{item.label}</p>
-                        <p className="mt-1 break-all text-xs text-zinc-600">{item.url}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-3">
-                    {allFeaturedLinks.map((item) => (
-                      <a
-                        key={item.id}
-                        href={item.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm transition hover:border-fuchsia-300/35 hover:bg-fuchsia-500/10 hover:text-white hover:shadow-[0_0_24px_rgba(168,85,247,0.14)]"
+            {/* ── Links + Stats — side-by-side cards on desktop (print: links only) ── */}
+            {(() => {
+              const hasLinks = allFeaturedLinks.length > 0;
+              const hasStats =
+                !printMode &&
+                ((epk.epsReleasedCount ?? 0) > 0 ||
+                  epk.recordLabelsCount > 0 ||
+                  (epk.externalCollabsCount ?? 0) > 0);
+
+              if (!hasLinks && !hasStats) return null;
+
+              return (
+                <section className={`grid gap-4 ${hasLinks && hasStats ? 'md:grid-cols-2' : ''}`}>
+                  {/* Links card */}
+                  {hasLinks ? (
+                    <div className={`space-y-4 rounded-2xl border p-5 ${cardClass}`}>
+                      <h2
+                        className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
                       >
-                        {item.label}
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </section>
-            ) : null}
+                        {t('sections.links')}
+                      </h2>
+                      {printMode ? (
+                        <div className="space-y-3">
+                          {allFeaturedLinks.map((item) => (
+                            <div
+                              key={item.id}
+                              className={`rounded-2xl border px-4 py-3 ${cardClass}`}
+                            >
+                              <p className={`text-sm font-semibold ${bodyTextClass}`}>
+                                {item.label}
+                              </p>
+                              <p className="mt-1 break-all text-xs text-zinc-600">{item.url}</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap gap-3">
+                          {allFeaturedLinks.map((item) => (
+                            <a
+                              key={item.id}
+                              href={item.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm transition hover:border-fuchsia-300/35 hover:bg-fuchsia-500/10 hover:text-white hover:shadow-[0_0_24px_rgba(168,85,247,0.14)]"
+                            >
+                              {item.label}
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+
+                  {/* Stats card — digital only */}
+                  {hasStats ? (
+                    <div className={`space-y-4 rounded-2xl border p-5 ${cardClass}`}>
+                      <h2
+                        className={`text-sm font-semibold uppercase tracking-[0.22em] ${mutedHeadingClass}`}
+                      >
+                        {t('sections.stats')}
+                      </h2>
+                      <ArtistStatsRow
+                        epsReleasedCount={epk.epsReleasedCount}
+                        recordLabelsCount={epk.recordLabelsCount}
+                        externalCollabsCount={epk.externalCollabsCount}
+                        locale={locale}
+                        className="flex flex-wrap items-center justify-start gap-2 text-xs sm:gap-3"
+                      />
+                    </div>
+                  ) : null}
+                </section>
+              );
+            })()}
 
             {/* ── Featured media ── */}
             {epk.featuredMedia.length > 0 ? (

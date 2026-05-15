@@ -1735,7 +1735,8 @@
       "availability": "Availability",
       "artist_requirements": "Artist requirements",
       "technical_rider": "Technical rider",
-      "rider_section_heading": "Booking info & rider"
+      "rider_section_heading": "Booking info & rider",
+      "stats": "Stats"
     },
     "contact": {
       "booking": "Booking",
