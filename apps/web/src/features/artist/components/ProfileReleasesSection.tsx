@@ -236,14 +236,14 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
           {/* Release date — segmented Year/Full toggle + conditional control */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium leading-none">Release date</label>
-            <div className="inline-flex w-full overflow-hidden rounded-md border border-input">
+            <div className="inline-flex w-full overflow-hidden rounded-md border border-white/20 bg-white/[0.04]">
               <button
                 type="button"
                 onClick={() => handleDateModeChange('year')}
-                className={`flex-1 px-3 py-1.5 text-xs font-medium transition ${
+                className={`flex-1 px-3 py-1.5 text-xs font-medium transition-colors ${
                   dateMode === 'year'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-transparent text-muted-foreground hover:text-foreground'
+                    ? 'bg-white/20 text-white'
+                    : 'text-white/40 hover:text-white/70'
                 }`}
               >
                 Year
@@ -251,10 +251,10 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
               <button
                 type="button"
                 onClick={() => handleDateModeChange('full')}
-                className={`flex-1 border-l border-input px-3 py-1.5 text-xs font-medium transition ${
+                className={`flex-1 border-l border-white/20 px-3 py-1.5 text-xs font-medium transition-colors ${
                   dateMode === 'full'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-transparent text-muted-foreground hover:text-foreground'
+                    ? 'bg-white/20 text-white'
+                    : 'text-white/40 hover:text-white/70'
                 }`}
               >
                 Full date

@@ -9,6 +9,8 @@ interface ArtistStatsRowProps {
   /** Manual counter. `null` or `0` → hidden. */
   externalCollabsCount: number | null;
   locale: SupportedLocale;
+  /** Override the `<ul>` wrapper className (default: centred flex-wrap). */
+  className?: string;
 }
 
 /**
@@ -19,6 +21,11 @@ interface ArtistStatsRowProps {
  * returns `null` when all three are missing or zero, so a brand-new artist
  * with no data sees nothing instead of a row of zeros.
  *
+ * Each pill carries a distinct brand accent colour:
+ *  - EPs Released  → cyan  (music / sound)
+ *  - Record Labels → fuchsia (Stagelink primary)
+ *  - Collabs       → emerald (growth / collaboration)
+ *
  * Designed to wrap cleanly on narrow viewports.
  */
 export async function ArtistStatsRow({
@@ -26,6 +33,7 @@ export async function ArtistStatsRow({
   recordLabelsCount,
   externalCollabsCount,
   locale,
+  className,
 }: ArtistStatsRowProps) {
   const epsVisible = (epsReleasedCount ?? 0) > 0;
   const labelsVisible = recordLabelsCount > 0;
@@ -38,24 +46,24 @@ export async function ArtistStatsRow({
   return (
     <ul
       aria-label={t('aria_label')}
-      className="flex flex-wrap items-center justify-center gap-2 text-xs sm:gap-3"
+      className={className ?? 'flex flex-wrap items-center justify-center gap-2 text-xs sm:gap-3'}
     >
       {epsVisible ? (
-        <li className="inline-flex cursor-default items-center gap-1.5 rounded-full border border-violet-500/25 bg-white/5 px-3 py-1.5 text-white shadow-[0_0_0_1px_rgba(139,92,246,0.06)] transition-all duration-200 hover:scale-[1.04] hover:border-fuchsia-400/45 hover:shadow-[0_0_18px_rgba(168,85,247,0.2)]">
+        <li className="inline-flex cursor-default items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/[0.08] px-3 py-1.5 text-white transition-all duration-200 hover:scale-[1.04] hover:border-cyan-400/50 hover:shadow-[0_0_18px_rgba(34,211,238,0.2)]">
           <span className="font-semibold tabular-nums">{epsReleasedCount}</span>
-          <span className="text-zinc-300">{t('eps_released')}</span>
+          <span className="text-cyan-200/80">{t('eps_released')}</span>
         </li>
       ) : null}
       {labelsVisible ? (
-        <li className="inline-flex cursor-default items-center gap-1.5 rounded-full border border-violet-500/25 bg-white/5 px-3 py-1.5 text-white shadow-[0_0_0_1px_rgba(139,92,246,0.06)] transition-all duration-200 hover:scale-[1.04] hover:border-fuchsia-400/45 hover:shadow-[0_0_18px_rgba(168,85,247,0.2)]">
+        <li className="inline-flex cursor-default items-center gap-1.5 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/[0.08] px-3 py-1.5 text-white transition-all duration-200 hover:scale-[1.04] hover:border-fuchsia-400/50 hover:shadow-[0_0_18px_rgba(168,85,247,0.2)]">
           <span className="font-semibold tabular-nums">{recordLabelsCount}</span>
-          <span className="text-zinc-300">{t('record_labels')}</span>
+          <span className="text-fuchsia-200/80">{t('record_labels')}</span>
         </li>
       ) : null}
       {collabsVisible ? (
-        <li className="inline-flex cursor-default items-center gap-1.5 rounded-full border border-violet-500/25 bg-white/5 px-3 py-1.5 text-white shadow-[0_0_0_1px_rgba(139,92,246,0.06)] transition-all duration-200 hover:scale-[1.04] hover:border-fuchsia-400/45 hover:shadow-[0_0_18px_rgba(168,85,247,0.2)]">
+        <li className="inline-flex cursor-default items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/[0.08] px-3 py-1.5 text-white transition-all duration-200 hover:scale-[1.04] hover:border-emerald-400/50 hover:shadow-[0_0_18px_rgba(52,211,153,0.2)]">
           <span className="font-semibold tabular-nums">{externalCollabsCount}</span>
-          <span className="text-zinc-300">{t('external_collabs')}</span>
+          <span className="text-emerald-200/80">{t('external_collabs')}</span>
         </li>
       ) : null}
     </ul>
