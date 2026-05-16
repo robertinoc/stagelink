@@ -29,10 +29,15 @@ function createService() {
     log: jest.fn(),
   };
 
+  const emailService = {
+    sendManualAccessGranted: jest.fn(),
+    sendManualAccessExpired: jest.fn(),
+  };
+
   return {
     prisma,
     auditService,
-    service: new AdminService(prisma as never, auditService as never),
+    service: new AdminService(prisma as never, auditService as never, emailService as never),
   };
 }
 

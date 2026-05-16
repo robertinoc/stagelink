@@ -9,6 +9,7 @@ import { PrismaService } from '../../lib/prisma.service';
 import { getWorkOS } from '../../lib/workos';
 import { isBehindOwnerEmail } from './admin.config';
 import { AuditService } from '../audit/audit.service';
+import { EmailService } from '../email/email.service';
 import {
   resolveEffectiveAccess,
   type AccessSource,
@@ -83,6 +84,7 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
+    private readonly emailService: EmailService,
   ) {}
 
   /**
@@ -388,12 +390,15 @@ export class AdminService {
       ipAddress,
     });
 
+    // Fire-and-forget email notification (never throws).
+    void this.emailService.sendManualAccessGranted(targetEmail, plan, expiry);
+
     return mapSubscription(sub)!;
   }
 
   /**
    * Extends (or shortens) the expiry of an existing manual grant,
-   * optionally updating the reason. Does not change the granted plan.
+   * optionally updating the reason and optionally changing the granted plan.
    */
   async extendAccess(
     targetUserId: string,
@@ -401,6 +406,7 @@ export class AdminService {
     reason: string | undefined,
     actorId: string,
     ipAddress?: string,
+    plan?: typeof PlanTier.pro | typeof PlanTier.pro_plus,
   ): Promise<AdminSubscriptionDto> {
     const expiry = this.parseExpiry(expiresAt);
     const { artistId, targetEmail } = await this.resolveArtistForUser(targetUserId);
@@ -419,6 +425,7 @@ export class AdminService {
       data: {
         manualAccessExpiresAt: expiry,
         ...(reason !== undefined && { manualAccessReason: reason.trim() || null }),
+        ...(plan !== undefined && { manualAccessPlan: plan }),
       },
       select: ADMIN_SUBSCRIPTION_SELECT,
     });
@@ -433,6 +440,7 @@ export class AdminService {
         targetEmail,
         expiresAt: expiry.toISOString(),
         reason: reason ?? null,
+        ...(plan !== undefined && { plan }),
       },
       ipAddress,
     });
@@ -480,6 +488,10 @@ export class AdminService {
       metadata: { targetUserId, targetEmail },
       ipAddress,
     });
+
+    // Fire-and-forget email notification (never throws).
+    // current.manualAccessPlan is guaranteed non-null by the guard above.
+    void this.emailService.sendManualAccessExpired(targetEmail, current.manualAccessPlan as string);
 
     return mapSubscription(sub)!;
   }

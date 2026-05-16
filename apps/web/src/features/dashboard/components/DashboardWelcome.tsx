@@ -13,6 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BillingStatusBanner } from '@/components/billing/BillingStatusBanner';
 import type { Artist } from '@/lib/api/artists';
 import type { BillingSummaryResponse } from '@/lib/api/billing';
 import { getMinimumPlanForFeature } from '@stagelink/types';
@@ -131,6 +132,8 @@ export async function DashboardWelcome({ artist, billingSummary }: DashboardWelc
           <p className="max-w-3xl text-sm text-white/60">{t('intro.description')}</p>
         </div>
       </div>
+
+      {billingSummary ? <BillingStatusBanner summary={billingSummary} /> : null}
 
       <div className="grid gap-4 xl:grid-cols-2">
         {cards.map((card) => {

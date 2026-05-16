@@ -189,6 +189,7 @@ export class AdminController {
       dto.reason,
       actor.id,
       extractClientIp(req),
+      dto.plan,
     );
     return { subscription };
   }

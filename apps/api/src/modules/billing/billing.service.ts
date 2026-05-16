@@ -32,6 +32,7 @@ import type { Request } from 'express';
 import type Stripe from 'stripe';
 import { PrismaService } from '../../lib/prisma.service';
 import { ok } from '../../common/utils/response.util';
+import { EmailService } from '../email/email.service';
 import type { CreateCheckoutSessionDto, CreatePortalSessionDto } from './dto';
 import {
   getPlanFromStripePriceId,
@@ -67,6 +68,7 @@ export class BillingService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
     @Inject(STRIPE_CLIENT) private readonly stripe: Stripe | null,
+    private readonly emailService: EmailService,
   ) {}
 
   async getProducts() {
@@ -135,6 +137,20 @@ export class BillingService {
       currentPeriodEnd: null,
     });
 
+    // Compute manualAccessExpiringInDays: days until grant expiry if ≤ 14 days away.
+    let manualAccessExpiringInDays: number | null = null;
+    if (access.isManualGrantActive && access.manualAccessExpiresAt) {
+      const msLeft = access.manualAccessExpiresAt.getTime() - now.getTime();
+      const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
+      if (daysLeft <= 14 && daysLeft > 0) {
+        manualAccessExpiringInDays = daysLeft;
+      }
+    }
+
+    const isPaymentPastDue =
+      entitlements.subscriptionStatus === 'past_due' ||
+      entitlements.subscriptionStatus === 'unpaid';
+
     return ok<BillingUiSummary>({
       artistId,
       effectivePlan,
@@ -177,6 +193,8 @@ export class BillingService {
             accessSource: access.accessSource,
           }
         : null,
+      manualAccessExpiringInDays,
+      isPaymentPastDue,
     });
   }
 
@@ -348,6 +366,14 @@ export class BillingService {
       case 'invoice.paid':
       case 'invoice.payment_succeeded':
         await this.handleInvoiceBackedEvent(
+          event.id,
+          event.type,
+          new Date(event.created * 1000),
+          event.data.object as Stripe.Invoice,
+        );
+        break;
+      case 'invoice.payment_failed':
+        await this.handlePaymentFailedEvent(
           event.id,
           event.type,
           new Date(event.created * 1000),
@@ -679,6 +705,65 @@ export class BillingService {
     const stripe = this.getStripeClientOrThrow();
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     await this.syncStripeSubscription(stripeEventId, stripeEventType, stripeEventAt, subscription);
+  }
+
+  private async handlePaymentFailedEvent(
+    stripeEventId: string,
+    stripeEventType: string,
+    stripeEventAt: Date,
+    invoice: Stripe.Invoice,
+  ) {
+    // Sync the subscription state so that status reflects `past_due` (set by Stripe).
+    await this.handleInvoiceBackedEvent(stripeEventId, stripeEventType, stripeEventAt, invoice);
+
+    // Fire-and-forget payment failure email. Resolve artist email from the DB.
+    void (async () => {
+      try {
+        const invoiceWithSubscription = invoice as Stripe.Invoice & {
+          subscription?: string | Stripe.Subscription | null;
+        };
+        const subscriptionId =
+          typeof invoiceWithSubscription.subscription === 'string'
+            ? invoiceWithSubscription.subscription
+            : invoiceWithSubscription.subscription?.id;
+
+        if (!subscriptionId) {
+          this.logger.warn(
+            `invoice.payment_failed ${invoice.id}: no subscription id — skipping email`,
+          );
+          return;
+        }
+
+        const sub = await this.prisma.subscription.findFirst({
+          where: { stripeSubscriptionId: subscriptionId },
+          select: {
+            plan: true,
+            artist: {
+              select: {
+                contactEmail: true,
+                user: { select: { email: true } },
+              },
+            },
+          },
+        });
+
+        const artistEmail = sub?.artist?.contactEmail ?? sub?.artist?.user?.email ?? null;
+
+        if (!artistEmail) {
+          this.logger.warn(
+            `invoice.payment_failed ${invoice.id}: could not resolve artist email — skipping email`,
+          );
+          return;
+        }
+
+        await this.emailService.sendPaymentFailed(artistEmail, sub?.plan ?? 'pro');
+      } catch (err) {
+        this.logger.error(
+          `invoice.payment_failed ${invoice.id}: error sending payment failure email`,
+          err,
+        );
+      }
+    })();
   }
 
   private async syncStripeSubscription(
