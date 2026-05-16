@@ -332,15 +332,12 @@ export async function PublicEpkView({
                 </h2>
                 <div className="flex flex-wrap gap-3">
                   {epk.recordLabels.map((label) => {
-                    const logoSrc =
-                      label.logoUrl ??
-                      (() => {
-                        try {
-                          return `https://logo.clearbit.com/${new URL(label.websiteUrl ?? '').hostname}`;
-                        } catch {
-                          return null;
-                        }
-                      })();
+                    // Use the explicit logoUrl only. Clearbit was removed because
+                    // it returns HTTP 200 with a placeholder image instead of 404,
+                    // which means RecordLabelLogo's onError never fires and the
+                    // placeholder image leaks through. Null → emoji fallback
+                    // immediately, no image load attempted.
+                    const logoSrc = label.logoUrl ?? null;
                     const inner = (
                       <div
                         className={`flex items-center gap-2.5 rounded-2xl border px-4 py-2.5 ${cardClass}`}
