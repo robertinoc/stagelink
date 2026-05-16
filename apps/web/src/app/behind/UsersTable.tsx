@@ -281,7 +281,6 @@ function UserRow({
   currentUserRole,
   onStatusChange,
   onEdit,
-  onDelete,
   onRoleChange,
   onManageAccess,
 }: {
@@ -292,7 +291,6 @@ function UserRow({
   currentUserRole: BehindRole | null;
   onStatusChange: (id: string, isSuspended: boolean) => void;
   onEdit: (user: AdminUser) => void;
-  onDelete: (user: AdminUser) => void;
   onRoleChange: (user: AdminUser, newRole: BehindRole | 'none') => void;
   onManageAccess: (user: AdminUser) => void;
 }) {
@@ -470,16 +468,9 @@ function UserRow({
             </Button>
           )}
 
-          {canManageUsers && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(user)}
-              className="text-red-400 hover:text-red-300"
-            >
-              Delete
-            </Button>
-          )}
+          {/* Delete intentionally removed — soft-delete does not erase personal
+              data and therefore does not satisfy GDPR Art. 17 right to erasure.
+              Will be re-added once a proper anonymisation pipeline is implemented. */}
 
           {!canManageUsers && <span style={{ color: 'rgba(255,255,255,0.3)' }}>Read-only</span>}
         </div>
@@ -1346,7 +1337,6 @@ function ManageAccessModal({
 type ActiveModal =
   | { type: 'invite' }
   | { type: 'edit'; user: AdminUser }
-  | { type: 'delete'; user: AdminUser }
   | { type: 'role'; user: AdminUser; newRole: BehindRole | 'none' }
   | { type: 'access'; user: AdminUser }
   | null;
@@ -1442,9 +1432,6 @@ export function UsersTable({
       {modal?.type === 'invite' && <InviteModal onClose={() => setModal(null)} />}
       {modal?.type === 'edit' && (
         <EditModal user={modal.user} onClose={() => setModal(null)} onSaved={updateUser} />
-      )}
-      {modal?.type === 'delete' && (
-        <DeleteModal user={modal.user} onClose={() => setModal(null)} onDeleted={removeUser} />
       )}
       {modal?.type === 'role' && (
         <RoleChangeModal
@@ -1559,7 +1546,6 @@ export function UsersTable({
                         currentUserRole={currentUserRole as BehindRole | null}
                         onStatusChange={handleStatusChange}
                         onEdit={(user) => setModal({ type: 'edit', user })}
-                        onDelete={(user) => setModal({ type: 'delete', user })}
                         onRoleChange={(user, newRole) => setModal({ type: 'role', user, newRole })}
                         onManageAccess={(user) => setModal({ type: 'access', user })}
                       />
