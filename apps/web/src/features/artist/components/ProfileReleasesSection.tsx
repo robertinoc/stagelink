@@ -121,9 +121,7 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
   const [type, setType] = useState<ArtistReleaseType>(initial?.type ?? 'single');
   const [dateMode, setDateMode] = useState<DateMode>(detectDateMode(initial?.releaseDate));
   const [releaseDate, setReleaseDate] = useState(initial?.releaseDate ?? '');
-  // Cover URL is read-only in the UI (upload pipeline not yet implemented).
-  // Preserve the existing value when editing so saves don't wipe existing covers.
-  const coverUrl = initial?.coverUrl ?? '';
+  const [coverUrl, setCoverUrl] = useState(initial?.coverUrl ?? '');
   const [spotifyUrl, setSpotifyUrl] = useState(initial?.spotifyUrl ?? '');
   // Label has TWO controlled bits: the dropdown selection (which can be a
   // record-label name, the empty "no label" option, or the CUSTOM_LABEL_OPTION
@@ -182,7 +180,7 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit release' : 'Add release'}</DialogTitle>
           <DialogDescription>
-            Add an EP, album, single, or remix. Spotify URL and label are optional.
+            Add an EP, album, single, or remix. Cover art, Spotify URL and label are optional.
           </DialogDescription>
         </DialogHeader>
 
@@ -290,6 +288,20 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
               />
             )}
           </div>
+        </div>
+
+        {/* Cover URL — full width */}
+        <div className="space-y-1.5">
+          <label htmlFor="release-cover" className="text-sm font-medium leading-none">
+            Cover art URL (optional)
+          </label>
+          <Input
+            id="release-cover"
+            placeholder="https://…/cover.jpg"
+            value={coverUrl}
+            onChange={(e) => setCoverUrl(e.target.value)}
+            type="url"
+          />
         </div>
 
         {/* Spotify URL — full width (long URLs benefit from the extra space) */}

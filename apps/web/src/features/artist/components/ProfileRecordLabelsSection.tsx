@@ -81,21 +81,16 @@ interface LabelModalProps {
 function LabelModal({ open, initial, onSave, onClose }: LabelModalProps) {
   const [name, setName] = useState(initial?.name ?? '');
   const [websiteUrl, setWebsiteUrl] = useState(initial?.websiteUrl ?? '');
-  const [logoUrl, setLogoUrl] = useState(initial?.logoUrl ?? '');
 
   // Reset state when the modal opens with new data
   function handleOpenChange(isOpen: boolean) {
     if (isOpen) {
       setName(initial?.name ?? '');
       setWebsiteUrl(initial?.websiteUrl ?? '');
-      setLogoUrl(initial?.logoUrl ?? '');
     } else {
       onClose();
     }
   }
-
-  // Live logo preview: explicit logoUrl > Clearbit from websiteUrl
-  const previewLogo = logoUrl.trim() || getClearbitLogoUrl(websiteUrl.trim());
 
   function handleSave() {
     const trimmedName = name.trim();
@@ -103,7 +98,9 @@ function LabelModal({ open, initial, onSave, onClose }: LabelModalProps) {
     onSave({
       name: trimmedName,
       websiteUrl: websiteUrl.trim() || null,
-      logoUrl: logoUrl.trim() || null,
+      // Logo URL is no longer editable — labels are shown as pills in the EPK.
+      // Preserve any existing value so old data isn't silently wiped on save.
+      logoUrl: initial?.logoUrl ?? null,
     });
     onClose();
   }
@@ -116,14 +113,16 @@ function LabelModal({ open, initial, onSave, onClose }: LabelModalProps) {
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit record label' : 'Add record label'}</DialogTitle>
           <DialogDescription>
-            Add the name and optionally a website. The logo is fetched automatically from the
-            website — or paste a direct logo URL.
+            Add the label name and optionally a website URL. Labels appear as pills in your press
+            kit.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Logo preview */}
+        {/* Preview */}
         <div className="flex items-center gap-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-4">
-          <LabelLogo logoUrl={previewLogo} name={name || 'Label'} size="lg" />
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-base">
+            🎵
+          </div>
           <div className="min-w-0 flex-1 overflow-hidden">
             <p className="truncate text-sm font-medium text-white">
               {name.trim() || <span className="text-muted-foreground">Label name</span>}
@@ -161,25 +160,6 @@ function LabelModal({ open, initial, onSave, onClose }: LabelModalProps) {
               onChange={(e) => setWebsiteUrl(e.target.value)}
               type="url"
             />
-            <p className="text-xs text-muted-foreground">
-              Used to auto-fetch the logo via Clearbit.
-            </p>
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="label-logo" className="text-sm font-medium leading-none">
-              Logo URL (optional override)
-            </label>
-            <Input
-              id="label-logo"
-              placeholder="https://…/logo.png"
-              value={logoUrl}
-              onChange={(e) => setLogoUrl(e.target.value)}
-              type="url"
-            />
-            <p className="text-xs text-muted-foreground">
-              Paste a direct image URL to override the auto-fetched logo.
-            </p>
           </div>
         </div>
 
