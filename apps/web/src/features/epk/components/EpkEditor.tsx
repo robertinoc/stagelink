@@ -1094,7 +1094,7 @@ export function EpkEditor({
                     <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35 md:hidden">
                       Platform
                     </p>
-                    <p className="font-medium text-white">{link.label}</p>
+                    <p className="truncate font-medium text-white">{link.label}</p>
                   </div>
                   <div className="flex items-center justify-between gap-3 md:justify-center">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35 md:hidden">
@@ -1284,8 +1284,8 @@ export function EpkEditor({
                         alt={label.name}
                         className="h-8 w-8 flex-shrink-0 rounded-md border border-white/10 bg-white object-contain p-0.5"
                       />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-white">{label.name}</p>
+                      <div className="min-w-0 flex-1 overflow-hidden">
+                        <p className="truncate text-sm font-medium text-white">{label.name}</p>
                         {label.websiteUrl ? (
                           <p className="truncate text-xs text-muted-foreground">
                             {label.websiteUrl}

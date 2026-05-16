@@ -121,7 +121,9 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
   const [type, setType] = useState<ArtistReleaseType>(initial?.type ?? 'single');
   const [dateMode, setDateMode] = useState<DateMode>(detectDateMode(initial?.releaseDate));
   const [releaseDate, setReleaseDate] = useState(initial?.releaseDate ?? '');
-  const [coverUrl, setCoverUrl] = useState(initial?.coverUrl ?? '');
+  // Cover URL is read-only in the UI (upload pipeline not yet implemented).
+  // Preserve the existing value when editing so saves don't wipe existing covers.
+  const coverUrl = initial?.coverUrl ?? '';
   const [spotifyUrl, setSpotifyUrl] = useState(initial?.spotifyUrl ?? '');
   // Label has TWO controlled bits: the dropdown selection (which can be a
   // record-label name, the empty "no label" option, or the CUSTOM_LABEL_OPTION
@@ -180,14 +182,14 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit release' : 'Add release'}</DialogTitle>
           <DialogDescription>
-            Add an EP, album, single, or remix. Cover and Spotify URL are optional.
+            Add an EP, album, single, or remix. Spotify URL and label are optional.
           </DialogDescription>
         </DialogHeader>
 
         {/* Cover preview — full width for visibility */}
-        <div className="flex items-center gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="flex items-center gap-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-4">
           <ReleaseCoverThumb coverUrl={coverUrl.trim() || null} alt={title || 'Release cover'} />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1 overflow-hidden">
             <p className="truncate text-sm font-medium text-white">
               {title.trim() || <span className="text-muted-foreground">Release title</span>}
             </p>
@@ -212,7 +214,7 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
           />
         </div>
 
-        {/* 2-column grid for the four short fields. Auto-stacks on mobile. */}
+        {/* 2-column grid: Type + Release date. Auto-stacks on mobile. */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Type */}
           <div className="space-y-1.5">
@@ -288,34 +290,20 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
               />
             )}
           </div>
+        </div>
 
-          {/* Cover URL — Cover Upload deferred (see backlog). */}
-          <div className="space-y-1.5">
-            <label htmlFor="release-cover" className="text-sm font-medium leading-none">
-              Cover URL (optional)
-            </label>
-            <Input
-              id="release-cover"
-              placeholder="https://…/cover.jpg"
-              value={coverUrl}
-              onChange={(e) => setCoverUrl(e.target.value)}
-              type="url"
-            />
-          </div>
-
-          {/* Spotify URL */}
-          <div className="space-y-1.5">
-            <label htmlFor="release-spotify" className="text-sm font-medium leading-none">
-              Spotify URL (optional)
-            </label>
-            <Input
-              id="release-spotify"
-              placeholder="https://open.spotify.com/album/…"
-              value={spotifyUrl}
-              onChange={(e) => setSpotifyUrl(e.target.value)}
-              type="url"
-            />
-          </div>
+        {/* Spotify URL — full width (long URLs benefit from the extra space) */}
+        <div className="space-y-1.5">
+          <label htmlFor="release-spotify" className="text-sm font-medium leading-none">
+            Spotify URL (optional)
+          </label>
+          <Input
+            id="release-spotify"
+            placeholder="https://open.spotify.com/album/…"
+            value={spotifyUrl}
+            onChange={(e) => setSpotifyUrl(e.target.value)}
+            type="url"
+          />
         </div>
 
         {/* Label — dropdown when the artist has record labels, plain input otherwise */}
