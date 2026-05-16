@@ -42,10 +42,12 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
   const artistId = me?.artistIds[0];
   if (!artistId) redirect(`/${locale}/onboarding`);
 
-  const artist = await getArtist(artistId, session.accessToken);
-  const pages = await getArtistPages(artistId, session.accessToken);
-  const billingSummary = await getBillingSummary(artistId, session.accessToken);
-  const epkData = await getArtistEpk(artistId, session.accessToken).catch(() => null);
+  const [artist, pages, billingSummary, epkData] = await Promise.all([
+    getArtist(artistId, session.accessToken),
+    getArtistPages(artistId, session.accessToken),
+    getBillingSummary(artistId, session.accessToken),
+    getArtistEpk(artistId, session.accessToken).catch(() => null),
+  ]);
   const page = pages[0];
   if (!page) redirect(`/${locale}/onboarding`);
 
