@@ -1526,7 +1526,18 @@
       "contact_form_info_body": "Los visitantes escriben su nombre y mensaje, y se abre su cliente de correo pre-completado. Dejá el campo email vacío para usar el email de contacto de tu Perfil.",
       "contact_form_email_label": "Email de destino (opcional)",
       "contact_form_email_placeholder": "bookings@tuartista.com",
-      "contact_form_email_hint": "Dejá vacío para usar el email de contacto de tu Perfil."
+      "contact_form_email_hint": "Dejá vacío para usar el email de contacto de tu Perfil.",
+      "source_mode_label": "Fuente de contenido",
+      "source_mode_manual": "URL específica",
+      "source_mode_latest_video": "Último video del canal",
+      "source_mode_latest_track": "Última pista (próximamente)",
+      "source_mode_latest_info_youtube": "Se mostrará automáticamente tu último video publicado en YouTube. Requiere tener un canal de YouTube conectado.",
+      "source_mode_latest_soundcloud_coming_soon": "La pista más reciente automática estará disponible en una próxima actualización.",
+      "source_mode_latest_no_connection": "No hay canal de YouTube conectado. Andá a Insights para conectar tu canal.",
+      "source_url_hint_youtube_playlist": "ej. https://www.youtube.com/playlist?list=…",
+      "error_invalid_youtube_url": "Esta no parece ser una URL válida de YouTube.",
+      "error_invalid_soundcloud_url": "Esta no parece ser una URL válida de SoundCloud.",
+      "error_invalid_playlist_url": "No encontramos un ID de playlist en esta URL."
     },
     "smart_link": {
       "destination": "Destino",

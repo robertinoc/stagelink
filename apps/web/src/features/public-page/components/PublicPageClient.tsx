@@ -95,7 +95,12 @@ export function PublicPageClient({ page, blocks: scopedBlocks, className }: Publ
   return (
     <div className={cn('space-y-4', className)}>
       {blocks.map((block) => (
-        <BlockRenderer key={block.id} block={block} onLinkClick={handleLinkClick} />
+        <BlockRenderer
+          key={block.id}
+          block={block}
+          onLinkClick={handleLinkClick}
+          artistId={artistId}
+        />
       ))}
     </div>
   );

@@ -41,6 +41,11 @@ interface BlockRendererProps {
    * Only wired up on the public page — omit in dashboard preview.
    */
   onLinkClick?: (blockId: string, itemId: string) => void;
+  /**
+   * Artist ID — required for embed blocks in 'latest_video' / 'latest_track' mode
+   * so the renderer can resolve the embed URL from the artist's insights snapshot.
+   */
+  artistId?: string;
 }
 
 /**
@@ -65,7 +70,7 @@ interface BlockRendererProps {
  * Usage (public page — with analytics + email submission):
  *   <BlockRenderer block={block} onLinkClick={trackClick} />
  */
-export function BlockRenderer({ block, onLinkClick }: BlockRendererProps) {
+export function BlockRenderer({ block, onLinkClick, artistId }: BlockRendererProps) {
   // Guard against null/undefined config — a malformed backend response shouldn't
   // crash the entire page; skip the block and log for investigation.
   if (!block.config) {
@@ -86,13 +91,21 @@ export function BlockRenderer({ block, onLinkClick }: BlockRendererProps) {
 
   if (block.type === 'music_embed') {
     return (
-      <MusicEmbedRenderer title={block.title} config={block.config as MusicEmbedBlockConfig} />
+      <MusicEmbedRenderer
+        title={block.title}
+        config={block.config as MusicEmbedBlockConfig}
+        artistId={artistId}
+      />
     );
   }
 
   if (block.type === 'video_embed') {
     return (
-      <VideoEmbedRenderer title={block.title} config={block.config as VideoEmbedBlockConfig} />
+      <VideoEmbedRenderer
+        title={block.title}
+        config={block.config as VideoEmbedBlockConfig}
+        artistId={artistId}
+      />
     );
   }
 
