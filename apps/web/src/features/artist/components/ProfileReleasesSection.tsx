@@ -121,7 +121,9 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
   const [type, setType] = useState<ArtistReleaseType>(initial?.type ?? 'single');
   const [dateMode, setDateMode] = useState<DateMode>(detectDateMode(initial?.releaseDate));
   const [releaseDate, setReleaseDate] = useState(initial?.releaseDate ?? '');
-  const [coverUrl, setCoverUrl] = useState(initial?.coverUrl ?? '');
+  // Cover URL is read-only in the UI (upload pipeline not yet implemented).
+  // Preserve the existing value when editing so saves don't wipe existing covers.
+  const coverUrl = initial?.coverUrl ?? '';
   const [spotifyUrl, setSpotifyUrl] = useState(initial?.spotifyUrl ?? '');
   // Label has TWO controlled bits: the dropdown selection (which can be a
   // record-label name, the empty "no label" option, or the CUSTOM_LABEL_OPTION
@@ -287,20 +289,6 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
                 min={`${EARLIEST_RELEASE_YEAR}-01-01`}
               />
             )}
-          </div>
-
-          {/* Cover URL — Cover Upload deferred (see backlog). */}
-          <div className="space-y-1.5">
-            <label htmlFor="release-cover" className="text-sm font-medium leading-none">
-              Cover URL (optional)
-            </label>
-            <Input
-              id="release-cover"
-              placeholder="https://…/cover.jpg"
-              value={coverUrl}
-              onChange={(e) => setCoverUrl(e.target.value)}
-              type="url"
-            />
           </div>
 
           {/* Spotify URL */}
