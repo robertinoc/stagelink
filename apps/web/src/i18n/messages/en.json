@@ -1526,7 +1526,18 @@
       "contact_form_info_body": "Visitors fill in their name and message, then their email client opens pre-filled. Leave the email field empty to use your Profile contact email.",
       "contact_form_email_label": "Destination email (optional)",
       "contact_form_email_placeholder": "bookings@yourname.com",
-      "contact_form_email_hint": "Leave empty to use the contact email from your Profile."
+      "contact_form_email_hint": "Leave empty to use the contact email from your Profile.",
+      "source_mode_label": "Content source",
+      "source_mode_manual": "Specific URL",
+      "source_mode_latest_video": "Latest video from channel",
+      "source_mode_latest_track": "Latest track (coming soon)",
+      "source_mode_latest_info_youtube": "Your most recently published YouTube video will be shown automatically. Requires a connected YouTube channel.",
+      "source_mode_latest_soundcloud_coming_soon": "Automatic latest track will be available in a future update.",
+      "source_mode_latest_no_connection": "No YouTube channel connected. Go to Insights to connect your channel.",
+      "source_url_hint_youtube_playlist": "e.g. https://www.youtube.com/playlist?list=…",
+      "error_invalid_youtube_url": "This doesn't look like a valid YouTube URL.",
+      "error_invalid_soundcloud_url": "This doesn't look like a valid SoundCloud URL.",
+      "error_invalid_playlist_url": "We couldn't find a playlist ID in this URL."
     },
     "smart_link": {
       "destination": "Destination",

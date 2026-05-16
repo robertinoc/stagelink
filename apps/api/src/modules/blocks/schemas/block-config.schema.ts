@@ -351,9 +351,15 @@ function validateLinksConfig(c: Record<string, unknown>): void {
   }
 }
 
+const MUSIC_EMBED_MODES = ['manual', 'latest_track'] as const;
+const VIDEO_EMBED_MODES = ['manual', 'latest_video'] as const;
+
 /**
  * Validates music_embed config: checks provider allowlist and sourceUrl safety.
  * Does NOT derive embedUrl — that happens in enrichBlockConfig.
+ *
+ * When mode === 'latest_track', sourceUrl is optional (resolved at render time).
+ * When mode is absent or 'manual', sourceUrl is required.
  */
 function validateMusicEmbedConfig(c: Record<string, unknown>): void {
   if (!MUSIC_PROVIDERS.includes(c['provider'] as (typeof MUSIC_PROVIDERS)[number])) {
@@ -361,12 +367,37 @@ function validateMusicEmbedConfig(c: Record<string, unknown>): void {
       `music_embed config.provider must be one of: ${MUSIC_PROVIDERS.join(', ')}`,
     );
   }
-  assertSafeUrl(c['sourceUrl'], 'music_embed config.sourceUrl');
+
+  // Validate mode if provided — must be a known value
+  if (c['mode'] !== undefined) {
+    if (!MUSIC_EMBED_MODES.includes(c['mode'] as (typeof MUSIC_EMBED_MODES)[number])) {
+      throw new BadRequestException(
+        `music_embed config.mode must be one of: ${MUSIC_EMBED_MODES.join(', ')}`,
+      );
+    }
+  }
+
+  const mode = (c['mode'] as string | undefined) ?? 'manual';
+
+  if (mode === 'latest_track') {
+    // sourceUrl is optional — embed will be resolved at render time.
+    // Validate it only when provided.
+    if (c['sourceUrl'] !== undefined && c['sourceUrl'] !== '') {
+      assertSafeUrl(c['sourceUrl'], 'music_embed config.sourceUrl');
+    }
+  } else {
+    // mode === 'manual' (or absent) — sourceUrl is required
+    assertSafeUrl(c['sourceUrl'], 'music_embed config.sourceUrl');
+  }
 }
 
 /**
  * Validates video_embed config: checks provider allowlist and sourceUrl safety.
  * Does NOT derive embedUrl — that happens in enrichBlockConfig.
+ *
+ * When mode === 'latest_video' AND provider === 'youtube', sourceUrl is optional.
+ * When mode === 'latest_video' AND provider !== 'youtube', it is rejected.
+ * When mode is absent or 'manual', sourceUrl is required.
  */
 function validateVideoEmbedConfig(c: Record<string, unknown>): void {
   if (!VIDEO_PROVIDERS.includes(c['provider'] as (typeof VIDEO_PROVIDERS)[number])) {
@@ -374,7 +405,34 @@ function validateVideoEmbedConfig(c: Record<string, unknown>): void {
       `video_embed config.provider must be one of: ${VIDEO_PROVIDERS.join(', ')}`,
     );
   }
-  assertSafeUrl(c['sourceUrl'], 'video_embed config.sourceUrl');
+
+  // Validate mode if provided — must be a known value
+  if (c['mode'] !== undefined) {
+    if (!VIDEO_EMBED_MODES.includes(c['mode'] as (typeof VIDEO_EMBED_MODES)[number])) {
+      throw new BadRequestException(
+        `video_embed config.mode must be one of: ${VIDEO_EMBED_MODES.join(', ')}`,
+      );
+    }
+  }
+
+  const mode = (c['mode'] as string | undefined) ?? 'manual';
+  const provider = c['provider'] as string;
+
+  if (mode === 'latest_video') {
+    if (provider !== 'youtube') {
+      throw new BadRequestException(
+        `video_embed config.mode 'latest_video' is only supported for the youtube provider`,
+      );
+    }
+    // sourceUrl is optional — embed will be resolved at render time.
+    // Validate it only when provided.
+    if (c['sourceUrl'] !== undefined && c['sourceUrl'] !== '') {
+      assertSafeUrl(c['sourceUrl'], 'video_embed config.sourceUrl');
+    }
+  } else {
+    // mode === 'manual' (or absent) — sourceUrl is required
+    assertSafeUrl(c['sourceUrl'], 'video_embed config.sourceUrl');
+  }
 }
 
 function validateEmailCaptureConfig(c: Record<string, unknown>): void {
@@ -738,20 +796,46 @@ function parseVideoUrl(provider: (typeof VIDEO_PROVIDERS)[number], sourceUrl: st
         throw new BadRequestException(`video_embed: YouTube URLs must use youtube.com or youtu.be`);
       }
       let videoId: string | null = null;
+      let playlistId: string | null = null;
       let resourceType = 'video';
+
       if (url.hostname === 'youtu.be') {
         videoId = url.pathname.slice(1).split('/')[0] ?? null;
-      } else {
-        if (url.pathname.startsWith('/shorts/')) {
-          videoId = url.pathname.replace('/shorts/', '').split('/')[0] ?? null;
-          resourceType = 'short';
-        } else {
-          videoId = url.searchParams.get('v');
+        // youtu.be links can carry a list param too
+        playlistId = url.searchParams.get('list');
+      } else if (url.pathname.startsWith('/shorts/')) {
+        videoId = url.pathname.replace('/shorts/', '').split('/')[0] ?? null;
+        resourceType = 'short';
+      } else if (url.pathname === '/playlist') {
+        // Pure playlist URL: youtube.com/playlist?list=PLAYLIST_ID
+        playlistId = url.searchParams.get('list');
+        if (!playlistId) {
+          throw new BadRequestException(
+            `video_embed: Could not extract playlist ID from YouTube URL`,
+          );
         }
+        return {
+          embedUrl: `https://www.youtube.com/embed/videoseries?list=${playlistId}`,
+          resourceType: 'playlist',
+        };
+      } else {
+        videoId = url.searchParams.get('v');
+        playlistId = url.searchParams.get('list');
       }
+
       if (!videoId) {
         throw new BadRequestException(`video_embed: Could not extract video ID from YouTube URL`);
       }
+
+      // When both a video ID and a playlist ID are present, embed the video
+      // inside the playlist context so the player shows the full playlist.
+      if (playlistId) {
+        return {
+          embedUrl: `https://www.youtube.com/embed/${videoId}?list=${playlistId}`,
+          resourceType: 'playlist',
+        };
+      }
+
       return {
         embedUrl: `https://www.youtube.com/embed/${videoId}`,
         resourceType,
@@ -860,12 +944,26 @@ export function validateBlockConfig(type: BlockType, config: unknown): void {
  * For non-embed block types, returns the config unchanged.
  *
  * Call order: validateBlockConfig → enrichBlockConfig → DB write.
+ *
+ * Mode handling:
+ *   - mode === 'manual' (or absent): parse sourceUrl as before → derive embedUrl
+ *   - mode === 'latest_video' (video_embed, youtube only): store embedUrl = '' — resolved at render time
+ *   - mode === 'latest_track' (music_embed): store embedUrl = '' — SoundCloud coming soon; YouTube resolved at render time
  */
 export function enrichBlockConfig(
   type: BlockType,
   config: Record<string, unknown>,
 ): Record<string, unknown> {
   if (type === 'music_embed') {
+    const mode = (config['mode'] as string | undefined) ?? 'manual';
+
+    if (mode === 'latest_track') {
+      // embedUrl will be resolved client-side at render time.
+      // SoundCloud latest track is not yet implemented — embedUrl stays empty.
+      return { ...config, embedUrl: '', resourceType: 'track' };
+    }
+
+    // mode === 'manual': existing behavior
     const provider = config['provider'] as (typeof MUSIC_PROVIDERS)[number];
     const sourceUrl = config['sourceUrl'] as string;
     const result = parseMusicUrl(provider, sourceUrl);
@@ -873,6 +971,15 @@ export function enrichBlockConfig(
   }
 
   if (type === 'video_embed') {
+    const mode = (config['mode'] as string | undefined) ?? 'manual';
+
+    if (mode === 'latest_video') {
+      // embedUrl will be resolved client-side at render time via /api/blocks/latest-embed.
+      // Only YouTube is supported — validation already rejected other providers.
+      return { ...config, embedUrl: '', resourceType: 'video' };
+    }
+
+    // mode === 'manual': existing behavior
     const provider = config['provider'] as (typeof VIDEO_PROVIDERS)[number];
     const sourceUrl = config['sourceUrl'] as string;
     const result = parseVideoUrl(provider, sourceUrl);
@@ -946,4 +1053,11 @@ export function validateBlockTitle(title: unknown): void {
   assertNonEmptyString(title, 'title', MAX_TITLE_LENGTH);
 }
 
-export { MUSIC_PROVIDERS, VIDEO_PROVIDERS, LINK_ICONS, MAX_LINK_ITEMS };
+export {
+  MUSIC_PROVIDERS,
+  VIDEO_PROVIDERS,
+  MUSIC_EMBED_MODES,
+  VIDEO_EMBED_MODES,
+  LINK_ICONS,
+  MAX_LINK_ITEMS,
+};

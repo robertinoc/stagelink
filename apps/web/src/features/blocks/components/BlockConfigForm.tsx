@@ -302,9 +302,24 @@ function MusicEmbedForm({
 }) {
   const t = useTranslations('blocks.fields');
 
+  const currentMode = config.mode ?? 'manual';
+  const showModeSelector = config.provider === 'soundcloud' || config.provider === 'youtube';
+
   function handleProviderChange(provider: MusicEmbedBlockConfig['provider']) {
-    // Reset sourceUrl when provider changes — old URL won't parse for new provider
-    onChange({ ...config, provider, sourceUrl: '', embedUrl: '', resourceType: 'track' });
+    // Reset sourceUrl and mode when provider changes — old URL won't parse for new provider
+    onChange({
+      ...config,
+      provider,
+      sourceUrl: '',
+      embedUrl: '',
+      resourceType: 'track',
+      mode: 'manual',
+    });
+  }
+
+  function handleModeChange(mode: 'manual' | 'latest_track') {
+    // Clear sourceUrl when switching modes — stale data from previous mode shouldn't carry over
+    onChange({ ...config, mode, sourceUrl: '', embedUrl: '' });
   }
 
   return (
@@ -325,20 +340,79 @@ function MusicEmbedForm({
           ))}
         </select>
       </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium">{t('source_url')}</label>
-        <input
-          type="url"
-          placeholder="https://..."
-          value={config.sourceUrl}
-          onChange={(e) => onChange({ ...config, sourceUrl: e.target.value })}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          maxLength={2048}
-        />
-        <p className="mt-1 text-xs text-muted-foreground">
-          {t(MUSIC_PROVIDER_HINT[config.provider])}
-        </p>
-      </div>
+
+      {/* Mode selector — shown for SoundCloud and YouTube */}
+      {showModeSelector && (
+        <div>
+          <label className="mb-1 block text-sm font-medium">{t('source_mode_label')}</label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleModeChange('manual')}
+              className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                currentMode === 'manual'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-input text-muted-foreground hover:border-primary hover:text-primary'
+              }`}
+            >
+              {t('source_mode_manual')}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (config.provider !== 'soundcloud') {
+                  handleModeChange('latest_track');
+                }
+              }}
+              disabled={config.provider === 'soundcloud'}
+              title={
+                config.provider === 'soundcloud'
+                  ? t('source_mode_latest_soundcloud_coming_soon')
+                  : undefined
+              }
+              className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                currentMode === 'latest_track'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : config.provider === 'soundcloud'
+                    ? 'cursor-not-allowed border-input text-muted-foreground/40'
+                    : 'border-input text-muted-foreground hover:border-primary hover:text-primary'
+              }`}
+            >
+              {t('source_mode_latest_track')}
+            </button>
+          </div>
+          {config.provider === 'soundcloud' && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t('source_mode_latest_soundcloud_coming_soon')}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* URL input — only shown in manual mode */}
+      {currentMode === 'manual' && (
+        <div>
+          <label className="mb-1 block text-sm font-medium">{t('source_url')}</label>
+          <input
+            type="url"
+            placeholder="https://..."
+            value={config.sourceUrl}
+            onChange={(e) => onChange({ ...config, sourceUrl: e.target.value })}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            maxLength={2048}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t(MUSIC_PROVIDER_HINT[config.provider])}
+          </p>
+        </div>
+      )}
+
+      {/* Latest mode info message */}
+      {currentMode === 'latest_track' && (
+        <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2">
+          <p className="text-xs text-muted-foreground">{t('source_mode_latest_info_youtube')}</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -365,15 +439,32 @@ const VIDEO_PROVIDER_HINT: Record<VideoEmbedBlockConfig['provider'], VideoHintKe
 function VideoEmbedForm({
   config,
   onChange,
+  artistId,
 }: {
   config: VideoEmbedBlockConfig;
   onChange: (c: VideoEmbedBlockConfig) => void;
+  artistId?: string;
 }) {
   const t = useTranslations('blocks.fields');
 
+  const currentMode = config.mode ?? 'manual';
+  const showModeSelector = config.provider === 'youtube';
+
   function handleProviderChange(provider: VideoEmbedBlockConfig['provider']) {
-    // Reset sourceUrl when provider changes — old URL won't parse for new provider
-    onChange({ ...config, provider, sourceUrl: '', embedUrl: '', resourceType: 'video' });
+    // Reset sourceUrl and mode when provider changes — old URL won't parse for new provider
+    onChange({
+      ...config,
+      provider,
+      sourceUrl: '',
+      embedUrl: '',
+      resourceType: 'video',
+      mode: 'manual',
+    });
+  }
+
+  function handleModeChange(mode: 'manual' | 'latest_video') {
+    // Clear sourceUrl when switching modes — stale data from previous mode shouldn't carry over
+    onChange({ ...config, mode, sourceUrl: '', embedUrl: '' });
   }
 
   return (
@@ -394,20 +485,67 @@ function VideoEmbedForm({
           ))}
         </select>
       </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium">{t('source_url')}</label>
-        <input
-          type="url"
-          placeholder="https://..."
-          value={config.sourceUrl}
-          onChange={(e) => onChange({ ...config, sourceUrl: e.target.value })}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          maxLength={2048}
-        />
-        <p className="mt-1 text-xs text-muted-foreground">
-          {t(VIDEO_PROVIDER_HINT[config.provider])}
-        </p>
-      </div>
+
+      {/* Mode selector — only for YouTube */}
+      {showModeSelector && (
+        <div>
+          <label className="mb-1 block text-sm font-medium">{t('source_mode_label')}</label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleModeChange('manual')}
+              className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                currentMode === 'manual'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-input text-muted-foreground hover:border-primary hover:text-primary'
+              }`}
+            >
+              {t('source_mode_manual')}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleModeChange('latest_video')}
+              className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                currentMode === 'latest_video'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-input text-muted-foreground hover:border-primary hover:text-primary'
+              }`}
+            >
+              {t('source_mode_latest_video')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* URL input — shown in manual mode */}
+      {currentMode === 'manual' && (
+        <div>
+          <label className="mb-1 block text-sm font-medium">{t('source_url')}</label>
+          <input
+            type="url"
+            placeholder="https://..."
+            value={config.sourceUrl}
+            onChange={(e) => onChange({ ...config, sourceUrl: e.target.value })}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            maxLength={2048}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {config.provider === 'youtube'
+              ? `${t(VIDEO_PROVIDER_HINT[config.provider])} — ${t('source_url_hint_youtube_playlist')}`
+              : t(VIDEO_PROVIDER_HINT[config.provider])}
+          </p>
+        </div>
+      )}
+
+      {/* Latest video info message */}
+      {currentMode === 'latest_video' && (
+        <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2">
+          <p className="text-xs text-muted-foreground">{t('source_mode_latest_info_youtube')}</p>
+          {!artistId && (
+            <p className="mt-1 text-xs text-amber-400">{t('source_mode_latest_no_connection')}</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1420,9 +1558,21 @@ export function defaultConfig(type: BlockType): BlockConfig {
         ],
       };
     case 'music_embed':
-      return { provider: 'spotify', sourceUrl: '', embedUrl: '', resourceType: 'track' };
+      return {
+        provider: 'spotify',
+        sourceUrl: '',
+        embedUrl: '',
+        resourceType: 'track',
+        mode: 'manual' as const,
+      };
     case 'video_embed':
-      return { provider: 'youtube', sourceUrl: '', embedUrl: '', resourceType: 'video' };
+      return {
+        provider: 'youtube',
+        sourceUrl: '',
+        embedUrl: '',
+        resourceType: 'video',
+        mode: 'manual' as const,
+      };
     case 'email_capture':
       return { headline: '', buttonLabel: 'Subscribe' };
     case 'text':
@@ -1476,7 +1626,11 @@ export function BlockConfigForm({
       );
     case 'video_embed':
       return (
-        <VideoEmbedForm config={config as VideoEmbedBlockConfig} onChange={(c) => onChange(c)} />
+        <VideoEmbedForm
+          config={config as VideoEmbedBlockConfig}
+          onChange={(c) => onChange(c)}
+          artistId={artistId}
+        />
       );
     case 'email_capture':
       return (

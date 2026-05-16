@@ -99,14 +99,22 @@ export interface MusicEmbedBlockConfig {
   embedUrl: string;
   /** Resource type inferred from sourceUrl path by the backend. */
   resourceType: MusicResourceType;
+  /**
+   * Content source mode.
+   *   'manual'       — user provides a specific sourceUrl (default, backward-compatible)
+   *   'latest_track' — show the latest track; currently only supported for YouTube.
+   *                    SoundCloud latest track is not yet implemented (coming soon).
+   * When absent, treat as 'manual'.
+   */
+  mode?: 'manual' | 'latest_track';
 }
 
 /**
  * Resource types for video embed blocks.
- *   video | short
+ *   video | short | playlist
  * Derived by the backend from the sourceUrl path — never sent by the client.
  */
-export type VideoResourceType = 'video' | 'short';
+export type VideoResourceType = 'video' | 'short' | 'playlist';
 
 export interface VideoEmbedBlockConfig {
   provider: 'youtube' | 'vimeo' | 'tiktok';
@@ -116,6 +124,13 @@ export interface VideoEmbedBlockConfig {
   embedUrl: string;
   /** Resource type inferred from sourceUrl path by the backend. */
   resourceType: VideoResourceType;
+  /**
+   * Content source mode.
+   *   'manual'       — user provides a specific sourceUrl (default, backward-compatible)
+   *   'latest_video' — show the latest uploaded video; only supported for YouTube provider.
+   * When absent, treat as 'manual'.
+   */
+  mode?: 'manual' | 'latest_video';
 }
 
 export interface EmailCaptureBlockConfig {
