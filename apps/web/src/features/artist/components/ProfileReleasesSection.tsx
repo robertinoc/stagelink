@@ -185,9 +185,9 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
         </DialogHeader>
 
         {/* Cover preview — full width for visibility */}
-        <div className="flex items-center gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="flex items-center gap-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-4">
           <ReleaseCoverThumb coverUrl={coverUrl.trim() || null} alt={title || 'Release cover'} />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1 overflow-hidden">
             <p className="truncate text-sm font-medium text-white">
               {title.trim() || <span className="text-muted-foreground">Release title</span>}
             </p>

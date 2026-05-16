@@ -255,8 +255,8 @@ export function ProfileRecordLabelsSection({
               {labels.map((label, index) => (
                 <div key={label.id} className="flex min-h-[56px] items-center gap-4 px-5 py-3">
                   <LabelLogo logoUrl={effectiveLogoUrl(label)} name={label.name} size="sm" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-white">{label.name}</p>
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    <p className="truncate text-sm font-medium text-white">{label.name}</p>
                     {label.websiteUrl ? (
                       <p className="truncate text-xs text-muted-foreground">{label.websiteUrl}</p>
                     ) : (
