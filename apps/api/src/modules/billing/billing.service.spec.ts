@@ -92,7 +92,16 @@ describe('BillingService', () => {
       },
     };
 
-    const service = new BillingService(prisma as never, configService as never, stripe as never);
+    const emailService = {
+      sendPaymentFailed: jest.fn(),
+    };
+
+    const service = new BillingService(
+      prisma as never,
+      configService as never,
+      stripe as never,
+      emailService as never,
+    );
     return { service, prisma, stripe };
   }
 

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { BillingMessageCode, BillingUiState, FeatureKey, PlanCode } from '@stagelink/types';
+import { BillingStatusBanner } from '@/components/billing/BillingStatusBanner';
 import { ClearBillingFeedbackParams } from '@/components/billing/ClearBillingFeedbackParams';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -428,6 +429,8 @@ export default async function DashboardBillingPage({
           </Badge>
         </div>
       </div>
+
+      <BillingStatusBanner summary={summary} />
 
       {banner ? (
         <FeedbackBanner tone={banner.tone} title={banner.title} description={banner.description} />

@@ -1,3 +1,36 @@
+/**
+ * StageLink Billing Architecture
+ * ================================
+ * commercialPlan: The Stripe-backed subscription plan (free/pro/pro_plus).
+ *   Source of truth: Stripe. Synced via webhooks into subscriptions.plan + subscriptions.status.
+ *
+ * effectiveAccess: What the artist can actually use. = max(commercialPlan, manualAccessPlan if active).
+ *   Computed by resolveEffectiveAccess() at query time — not stored in DB.
+ *
+ * manualGrant: Admin-assigned temporary access override. Does NOT change commercialPlan.
+ *   Fields: manualAccessPlan, manualAccessStartsAt, manualAccessExpiresAt, manualAccessReason, manualAccessGrantedBy.
+ *   Evaluated lazily by isManualGrantActive(manual, now) on every entitlements request.
+ *   Expired grants remain in DB (not purged) — isManualGrantActive() returns false when expiresAt < now.
+ *
+ * Billing states:
+ *   active     — Paid subscription, access granted
+ *   trialing   — Trial period, access granted
+ *   past_due   — Payment failed, access maintained (configurable grace period via Stripe)
+ *   canceled   — Subscription ended, plan = free after currentPeriodEnd
+ *   cancel_at_period_end — Active until currentPeriodEnd, then downgrade
+ *   unpaid     — Multiple payment failures, access restrictions may apply
+ *   inactive   — No subscription / free plan
+ *
+ * Emails (sent by EmailService in apps/api):
+ *   RESEND_API_KEY env var must be set to activate real sending (logs only otherwise).
+ *   sendManualAccessGranted — on admin grant
+ *   sendManualAccessExpiringSoon — TODO: needs a scheduled job to trigger
+ *   sendManualAccessExpired — on admin revoke (not on natural expiry — no cron yet)
+ *   sendPaymentFailed — on invoice.payment_failed webhook
+ *   sendSubscriptionCancelledAtPeriodEnd — TODO: wire in subscription.updated handler
+ *   sendSubscriptionDowngraded — TODO: wire in subscription.deleted handler
+ */
+
 export const PLAN_CODES = ['free', 'pro', 'pro_plus'] as const;
 export type PlanCode = (typeof PLAN_CODES)[number];
 
@@ -179,6 +212,16 @@ export interface BillingUiSummary {
     isActive: boolean;
     accessSource: AccessSource;
   } | null;
+  /**
+   * Set when the active manual grant expires within 14 days.
+   * Rounded up to the nearest day, minimum 1. Null otherwise.
+   */
+  manualAccessExpiringInDays?: number | null;
+  /**
+   * True when the subscription status is `past_due` or `unpaid`.
+   * Signals that payment has failed and the user should update billing details.
+   */
+  isPaymentPastDue: boolean;
 }
 const PAID_STATUSES: BillingSubscriptionStatus[] = ['active', 'trialing'];
 

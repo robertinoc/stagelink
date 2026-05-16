@@ -41,6 +41,7 @@
     "jose": "^6.2.2",
     "posthog-node": "^5.34.1",
     "reflect-metadata": "^0.2.0",
+    "resend": "^6.12.3",
     "rxjs": "^7.8.0",
     "stripe": "^21.0.1"
   },
