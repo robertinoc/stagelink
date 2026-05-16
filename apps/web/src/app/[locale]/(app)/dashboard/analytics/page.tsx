@@ -80,13 +80,14 @@ export default async function DashboardAnalyticsPage({ params, searchParams }: P
     return null;
   }
 
-  const [entitlements, artist, insightsResult] = await Promise.all([
+  const [entitlements, artist, insightsResult, result] = await Promise.all([
     getBillingEntitlements(artistId, session.accessToken).catch(() => null),
     getArtist(artistId, session.accessToken).catch(() => null),
     getStageLinkInsightsDashboard(artistId, session.accessToken, insightsRange).catch(() => ({
       kind: 'error' as const,
       message: 'Failed to load StageLink Insights',
     })),
+    getAnalyticsOverview(artistId, session.accessToken, range),
   ]);
   const analyticsProEnabled = entitlements?.features.analytics_pro;
   const advancedFanInsightsEnabled = entitlements?.features.advanced_fan_insights;
@@ -101,7 +102,6 @@ export default async function DashboardAnalyticsPage({ params, searchParams }: P
   let analyticsProErrorMessage: string | null = null;
   let fanInsightsErrorMessage: string | null = null;
 
-  const result = await getAnalyticsOverview(artistId, session.accessToken, range);
   if (isSessionExpired(result)) {
     // Access token rejected — clear the stale WorkOS session and force re-auth.
     redirect(`/${locale}/login`);

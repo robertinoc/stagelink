@@ -42,11 +42,11 @@ export default async function DashboardProfilePage({ params }: DashboardProfileP
   const artistId = me?.artistIds[0];
   if (!artistId) redirect(`/${locale}/onboarding`);
 
-  const artist = await getArtist(artistId, session.accessToken);
+  const [artist, entitlements] = await Promise.all([
+    getArtist(artistId, session.accessToken),
+    getBillingEntitlements(artistId, session.accessToken).catch(() => null),
+  ]);
   if (!artist) redirect(`/${locale}/onboarding`);
-  const entitlements = await getBillingEntitlements(artist.id, session.accessToken).catch(
-    () => null,
-  );
 
   const t = await getTranslations('dashboard.profile');
 
