@@ -70,7 +70,7 @@ function LocalizedRiderDialog({
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <span className="text-lg leading-none">{icon}</span>
           <div className="min-w-0">
-            <p className="text-sm font-medium">{title}</p>
+            <p className="truncate text-sm font-medium">{title}</p>
             {previewText ? (
               <p className="truncate text-xs text-muted-foreground">{previewText}</p>
             ) : (

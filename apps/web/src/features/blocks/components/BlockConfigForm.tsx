@@ -1242,8 +1242,8 @@ function SmartMerchBlockForm({
                             Merch
                           </div>
                         )}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium">{product.title}</p>
+                        <div className="min-w-0 flex-1 overflow-hidden">
+                          <p className="truncate text-sm font-medium">{product.title}</p>
                           <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                             <span>{product.id}</span>
                             {product.priceAmount ? (
