@@ -182,7 +182,7 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit release' : 'Add release'}</DialogTitle>
           <DialogDescription>
-            Add an EP, album, single, or remix. Cover and Spotify URL are optional.
+            Add an EP, album, single, or remix. Spotify URL and label are optional.
           </DialogDescription>
         </DialogHeader>
 
