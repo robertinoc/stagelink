@@ -53,9 +53,10 @@ export function AppShell({ artist, effectivePlan, children }: AppShellProps) {
       </Sheet>
 
       {/* ── Main content column ──────────────────────────────────────────── */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      {/* min-w-0 prevents this flex child from growing beyond the viewport width */}
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <AppTopbar artist={artist} onMenuOpen={() => setMobileOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );
