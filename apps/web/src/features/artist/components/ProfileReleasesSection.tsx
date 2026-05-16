@@ -214,7 +214,7 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
           />
         </div>
 
-        {/* 2-column grid for the four short fields. Auto-stacks on mobile. */}
+        {/* 2-column grid: Type + Release date. Auto-stacks on mobile. */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Type */}
           <div className="space-y-1.5">
@@ -290,20 +290,20 @@ function ReleaseModal({ open, initial, recordLabels, onSave, onClose }: ReleaseM
               />
             )}
           </div>
+        </div>
 
-          {/* Spotify URL */}
-          <div className="space-y-1.5">
-            <label htmlFor="release-spotify" className="text-sm font-medium leading-none">
-              Spotify URL (optional)
-            </label>
-            <Input
-              id="release-spotify"
-              placeholder="https://open.spotify.com/album/…"
-              value={spotifyUrl}
-              onChange={(e) => setSpotifyUrl(e.target.value)}
-              type="url"
-            />
-          </div>
+        {/* Spotify URL — full width (long URLs benefit from the extra space) */}
+        <div className="space-y-1.5">
+          <label htmlFor="release-spotify" className="text-sm font-medium leading-none">
+            Spotify URL (optional)
+          </label>
+          <Input
+            id="release-spotify"
+            placeholder="https://open.spotify.com/album/…"
+            value={spotifyUrl}
+            onChange={(e) => setSpotifyUrl(e.target.value)}
+            type="url"
+          />
         </div>
 
         {/* Label — dropdown when the artist has record labels, plain input otherwise */}

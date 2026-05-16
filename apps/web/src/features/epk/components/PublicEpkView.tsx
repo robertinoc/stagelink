@@ -331,24 +331,23 @@ export async function PublicEpkView({
                 </h2>
                 <ul className="flex flex-wrap gap-2">
                   {epk.recordLabels.map((label) => {
-                    const pill = (
-                      <span className="inline-flex cursor-default items-center rounded-full border border-fuchsia-500/30 bg-fuchsia-500/[0.08] px-3 py-1.5 text-xs font-medium text-white transition-all duration-200 hover:border-fuchsia-400/50 hover:shadow-[0_0_18px_rgba(168,85,247,0.2)]">
-                        {label.name}
-                      </span>
-                    );
+                    const pillClass =
+                      'inline-flex items-center rounded-full border border-fuchsia-500/30 bg-fuchsia-500/[0.08] px-3 py-1.5 text-xs font-medium text-white transition-all duration-200 hover:scale-[1.04] hover:border-fuchsia-400/50 hover:shadow-[0_0_18px_rgba(168,85,247,0.2)]';
                     return label.websiteUrl && !printMode ? (
                       <li key={label.id}>
                         <a
                           href={label.websiteUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="hover:scale-[1.04] transition-transform inline-block"
+                          className={pillClass}
                         >
-                          {pill}
+                          {label.name}
                         </a>
                       </li>
                     ) : (
-                      <li key={label.id}>{pill}</li>
+                      <li key={label.id}>
+                        <span className={`cursor-default ${pillClass}`}>{label.name}</span>
+                      </li>
                     );
                   })}
                 </ul>

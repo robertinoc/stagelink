@@ -173,7 +173,7 @@ function CalloutCard({ callout, locale }: { callout: InsightCallout; locale: str
       </div>
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex items-center gap-2">
-          <p className="text-xs font-semibold text-foreground">{renderTitle()}</p>
+          <p className="truncate text-xs font-semibold text-foreground">{renderTitle()}</p>
           <Badge variant="outline" className={`shrink-0 text-xs ${config.badgeClass}`}>
             {callout.platformLabel}
           </Badge>
