@@ -5,6 +5,7 @@ import { HelpCircle } from 'lucide-react';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import { getSession } from '@/lib/auth';
 import { FaqItem } from '@/features/help/components/FaqItem';
+import { SUPPORT_URL } from '@/lib/constants';
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -60,6 +61,20 @@ export default async function DashboardHelpPage({
             </div>
           );
         })}
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
+        <h2 className="text-base font-semibold text-white">{t('support_cta.title')}</h2>
+        <p className="mt-2 text-sm text-white/50">{t('support_cta.description')}</p>
+        <a
+          href={SUPPORT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          aria-label={t('support_cta.button')}
+        >
+          {t('support_cta.button')}
+        </a>
       </div>
     </div>
   );
