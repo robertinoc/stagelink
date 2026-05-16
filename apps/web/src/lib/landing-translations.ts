@@ -214,9 +214,9 @@ const en: LandingTranslation = {
   },
   badge: 'Made by an artist, for artists',
   hero: {
-    headline: 'Show your music, your sets, and everything you do',
+    headline: 'Your music. Your story. One link.',
     subheadline:
-      'Bring your music, sets, links, and content into one artist page so people can discover you fast and reach out for gigs, bookings, or collaborations.',
+      'For DJs, producers, singers, musicians and performers. Bring your music, links, EPK, and updates into one place so people can discover you fast and reach out for gigs, bookings, or collaborations.',
     supportingText:
       'StageLink is more than a link page. It gives your sound, style, and story one place that feels like you.',
     socialProof: '1,000+ independent artists are building their presence with StageLink',
@@ -540,9 +540,9 @@ const es: LandingTranslation = {
   },
   badge: 'Hecho por un artista, para artistas',
   hero: {
-    headline: 'Mostrá tu música, tus sets y todo lo que hacés',
+    headline: 'Tu música. Tu historia. Un solo link.',
     subheadline:
-      'Uní tu música, tus sets, tus links y tu contenido en una sola página para que te descubran rápido y te contacten para fechas, bookings o colaboraciones.',
+      'Para DJs, productores, cantantes, músicos y performers. Uní tu música, tus links, tu EPK y tus novedades en un solo lugar para que te descubran rápido y te contacten para fechas, bookings o colaboraciones.',
     supportingText:
       'StageLink es más que una página de links. Le da a tu sonido, tu estilo y tu historia un lugar que se siente tuyo.',
     socialProof:
