@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { DEFAULT_LOCALE, type PublicEpkResponse, type SupportedLocale } from '@stagelink/types';
-import { RecordLabelLogo } from './RecordLabelLogo';
 import { ArtistStatsRow } from '@/features/public-page/components/ArtistStatsRow';
 
 interface PublicEpkViewProps {
@@ -330,41 +329,29 @@ export async function PublicEpkView({
                 >
                   {t('sections.record_labels')}
                 </h2>
-                <div className="flex flex-wrap gap-3">
+                <ul className="flex flex-wrap gap-2">
                   {epk.recordLabels.map((label) => {
-                    // Use the explicit logoUrl only. Clearbit was removed because
-                    // it returns HTTP 200 with a placeholder image instead of 404,
-                    // which means RecordLabelLogo's onError never fires and the
-                    // placeholder image leaks through. Null → emoji fallback
-                    // immediately, no image load attempted.
-                    const logoSrc = label.logoUrl ?? null;
-                    const inner = (
-                      <div
-                        className={`flex items-center gap-2.5 rounded-2xl border px-4 py-2.5 ${cardClass}`}
-                      >
-                        <RecordLabelLogo
-                          logoSrc={logoSrc}
-                          alt={label.name}
-                          className="h-6 w-6 flex-shrink-0 rounded-sm bg-white object-contain"
-                        />
-                        <span className={`text-sm font-medium ${bodyTextClass}`}>{label.name}</span>
-                      </div>
+                    const pill = (
+                      <span className="inline-flex cursor-default items-center rounded-full border border-fuchsia-500/30 bg-fuchsia-500/[0.08] px-3 py-1.5 text-xs font-medium text-white transition-all duration-200 hover:border-fuchsia-400/50 hover:shadow-[0_0_18px_rgba(168,85,247,0.2)]">
+                        {label.name}
+                      </span>
                     );
                     return label.websiteUrl && !printMode ? (
-                      <a
-                        key={label.id}
-                        href={label.websiteUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="transition hover:opacity-80"
-                      >
-                        {inner}
-                      </a>
+                      <li key={label.id}>
+                        <a
+                          href={label.websiteUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:scale-[1.04] transition-transform inline-block"
+                        >
+                          {pill}
+                        </a>
+                      </li>
                     ) : (
-                      <div key={label.id}>{inner}</div>
+                      <li key={label.id}>{pill}</li>
                     );
                   })}
-                </div>
+                </ul>
               </section>
             ) : null}
 
