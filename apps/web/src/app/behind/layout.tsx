@@ -70,7 +70,27 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             Behind the Stage
           </span>
         </div>
-        <p className="hidden text-xs text-white/40 sm:block">{session.user.email}</p>
+        <div className="flex items-center gap-3">
+          <p className="hidden text-xs text-white/40 sm:block">{session.user.email}</p>
+          <a
+            href="/api/auth/signout"
+            className="rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
+            style={{
+              color: 'rgba(255,255,255,0.45)',
+              border: '1px solid rgba(255,255,255,0.12)',
+            }}
+            onMouseOver={(e) => {
+              (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.8)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.25)';
+            }}
+            onMouseOut={(e) => {
+              (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.45)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.12)';
+            }}
+          >
+            Log out
+          </a>
+        </div>
       </header>
 
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
