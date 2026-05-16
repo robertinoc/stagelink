@@ -496,6 +496,11 @@ model Subscription {
   cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
   currentPeriodEnd     DateTime?          @map("current_period_end")
   lastStripeEventAt    DateTime?          @map("last_stripe_event_at")
+  manualAccessPlan      PlanTier?         @map("manual_access_plan")
+  manualAccessStartsAt  DateTime?         @map("manual_access_starts_at")
+  manualAccessExpiresAt DateTime?         @map("manual_access_expires_at")
+  manualAccessReason    String?           @map("manual_access_reason")
+  manualAccessGrantedBy String?           @map("manual_access_granted_by")
   createdAt            DateTime           @default(now()) @map("created_at")
   updatedAt            DateTime           @updatedAt @map("updated_at")
 

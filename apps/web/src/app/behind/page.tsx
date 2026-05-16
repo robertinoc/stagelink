@@ -13,10 +13,10 @@ export default async function BehindTheStagePage() {
           className="text-xl font-semibold font-[family-name:var(--font-heading)]"
           style={{ color: 'var(--foreground)' }}
         >
-          Users
+          Behind the Stage — Users
         </h2>
         <p className="mt-1 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-          All registered StageLink accounts.
+          All registered StageLink accounts. Manage roles, status and temporary access from here.
         </p>
       </div>
 

@@ -4,10 +4,33 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { Prisma, PlanTier } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
 import { getWorkOS } from '../../lib/workos';
 import { isBehindOwnerEmail } from './admin.config';
 import { AuditService } from '../audit/audit.service';
+import {
+  resolveEffectiveAccess,
+  type AccessSource,
+  type BillingSubscriptionStatus,
+  type PlanCode,
+} from '@stagelink/types';
+
+export interface AdminSubscriptionDto {
+  /** Commercial (Stripe-backed) plan. Never mutated by manual grants. */
+  plan: PlanCode;
+  status: BillingSubscriptionStatus;
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: string | null;
+  manualAccessPlan: PlanCode | null;
+  manualAccessStartsAt: string | null;
+  manualAccessExpiresAt: string | null;
+  manualAccessReason: string | null;
+  manualAccessGrantedBy: string | null;
+  isManualGrantActive: boolean;
+  effectiveAccess: PlanCode;
+  accessSource: AccessSource;
+}
 
 export interface AdminUserDto {
   id: string;
@@ -18,7 +41,42 @@ export interface AdminUserDto {
   createdAt: Date;
   firstName: string | null;
   lastName: string | null;
+  /** First artist's subscription/access summary. null if no artist/subscription. */
+  subscription: AdminSubscriptionDto | null;
 }
+
+/**
+ * Shared Prisma `select` for every admin user query. Keeps the row shape
+ * (and therefore the DTO mapping) identical across list/update/suspend.
+ * workosId is never selected.
+ */
+const ADMIN_SUBSCRIPTION_SELECT = {
+  plan: true,
+  status: true,
+  currentPeriodEnd: true,
+  cancelAtPeriodEnd: true,
+  manualAccessPlan: true,
+  manualAccessStartsAt: true,
+  manualAccessExpiresAt: true,
+  manualAccessReason: true,
+  manualAccessGrantedBy: true,
+} as const;
+
+const ADMIN_USER_SELECT = {
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  isSuspended: true,
+  deletedAt: true,
+  createdAt: true,
+  artists: {
+    select: {
+      username: true,
+      subscription: { select: ADMIN_SUBSCRIPTION_SELECT },
+    },
+  },
+} as const;
 
 @Injectable()
 export class AdminService {
@@ -35,16 +93,7 @@ export class AdminService {
     const rows = await this.prisma.user.findMany({
       where: { deletedAt: null },
       orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        isSuspended: true,
-        deletedAt: true,
-        createdAt: true,
-        artists: { select: { username: true } },
-      },
+      select: ADMIN_USER_SELECT,
     });
 
     return rows.map(toDto);
@@ -80,16 +129,7 @@ export class AdminService {
     const updated = await this.prisma.user.update({
       where: { id: targetId },
       data: { isSuspended },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        isSuspended: true,
-        deletedAt: true,
-        createdAt: true,
-        artists: { select: { username: true } },
-      },
+      select: ADMIN_USER_SELECT,
     });
 
     this.auditService.log({
@@ -135,16 +175,7 @@ export class AdminService {
         ...(firstName !== undefined && { firstName: firstName.trim() || null }),
         ...(lastName !== undefined && { lastName: lastName.trim() || null }),
       },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        isSuspended: true,
-        deletedAt: true,
-        createdAt: true,
-        artists: { select: { username: true } },
-      },
+      select: ADMIN_USER_SELECT,
     });
 
     this.auditService.log({
@@ -244,22 +275,266 @@ export class AdminService {
       expiresAt: invitation.expiresAt ?? null,
     };
   }
+
+  // ─── Manual (admin-granted) temporary access ──────────────────────────────
+  //
+  // These never touch `plan`, `status` or any `stripe_*` column. They only
+  // raise a tenant's access for a bounded window. The effective access is
+  // recomputed via resolveEffectiveAccess() wherever it is consumed.
+
+  private readonly MAX_GRANT_MS = 365 * 24 * 60 * 60 * 1000; // 1 year
+
+  /**
+   * Resolves the (single) artist + subscription for a target user.
+   * Throws 404 if the user or an artist is missing.
+   */
+  private async resolveArtistForUser(targetUserId: string): Promise<{
+    artistId: string;
+    targetEmail: string;
+    subscriptionId: string | null;
+  }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: {
+        email: true,
+        deletedAt: true,
+        artists: {
+          select: { id: true, subscription: { select: { id: true } } },
+        },
+      },
+    });
+
+    if (!user || user.deletedAt !== null) {
+      throw new NotFoundException(`User ${targetUserId} not found`);
+    }
+
+    const artist = user.artists[0];
+    if (!artist) {
+      throw new BadRequestException('User has no artist to grant access to');
+    }
+
+    return {
+      artistId: artist.id,
+      targetEmail: user.email,
+      subscriptionId: artist.subscription?.id ?? null,
+    };
+  }
+
+  /** Parses + validates an ISO expiry: must be in the future, max 1 year out. */
+  private parseExpiry(expiresAt: string): Date {
+    const expiry = new Date(expiresAt);
+    if (Number.isNaN(expiry.getTime())) {
+      throw new BadRequestException('expiresAt is not a valid date');
+    }
+    const now = Date.now();
+    if (expiry.getTime() <= now) {
+      throw new BadRequestException('expiresAt must be in the future');
+    }
+    if (expiry.getTime() - now > this.MAX_GRANT_MS) {
+      throw new BadRequestException('expiresAt cannot be more than 1 year from now');
+    }
+    return expiry;
+  }
+
+  /**
+   * Grants (or replaces) a manual temporary access for a tenant.
+   * Upserts the subscription row WITHOUT changing commercial billing fields.
+   */
+  async grantAccess(
+    targetUserId: string,
+    plan: typeof PlanTier.pro | typeof PlanTier.pro_plus,
+    expiresAt: string,
+    reason: string | undefined,
+    actorId: string,
+    ipAddress?: string,
+  ): Promise<AdminSubscriptionDto> {
+    // Defensive runtime guard (the DTO already excludes `free` at the type level).
+    if ((plan as PlanTier) === PlanTier.free) {
+      throw new BadRequestException('Cannot grant the free plan');
+    }
+    const expiry = this.parseExpiry(expiresAt);
+    const { artistId, targetEmail } = await this.resolveArtistForUser(targetUserId);
+    const now = new Date();
+
+    const manualData = {
+      manualAccessPlan: plan,
+      manualAccessStartsAt: now,
+      manualAccessExpiresAt: expiry,
+      manualAccessReason: reason?.trim() || null,
+      manualAccessGrantedBy: actorId,
+    };
+
+    const sub = await this.prisma.subscription.upsert({
+      where: { artistId },
+      // create only sets manual fields — commercial fields keep their defaults
+      create: { artistId, ...manualData },
+      // update touches ONLY the manual fields
+      update: manualData,
+      select: ADMIN_SUBSCRIPTION_SELECT,
+    });
+
+    this.auditService.log({
+      actorId,
+      action: 'admin.access.grant',
+      entityType: 'subscription',
+      entityId: artistId,
+      metadata: {
+        targetUserId,
+        targetEmail,
+        plan,
+        expiresAt: expiry.toISOString(),
+        reason: reason ?? null,
+      },
+      ipAddress,
+    });
+
+    return mapSubscription(sub)!;
+  }
+
+  /**
+   * Extends (or shortens) the expiry of an existing manual grant,
+   * optionally updating the reason. Does not change the granted plan.
+   */
+  async extendAccess(
+    targetUserId: string,
+    expiresAt: string,
+    reason: string | undefined,
+    actorId: string,
+    ipAddress?: string,
+  ): Promise<AdminSubscriptionDto> {
+    const expiry = this.parseExpiry(expiresAt);
+    const { artistId, targetEmail } = await this.resolveArtistForUser(targetUserId);
+
+    const current = await this.prisma.subscription.findUnique({
+      where: { artistId },
+      select: { manualAccessPlan: true },
+    });
+
+    if (!current || current.manualAccessPlan === null) {
+      throw new BadRequestException('No active manual grant to extend');
+    }
+
+    const sub = await this.prisma.subscription.update({
+      where: { artistId },
+      data: {
+        manualAccessExpiresAt: expiry,
+        ...(reason !== undefined && { manualAccessReason: reason.trim() || null }),
+      },
+      select: ADMIN_SUBSCRIPTION_SELECT,
+    });
+
+    this.auditService.log({
+      actorId,
+      action: 'admin.access.extend',
+      entityType: 'subscription',
+      entityId: artistId,
+      metadata: {
+        targetUserId,
+        targetEmail,
+        expiresAt: expiry.toISOString(),
+        reason: reason ?? null,
+      },
+      ipAddress,
+    });
+
+    return mapSubscription(sub)!;
+  }
+
+  /**
+   * Revokes a manual grant by nulling every manualAccess* field.
+   * Commercial billing is untouched — the tenant falls back to their plan.
+   */
+  async revokeAccess(
+    targetUserId: string,
+    actorId: string,
+    ipAddress?: string,
+  ): Promise<AdminSubscriptionDto> {
+    const { artistId, targetEmail } = await this.resolveArtistForUser(targetUserId);
+
+    const current = await this.prisma.subscription.findUnique({
+      where: { artistId },
+      select: { manualAccessPlan: true },
+    });
+
+    if (!current) {
+      throw new NotFoundException('No subscription found for this user');
+    }
+
+    const sub = await this.prisma.subscription.update({
+      where: { artistId },
+      data: {
+        manualAccessPlan: null,
+        manualAccessStartsAt: null,
+        manualAccessExpiresAt: null,
+        manualAccessReason: null,
+        manualAccessGrantedBy: null,
+      },
+      select: ADMIN_SUBSCRIPTION_SELECT,
+    });
+
+    this.auditService.log({
+      actorId,
+      action: 'admin.access.revoke',
+      entityType: 'subscription',
+      entityId: artistId,
+      metadata: { targetUserId, targetEmail },
+      ipAddress,
+    });
+
+    return mapSubscription(sub)!;
+  }
 }
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-type UserRow = {
-  id: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  isSuspended: boolean;
-  deletedAt: Date | null;
-  createdAt: Date;
-  artists: { username: string }[];
-};
+type UserRow = Prisma.UserGetPayload<{ select: typeof ADMIN_USER_SELECT }>;
+type SubscriptionRow = Prisma.SubscriptionGetPayload<{
+  select: typeof ADMIN_SUBSCRIPTION_SELECT;
+}> | null;
+
+function mapSubscription(sub: SubscriptionRow): AdminSubscriptionDto | null {
+  if (!sub) return null;
+
+  const access = resolveEffectiveAccess(
+    {
+      plan: sub.plan as PlanCode,
+      status: sub.status as BillingSubscriptionStatus,
+      cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
+      currentPeriodEnd: sub.currentPeriodEnd,
+    },
+    {
+      manualAccessPlan: (sub.manualAccessPlan as PlanCode | null) ?? null,
+      manualAccessStartsAt: sub.manualAccessStartsAt,
+      manualAccessExpiresAt: sub.manualAccessExpiresAt,
+      manualAccessReason: sub.manualAccessReason,
+      manualAccessGrantedBy: sub.manualAccessGrantedBy,
+    },
+  );
+
+  return {
+    plan: sub.plan as PlanCode,
+    status: sub.status as BillingSubscriptionStatus,
+    cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
+    currentPeriodEnd: sub.currentPeriodEnd?.toISOString() ?? null,
+    manualAccessPlan: (sub.manualAccessPlan as PlanCode | null) ?? null,
+    manualAccessStartsAt: sub.manualAccessStartsAt?.toISOString() ?? null,
+    manualAccessExpiresAt: sub.manualAccessExpiresAt?.toISOString() ?? null,
+    manualAccessReason: sub.manualAccessReason,
+    manualAccessGrantedBy: sub.manualAccessGrantedBy,
+    isManualGrantActive: access.isManualGrantActive,
+    effectiveAccess: access.effectiveAccess,
+    accessSource: access.accessSource,
+  };
+}
 
 function toDto(u: UserRow): AdminUserDto {
+  // Most users have a single artist; surface its subscription. Pick the
+  // first artist that actually has a subscription row.
+  const subRow =
+    u.artists.find((a) => a.subscription != null)?.subscription ??
+    u.artists[0]?.subscription ??
+    null;
+
   return {
     id: u.id,
     email: u.email,
@@ -269,6 +544,7 @@ function toDto(u: UserRow): AdminUserDto {
     artistUsernames: u.artists.map((a) => a.username),
     isSuspended: u.isSuspended,
     createdAt: u.createdAt,
+    subscription: mapSubscription(subRow),
   };
 }
 

@@ -22,9 +22,11 @@ import {
   isBillingSyncPending,
   PLAN_FEATURE_MATRIX,
   resolveBillingUiState,
+  resolveEffectiveAccess,
   type BillingFeatureSummary,
   type BillingPlanSummary,
   type BillingUiSummary,
+  type PlanCode,
 } from '@stagelink/types';
 import type { Request } from 'express';
 import type Stripe from 'stripe';
@@ -101,20 +103,41 @@ export class BillingService {
     const billingState = resolveBillingUiState(snapshot, now);
     const billingSyncPending = isBillingSyncPending(snapshot);
     const billingMessages = buildBillingMessages(snapshot, now);
-    const availablePlans = this.buildPlanSummaries(
-      products,
-      subscription,
-      entitlements.effectivePlan,
+
+    // Fold in any active manual admin grant. This only ever raises the
+    // effective plan — commercial billingPlan / status are unchanged.
+    const access = resolveEffectiveAccess(
+      snapshot,
+      {
+        manualAccessPlan: (subscription.manualAccessPlan as PlanCode | null) ?? null,
+        manualAccessStartsAt: subscription.manualAccessStartsAt,
+        manualAccessExpiresAt: subscription.manualAccessExpiresAt,
+        manualAccessReason: subscription.manualAccessReason,
+        manualAccessGrantedBy: subscription.manualAccessGrantedBy,
+      },
+      now,
     );
-    const featureHighlights = this.buildFeatureHighlights(entitlements.effectivePlan);
+    const effectivePlan = access.effectiveAccess;
+
+    const availablePlans = this.buildPlanSummaries(products, subscription, effectivePlan);
+    const featureHighlights = this.buildFeatureHighlights(effectivePlan);
     const recommendedPlan = availablePlans.find(
       (plan) =>
         plan.recommended && !plan.isCurrent && plan.planCode !== 'enterprise' && plan.available,
     );
 
+    // Feature availability must reflect the (possibly elevated) effective
+    // plan so the dashboard unlocks features under a manual grant.
+    const elevatedEntitlements = buildTenantEntitlements({
+      plan: effectivePlan,
+      status: 'active',
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: null,
+    });
+
     return ok<BillingUiSummary>({
       artistId,
-      effectivePlan: entitlements.effectivePlan,
+      effectivePlan,
       billingPlan: entitlements.billingPlan,
       subscriptionStatus: entitlements.subscriptionStatus,
       currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
@@ -124,7 +147,7 @@ export class BillingService {
       billingSyncPending,
       billingMessages,
       availablePlans,
-      entitlements: entitlements.features,
+      entitlements: elevatedEntitlements.features,
       featureHighlights,
       upgradeOptions: {
         canUpgrade: availablePlans.some(
@@ -132,7 +155,7 @@ export class BillingService {
             plan.planCode !== 'enterprise' &&
             plan.available &&
             !plan.isCurrent &&
-            this.planRank(plan.planCode) > this.planRank(entitlements.effectivePlan),
+            this.planRank(plan.planCode) > this.planRank(effectivePlan),
         ),
         canManageBilling: Boolean(subscription.stripeCustomerId),
         recommendedPlan:
@@ -144,6 +167,16 @@ export class BillingService {
         isWebhookSyncPending: billingSyncPending,
       },
       portalAvailable: Boolean(subscription.stripeCustomerId),
+      manualAccess: access.manualAccessPlan
+        ? {
+            plan: access.manualAccessPlan,
+            startsAt: access.manualAccessStartsAt?.toISOString() ?? null,
+            expiresAt: access.manualAccessExpiresAt?.toISOString() ?? null,
+            reason: access.manualAccessReason,
+            isActive: access.isManualGrantActive,
+            accessSource: access.accessSource,
+          }
+        : null,
     });
   }
 

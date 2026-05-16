@@ -91,6 +91,28 @@ export interface BillingMessage {
   code: BillingMessageCode;
 }
 
+export interface ManualAccessSnapshot {
+  manualAccessPlan: PlanCode | null;
+  manualAccessStartsAt: Date | null;
+  manualAccessExpiresAt: Date | null;
+  manualAccessReason: string | null;
+  manualAccessGrantedBy: string | null;
+}
+
+export type AccessSource = 'commercial_plan' | 'manual_admin_grant' | 'fallback';
+
+export interface EffectiveAccessResult {
+  commercialPlan: PlanCode;
+  subscriptionStatus: BillingSubscriptionStatus;
+  manualAccessPlan: PlanCode | null;
+  manualAccessStartsAt: Date | null;
+  manualAccessExpiresAt: Date | null;
+  manualAccessReason: string | null;
+  isManualGrantActive: boolean;
+  effectiveAccess: PlanCode;
+  accessSource: AccessSource;
+}
+
 export interface TenantEntitlements {
   effectivePlan: PlanCode;
   billingPlan: PlanCode;
@@ -143,6 +165,20 @@ export interface BillingUiSummary {
     isWebhookSyncPending: boolean;
   };
   portalAvailable: boolean;
+  /**
+   * Manual (admin-granted) temporary access. Optional + backwards-compatible:
+   * absent / null when the tenant has no manual grant. When a grant is
+   * active and outranks the commercial plan, `effectivePlan` above already
+   * reflects the elevated access.
+   */
+  manualAccess?: {
+    plan: PlanCode | null;
+    startsAt: string | null;
+    expiresAt: string | null;
+    reason: string | null;
+    isActive: boolean;
+    accessSource: AccessSource;
+  } | null;
 }
 const PAID_STATUSES: BillingSubscriptionStatus[] = ['active', 'trialing'];
 
@@ -218,6 +254,67 @@ export function resolveEffectivePlan(
 ): PlanCode {
   if (!snapshot) return 'free';
   return subscriptionGrantsAccess(snapshot, now) ? snapshot.plan : 'free';
+}
+
+/**
+ * Returns true when a manual admin grant is currently in effect.
+ *
+ * A grant is active when it has a target plan AND the current instant
+ * falls within its [startsAt, expiresAt] window. A null bound means
+ * "open" on that side (no start delay / no expiry).
+ */
+export function isManualGrantActive(
+  manual: ManualAccessSnapshot | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  if (!manual || !manual.manualAccessPlan) return false;
+
+  const startsOk =
+    manual.manualAccessStartsAt === null || manual.manualAccessStartsAt.getTime() <= now.getTime();
+  const notExpired =
+    manual.manualAccessExpiresAt === null || manual.manualAccessExpiresAt.getTime() > now.getTime();
+
+  return startsOk && notExpired;
+}
+
+/**
+ * Resolves the tenant's effective access by combining the commercial
+ * (Stripe-backed) plan with any active manual admin grant.
+ *
+ * The effective access is the *higher* of the commercial plan and an
+ * active manual grant. The commercial billing state is never mutated —
+ * a manual grant only ever raises access, never lowers it.
+ */
+export function resolveEffectiveAccess(
+  snapshot: BillingSubscriptionSnapshot | null | undefined,
+  manual: ManualAccessSnapshot | null | undefined,
+  now: Date = new Date(),
+): EffectiveAccessResult {
+  const commercialPlan = resolveEffectivePlan(snapshot, now);
+  const grantActive = isManualGrantActive(manual, now);
+
+  const manualPlan = manual?.manualAccessPlan ?? null;
+  const manualOutranksCommercial =
+    grantActive && manualPlan !== null && getPlanRank(manualPlan) > getPlanRank(commercialPlan);
+
+  const effectiveAccess: PlanCode =
+    grantActive && manualPlan !== null && manualOutranksCommercial ? manualPlan : commercialPlan;
+
+  const accessSource: AccessSource = manualOutranksCommercial
+    ? 'manual_admin_grant'
+    : 'commercial_plan';
+
+  return {
+    commercialPlan,
+    subscriptionStatus: snapshot?.status ?? 'inactive',
+    manualAccessPlan: manualPlan,
+    manualAccessStartsAt: manual?.manualAccessStartsAt ?? null,
+    manualAccessExpiresAt: manual?.manualAccessExpiresAt ?? null,
+    manualAccessReason: manual?.manualAccessReason ?? null,
+    isManualGrantActive: grantActive,
+    effectiveAccess,
+    accessSource,
+  };
 }
 
 export function resolveBillingUiState(
