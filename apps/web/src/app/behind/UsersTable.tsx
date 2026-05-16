@@ -42,6 +42,36 @@ const MODAL_PANEL_STYLE = {
   border: '1px solid rgba(255,255,255,0.12)',
 } as const;
 
+// ─── Sorting / Filtering types ────────────────────────────────────────────────
+
+type SortField = 'handle' | 'name' | 'email' | 'joined' | 'plan' | 'role' | 'status';
+type SortDir = 'asc' | 'desc';
+type FilterPlan = 'all' | 'free' | 'pro' | 'pro_plus';
+type FilterRole = 'all' | 'owner' | 'admin' | 'user';
+type FilterStatus = 'all' | 'active' | 'suspended';
+
+interface ColDef {
+  key: SortField | 'actions';
+  label: string;
+  sortable: boolean;
+}
+
+const COLS: ColDef[] = [
+  { key: 'handle', label: 'Handle', sortable: true },
+  { key: 'name', label: 'Name', sortable: true },
+  { key: 'email', label: 'Email', sortable: true },
+  { key: 'joined', label: 'Joined', sortable: true },
+  { key: 'plan', label: 'Plan', sortable: true },
+  { key: 'role', label: 'Role', sortable: true },
+  { key: 'status', label: 'Status', sortable: true },
+  { key: 'actions', label: 'Actions', sortable: false },
+];
+
+const PLAN_RANK: Record<string, number> = { free: 0, pro: 1, pro_plus: 2 };
+const ROLE_RANK: Record<string, number> = { owner: 2, admin: 1 };
+
+// ─── Plan helpers ─────────────────────────────────────────────────────────────
+
 function planLabel(plan: string): string {
   if (plan === 'pro_plus') return 'PRO+';
   if (plan === 'pro') return 'PRO';
@@ -51,11 +81,12 @@ function planLabel(plan: string): string {
 function PlanBadge({ plan }: { plan: string }) {
   const isPlus = plan === 'pro_plus';
   const isPro = plan === 'pro';
+  // Free → amber so it has visual weight without suggesting a paid state
   const cls = isPlus
     ? 'border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-300'
     : isPro
       ? 'border-purple-500/40 bg-purple-500/10 text-purple-300'
-      : 'border-white/15 bg-white/5 text-white/50';
+      : 'border-amber-500/40 bg-amber-500/10 text-amber-300';
   return (
     <Badge variant="outline" className={`${cls} text-xs`}>
       {planLabel(plan)}
@@ -88,6 +119,69 @@ function matchesSearch(user: AdminUser, query: string): boolean {
     (user.lastName?.toLowerCase().includes(q) ?? false) ||
     user.artistUsernames.some((h) => h.toLowerCase().includes(q))
   );
+}
+
+function applyFilters(
+  users: AdminUser[],
+  search: string,
+  filterPlan: FilterPlan,
+  filterRole: FilterRole,
+  filterStatus: FilterStatus,
+  roles: RolesMap,
+): AdminUser[] {
+  return users.filter((u) => {
+    if (!matchesSearch(u, search)) return false;
+    if (filterPlan !== 'all' && (u.subscription?.plan ?? 'free') !== filterPlan) return false;
+    if (filterRole !== 'all') {
+      const role = roles[u.email.toLowerCase()] ?? null;
+      if (filterRole === 'owner' && role !== 'owner') return false;
+      if (filterRole === 'admin' && role !== 'admin') return false;
+      if (filterRole === 'user' && role !== null) return false;
+    }
+    if (filterStatus === 'active' && u.isSuspended) return false;
+    if (filterStatus === 'suspended' && !u.isSuspended) return false;
+    return true;
+  });
+}
+
+function applySort(
+  users: AdminUser[],
+  field: SortField,
+  dir: SortDir,
+  roles: RolesMap,
+): AdminUser[] {
+  return [...users].sort((a, b) => {
+    let cmp = 0;
+    switch (field) {
+      case 'handle':
+        cmp = (a.artistUsernames[0] ?? '').localeCompare(b.artistUsernames[0] ?? '');
+        break;
+      case 'name':
+        cmp = (a.name ?? a.email).localeCompare(b.name ?? b.email);
+        break;
+      case 'email':
+        cmp = a.email.localeCompare(b.email);
+        break;
+      case 'joined':
+        cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        break;
+      case 'plan':
+        cmp =
+          (PLAN_RANK[a.subscription?.plan ?? 'free'] ?? 0) -
+          (PLAN_RANK[b.subscription?.plan ?? 'free'] ?? 0);
+        break;
+      case 'role': {
+        const ra = ROLE_RANK[roles[a.email.toLowerCase()] ?? ''] ?? 0;
+        const rb = ROLE_RANK[roles[b.email.toLowerCase()] ?? ''] ?? 0;
+        cmp = ra - rb;
+        break;
+      }
+      case 'status':
+        cmp = Number(a.isSuspended) - Number(b.isSuspended);
+        break;
+    }
+    return dir === 'asc' ? cmp : -cmp;
+  });
 }
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
@@ -184,43 +278,6 @@ function ModalField({
 
 // ─── Loading / error / empty rows ─────────────────────────────────────────────
 
-const COLS = ['Handle', 'Name', 'Email', 'Joined', 'Plan', 'Role', 'Status', 'Actions'];
-
-// ─── Access cell ──────────────────────────────────────────────────────────────
-
-function AccessCell({ sub }: { sub: ArtistSubscription | null }) {
-  if (!sub) {
-    return <Dash />;
-  }
-
-  const grantActive = sub.isManualGrantActive && sub.manualAccessPlan;
-  const elevated = sub.accessSource === 'manual_admin_grant' && grantActive;
-  const expires = sub.manualAccessExpiresAt ? formatDate(sub.manualAccessExpiresAt) : 'no expiry';
-
-  return (
-    <div className="flex flex-col gap-1">
-      <PlanBadge plan={sub.plan} />
-      {grantActive && (
-        <span
-          className="inline-flex items-center gap-1 text-xs"
-          style={{ color: 'rgba(232,121,249,0.95)' }}
-          title={
-            (sub.manualAccessReason ? `Reason: ${sub.manualAccessReason}\n` : '') +
-            `Granted access: ${planLabel(sub.manualAccessPlan!)} until ${expires}`
-          }
-        >
-          ⚡ {planLabel(sub.manualAccessPlan!)} until {expires}
-        </span>
-      )}
-      {elevated && sub.effectiveAccess !== sub.plan && (
-        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          effective: {planLabel(sub.effectiveAccess)}
-        </span>
-      )}
-    </div>
-  );
-}
-
 function LoadingRows() {
   return (
     <>
@@ -271,6 +328,245 @@ function EmptyRow({ query }: { query: string }) {
   );
 }
 
+// ─── Access cell ──────────────────────────────────────────────────────────────
+
+function AccessCell({ sub }: { sub: ArtistSubscription | null }) {
+  if (!sub) {
+    return <Dash />;
+  }
+
+  const grantActive = sub.isManualGrantActive && sub.manualAccessPlan;
+  const elevated = sub.accessSource === 'manual_admin_grant' && grantActive;
+  const expires = sub.manualAccessExpiresAt ? formatDate(sub.manualAccessExpiresAt) : 'no expiry';
+
+  return (
+    <div className="flex flex-col gap-1">
+      <PlanBadge plan={sub.plan} />
+      {grantActive && (
+        <span
+          className="inline-flex items-center gap-1 text-xs"
+          style={{ color: 'rgba(232,121,249,0.95)' }}
+          title={
+            (sub.manualAccessReason ? `Reason: ${sub.manualAccessReason}\n` : '') +
+            `Granted access: ${planLabel(sub.manualAccessPlan!)} until ${expires}`
+          }
+        >
+          ⚡ {planLabel(sub.manualAccessPlan!)} until {expires}
+        </span>
+      )}
+      {elevated && sub.effectiveAccess !== sub.plan && (
+        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          effective: {planLabel(sub.effectiveAccess)}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ─── Row actions dropdown ─────────────────────────────────────────────────────
+
+function DropItem({
+  label,
+  onClick,
+  color,
+}: {
+  label: string;
+  onClick: () => void;
+  color?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full px-3 py-2 text-left text-sm transition-colors"
+      style={{ color: color ?? 'rgba(255,255,255,0.8)' }}
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)')}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '')}
+    >
+      {label}
+    </button>
+  );
+}
+
+function RowActionsDropdown({
+  user,
+  role,
+  locked,
+  isCurrentUser,
+  currentUserRole,
+  onEdit,
+  onStatusChange,
+  onRoleChange,
+  onManageAccess,
+}: {
+  user: AdminUser;
+  role: BehindRole | null;
+  locked: boolean;
+  isCurrentUser: boolean;
+  currentUserRole: BehindRole | null;
+  onEdit: (user: AdminUser) => void;
+  onStatusChange: (id: string, isSuspended: boolean) => void;
+  onRoleChange: (user: AdminUser, newRole: BehindRole | 'none') => void;
+  onManageAccess: (user: AdminUser) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [suspending, setSuspending] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const canManageRoles = currentUserRole === 'owner' && !isCurrentUser && !locked;
+  const canManageUsers = currentUserRole === 'owner';
+
+  useEffect(() => {
+    if (!open) return;
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  async function toggleSuspend() {
+    setSuspending(true);
+    setOpen(false);
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isSuspended: !user.isSuspended }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { message?: string };
+        alert(body.message ?? 'Could not update user status.');
+        return;
+      }
+      const { user: updated } = (await res.json()) as { user: AdminUser };
+      onStatusChange(user.id, updated.isSuspended);
+    } catch {
+      alert('Network error. Please try again.');
+    } finally {
+      setSuspending(false);
+    }
+  }
+
+  if (!canManageUsers && !canManageRoles) {
+    return <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>Read-only</span>;
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        disabled={suspending}
+        className="flex h-7 w-7 items-center justify-center rounded-md transition-colors"
+        title="Actions"
+        style={{
+          color: suspending ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.6)',
+          border: '1px solid rgba(255,255,255,0.12)',
+          backgroundColor: open ? 'rgba(255,255,255,0.08)' : 'transparent',
+        }}
+      >
+        {suspending ? (
+          <span className="text-xs">…</span>
+        ) : (
+          /* vertical three-dot icon */
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="5" r="2" />
+            <circle cx="12" cy="12" r="2" />
+            <circle cx="12" cy="19" r="2" />
+          </svg>
+        )}
+      </button>
+
+      {open && (
+        <div
+          className="absolute right-0 z-20 mt-1 min-w-[168px] rounded-lg py-1 shadow-xl"
+          style={{
+            backgroundColor: '#1a1030',
+            border: '1px solid rgba(255,255,255,0.12)',
+            top: '100%',
+          }}
+        >
+          {canManageUsers && (
+            <>
+              <DropItem
+                label="Edit"
+                onClick={() => {
+                  setOpen(false);
+                  onEdit(user);
+                }}
+              />
+              <DropItem
+                label={user.isSuspended ? 'Unsuspend' : 'Suspend'}
+                color={user.isSuspended ? 'rgba(74,222,128,0.9)' : 'rgba(251,191,36,0.9)'}
+                onClick={toggleSuspend}
+              />
+            </>
+          )}
+
+          {canManageRoles && (
+            <>
+              {role === null && (
+                <DropItem
+                  label="Make Admin"
+                  color="rgba(232,121,249,0.9)"
+                  onClick={() => {
+                    setOpen(false);
+                    onRoleChange(user, 'admin');
+                  }}
+                />
+              )}
+              {role === 'admin' && (
+                <>
+                  <DropItem
+                    label="Make Owner"
+                    color="rgba(167,139,250,0.9)"
+                    onClick={() => {
+                      setOpen(false);
+                      onRoleChange(user, 'owner');
+                    }}
+                  />
+                  <DropItem
+                    label="Revoke Role"
+                    color="rgba(248,113,113,0.9)"
+                    onClick={() => {
+                      setOpen(false);
+                      onRoleChange(user, 'none');
+                    }}
+                  />
+                </>
+              )}
+              {role === 'owner' && (
+                <DropItem
+                  label="Demote to Admin"
+                  color="rgba(232,121,249,0.9)"
+                  onClick={() => {
+                    setOpen(false);
+                    onRoleChange(user, 'admin');
+                  }}
+                />
+              )}
+            </>
+          )}
+
+          {canManageUsers && user.artistUsernames.length > 0 && (
+            <>
+              <div style={{ margin: '4px 0', borderTop: '1px solid rgba(255,255,255,0.08)' }} />
+              <DropItem
+                label="Grant Temp Access"
+                color="rgba(167,139,250,0.9)"
+                onClick={() => {
+                  setOpen(false);
+                  onManageAccess(user);
+                }}
+              />
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── User row ─────────────────────────────────────────────────────────────────
 
 function UserRow({
@@ -295,32 +591,6 @@ function UserRow({
   onManageAccess: (user: AdminUser) => void;
 }) {
   const handle = user.artistUsernames[0] ?? null;
-  const [suspending, setSuspending] = useState(false);
-
-  const canManageRoles = currentUserRole === 'owner' && !isCurrentUser && !locked;
-  const canManageUsers = currentUserRole === 'owner';
-
-  async function toggleSuspend() {
-    setSuspending(true);
-    try {
-      const res = await fetch(`/api/admin/users/${user.id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isSuspended: !user.isSuspended }),
-      });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { message?: string };
-        alert(body.message ?? 'Could not update user status.');
-        return;
-      }
-      const { user: updated } = (await res.json()) as { user: AdminUser };
-      onStatusChange(user.id, updated.isSuspended);
-    } catch {
-      alert('Network error. Please try again.');
-    } finally {
-      setSuspending(false);
-    }
-  }
 
   return (
     <tr
@@ -329,6 +599,7 @@ function UserRow({
       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '')}
     >
+      {/* Handle */}
       <td className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
         {handle ? (
           <span style={{ color: 'var(--foreground)' }}>@{handle}</span>
@@ -342,6 +613,7 @@ function UserRow({
         )}
       </td>
 
+      {/* Name */}
       <td className="px-4 py-3 text-sm" style={{ color: 'var(--foreground)' }}>
         {user.name ? (
           <>
@@ -367,113 +639,59 @@ function UserRow({
         )}
       </td>
 
+      {/* Email */}
       <td className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
         {user.email}
       </td>
 
+      {/* Joined */}
       <td className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
         {formatDate(user.createdAt)}
       </td>
 
+      {/* Plan */}
       <td className="px-4 py-3">
         <AccessCell sub={user.subscription} />
       </td>
 
-      <td className="px-4 py-3">{role ? <RoleBadge role={role} locked={locked} /> : <Dash />}</td>
+      {/* Role — null shows "User" instead of an empty dash */}
+      <td className="px-4 py-3">
+        {role ? (
+          <RoleBadge role={role} locked={locked} />
+        ) : (
+          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            User
+          </span>
+        )}
+      </td>
 
+      {/* Status — active is green, suspended is red */}
       <td className="px-4 py-3">
         {user.isSuspended ? (
           <Badge variant="destructive">suspended</Badge>
         ) : (
-          <Badge variant="secondary">active</Badge>
+          <Badge
+            variant="outline"
+            className="border-emerald-500/40 bg-emerald-500/10 text-emerald-300 text-xs"
+          >
+            active
+          </Badge>
         )}
       </td>
 
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-1 flex-wrap">
-          {canManageUsers && (
-            <>
-              <Button variant="ghost" size="sm" onClick={() => onEdit(user)}>
-                Edit
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={suspending}
-                onClick={toggleSuspend}
-                className={
-                  user.isSuspended
-                    ? 'text-green-400 hover:text-green-300'
-                    : 'text-yellow-400 hover:text-yellow-300'
-                }
-              >
-                {suspending ? '…' : user.isSuspended ? 'Unsuspend' : 'Suspend'}
-              </Button>
-            </>
-          )}
-
-          {canManageRoles && (
-            <>
-              {role === null && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-fuchsia-400 hover:text-fuchsia-300"
-                  onClick={() => onRoleChange(user, 'admin')}
-                >
-                  → Admin
-                </Button>
-              )}
-              {role === 'admin' && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-purple-400 hover:text-purple-300"
-                    onClick={() => onRoleChange(user, 'owner')}
-                  >
-                    → Owner
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-400 hover:text-red-300"
-                    onClick={() => onRoleChange(user, 'none')}
-                  >
-                    Revoke
-                  </Button>
-                </>
-              )}
-              {role === 'owner' && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-fuchsia-400 hover:text-fuchsia-300"
-                  onClick={() => onRoleChange(user, 'admin')}
-                >
-                  → Admin
-                </Button>
-              )}
-            </>
-          )}
-
-          {canManageUsers && user.artistUsernames.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onManageAccess(user)}
-              className="text-fuchsia-400 hover:text-fuchsia-300"
-            >
-              Access
-            </Button>
-          )}
-
-          {/* Delete intentionally removed — soft-delete does not erase personal
-              data and therefore does not satisfy GDPR Art. 17 right to erasure.
-              Will be re-added once a proper anonymisation pipeline is implemented. */}
-
-          {!canManageUsers && <span style={{ color: 'rgba(255,255,255,0.3)' }}>Read-only</span>}
-        </div>
+      {/* Actions — dropdown */}
+      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+        <RowActionsDropdown
+          user={user}
+          role={role}
+          locked={locked}
+          isCurrentUser={isCurrentUser}
+          currentUserRole={currentUserRole}
+          onEdit={onEdit}
+          onStatusChange={onStatusChange}
+          onRoleChange={onRoleChange}
+          onManageAccess={onManageAccess}
+        />
       </td>
     </tr>
   );
@@ -589,113 +807,6 @@ function EditModal({
             </Button>
           </div>
         </form>
-      </div>
-    </div>
-  );
-}
-
-// ─── Delete modal ─────────────────────────────────────────────────────────────
-
-function DeleteModal({
-  user,
-  onClose,
-  onDeleted,
-}: {
-  user: AdminUser;
-  onClose: () => void;
-  onDeleted: (id: string) => void;
-}) {
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [onClose]);
-
-  async function handleDelete() {
-    setDeleting(true);
-    setError('');
-    try {
-      const res = await fetch(`/api/admin/users/${user.id}`, { method: 'DELETE' });
-      if (res.status === 204) {
-        onDeleted(user.id);
-        onClose();
-        return;
-      }
-      const body = (await res.json().catch(() => ({}))) as { message?: string };
-      setError(body.message ?? 'Could not delete user.');
-    } catch {
-      setError('Network error. Please try again.');
-    } finally {
-      setDeleting(false);
-    }
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="w-full max-w-sm rounded-xl p-6 text-center" style={MODAL_PANEL_STYLE}>
-        <div
-          className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full"
-          style={{ backgroundColor: 'rgba(239,68,68,0.12)' }}
-        >
-          <svg
-            className="h-5 w-5"
-            style={{ color: 'rgba(239,68,68,0.8)' }}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
-            />
-          </svg>
-        </div>
-        <h3 className="mb-1 text-base font-semibold" style={{ color: 'var(--foreground)' }}>
-          Delete user?
-        </h3>
-        <p className="mb-1 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
-          <strong style={{ color: 'var(--foreground)' }}>{user.name ?? user.email}</strong>
-        </p>
-        <p className="mb-5 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          Soft delete — data preserved, access revoked immediately.
-        </p>
-        {error && (
-          <p className="mb-3 text-xs" style={{ color: 'rgba(255,80,80,0.9)' }}>
-            {error}
-          </p>
-        )}
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            className="flex-1"
-            onClick={onClose}
-            disabled={deleting}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-            onClick={handleDelete}
-            disabled={deleting}
-          >
-            {deleting ? 'Deleting…' : 'Delete'}
-          </Button>
-        </div>
       </div>
     </div>
   );
@@ -1332,6 +1443,33 @@ function ManageAccessModal({
   );
 }
 
+// ─── Filter pill row ──────────────────────────────────────────────────────────
+
+function FilterPill({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-full px-2.5 py-0.5 text-xs transition-colors"
+      style={{
+        backgroundColor: active ? 'rgba(155,48,208,0.2)' : 'rgba(255,255,255,0.05)',
+        border: `1px solid ${active ? 'rgba(155,48,208,0.5)' : 'rgba(255,255,255,0.1)'}`,
+        color: active ? 'rgb(216,180,254)' : 'rgba(255,255,255,0.45)',
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 type ActiveModal =
@@ -1357,6 +1495,15 @@ export function UsersTable({
   const [lockedEmails, setLockedEmails] = useState<Set<string>>(
     new Set(initialLockedEmails.map((e) => e.toLowerCase())),
   );
+
+  // ── Filter state
+  const [filterPlan, setFilterPlan] = useState<FilterPlan>('all');
+  const [filterRole, setFilterRole] = useState<FilterRole>('all');
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
+
+  // ── Sort state (default: most recently joined first)
+  const [sortField, setSortField] = useState<SortField>('joined');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   const currentUserRole = roles[currentUserEmail.toLowerCase()] ?? null;
 
@@ -1395,13 +1542,6 @@ export function UsersTable({
     });
   }
 
-  function removeUser(id: string) {
-    setState((prev) => {
-      if (prev.status !== 'ok') return prev;
-      return { ...prev, users: prev.users.filter((u) => u.id !== id) };
-    });
-  }
-
   function handleStatusChange(id: string, isSuspended: boolean) {
     setState((prev) => {
       if (prev.status !== 'ok') return prev;
@@ -1424,8 +1564,25 @@ export function UsersTable({
     });
   }
 
+  function handleSortClick(field: SortField) {
+    if (sortField === field) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+  }
+
   const allUsers = state.status === 'ok' ? state.users : [];
-  const filteredUsers = allUsers.filter((u) => matchesSearch(u, search.trim()));
+  const filteredUsers = applySort(
+    applyFilters(allUsers, search.trim(), filterPlan, filterRole, filterStatus, roles),
+    sortField,
+    sortDir,
+    roles,
+  );
+
+  const hasActiveFilters =
+    filterPlan !== 'all' || filterRole !== 'all' || filterStatus !== 'all' || search.trim() !== '';
 
   return (
     <>
@@ -1458,7 +1615,7 @@ export function UsersTable({
                 {state.status === 'loading' && 'Loading…'}
                 {state.status === 'error' && 'Could not load user data.'}
                 {state.status === 'ok' &&
-                  (search.trim()
+                  (hasActiveFilters
                     ? `${filteredUsers.length} of ${allUsers.length} users`
                     : `${allUsers.length} ${allUsers.length === 1 ? 'user' : 'users'} registered`)}
               </CardDescription>
@@ -1509,6 +1666,45 @@ export function UsersTable({
               </button>
             )}
           </div>
+
+          {/* Filter pills */}
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+            {/* Plan filters */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                Plan
+              </span>
+              {(['all', 'free', 'pro', 'pro_plus'] as FilterPlan[]).map((p) => (
+                <FilterPill key={p} active={filterPlan === p} onClick={() => setFilterPlan(p)}>
+                  {p === 'all' ? 'All' : planLabel(p)}
+                </FilterPill>
+              ))}
+            </div>
+
+            {/* Role filters */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                Role
+              </span>
+              {(['all', 'owner', 'admin', 'user'] as FilterRole[]).map((r) => (
+                <FilterPill key={r} active={filterRole === r} onClick={() => setFilterRole(r)}>
+                  {r === 'all' ? 'All' : r.charAt(0).toUpperCase() + r.slice(1)}
+                </FilterPill>
+              ))}
+            </div>
+
+            {/* Status filters */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                Status
+              </span>
+              {(['all', 'active', 'suspended'] as FilterStatus[]).map((s) => (
+                <FilterPill key={s} active={filterStatus === s} onClick={() => setFilterStatus(s)}>
+                  {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+                </FilterPill>
+              ))}
+            </div>
+          </div>
         </CardHeader>
 
         <CardContent>
@@ -1518,11 +1714,31 @@ export function UsersTable({
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                   {COLS.map((col) => (
                     <th
-                      key={col}
-                      className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider"
-                      style={{ color: 'rgba(255,255,255,0.35)' }}
+                      key={col.key}
+                      className={`px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider ${col.sortable ? 'cursor-pointer select-none' : ''}`}
+                      style={{
+                        color:
+                          sortField === col.key
+                            ? 'rgba(216,180,254,0.9)'
+                            : 'rgba(255,255,255,0.35)',
+                      }}
+                      onClick={
+                        col.sortable ? () => handleSortClick(col.key as SortField) : undefined
+                      }
                     >
-                      {col}
+                      <span className="inline-flex items-center gap-1">
+                        {col.label}
+                        {col.sortable && (
+                          <span
+                            style={{
+                              opacity: sortField === col.key ? 1 : 0.3,
+                              fontSize: '10px',
+                            }}
+                          >
+                            {sortField === col.key ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
+                          </span>
+                        )}
+                      </span>
                     </th>
                   ))}
                 </tr>
