@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface RecordLabelLogoProps {
-  /** Resolved logo URL — explicit logoUrl, Clearbit fallback, or null when nothing usable. */
+  /** Resolved logo URL — explicit logoUrl or null when nothing usable. */
   logoSrc: string | null;
   /** Label name (used for alt text). */
   alt: string;
@@ -21,13 +21,32 @@ interface RecordLabelLogoProps {
  *
  * Fallback chain:
  *   1. Render the provided <img src={logoSrc}> when available
- *   2. If the image fails to load (404, CORS, Clearbit miss…), swap to the
- *      vinyl 📀 emoji so the row keeps a sensible visual instead of a broken
- *      image icon.
+ *   2. If the image fails to load (404, CORS…), swap to the vinyl 📀 emoji
+ *      so the row keeps a sensible visual instead of a broken image icon.
  *   3. If no logoSrc was provided at all, render the fallback directly.
+ *
+ * SSR race-condition guard:
+ *   The browser may begin fetching (and failing) the image before React
+ *   hydrates and attaches the onError handler, leaving a broken-image icon
+ *   stuck on screen. After hydration we imperatively check img.complete and
+ *   img.naturalWidth — a complete image with naturalWidth === 0 means the
+ *   load already failed — and flip the failed state accordingly.
  */
 export function RecordLabelLogo({ logoSrc, alt, className }: RecordLabelLogoProps) {
   const [failed, setFailed] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    // After hydration, check if the image already failed to load before
+    // React had a chance to attach the onError handler.
+    const img = imgRef.current;
+    if (!img) return;
+    // img.complete is true when the browser finished the load attempt
+    // (success OR failure). naturalWidth === 0 means the image is broken.
+    if (img.complete && img.naturalWidth === 0) {
+      setFailed(true);
+    }
+  }, []);
 
   if (!logoSrc || failed) {
     return (
@@ -42,5 +61,13 @@ export function RecordLabelLogo({ logoSrc, alt, className }: RecordLabelLogoProp
   }
 
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={logoSrc} alt={alt} className={className} onError={() => setFailed(true)} />;
+  return (
+    <img
+      ref={imgRef}
+      src={logoSrc}
+      alt={alt}
+      className={className}
+      onError={() => setFailed(true)}
+    />
+  );
 }
