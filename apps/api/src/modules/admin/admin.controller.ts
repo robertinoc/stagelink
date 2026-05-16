@@ -14,7 +14,13 @@ import type { Request } from 'express';
 import type { User } from '@prisma/client';
 import { AdminAccessGuard, AdminOwnerGuard } from './admin-owner.guard';
 import { AdminService } from './admin.service';
-import { UpdateUserStatusDto, SendInvitationDto, UpdateUserDto } from './dto';
+import {
+  UpdateUserStatusDto,
+  SendInvitationDto,
+  UpdateUserDto,
+  GrantAccessDto,
+  ExtendAccessDto,
+} from './dto';
 import { CurrentUser } from '../../common/decorators';
 import { extractClientIp } from '../../common/utils/request.utils';
 
@@ -133,5 +139,71 @@ export class AdminController {
       extractClientIp(req),
     );
     return { user };
+  }
+
+  /**
+   * POST /api/admin/users/:id/access
+   *
+   * Grants a temporary (admin-issued) PRO / PRO+ access to the user's
+   * artist. Does NOT modify commercial billing (plan/status/stripe_*).
+   * Body: { plan: 'pro' | 'pro_plus', expiresAt: ISO8601, reason?: string }
+   */
+  @Post('users/:id/access')
+  @UseGuards(AdminOwnerGuard)
+  @HttpCode(201)
+  async grantAccess(
+    @Param('id') id: string,
+    @Body() dto: GrantAccessDto,
+    @CurrentUser() actor: User,
+    @Req() req: Request,
+  ) {
+    const subscription = await this.adminService.grantAccess(
+      id,
+      dto.plan,
+      dto.expiresAt,
+      dto.reason,
+      actor.id,
+      extractClientIp(req),
+    );
+    return { subscription };
+  }
+
+  /**
+   * PATCH /api/admin/users/:id/access
+   *
+   * Extends (or shortens) an existing manual grant's expiry, optionally
+   * updating the reason. Body: { expiresAt: ISO8601, reason?: string }
+   */
+  @Patch('users/:id/access')
+  @UseGuards(AdminOwnerGuard)
+  @HttpCode(200)
+  async extendAccess(
+    @Param('id') id: string,
+    @Body() dto: ExtendAccessDto,
+    @CurrentUser() actor: User,
+    @Req() req: Request,
+  ) {
+    const subscription = await this.adminService.extendAccess(
+      id,
+      dto.expiresAt,
+      dto.reason,
+      actor.id,
+      extractClientIp(req),
+    );
+    return { subscription };
+  }
+
+  /**
+   * DELETE /api/admin/users/:id/access
+   *
+   * Revokes a manual grant (nulls all manualAccess* fields). Commercial
+   * billing is untouched — the tenant falls back to their real plan.
+   */
+  @Delete('users/:id/access')
+  @UseGuards(AdminOwnerGuard)
+  @HttpCode(200)
+  async revokeAccess(@Param('id') id: string, @CurrentUser() actor: User, @Req() req: Request) {
+    const subscription = await this.adminService.revokeAccess(id, actor.id, extractClientIp(req));
+    return { subscription };
   }
 }

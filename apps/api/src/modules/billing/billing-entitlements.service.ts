@@ -4,7 +4,9 @@ import {
   buildTenantEntitlements,
   getMinimumPlanForFeature,
   hasFeature,
+  resolveEffectiveAccess,
   type FeatureKey,
+  type PlanCode,
   type TenantEntitlements,
 } from '@stagelink/types';
 import { PrismaService } from '../../lib/prisma.service';
@@ -22,10 +24,53 @@ export class BillingEntitlementsService {
         status: true,
         cancelAtPeriodEnd: true,
         currentPeriodEnd: true,
+        manualAccessPlan: true,
+        manualAccessStartsAt: true,
+        manualAccessExpiresAt: true,
+        manualAccessReason: true,
+        manualAccessGrantedBy: true,
       },
     });
 
-    return buildTenantEntitlements(this.mapSubscriptionSnapshot(subscription));
+    const snapshot = this.mapSubscriptionSnapshot(subscription);
+
+    // Fold any active manual admin grant into the effective plan. A grant
+    // only ever RAISES access (never lowers it) and never touches the
+    // commercial billingPlan / subscriptionStatus surfaced to the UI.
+    const access = resolveEffectiveAccess(
+      snapshot,
+      subscription
+        ? {
+            manualAccessPlan: (subscription.manualAccessPlan as PlanCode | null) ?? null,
+            manualAccessStartsAt: subscription.manualAccessStartsAt,
+            manualAccessExpiresAt: subscription.manualAccessExpiresAt,
+            manualAccessReason: subscription.manualAccessReason,
+            manualAccessGrantedBy: subscription.manualAccessGrantedBy,
+          }
+        : null,
+    );
+
+    const baseEntitlements = buildTenantEntitlements(snapshot);
+
+    if (access.effectiveAccess === baseEntitlements.effectivePlan) {
+      return baseEntitlements;
+    }
+
+    // Recompute features at the (higher) granted plan while preserving the
+    // real commercial billingPlan / status for accurate billing display.
+    const elevated = buildTenantEntitlements({
+      plan: access.effectiveAccess,
+      status: 'active',
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: null,
+    });
+
+    return {
+      ...elevated,
+      billingPlan: baseEntitlements.billingPlan,
+      subscriptionStatus: baseEntitlements.subscriptionStatus,
+      cancelAtPeriodEnd: baseEntitlements.cancelAtPeriodEnd,
+    };
   }
 
   async hasFeatureAccess(artistId: string, feature: FeatureKey): Promise<boolean> {
