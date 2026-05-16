@@ -340,7 +340,7 @@ function CreateBlockDialog({
         </DialogHeader>
 
         {!selectedType ? (
-          <div className="grid grid-cols-2 gap-3 pt-2">
+          <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2">
             {availableBlockTypes.map((type) => (
               <button
                 key={type}
@@ -600,14 +600,15 @@ function BlockRow({
         onDrop(block.id);
       }}
       onDragEnd={onDragEnd}
-      className={`group cursor-pointer transition-all ${
+      className={`group w-full max-w-full cursor-pointer overflow-hidden transition-all ${
         accent.border
       } ${accent.background} ${isDragging ? 'scale-[0.99] opacity-70' : ''}`}
       onClick={onEdit}
     >
-      <CardContent className="flex items-start gap-3 p-4">
+      {/* Top row: drag handle + icon + info + badge */}
+      <CardContent className="flex min-w-0 items-start gap-3 p-4">
         {/* Order controls */}
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex shrink-0 items-center gap-2 pt-1">
           <span
             className="cursor-grab rounded-md border border-white/10 bg-white/5 p-1 text-muted-foreground active:cursor-grabbing"
             title={t('move_up')}
@@ -643,83 +644,87 @@ function BlockRow({
           <img
             src={thumbnail}
             alt=""
-            className="mt-0.5 h-12 w-12 rounded-xl border border-white/10 object-cover"
+            className="mt-0.5 h-12 w-12 shrink-0 rounded-xl border border-white/10 object-cover"
           />
         ) : (
-          <span className="mt-0.5 flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-black/10 text-xl">
+          <span className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/10 text-xl">
             {BLOCK_TYPE_ICONS[block.type]}
           </span>
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium text-sm">{block.title ?? t(`types.${block.type}`)}</p>
+          <p className="truncate text-sm font-medium">{block.title ?? t(`types.${block.type}`)}</p>
           <p className="text-xs text-muted-foreground">{t(`types.${block.type}`)}</p>
           <p className={`mt-1 line-clamp-2 text-xs ${accent.preview}`}>{preview}</p>
         </div>
 
-        {/* Status badge */}
-        <div className="flex shrink-0 flex-col items-end gap-2">
+        {/* Status badge — always visible, shrinks to icon only on very narrow screens */}
+        <div className="shrink-0">
           <Badge
             variant={block.isPublished ? 'default' : 'secondary'}
             className={block.isPublished ? 'bg-emerald-500/90 text-white' : ''}
           >
             {block.isPublished ? t('published') : t('draft')}
           </Badge>
-
-          <div className="flex flex-wrap items-center justify-end gap-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={(event) => {
-                event.stopPropagation();
-                onEdit();
-              }}
-            >
-              <Pencil className="mr-1 h-3.5 w-3.5" />
-              {t('edit')}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={(event) => {
-                event.stopPropagation();
-                void handleTogglePublish();
-              }}
-              disabled={toggling}
-            >
-              {block.isPublished ? (
-                <>
-                  <EyeOff className="mr-1 h-3.5 w-3.5" />
-                  {t('unpublish')}
-                </>
-              ) : (
-                <>
-                  <BadgeCheck className="mr-1 h-3.5 w-3.5" />
-                  {t('publish')}
-                </>
-              )}
-            </Button>
-            {!block.isPublished ? (
-              <Badge variant="outline" className="hidden sm:inline-flex">
-                <CircleDashed className="mr-1 h-3 w-3" />
-                {t('draft')}
-              </Badge>
-            ) : null}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={(event) => {
-                event.stopPropagation();
-                void handleDelete();
-              }}
-              disabled={deleting}
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 className="mr-1 h-3.5 w-3.5" />
-              {t('delete')}
-            </Button>
-          </div>
         </div>
       </CardContent>
+
+      {/* Action buttons row — separate from the top row so they can wrap independently */}
+      <div
+        className="flex flex-wrap items-center justify-end gap-1 border-t border-white/5 px-4 py-2"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={(event) => {
+            event.stopPropagation();
+            onEdit();
+          }}
+        >
+          <Pencil className="mr-1 h-3.5 w-3.5" />
+          {t('edit')}
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={(event) => {
+            event.stopPropagation();
+            void handleTogglePublish();
+          }}
+          disabled={toggling}
+        >
+          {block.isPublished ? (
+            <>
+              <EyeOff className="mr-1 h-3.5 w-3.5" />
+              {t('unpublish')}
+            </>
+          ) : (
+            <>
+              <BadgeCheck className="mr-1 h-3.5 w-3.5" />
+              {t('publish')}
+            </>
+          )}
+        </Button>
+        {!block.isPublished ? (
+          <Badge variant="outline" className="hidden sm:inline-flex">
+            <CircleDashed className="mr-1 h-3 w-3" />
+            {t('draft')}
+          </Badge>
+        ) : null}
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={(event) => {
+            event.stopPropagation();
+            void handleDelete();
+          }}
+          disabled={deleting}
+          className="text-destructive hover:text-destructive"
+        >
+          <Trash2 className="mr-1 h-3.5 w-3.5" />
+          {t('delete')}
+        </Button>
+      </div>
     </Card>
   );
 }

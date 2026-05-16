@@ -98,7 +98,7 @@ function RangeSelector({
   }
 
   return (
-    <div className="flex gap-1 rounded-lg border p-1">
+    <div className="flex flex-wrap gap-1 rounded-lg border p-1">
       {RANGES.map((r) => (
         <div key={r} className="flex items-center gap-1">
           <button

@@ -304,7 +304,7 @@ export function ProfileBasicInfo({ form, disabled }: ProfileBasicInfoProps) {
               )}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {ARTIST_CATEGORIES.map((category) => {
               const selectedNumber = categoryNumber(category);
               const blocked = !selectedNumber && selectedCategories.length >= 3;
