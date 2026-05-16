@@ -1368,6 +1368,11 @@
             }
           ]
         }
+      },
+      "support_cta": {
+        "title": "¿Necesitás más ayuda?",
+        "description": "Si todavía tenés preguntas o necesitás ayuda con tu cuenta de StageLink, contactá a nuestro Support Center y te ayudamos a volver al escenario.",
+        "button": "Contact Support Center"
       }
     }
   },
