@@ -502,11 +502,24 @@ function VideoEmbedForm({
 
   function handleModeChange(mode: 'manual' | 'latest_video' | 'playlist') {
     // Clear sourceUrl + playlistId when switching modes
-    onChange({ ...config, mode, sourceUrl: '', embedUrl: '', playlistId: undefined });
+    onChange({
+      ...config,
+      mode,
+      sourceUrl: '',
+      embedUrl: '',
+      playlistId: undefined,
+      playlistItemCount: undefined,
+    });
   }
 
   function handlePlaylistSelect(playlistId: string) {
-    onChange({ ...config, playlistId, embedUrl: '' });
+    const selectedPlaylist = playlists.find((pl) => pl.id === playlistId);
+    onChange({
+      ...config,
+      playlistId,
+      embedUrl: '',
+      playlistItemCount: selectedPlaylist?.itemCount ?? null,
+    });
   }
 
   return (

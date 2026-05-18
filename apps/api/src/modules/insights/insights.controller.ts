@@ -1,4 +1,16 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import type { User } from '@prisma/client';
 import type {
@@ -51,6 +63,23 @@ export class InsightsController {
     return this.insightsService.getSyncHealth(artistId);
   }
 
+  @Delete(':artistId/spotify')
+  @HttpCode(204)
+  @CheckOwnership('artist', 'artistId', 'write')
+  @UseGuards(OwnershipGuard)
+  disconnectSpotifyConnection(
+    @Param('artistId') artistId: string,
+    @CurrentUser() user: User,
+    @Req() req: Request,
+  ): Promise<void> {
+    return this.insightsService.disconnectPlatformConnection(
+      artistId,
+      'spotify',
+      user.id,
+      extractClientIp(req),
+    );
+  }
+
   @Post(':artistId/spotify/validate')
   @CheckOwnership('artist', 'artistId', 'write')
   @UseGuards(OwnershipGuard)
@@ -88,6 +117,23 @@ export class InsightsController {
     @Req() req: Request,
   ): Promise<SpotifyInsightsSyncResult> {
     return this.insightsService.syncSpotifyConnection(artistId, user.id, extractClientIp(req));
+  }
+
+  @Delete(':artistId/youtube')
+  @HttpCode(204)
+  @CheckOwnership('artist', 'artistId', 'write')
+  @UseGuards(OwnershipGuard)
+  disconnectYouTubeConnection(
+    @Param('artistId') artistId: string,
+    @CurrentUser() user: User,
+    @Req() req: Request,
+  ): Promise<void> {
+    return this.insightsService.disconnectPlatformConnection(
+      artistId,
+      'youtube',
+      user.id,
+      extractClientIp(req),
+    );
   }
 
   @Post(':artistId/youtube/validate')
@@ -144,6 +190,23 @@ export class InsightsController {
     @CurrentUser() user: User,
   ): Promise<import('./providers/youtube-insights.provider').YouTubePlaylistSummary[]> {
     return this.insightsService.getYouTubePlaylists(artistId, user.id);
+  }
+
+  @Delete(':artistId/soundcloud')
+  @HttpCode(204)
+  @CheckOwnership('artist', 'artistId', 'write')
+  @UseGuards(OwnershipGuard)
+  disconnectSoundCloudConnection(
+    @Param('artistId') artistId: string,
+    @CurrentUser() user: User,
+    @Req() req: Request,
+  ): Promise<void> {
+    return this.insightsService.disconnectPlatformConnection(
+      artistId,
+      'soundcloud',
+      user.id,
+      extractClientIp(req),
+    );
   }
 
   @Post(':artistId/soundcloud/validate')

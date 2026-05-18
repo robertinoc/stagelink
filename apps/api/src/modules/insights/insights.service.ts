@@ -4,6 +4,7 @@ import {
   HttpException,
   Injectable,
   Logger,
+  NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
@@ -1111,6 +1112,45 @@ export class InsightsService {
       return raw as StageLinkInsightsDateRange;
     }
     return DEFAULT_INSIGHTS_RANGE;
+  }
+
+  // =========================================================================
+  // Disconnect (all platforms)
+  // =========================================================================
+
+  /**
+   * Deletes the platform connection record for the artist.
+   * Cascades to all associated snapshots via DB foreign-key cascade.
+   * Throws 404 if no connection exists for the given platform.
+   */
+  async disconnectPlatformConnection(
+    artistId: string,
+    platform: 'spotify' | 'youtube' | 'soundcloud',
+    userId: string,
+    ipAddress?: string,
+  ): Promise<void> {
+    await this.membershipService.validateAccess(userId, artistId, 'write');
+
+    const connection = await this.prisma.artistPlatformInsightsConnection.findFirst({
+      where: { artistId, platform },
+    });
+
+    if (!connection) {
+      throw new NotFoundException(`No ${platform} connection found for this artist.`);
+    }
+
+    await this.prisma.artistPlatformInsightsConnection.delete({
+      where: { id: connection.id },
+    });
+
+    this.auditService.log({
+      actorId: userId,
+      action: `insights.${platform}_connection.disconnect`,
+      entityType: 'artist_platform_insights_connection',
+      entityId: connection.id,
+      metadata: { artistId, platform },
+      ipAddress,
+    });
   }
 
   private resolveRangeStart(range: StageLinkInsightsDateRange): Date | null {

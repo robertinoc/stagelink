@@ -178,6 +178,8 @@ export function VideoEmbedRenderer({ title, config, artistId }: VideoEmbedRender
     );
   }
 
+  const isPlaylistMode = mode === 'playlist';
+
   return (
     <div className="space-y-3">
       {title && <h3 className="text-center text-base font-semibold">{title}</h3>}
@@ -193,6 +195,18 @@ export function VideoEmbedRenderer({ title, config, artistId }: VideoEmbedRender
           loading="lazy"
         />
       </div>
+      {/* Playlist badge — shown only in playlist mode */}
+      {isPlaylistMode && (
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span>▶</span>
+          <span>
+            Playlist
+            {typeof config.playlistItemCount === 'number' && config.playlistItemCount > 0
+              ? ` · ${config.playlistItemCount} videos`
+              : null}
+          </span>
+        </p>
+      )}
     </div>
   );
 }

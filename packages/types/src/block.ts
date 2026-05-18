@@ -138,6 +138,12 @@ export interface VideoEmbedBlockConfig {
    * The backend derives embedUrl from this on every save.
    */
   playlistId?: string;
+  /**
+   * Set when mode === 'playlist'. The number of videos in the playlist at the
+   * time the artist selected it — used to render a "▶ Playlist · N videos"
+   * badge below the iframe on the public page. Purely cosmetic; may be stale.
+   */
+  playlistItemCount?: number | null;
 }
 
 export interface EmailCaptureBlockConfig {

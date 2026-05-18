@@ -221,3 +221,36 @@ export async function syncSoundCloudInsightsConnection(
 
   return readJsonOrThrow<SoundCloudInsightsSyncResult>(res, 'Could not sync SoundCloud insights');
 }
+
+// ─── Disconnect ────────────────────────────────────────────────────────────────
+
+async function disconnectInsightsConnection(
+  artistId: string,
+  platform: 'spotify' | 'youtube' | 'soundcloud',
+): Promise<void> {
+  const res = await fetch(`/api/insights/${artistId}/${platform}`, {
+    method: 'DELETE',
+    cache: 'no-store',
+  });
+  if (!res.ok && res.status !== 204) {
+    const err = (await res.json().catch(() => ({}))) as { message?: string | string[] };
+    const message = !err.message
+      ? `Could not disconnect ${platform}`
+      : Array.isArray(err.message)
+        ? err.message.join(', ')
+        : err.message;
+    throw new Error(message);
+  }
+}
+
+export function disconnectSpotifyInsightsConnection(artistId: string): Promise<void> {
+  return disconnectInsightsConnection(artistId, 'spotify');
+}
+
+export function disconnectYouTubeInsightsConnection(artistId: string): Promise<void> {
+  return disconnectInsightsConnection(artistId, 'youtube');
+}
+
+export function disconnectSoundCloudInsightsConnection(artistId: string): Promise<void> {
+  return disconnectInsightsConnection(artistId, 'soundcloud');
+}

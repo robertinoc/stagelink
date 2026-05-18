@@ -354,13 +354,18 @@
           "view_scope": "What this includes",
           "view_history": "View snapshot history",
           "manage_connection": "Manage connection",
-          "open_settings": "Open settings"
+          "open_settings": "Open settings",
+          "disconnect": "Disconnect",
+          "disconnecting": "Disconnecting..."
         },
         "messages": {
           "connected": "Spotify artist connected. Run a sync to pull the first snapshot.",
           "validate_error": "Could not validate this Spotify artist right now.",
           "connect_error": "Could not save this Spotify artist right now.",
-          "sync_error": "Could not sync Spotify insights right now."
+          "sync_error": "Could not sync Spotify insights right now.",
+          "disconnect_confirm": "This will remove the Spotify connection and all stored snapshots. This cannot be undone. Continue?",
+          "disconnected": "Spotify disconnected.",
+          "disconnect_error": "Could not disconnect Spotify right now."
         },
         "connected": {
           "unknown_artist": "Connected Spotify artist",
@@ -434,13 +439,18 @@
           "view_scope": "What this includes",
           "view_history": "View snapshot history",
           "manage_connection": "Manage connection",
-          "open_settings": "Open settings"
+          "open_settings": "Open settings",
+          "disconnect": "Disconnect",
+          "disconnecting": "Disconnecting..."
         },
         "messages": {
           "connected": "YouTube channel connected successfully.",
           "validate_error": "Could not validate the YouTube channel right now.",
           "connect_error": "Could not save the YouTube channel right now.",
           "sync_error": "Could not sync YouTube insights right now.",
+          "disconnect_confirm": "This will remove the YouTube connection and all stored snapshots. This cannot be undone. Continue?",
+          "disconnected": "YouTube disconnected.",
+          "disconnect_error": "Could not disconnect YouTube right now.",
           "profile_required": "Before using YouTube Insights, save your own YouTube channel in Profile so StageLink can verify the connection belongs to your artist account.",
           "subscribers_hidden": "This channel hides its public subscriber count, so StageLink shows channel views and video activity instead."
         },
@@ -564,13 +574,18 @@
           "view_scope": "What this includes",
           "view_history": "View snapshot history",
           "manage_connection": "Manage connection",
-          "open_settings": "Open settings"
+          "open_settings": "Open settings",
+          "disconnect": "Disconnect",
+          "disconnecting": "Disconnecting..."
         },
         "messages": {
           "connected": "SoundCloud profile connected successfully.",
           "validate_error": "Could not validate the SoundCloud profile right now.",
           "connect_error": "Could not save the SoundCloud connection right now.",
-          "sync_error": "Could not sync SoundCloud insights right now."
+          "sync_error": "Could not sync SoundCloud insights right now.",
+          "disconnect_confirm": "This will remove the SoundCloud connection and all stored snapshots. This cannot be undone. Continue?",
+          "disconnected": "SoundCloud disconnected.",
+          "disconnect_error": "Could not disconnect SoundCloud right now."
         },
         "connected": {
           "unknown_artist": "Connected SoundCloud profile",
