@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import type {
   BlockType,
@@ -437,6 +438,7 @@ function VideoEmbedForm({
   artistId?: string;
 }) {
   const t = useTranslations('blocks.fields');
+  const locale = useLocale();
 
   const currentMode = config.mode ?? 'manual';
   const showModeSelector = config.provider === 'youtube';
@@ -628,7 +630,13 @@ function VideoEmbedForm({
             <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2">
               <p className="text-xs text-muted-foreground">{t('source_mode_playlist_empty')}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {t('source_mode_playlist_no_connection')}
+                {t('source_mode_playlist_no_connection')}{' '}
+                <Link
+                  href={`/${locale}/dashboard/settings/insights-connections`}
+                  className="underline hover:text-foreground"
+                >
+                  {t('source_mode_playlist_no_connection_link')}
+                </Link>
               </p>
             </div>
           ) : (
