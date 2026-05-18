@@ -1560,6 +1560,7 @@
       "source_mode_playlist_error": "Could not load playlists.",
       "source_mode_playlist_empty": "No playlists found on this channel.",
       "source_mode_playlist_no_connection": "Connect your YouTube channel in Insights to use this mode.",
+      "source_mode_playlist_no_connection_link": "Go to Insights settings →",
       "source_mode_playlist_no_artist": "Playlist mode is only available when editing a page.",
       "source_mode_playlist_info": "The selected playlist will be embedded on your page."
     },
