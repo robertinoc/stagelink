@@ -154,7 +154,7 @@ Result: good for StageLink-owned analytics; embeds still need follow-up.
 Good:
 
 - PostHog browser analytics is consent-gated;
-- Umami is documented as not active;
+- Umami is documented as Behind-only when public env vars are configured;
 - analytics must not include raw email, tokens, payment data, or message
   content.
 
@@ -216,7 +216,8 @@ None confirmed in this phase.
 
 ### Low
 
-- Umami mentioned as possible/future but not active.
+- Umami is scoped to Behind-only product/admin analytics; provider evidence is
+  still pending.
 - Printify exists as future enum/provider but is not implemented.
 
 ## Integration Compliance Readiness Score
@@ -225,15 +226,15 @@ Overall score: 78/100.
 
 Breakdown:
 
-| Category | Score | Notes |
-| --- | ---: | --- |
-| Inventory completeness | 86 | Good provider coverage, object storage still generic |
-| Data-flow clarity | 84 | Useful operational flows, provider logs/embeds need validation |
-| API scope posture | 82 | Good current least-privilege posture, future scope gate needed |
-| OAuth/token safety | 80 | Current OAuth minimized; token runbooks need completion |
-| Provider evidence | 55 | DPAs/SCCs/regions/retention not fully evidenced |
-| Analytics/embed privacy | 74 | PostHog consent good; embeds need click-to-load review |
-| Launch operational readiness | 72 | Needs evidence register and SoundCloud/EmailJS decisions |
+| Category                     | Score | Notes                                                          |
+| ---------------------------- | ----: | -------------------------------------------------------------- |
+| Inventory completeness       |    86 | Good provider coverage, object storage still generic           |
+| Data-flow clarity            |    84 | Useful operational flows, provider logs/embeds need validation |
+| API scope posture            |    82 | Good current least-privilege posture, future scope gate needed |
+| OAuth/token safety           |    80 | Current OAuth minimized; token runbooks need completion        |
+| Provider evidence            |    55 | DPAs/SCCs/regions/retention not fully evidenced                |
+| Analytics/embed privacy      |    74 | PostHog consent good; embeds need click-to-load review         |
+| Launch operational readiness |    72 | Needs evidence register and SoundCloud/EmailJS decisions       |
 
 ## Production Blockers
 

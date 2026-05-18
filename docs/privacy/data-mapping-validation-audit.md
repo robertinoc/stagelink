@@ -27,30 +27,30 @@ None found in the documentation scope.
 
 ### High
 
-| Finding | Risk | Recommendation |
-| --- | --- | --- |
-| OAuth/API/provider tokens exist in DB-backed integration tables | Token exposure would compromise connected platform/store accounts | Keep redaction tests, add encryption-at-rest or field-level encryption evaluation, and verify logs never include token values |
-| External provider deletion is still manual | Local erasure can leave WorkOS, Stripe, PostHog, object-storage, email, or infrastructure records behind | Create provider deletion runbook/queue before public launch |
-| Retention policy is documented but not automated | Raw analytics, logs, webhook events, snapshots, and orphaned uploads may persist indefinitely | Implement scheduled retention jobs before public scale |
-| Railway backups are disabled by plan decision | No tested restore path, and future backups will introduce deletion lag | Revisit at launch/100 users; document backup retention and deleted-record handling when Pro is enabled |
+| Finding                                                         | Risk                                                                                                     | Recommendation                                                                                                                |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| OAuth/API/provider tokens exist in DB-backed integration tables | Token exposure would compromise connected platform/store accounts                                        | Keep redaction tests, add encryption-at-rest or field-level encryption evaluation, and verify logs never include token values |
+| External provider deletion is still manual                      | Local erasure can leave WorkOS, Stripe, PostHog, object-storage, email, or infrastructure records behind | Create provider deletion runbook/queue before public launch                                                                   |
+| Retention policy is documented but not automated                | Raw analytics, logs, webhook events, snapshots, and orphaned uploads may persist indefinitely            | Implement scheduled retention jobs before public scale                                                                        |
+| Railway backups are disabled by plan decision                   | No tested restore path, and future backups will introduce deletion lag                                   | Revisit at launch/100 users; document backup retention and deleted-record handling when Pro is enabled                        |
 
 ### Medium
 
-| Finding | Risk | Recommendation |
-| --- | --- | --- |
-| Subscriber/fan DSAR ownership is not fully operationalized | A fan may request access/deletion, but artist-vs-StageLink handling is not final | Define fan DSAR/unsubscribe workflow and artist responsibility language |
-| Consent history is browser-local for account users | StageLink cannot prove historical consent changes server-side | Keep current design for low-friction launch; add server-side consent event ledger only if analytics/legal risk grows |
-| Runtime/provider log retention is not confirmed | Logs may contain IPs, route metadata, and errors longer than expected | Confirm Vercel/Railway/GitHub/Resend retention settings |
-| Object storage deletion is not proven end-to-end | DB deletion may not remove actual uploaded objects | Add asset deletion/orphan cleanup job and test it |
-| Contact/support free text may contain unexpected sensitive data | Visitors can disclose sensitive data in messages | Add internal retention workflow and avoid message-body logging |
+| Finding                                                         | Risk                                                                             | Recommendation                                                                                                       |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Subscriber/fan DSAR ownership is not fully operationalized      | A fan may request access/deletion, but artist-vs-StageLink handling is not final | Define fan DSAR/unsubscribe workflow and artist responsibility language                                              |
+| Consent history is browser-local for account users              | StageLink cannot prove historical consent changes server-side                    | Keep current design for low-friction launch; add server-side consent event ledger only if analytics/legal risk grows |
+| Runtime/provider log retention is not confirmed                 | Logs may contain IPs, route metadata, and errors longer than expected            | Confirm Vercel/Railway/GitHub/Resend retention settings                                                              |
+| Object storage deletion is not proven end-to-end                | DB deletion may not remove actual uploaded objects                               | Add asset deletion/orphan cleanup job and test it                                                                    |
+| Contact/support free text may contain unexpected sensitive data | Visitors can disclose sensitive data in messages                                 | Add internal retention workflow and avoid message-body logging                                                       |
 
 ### Low
 
-| Finding | Risk | Recommendation |
-| --- | --- | --- |
-| Some provider roles are necessarily assumptions | Processor/controller language may need contract-specific edits | Keep TODOs until legal review |
-| Aggregated analytics retention is not yet specified in product UI | Users may not understand how long metrics remain | Add public-policy language after final retention decision |
-| GitHub artifacts can include private UI screenshots | Test artifacts may persist dashboard snapshots | Continue excluding auth state and limit retention |
+| Finding                                                           | Risk                                                           | Recommendation                                            |
+| ----------------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------- |
+| Some provider roles are necessarily assumptions                   | Processor/controller language may need contract-specific edits | Keep TODOs until legal review                             |
+| Aggregated analytics retention is not yet specified in product UI | Users may not understand how long metrics remain               | Add public-policy language after final retention decision |
+| GitHub artifacts can include private UI screenshots               | Test artifacts may persist dashboard snapshots                 | Continue excluding auth state and limit retention         |
 
 ## Validation Checklist
 
@@ -79,7 +79,7 @@ Residual gaps:
 
 - exact provider log retention and regions;
 - exact object-storage provider/region;
-- future Umami activation status;
+- Umami provider evidence for the Behind-only v1 setup;
 - final backup policy after Railway Pro.
 
 ### Data Classification

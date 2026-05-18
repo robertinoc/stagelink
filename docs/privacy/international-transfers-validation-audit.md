@@ -139,7 +139,8 @@ Severity: Critical for public launch.
 
 ### Low
 
-- Umami: documented as future/unknown, not active.
+- Umami: active only for Behind when public env vars are configured; provider
+  region, transfer, retention, and IP handling evidence remains pending.
 - Printify: future provider, not active.
 
 ## Risk Assessment

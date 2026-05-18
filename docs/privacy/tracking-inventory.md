@@ -66,10 +66,11 @@ Current repo status after Umami Project v1:
   `behind.stagelink.art` and skips script injection when the current hostname is
   not in that allowlist.
 
-Launch rule:
+Production rule:
 
-- Keep Umami disabled in production until the Behind website ID, accepted domain,
-  and product dashboard modules are configured and verified end to end.
+- Keep Umami enabled only for the `StageLink Behind` website after the Behind
+  website ID, accepted domain, and product dashboard modules are configured and
+  verified end to end.
 
 ### Stripe
 
