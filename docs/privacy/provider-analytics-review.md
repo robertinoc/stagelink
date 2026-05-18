@@ -8,16 +8,16 @@ profiling risk.
 
 ## Provider Matrix
 
-| Provider                   | Active use                                                                         | Data exposure                                                                              | Current controls                                                                                  | Risk   |
-| -------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- | ------ |
-| PostHog browser            | Public link click event after analytics consent                                    | pseudonymous browser ID, event name, artist/page/link IDs, destination domain, environment | opt-in only, `ip:false`, `respect_dnt:true`, autocapture/pageview disabled, withdrawal cleanup    | High   |
-| PostHog server             | Public events after consent; product events for onboarding/profile/block lifecycle | event name, artist ID, actor user ID for product events, field names, block/page IDs       | `$process_person_profiles:false`, typed payloads, no raw IP, no email/token/payment data intended | High   |
-| Umami                      | Not active in source                                                               | None currently                                                                             | Launch rule: consent-gate before enabling                                                         | Future |
-| Vercel/Railway logs        | Runtime/deploy logs and request errors                                             | request metadata, errors, request IDs, possible paths                                      | logging policy forbids query/token/body logging                                                   | Medium |
-| WorkOS                     | Auth/security events                                                               | identity/session/security metadata                                                         | necessary auth/security provider                                                                  | Medium |
-| Stripe                     | Billing events and provider-side payment analytics                                 | customer/payment/subscription metadata on Stripe side                                      | payment data handled by Stripe, not StageLink analytics                                           | Medium |
-| Spotify/YouTube/SoundCloud | StageLink Insights provider APIs                                                   | public artist/channel/profile metrics and top content                                      | reference/API-key style flows; no user OAuth in current launch baseline                           | High   |
-| GitHub Actions             | CI logs/artifacts                                                                  | test logs/screenshots if generated                                                         | artifact auth masking policy                                                                      | Medium |
+| Provider                   | Active use                                                                                        | Data exposure                                                                              | Current controls                                                                                             | Risk   |
+| -------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ | ------ |
+| PostHog browser            | Public link click event after analytics consent                                                   | pseudonymous browser ID, event name, artist/page/link IDs, destination domain, environment | opt-in only, `ip:false`, `respect_dnt:true`, autocapture/pageview disabled, withdrawal cleanup               | High   |
+| PostHog server             | Public events after consent; product events for onboarding/profile/block lifecycle                | event name, artist ID, actor user ID for product events, field names, block/page IDs       | `$process_person_profiles:false`, typed payloads, no raw IP, no email/token/payment data intended            | High   |
+| Umami                      | Behind the Stage product/admin analytics when `NEXT_PUBLIC_UMAMI_BEHIND_WEBSITE_ID` is configured | Behind page views, referrers, device context, and `behind_*` product/admin events          | Mounted only in Behind, domain allowlisted to `behind.stagelink.art`, DNT respected, no PII event properties | Medium |
+| Vercel/Railway logs        | Runtime/deploy logs and request errors                                                            | request metadata, errors, request IDs, possible paths                                      | logging policy forbids query/token/body logging                                                              | Medium |
+| WorkOS                     | Auth/security events                                                                              | identity/session/security metadata                                                         | necessary auth/security provider                                                                             | Medium |
+| Stripe                     | Billing events and provider-side payment analytics                                                | customer/payment/subscription metadata on Stripe side                                      | payment data handled by Stripe, not StageLink analytics                                                      | Medium |
+| Spotify/YouTube/SoundCloud | StageLink Insights provider APIs                                                                  | public artist/channel/profile metrics and top content                                      | reference/API-key style flows; no user OAuth in current launch baseline                                      | High   |
+| GitHub Actions             | CI logs/artifacts                                                                                 | test logs/screenshots if generated                                                         | artifact auth masking policy                                                                                 | Medium |
 
 ## PostHog Configuration Requirements
 
@@ -35,16 +35,20 @@ Code controls are not enough. Before public scale, confirm in PostHog project:
 - access restricted to need-to-know operators;
 - DPA/SCC/transfer evidence recorded.
 
-## Umami Requirements If Enabled
+## Umami Requirements
 
-Before enabling Umami:
+Umami is supported only for Behind the Stage operator analytics. Before treating
+the production setup as signed off:
 
 - document provider/self-hosted region;
-- initialize only after analytics consent;
-- disable or avoid fingerprinting-like visitor identifiers where possible;
-- do not run PostHog and Umami duplicate tracking for the same purpose unless
-  there is a clear need;
-- update cookie policy, tracking inventory, and provider evidence register.
+- confirm retention, IP handling, DNT behavior, and data export settings;
+- keep `NEXT_PUBLIC_UMAMI_DOMAINS=behind.stagelink.art`;
+- keep Umami out of public artist pages, artist dashboards, auth, landing, and
+  marketing routes;
+- do not send email, name, handle, user id, artist id, free-text search, token,
+  payment, or contact content in event properties;
+- update cookie policy, tracking inventory, and provider evidence register when
+  hosting/provider settings change.
 
 ## Fingerprinting and Cross-Device Risk
 
@@ -118,5 +122,6 @@ High-risk future additions:
 
 ### Low
 
-- Umami is not active.
 - Browser PostHog code disables autocapture and pageview auto-capture.
+- Umami is scoped to internal Behind product/admin analytics and excluded from
+  public artist and marketing traffic.

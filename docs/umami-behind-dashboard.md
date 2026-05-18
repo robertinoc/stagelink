@@ -1,6 +1,6 @@
 # Umami Behind Dashboard
 
-Status: v1 implementation notes.
+Status: v1 active when the public Behind Umami env vars are configured.
 
 ## Scope
 
@@ -81,9 +81,14 @@ Recommended Umami dashboard sections:
 
 ## Validation Checklist
 
+Use `docs/umami-operational-checklist.md` as the source checklist for production
+setup, route validation, event validation, and privacy guardrails.
+
+Minimum release checks:
+
 1. Configure `NEXT_PUBLIC_UMAMI_BEHIND_WEBSITE_ID`.
-2. Optionally configure `NEXT_PUBLIC_UMAMI_BEHIND_SHARE_URL` to embed the shared
-   Umami dashboard inside `/behind/analytics`.
+2. Configure `NEXT_PUBLIC_UMAMI_BEHIND_SHARE_URL` when the embedded dashboard
+   should render inside `/behind/analytics`.
 3. Keep `NEXT_PUBLIC_UMAMI_DOMAINS=behind.stagelink.art`.
 4. Deploy and open `https://behind.stagelink.art/`.
 5. Confirm the Umami script is present on Behind.
