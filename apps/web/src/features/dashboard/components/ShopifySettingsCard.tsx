@@ -3,6 +3,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import {
   getMinimumPlanForFeature,
@@ -57,6 +58,7 @@ export function ShopifySettingsCard({
 }: ShopifySettingsCardProps) {
   const t = useTranslations('dashboard.settings.shopify');
   const locale = useLocale();
+  const router = useRouter();
   const [storeDomain, setStoreDomain] = useState(initialConnection?.storeDomain ?? '');
   const [storefrontToken, setStorefrontToken] = useState('');
   const [selectionMode, setSelectionMode] = useState<ShopifySelectionMode>(
@@ -125,6 +127,7 @@ export function ShopifySettingsCard({
   }
 
   async function handleDisconnect() {
+    if (!window.confirm(t('messages.disconnect_confirm'))) return;
     setDisconnecting(true);
     setStatusMessage(null);
     try {
@@ -137,6 +140,7 @@ export function ShopifySettingsCard({
       setSelectionMode('collection');
       setStatusTone('success');
       setStatusMessage(t('messages.disconnected'));
+      router.refresh();
     } catch (error) {
       setStatusTone('error');
       setStatusMessage(error instanceof Error ? error.message : t('messages.disconnect_error'));

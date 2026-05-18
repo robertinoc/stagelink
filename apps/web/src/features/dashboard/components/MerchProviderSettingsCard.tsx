@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Shirt } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { getMinimumPlanForFeature, type MerchProviderConnection } from '@stagelink/types';
@@ -51,6 +52,7 @@ export function MerchProviderSettingsCard({
 }: MerchProviderSettingsCardProps) {
   const t = useTranslations('dashboard.settings.merch');
   const locale = useLocale();
+  const router = useRouter();
   const [apiToken, setApiToken] = useState('');
   const [connection, setConnection] = useState<MerchProviderConnection | null>(initialConnection);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);

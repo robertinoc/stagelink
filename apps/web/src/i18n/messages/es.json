@@ -1214,6 +1214,7 @@
           "save_error": "No se pudo guardar la configuración de Shopify.",
           "validate_error": "No se pudo validar esta conexión con Shopify.",
           "no_preview": "No se encontraron productos para esta selección. Revisá el handle e intentá de nuevo.",
+          "disconnect_confirm": "Esto eliminará la conexión de la tienda de Shopify y toda la configuración almacenada. No se puede deshacer. ¿Continuar?",
           "disconnected": "Tienda de Shopify desconectada.",
           "disconnect_error": "No se pudo desconectar esta tienda de Shopify."
         }
@@ -1252,6 +1253,7 @@
           "save_error": "No se pudo guardar la configuración de Smart Merch.",
           "validate_error": "No se pudo validar esta conexión con Printful.",
           "no_preview": "Todavía no hay productos disponibles para esta tienda conectada de Printful.",
+          "disconnect_confirm": "Esto eliminará la conexión de Printful y toda la configuración almacenada. No se puede deshacer. ¿Continuar?",
           "disconnected": "Printful desconectado.",
           "disconnect_error": "No se pudo desconectar esta conexión de Printful."
         },
