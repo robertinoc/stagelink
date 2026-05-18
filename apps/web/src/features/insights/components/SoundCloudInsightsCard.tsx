@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { InsightsDetailDialog } from '@/features/insights/components/InsightsDetailDialog';
 import {
+  disconnectSoundCloudInsightsConnection,
   saveSoundCloudInsightsConnection,
   syncSoundCloudInsightsConnection,
   validateSoundCloudInsightsConnection,
@@ -81,6 +82,7 @@ export function SoundCloudInsightsCard({
   const [validating, setValidating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
 
   useEffect(() => {
     setProfileInput(resolvedProfileInput);
@@ -172,6 +174,24 @@ export function SoundCloudInsightsCard({
       setStatusMessage(error instanceof Error ? error.message : t('messages.sync_error'));
     } finally {
       setSyncing(false);
+    }
+  }
+
+  async function handleDisconnect() {
+    if (!window.confirm(t('messages.disconnect_confirm'))) return;
+    setDisconnecting(true);
+    setStatusMessage(null);
+
+    try {
+      await disconnectSoundCloudInsightsConnection(artistId);
+      setStatusTone('success');
+      setStatusMessage(t('messages.disconnected'));
+      router.refresh();
+    } catch (error) {
+      setStatusTone('error');
+      setStatusMessage(error instanceof Error ? error.message : t('messages.disconnect_error'));
+    } finally {
+      setDisconnecting(false);
     }
   }
 
@@ -307,6 +327,16 @@ export function SoundCloudInsightsCard({
                 ) : null}
                 <Button asChild variant="outline" size="sm">
                   <Link href={resolvedAnalyticsHref}>{t('actions.view_analytics')}</Link>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDisconnect}
+                  disabled={disconnecting}
+                  className="text-destructive hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
+                >
+                  {disconnecting ? t('actions.disconnecting') : t('actions.disconnect')}
                 </Button>
               </div>
             </div>

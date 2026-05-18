@@ -6,6 +6,46 @@ interface RouteContext {
   params: Promise<{ artistId: string }>;
 }
 
+export async function DELETE(_request: NextRequest, context: RouteContext) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+
+  const apiBaseUrl = resolveApiBaseUrl();
+  if (!apiBaseUrl) {
+    return NextResponse.json(
+      { message: 'StageLink Insights API is not configured on this deployment.' },
+      { status: 500 },
+    );
+  }
+
+  const { artistId } = await context.params;
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/insights/${artistId}/spotify`, {
+      method: 'DELETE',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${session.accessToken}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (response.status === 204) return new NextResponse(null, { status: 204 });
+
+    const responseBody = await response.text();
+    return new NextResponse(responseBody, {
+      status: response.status,
+      headers: { 'Content-Type': response.headers.get('Content-Type') ?? 'application/json' },
+    });
+  } catch (error) {
+    console.error('[insights][spotify][proxy] Delete request failed', error);
+    return NextResponse.json(
+      { message: 'Could not disconnect Spotify right now.' },
+      { status: 502 },
+    );
+  }
+}
+
 export async function PATCH(request: NextRequest, context: RouteContext) {
   const session = await getSession();
   if (!session) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
