@@ -128,9 +128,16 @@ export interface VideoEmbedBlockConfig {
    * Content source mode.
    *   'manual'       — user provides a specific sourceUrl (default, backward-compatible)
    *   'latest_video' — show the latest uploaded video; only supported for YouTube provider.
+   *   'playlist'     — embed a specific playlist from the artist's YouTube channel.
+   *                    Requires `playlistId`. Only supported for YouTube provider.
    * When absent, treat as 'manual'.
    */
-  mode?: 'manual' | 'latest_video';
+  mode?: 'manual' | 'latest_video' | 'playlist';
+  /**
+   * Set when mode === 'playlist'. The YouTube playlist ID (e.g. 'PLxxxxxx').
+   * The backend derives embedUrl from this on every save.
+   */
+  playlistId?: string;
 }
 
 export interface EmailCaptureBlockConfig {

@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import { apiFetch } from '@/lib/auth';
 import type {
   ArtistCategory,
@@ -92,15 +93,26 @@ export interface UpdateArtistPayload {
  * Fetches an artist by ID from the backend.
  * Returns null on any error (network issue, 404, unauthorised, etc.).
  * Safe to call from server layouts — failures degrade gracefully.
+ *
+ * Cached for 60 s server-side via `unstable_cache`.
+ * Access token is captured via closure and never enters the cache key,
+ * so different session tokens still hit the same stable cache entry.
+ * Invalidated by `revalidateTag(\`artist:\${artistId}\`)` in mutation handlers.
  */
 export async function getArtist(artistId: string, accessToken: string): Promise<Artist | null> {
-  try {
-    const res = await apiFetch(`/api/artists/${artistId}`, { accessToken });
-    if (!res.ok) return null;
-    return res.json() as Promise<Artist>;
-  } catch {
-    return null;
-  }
+  return unstable_cache(
+    async () => {
+      try {
+        const res = await apiFetch(`/api/artists/${artistId}`, { accessToken });
+        if (!res.ok) return null;
+        return res.json() as Promise<Artist>;
+      } catch {
+        return null;
+      }
+    },
+    ['artist', artistId],
+    { tags: [`artist:${artistId}`], revalidate: 60 },
+  )();
 }
 
 /**

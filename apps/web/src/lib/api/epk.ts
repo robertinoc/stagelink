@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import { apiFetch } from '@/lib/auth';
 import {
   DEFAULT_LOCALE,
@@ -9,20 +10,30 @@ import {
   type UpdateEpkPayload,
 } from '@stagelink/types';
 
+/**
+ * Cached for 60 s server-side via `unstable_cache`.
+ * Access token captured via closure — not part of the cache key.
+ * Invalidated by `revalidateTag(\`epk:\${artistId}\`)` in mutation handlers.
+ */
 export async function getArtistEpk(
   artistId: string,
   accessToken: string,
 ): Promise<EpkEditorResponse> {
-  const res = await apiFetch(`/api/artists/${artistId}/epk`, { accessToken });
-  if (!res.ok) {
-    const err = (await res.json().catch(() => ({}))) as { message?: string | string[] };
-    const message = Array.isArray(err.message)
-      ? err.message.join(', ')
-      : (err.message ?? `Failed to load EPK (${res.status})`);
-    throw new Error(message);
-  }
-
-  return res.json() as Promise<EpkEditorResponse>;
+  return unstable_cache(
+    async () => {
+      const res = await apiFetch(`/api/artists/${artistId}/epk`, { accessToken });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { message?: string | string[] };
+        const message = Array.isArray(err.message)
+          ? err.message.join(', ')
+          : (err.message ?? `Failed to load EPK (${res.status})`);
+        throw new Error(message);
+      }
+      return res.json() as Promise<EpkEditorResponse>;
+    },
+    ['epk', artistId],
+    { tags: [`epk:${artistId}`], revalidate: 60 },
+  )();
 }
 
 export async function updateArtistEpk(

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getSession } from '@/lib/auth';
 import { resolveApiBaseUrl } from '@/lib/server/api-base-url';
 
@@ -36,6 +37,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     });
 
     const responseBody = await response.text();
+
+    // Invalidate the server-side cache for this artist on successful update.
+    if (response.ok) {
+      revalidateTag(`artist:${artistId}`, {});
+    }
 
     return new NextResponse(responseBody, {
       status: response.status,

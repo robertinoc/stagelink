@@ -508,6 +508,31 @@ export class InsightsService {
   }
 
   // =========================================================================
+  // YouTube — Playlists
+  // =========================================================================
+
+  /**
+   * Returns the public playlists for the artist's connected YouTube channel.
+   * Used by the video_embed block's 'playlist' mode picker in the dashboard.
+   */
+  async getYouTubePlaylists(
+    artistId: string,
+    userId: string,
+  ): Promise<import('./providers/youtube-insights.provider').YouTubePlaylistSummary[]> {
+    await this.membershipService.validateAccess(userId, artistId, 'read');
+
+    const connection = await this.prisma.artistPlatformInsightsConnection.findFirst({
+      where: { artistId, platform: 'youtube' },
+    });
+
+    if (!connection || !connection.externalAccountId) {
+      return [];
+    }
+
+    return this.youTubeProvider.getChannelPlaylists(connection.externalAccountId);
+  }
+
+  // =========================================================================
   // SoundCloud
   // =========================================================================
 

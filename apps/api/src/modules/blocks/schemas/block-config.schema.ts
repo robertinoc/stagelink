@@ -352,7 +352,7 @@ function validateLinksConfig(c: Record<string, unknown>): void {
 }
 
 const MUSIC_EMBED_MODES = ['manual', 'latest_track'] as const;
-const VIDEO_EMBED_MODES = ['manual', 'latest_video'] as const;
+const VIDEO_EMBED_MODES = ['manual', 'latest_video', 'playlist'] as const;
 
 /**
  * Validates music_embed config: checks provider allowlist and sourceUrl safety.
@@ -428,6 +428,22 @@ function validateVideoEmbedConfig(c: Record<string, unknown>): void {
     // Validate it only when provided.
     if (c['sourceUrl'] !== undefined && c['sourceUrl'] !== '') {
       assertSafeUrl(c['sourceUrl'], 'video_embed config.sourceUrl');
+    }
+  } else if (mode === 'playlist') {
+    if (provider !== 'youtube') {
+      throw new BadRequestException(
+        `video_embed config.mode 'playlist' is only supported for the youtube provider`,
+      );
+    }
+    // playlistId is required — must be a non-empty string
+    if (typeof c['playlistId'] !== 'string' || c['playlistId'].trim().length === 0) {
+      throw new BadRequestException(
+        `video_embed config.playlistId must be a non-empty string when mode is 'playlist'`,
+      );
+    }
+    // Basic alphanumeric + hyphen/underscore check to prevent injection
+    if (!/^[A-Za-z0-9_\-]+$/.test(c['playlistId'] as string)) {
+      throw new BadRequestException(`video_embed config.playlistId contains invalid characters`);
     }
   } else {
     // mode === 'manual' (or absent) — sourceUrl is required
@@ -977,6 +993,17 @@ export function enrichBlockConfig(
       // embedUrl will be resolved client-side at render time via /api/blocks/latest-embed.
       // Only YouTube is supported — validation already rejected other providers.
       return { ...config, embedUrl: '', resourceType: 'video' };
+    }
+
+    if (mode === 'playlist') {
+      // embedUrl is derived from playlistId — validation already confirmed playlistId is present.
+      const playlistId = (config['playlistId'] as string).trim();
+      return {
+        ...config,
+        embedUrl: `https://www.youtube.com/embed/videoseries?list=${playlistId}`,
+        resourceType: 'playlist',
+        sourceUrl: '',
+      };
     }
 
     // mode === 'manual': existing behavior
