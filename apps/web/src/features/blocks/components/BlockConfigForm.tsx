@@ -303,7 +303,8 @@ function MusicEmbedForm({
   const t = useTranslations('blocks.fields');
 
   const currentMode = config.mode ?? 'manual';
-  const showModeSelector = config.provider === 'soundcloud' || config.provider === 'youtube';
+  // Mode selector only for YouTube — SoundCloud "latest track" API is not yet available
+  const showModeSelector = config.provider === 'youtube';
 
   function handleProviderChange(provider: MusicEmbedBlockConfig['provider']) {
     // Reset sourceUrl and mode when provider changes — old URL won't parse for new provider
@@ -359,33 +360,16 @@ function MusicEmbedForm({
             </button>
             <button
               type="button"
-              onClick={() => {
-                if (config.provider !== 'soundcloud') {
-                  handleModeChange('latest_track');
-                }
-              }}
-              disabled={config.provider === 'soundcloud'}
-              title={
-                config.provider === 'soundcloud'
-                  ? t('source_mode_latest_soundcloud_coming_soon')
-                  : undefined
-              }
+              onClick={() => handleModeChange('latest_track')}
               className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
                 currentMode === 'latest_track'
                   ? 'border-primary bg-primary/10 text-primary'
-                  : config.provider === 'soundcloud'
-                    ? 'cursor-not-allowed border-input text-muted-foreground/40'
-                    : 'border-input text-muted-foreground hover:border-primary hover:text-primary'
+                  : 'border-input text-muted-foreground hover:border-primary hover:text-primary'
               }`}
             >
               {t('source_mode_latest_track')}
             </button>
           </div>
-          {config.provider === 'soundcloud' && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              {t('source_mode_latest_soundcloud_coming_soon')}
-            </p>
-          )}
         </div>
       )}
 

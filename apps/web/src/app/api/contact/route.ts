@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { SUPPORT_EMAIL } from '@/lib/constants';
 
 export const runtime = 'nodejs';
 
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Email is not configured' }, { status: 500 });
   }
 
-  const to = process.env['CONTACT_FORM_TO'] ?? 'robertinoc@gmail.com';
+  const to = process.env['CONTACT_FORM_TO'] ?? SUPPORT_EMAIL;
   const from = process.env['CONTACT_FORM_FROM'] ?? 'StageLink <onboarding@resend.dev>';
   const subject = `StageLink-visitor · ${payload.artistType}`;
 

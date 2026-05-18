@@ -40,7 +40,52 @@ export async function ReleasesSection({ releases, locale }: ReleasesSectionProps
         {t('title')}
       </h2>
 
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      {/* Mobile: horizontal snap carousel — shows ~2 cards at a time */}
+      <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-3 sm:hidden">
+        {releases.map((release) => {
+          const year = extractYear(release.releaseDate);
+          const typeLabel = t(`types.${release.type}`);
+
+          return (
+            <article
+              key={release.id}
+              className="flex w-[44vw] max-w-[176px] flex-none snap-start flex-col gap-2 rounded-2xl border border-white/10 bg-white/5 p-2.5 text-white"
+            >
+              <ReleaseCoverImage
+                coverUrl={release.coverUrl}
+                alt={release.title}
+                className="aspect-square w-full rounded-xl object-cover"
+              />
+
+              <div className="space-y-1 px-0.5">
+                <p className="line-clamp-2 text-xs font-semibold leading-snug">{release.title}</p>
+                <p className="text-[10px] uppercase tracking-wide text-zinc-400">
+                  {typeLabel}
+                  {year ? ` · ${year}` : ''}
+                </p>
+                {release.label ? (
+                  <p className="line-clamp-1 text-[10px] text-zinc-300">{release.label}</p>
+                ) : null}
+              </div>
+
+              {release.spotifyUrl ? (
+                <a
+                  href={release.spotifyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-auto inline-flex items-center justify-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[10px] font-medium text-white transition hover:bg-white/10"
+                >
+                  Spotify
+                  <ExternalLink className="h-2.5 w-2.5" aria-hidden="true" />
+                </a>
+              ) : null}
+            </article>
+          );
+        })}
+      </div>
+
+      {/* Desktop (sm+): 2-col → 3-col grid */}
+      <div className="hidden gap-4 sm:grid sm:grid-cols-2 md:grid-cols-3">
         {releases.map((release) => {
           const year = extractYear(release.releaseDate);
           const typeLabel = t(`types.${release.type}`);

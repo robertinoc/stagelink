@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,12 @@ interface AppTopbarProps {
 export function AppTopbar({ artist, onMenuOpen }: AppTopbarProps) {
   const t = useTranslations('nav');
   const locale = useLocale();
+  const pathname = usePathname();
   const initials = artist?.displayName ? artist.displayName.charAt(0).toUpperCase() : '?';
+
+  const otherLocale = locale === 'en' ? 'es' : 'en';
+  // Replace leading /{locale} segment with the other locale
+  const otherLocalePath = `/${otherLocale}${pathname.replace(/^\/[a-z]{2}/, '')}`;
 
   return (
     <header className="flex h-14 items-center border-b border-white/10 bg-sidebar px-4 lg:px-6">
@@ -67,6 +73,15 @@ export function AppTopbar({ artist, onMenuOpen }: AppTopbarProps) {
             {artist.displayName}
           </span>
         )}
+
+        {/* Language toggle — always visible (especially useful in PWA where URL bar is hidden) */}
+        <Link
+          href={otherLocalePath}
+          className="text-xs font-medium uppercase tracking-widest text-white/40 transition-colors hover:text-white/70"
+          title={otherLocale === 'en' ? 'Switch to English' : 'Cambiar a Español'}
+        >
+          {otherLocale}
+        </Link>
 
         {/* Logout */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
