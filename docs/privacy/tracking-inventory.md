@@ -51,15 +51,25 @@ After E2:
 
 ### Umami
 
-Current repo status:
+Current repo status after Umami Project v1:
 
-- No active Umami script, package usage, or `NEXT_PUBLIC_UMAMI` runtime usage was
-  found in the audited source.
+- Optional runtime support lives in `apps/web/src/lib/analytics/UmamiProvider.tsx`
+  and `apps/web/src/lib/analytics/umami.ts`.
+- The provider is mounted only in `apps/web/src/app/behind/layout.tsx`, so Umami
+  measures Behind the Stage product/admin usage only.
+- The script is not loaded unless `NEXT_PUBLIC_UMAMI_BEHIND_WEBSITE_ID` is
+  configured.
+- Public artist pages, artist dashboards, auth pages, and landing/marketing
+  routes do not load the Umami script.
+- The intended Umami website/domain is only `behind.stagelink.art`.
+- `UmamiProvider` defaults `NEXT_PUBLIC_UMAMI_DOMAINS` to
+  `behind.stagelink.art` and skips script injection when the current hostname is
+  not in that allowlist.
 
 Launch rule:
 
-- If Umami is added later, it must be initialized only after analytics consent
-  and documented in this file.
+- Keep Umami disabled in production until the Behind website ID, accepted domain,
+  and product dashboard modules are configured and verified end to end.
 
 ### Stripe
 
@@ -116,13 +126,14 @@ Future check:
 | WorkOS cookies               | Auth/session/PKCE                      | Necessary                         |
 | `sl_qa` cookie               | QA-only analytics exclusion            | Internal testing only             |
 | PostHog localStorage/cookies | Product analytics identifiers          | Only after analytics consent      |
-| Umami storage                | Not active                             | Must be consent-gated if added    |
+| Umami storage                | Optional Behind product analytics      | Behind admin/product usage only   |
 
 ## No-Consent Expected Behavior
 
 Before optional consent:
 
 - No PostHog initialization.
+- No Umami script injection outside Behind the Stage.
 - No public link-click analytics request.
 - No public page-view analytics persistence.
 - No SmartLink analytics persistence.

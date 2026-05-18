@@ -1,7 +1,8 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { hasBehindAccess } from '@/lib/behind-redis';
+import { UmamiProvider } from '@/lib/analytics/UmamiProvider';
+import { BehindNav } from './BehindNav';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -54,47 +55,44 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Top bar — matches AppTopbar/AppSidebar height and border treatment */}
-      <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-white/10 bg-sidebar px-4 sm:px-6">
-        <div className="flex items-center gap-3">
-          {/* Logo — same text treatment as AppSidebar */}
-          <span className="font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight">
-            <span className="text-white">Stage</span>
-            <span className="bg-gradient-to-r from-fuchsia-400 to-purple-500 bg-clip-text text-transparent">
-              Link
+    <UmamiProvider>
+      <div className="min-h-screen bg-background text-foreground">
+        {/* Top bar — matches AppTopbar/AppSidebar height and border treatment */}
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-white/10 bg-sidebar px-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            {/* Logo — same text treatment as AppSidebar */}
+            <span className="font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight">
+              <span className="text-white">Stage</span>
+              <span className="bg-gradient-to-r from-fuchsia-400 to-purple-500 bg-clip-text text-transparent">
+                Link
+              </span>
             </span>
-          </span>
-          <span className="text-white/20">·</span>
-          <span className="font-[family-name:var(--font-heading)] text-sm font-medium text-white/50">
-            Behind the Stage
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <p className="hidden text-xs text-white/40 sm:block">{session.user.email}</p>
-          <a
-            href="/api/auth/signout"
-            className="rounded-md border border-white/[0.12] px-2.5 py-1 text-xs font-medium text-white/40 transition-colors hover:border-white/25 hover:text-white/75"
-          >
-            Log out
-          </a>
-        </div>
-      </header>
+            <span className="text-white/20">·</span>
+            <span className="font-[family-name:var(--font-heading)] text-sm font-medium text-white/50">
+              Behind the Stage
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <p className="hidden text-xs text-white/40 sm:block">{session.user.email}</p>
+            <a
+              href="/api/auth/signout"
+              data-umami-event="behind_logout_clicked"
+              className="rounded-md border border-white/[0.12] px-2.5 py-1 text-xs font-medium text-white/40 transition-colors hover:border-white/25 hover:text-white/75"
+            >
+              Log out
+            </a>
+          </div>
+        </header>
 
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
-        {/* Section nav */}
-        <nav className="flex gap-1 border-b border-white/10 py-2">
-          <Link
-            href="/behind"
-            className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-sm font-semibold text-white shadow-[0_0_12px_rgba(155,48,208,0.15)] transition-colors font-[family-name:var(--font-heading)]"
-          >
-            Users
-          </Link>
-        </nav>
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
+          <div className="grid gap-6 py-6 lg:grid-cols-[9.5rem_minmax(0,1fr)]">
+            <BehindNav />
 
-        {/* Page content */}
-        <main className="py-6">{children}</main>
+            {/* Page content */}
+            <main className="min-w-0">{children}</main>
+          </div>
+        </div>
       </div>
-    </div>
+    </UmamiProvider>
   );
 }
