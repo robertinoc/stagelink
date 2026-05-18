@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { BehindRole, RolesMap } from '@/lib/behind-redis';
+import { trackUmamiEvent } from '@/lib/analytics/umami';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -441,6 +442,9 @@ function RowActionsDropdown({
       }
       const { user: updated } = (await res.json()) as { user: AdminUser };
       onStatusChange(user.id, updated.isSuspended);
+      trackUmamiEvent('behind_user_status_updated', {
+        status: updated.isSuspended ? 'suspended' : 'active',
+      });
     } catch {
       alert('Network error. Please try again.');
     } finally {
@@ -738,6 +742,7 @@ function EditModal({
       }
       const { user: updated } = (await res.json()) as { user: AdminUser };
       onSaved(updated);
+      trackUmamiEvent('behind_user_profile_updated');
       onClose();
     } catch {
       setError('Network error. Please try again.');
@@ -869,6 +874,9 @@ function RoleChangeModal({
         lockedEmails: string[];
       };
       onConfirmed(roles, lockedEmails);
+      trackUmamiEvent('behind_role_updated', {
+        role: newRole,
+      });
       onClose();
     } catch {
       setError('Network error. Please try again.');
@@ -958,6 +966,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
         return;
       }
       setState('sent');
+      trackUmamiEvent('behind_invitation_sent');
     } catch {
       setErrorMsg('Network error. Please try again.');
       setState('error');
@@ -1127,6 +1136,9 @@ function ManageAccessModal({
       }
       const { subscription } = (await res.json()) as { subscription: ArtistSubscription };
       onUpdated(user.id, subscription);
+      trackUmamiEvent('behind_access_granted', {
+        plan,
+      });
       onClose();
     } catch {
       setError('Network error. Please try again.');
@@ -1159,6 +1171,9 @@ function ManageAccessModal({
       }
       const { subscription } = (await res.json()) as { subscription: ArtistSubscription };
       onUpdated(user.id, subscription);
+      trackUmamiEvent('behind_access_extended', {
+        plan: sub?.manualAccessPlan ?? 'unknown',
+      });
       onClose();
     } catch {
       setError('Network error. Please try again.');
@@ -1179,6 +1194,7 @@ function ManageAccessModal({
       }
       const { subscription } = (await res.json()) as { subscription: ArtistSubscription };
       onUpdated(user.id, subscription);
+      trackUmamiEvent('behind_access_revoked');
       onClose();
     } catch {
       setError('Network error. Please try again.');
@@ -1571,6 +1587,34 @@ export function UsersTable({
       setSortField(field);
       setSortDir('asc');
     }
+    trackUmamiEvent('behind_users_sorted', {
+      field,
+      direction: sortField === field && sortDir === 'asc' ? 'desc' : 'asc',
+    });
+  }
+
+  function handlePlanFilterChange(value: FilterPlan) {
+    setFilterPlan(value);
+    trackUmamiEvent('behind_users_filtered', {
+      filter: 'plan',
+      value,
+    });
+  }
+
+  function handleRoleFilterChange(value: FilterRole) {
+    setFilterRole(value);
+    trackUmamiEvent('behind_users_filtered', {
+      filter: 'role',
+      value,
+    });
+  }
+
+  function handleStatusFilterChange(value: FilterStatus) {
+    setFilterStatus(value);
+    trackUmamiEvent('behind_users_filtered', {
+      filter: 'status',
+      value,
+    });
   }
 
   const allUsers = state.status === 'ok' ? state.users : [];
@@ -1621,7 +1665,11 @@ export function UsersTable({
               </CardDescription>
             </div>
             {currentUserRole === 'owner' && (
-              <Button size="sm" onClick={() => setModal({ type: 'invite' })}>
+              <Button
+                size="sm"
+                data-umami-event="behind_invite_opened"
+                onClick={() => setModal({ type: 'invite' })}
+              >
                 Invite user
               </Button>
             )}
@@ -1675,7 +1723,11 @@ export function UsersTable({
                 Plan
               </span>
               {(['all', 'free', 'pro', 'pro_plus'] as FilterPlan[]).map((p) => (
-                <FilterPill key={p} active={filterPlan === p} onClick={() => setFilterPlan(p)}>
+                <FilterPill
+                  key={p}
+                  active={filterPlan === p}
+                  onClick={() => handlePlanFilterChange(p)}
+                >
                   {p === 'all' ? 'All' : planLabel(p)}
                 </FilterPill>
               ))}
@@ -1687,7 +1739,11 @@ export function UsersTable({
                 Role
               </span>
               {(['all', 'owner', 'admin', 'user'] as FilterRole[]).map((r) => (
-                <FilterPill key={r} active={filterRole === r} onClick={() => setFilterRole(r)}>
+                <FilterPill
+                  key={r}
+                  active={filterRole === r}
+                  onClick={() => handleRoleFilterChange(r)}
+                >
                   {r === 'all' ? 'All' : r.charAt(0).toUpperCase() + r.slice(1)}
                 </FilterPill>
               ))}
@@ -1699,7 +1755,11 @@ export function UsersTable({
                 Status
               </span>
               {(['all', 'active', 'suspended'] as FilterStatus[]).map((s) => (
-                <FilterPill key={s} active={filterStatus === s} onClick={() => setFilterStatus(s)}>
+                <FilterPill
+                  key={s}
+                  active={filterStatus === s}
+                  onClick={() => handleStatusFilterChange(s)}
+                >
                   {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
                 </FilterPill>
               ))}
