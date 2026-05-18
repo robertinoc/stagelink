@@ -1,8 +1,25 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { hasBehindAccess } from '@/lib/behind-redis';
 import { UmamiProvider } from '@/lib/analytics/UmamiProvider';
 import { BehindNav } from './BehindNav';
+
+export const metadata: Metadata = {
+  title: {
+    template: '%s | Behind the Stage',
+    default: 'Behind the Stage — StageLink',
+  },
+  description: 'StageLink admin panel.',
+  // Explicit icon set so behind.stagelink.art shows the correct favicon
+  // regardless of how metadataBase is resolved for the subdomain.
+  icons: {
+    icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+  },
+};
 
 interface AdminLayoutProps {
   children: React.ReactNode;
