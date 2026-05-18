@@ -142,6 +142,7 @@
     "analytics": {
       "title": "Analytics",
       "description": "See your page views, link clicks, and fan captures in one place.",
+      "updating": "Updating statistics…",
       "range": {
         "7d": "Last 7 days",
         "30d": "Last 30 days",

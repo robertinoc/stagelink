@@ -142,6 +142,7 @@
     "analytics": {
       "title": "Analíticas",
       "description": "Mirá tus visitas, clicks en links y capturas de fans en un solo lugar.",
+      "updating": "Actualizando estadísticas…",
       "range": {
         "7d": "Últimos 7 días",
         "30d": "Últimos 30 días",

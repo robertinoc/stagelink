@@ -2,7 +2,25 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { BadgeCheck, CircleDashed, EyeOff, GripVertical, Pencil, Trash2 } from 'lucide-react';
+import {
+  BadgeCheck,
+  CircleDashed,
+  EyeOff,
+  GripVertical,
+  Images,
+  Link2,
+  Mail,
+  MessageSquare,
+  Music2,
+  Pencil,
+  Play,
+  ShoppingBag,
+  Shirt,
+  Sliders,
+  Trash2,
+  Type,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type {
   Block,
   BlockType,
@@ -51,17 +69,25 @@ interface Props {
 
 // ─── Block type metadata ──────────────────────────────────────────────────────
 
-const BLOCK_TYPE_ICONS: Record<BlockType, string> = {
-  links: '🔗',
-  music_embed: '🎵',
-  video_embed: '🎬',
-  email_capture: '✉️',
-  text: '📝',
-  image_gallery: '🖼️',
-  shopify_store: '🛍️',
-  smart_merch: '👕',
-  technical_rider: '🎚️',
-  contact_form: '📬',
+const BLOCK_TYPE_ICONS: Record<BlockType, LucideIcon> = {
+  links: Link2,
+  music_embed: Music2,
+  video_embed: Play,
+  email_capture: Mail,
+  text: Type,
+  image_gallery: Images,
+  shopify_store: ShoppingBag,
+  smart_merch: Shirt,
+  technical_rider: Sliders,
+  contact_form: MessageSquare,
+};
+
+/** Brand background colours for music-embed providers (shown in the block row icon). */
+const MUSIC_PROVIDER_BG: Record<string, string> = {
+  spotify: 'bg-[#1DB954]',
+  soundcloud: 'bg-[#FF5500]',
+  apple_music: 'bg-[#FC3C44]',
+  youtube: 'bg-[#FF0000]',
 };
 
 const BLOCK_TYPE_ACCENTS: Record<
@@ -224,6 +250,8 @@ function getBlockPreview(block: Block, t: ReturnType<typeof useTranslations<'blo
 function getBlockThumbnail(block: Block): string | null {
   switch (block.type) {
     case 'video_embed':
+      // latest_video mode: no static sourceUrl to parse — show branded placeholder in BlockRow
+      if ('mode' in block.config && block.config.mode === 'latest_video') return null;
       if ('sourceUrl' in block.config) {
         return getYouTubeThumbnail(block.config.sourceUrl);
       }
@@ -341,24 +369,30 @@ function CreateBlockDialog({
 
         {!selectedType ? (
           <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2">
-            {availableBlockTypes.map((type) => (
-              <button
-                key={type}
-                onClick={() => selectType(type)}
-                className="flex flex-col items-start gap-1 rounded-lg border p-4 text-left transition-colors hover:border-primary hover:bg-primary/5"
-              >
-                <span className="text-2xl">{BLOCK_TYPE_ICONS[type]}</span>
-                <span className="font-medium">{t(`types.${type}`)}</span>
-                <span className="text-xs text-muted-foreground">
-                  {t(`type_descriptions.${type}`)}
-                </span>
-              </button>
-            ))}
+            {availableBlockTypes.map((type) => {
+              const TypeIcon = BLOCK_TYPE_ICONS[type];
+              return (
+                <button
+                  key={type}
+                  onClick={() => selectType(type)}
+                  className="flex flex-col items-start gap-1 rounded-lg border p-4 text-left transition-colors hover:border-primary hover:bg-primary/5"
+                >
+                  <TypeIcon className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-medium">{t(`types.${type}`)}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {t(`type_descriptions.${type}`)}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         ) : (
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-2">
-              <span className="text-xl">{BLOCK_TYPE_ICONS[selectedType]}</span>
+              {(() => {
+                const SelectedIcon = BLOCK_TYPE_ICONS[selectedType];
+                return <SelectedIcon className="h-4 w-4 text-muted-foreground" />;
+              })()}
               <span className="font-medium">{t(`types.${selectedType}`)}</span>
               <button
                 className="ml-auto text-xs text-muted-foreground hover:underline"
@@ -478,7 +512,10 @@ function EditBlockSheet({
           <>
             <SheetHeader className="mb-6">
               <SheetTitle className="flex items-center gap-2">
-                <span>{BLOCK_TYPE_ICONS[block.type]}</span>
+                {(() => {
+                  const SheetIcon = BLOCK_TYPE_ICONS[block.type];
+                  return <SheetIcon className="h-4 w-4 text-muted-foreground" />;
+                })()}
                 {t('edit_sheet.title')} — {t(`types.${block.type}`)}
               </SheetTitle>
             </SheetHeader>
@@ -619,7 +656,10 @@ function BlockRow({
           <div className="flex flex-col gap-0.5">
             <button
               type="button"
-              onClick={() => onMoved(block.id, 'up')}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoved(block.id, 'up');
+              }}
               disabled={isFirst}
               title={t('move_up')}
               className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
@@ -628,7 +668,10 @@ function BlockRow({
             </button>
             <button
               type="button"
-              onClick={() => onMoved(block.id, 'down')}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoved(block.id, 'down');
+              }}
               disabled={isLast}
               title={t('move_down')}
               className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
@@ -646,10 +689,30 @@ function BlockRow({
             alt=""
             className="mt-0.5 h-12 w-12 shrink-0 rounded-xl border border-white/10 object-cover"
           />
-        ) : (
-          <span className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/10 text-xl">
-            {BLOCK_TYPE_ICONS[block.type]}
+        ) : block.type === 'music_embed' && 'provider' in block.config ? (
+          // Music block — provider-branded background
+          <span
+            className={`mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 ${MUSIC_PROVIDER_BG[block.config.provider] ?? 'bg-black/10'}`}
+          >
+            <Music2 className="h-5 w-5 text-white" />
           </span>
+        ) : block.type === 'video_embed' &&
+          'mode' in block.config &&
+          block.config.mode === 'latest_video' ? (
+          // Latest-video placeholder — YouTube red
+          <span className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[#FF0000]/15">
+            <Play className="h-5 w-5 text-[#FF0000]" />
+          </span>
+        ) : (
+          // Generic block-type icon
+          (() => {
+            const BlockIcon = BLOCK_TYPE_ICONS[block.type];
+            return (
+              <span className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/10">
+                <BlockIcon className="h-5 w-5 text-muted-foreground" />
+              </span>
+            );
+          })()
         )}
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{block.title ?? t(`types.${block.type}`)}</p>

@@ -2,9 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import type { StageLinkInsightsDashboard as StageLinkInsightsDashboardData } from '@stagelink/types';
-import { AlertCircle, Eye, Info, Link2, RefreshCw, TrendingUp, UserPlus, Zap } from 'lucide-react';
+import {
+  AlertCircle,
+  Eye,
+  Info,
+  Link2,
+  Loader2,
+  RefreshCw,
+  TrendingUp,
+  UserPlus,
+  Zap,
+} from 'lucide-react';
 import { FeatureLockCta } from '@/components/billing/FeatureLockCta';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -78,9 +89,11 @@ function resolvePlanLabel(plan: BillingEntitlementsResponse['effectivePlan'] | '
 function RangeSelector({
   current,
   analyticsProEnabled,
+  startTransition,
 }: {
   current: AnalyticsRange;
   analyticsProEnabled: boolean;
+  startTransition: React.TransitionStartFunction;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -94,7 +107,9 @@ function RangeSelector({
 
     const params = new URLSearchParams(searchParams.toString());
     params.set('range', range);
-    router.push(`${pathname}?${params.toString()}`);
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`);
+    });
   }
 
   return (
@@ -363,9 +378,14 @@ function SparkBars({
   data,
   colorClassName,
 }: {
-  data: AnalyticsTrendPoint[];
+  data: AnalyticsTrendPoint[] | null | undefined;
   colorClassName: string;
 }) {
+  if (!data || data.length === 0) {
+    // Empty placeholder — same height as filled chart
+    return <div className="mt-4 h-24 rounded-md bg-muted/20" />;
+  }
+
   const max = Math.max(...data.map((point) => point.value), 0);
 
   return (
@@ -376,7 +396,7 @@ function SparkBars({
           <div
             key={point.date}
             className={`min-w-0 flex-1 rounded-t ${colorClassName}`}
-            style={{ height }}
+            style={{ height: `${height}px` }}
             title={`${point.date}: ${formatNumber(point.value)}`}
           />
         );
@@ -633,15 +653,28 @@ export function AnalyticsDashboard({
   const locale = useLocale();
   const analyticsProEnabled = entitlements?.features.analytics_pro ?? false;
   const effectivePlan = entitlements?.effectivePlan ?? 'free';
+  const [isPending, startTransition] = useTransition();
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 overflow-x-hidden space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-sm text-muted-foreground">{t('description')}</p>
         </div>
-        <RangeSelector current={range} analyticsProEnabled={analyticsProEnabled} />
+        <div className="flex flex-col items-start gap-2 sm:items-end">
+          <RangeSelector
+            current={range}
+            analyticsProEnabled={analyticsProEnabled}
+            startTransition={startTransition}
+          />
+          {isPending && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              {t('updating')}
+            </div>
+          )}
+        </div>
       </div>
 
       {rangeLocked ? (

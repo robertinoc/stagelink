@@ -331,6 +331,26 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                   </section>
                 )}
 
+                {/* Short bio teaser — shown before media if the artist has a bio
+                    and it hasn't been placed in a custom text block already. */}
+                {artist.bio && !hasCustomAboutBlock && (
+                  <div className="mx-auto max-w-2xl text-center">
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => (
+                          <p className="text-sm leading-7 text-zinc-300 sm:text-base">{children}</p>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="font-semibold text-white">{children}</strong>
+                        ),
+                        em: ({ children }) => <em className="italic text-zinc-400">{children}</em>,
+                      }}
+                    >
+                      {artist.bio}
+                    </ReactMarkdown>
+                  </div>
+                )}
+
                 {featuredMediaBlocks.length > 0 && (
                   <section className="space-y-6">
                     <div className="space-y-2 text-center">
