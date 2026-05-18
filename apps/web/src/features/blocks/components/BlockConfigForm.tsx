@@ -436,6 +436,13 @@ const VIDEO_PROVIDER_HINT: Record<VideoEmbedBlockConfig['provider'], VideoHintKe
   tiktok: 'source_url_hint_tiktok',
 };
 
+interface YouTubePlaylistOption {
+  id: string;
+  title: string;
+  thumbnailUrl: string | null;
+  itemCount: number | null;
+}
+
 function VideoEmbedForm({
   config,
   onChange,
@@ -450,6 +457,52 @@ function VideoEmbedForm({
   const currentMode = config.mode ?? 'manual';
   const showModeSelector = config.provider === 'youtube';
 
+  // Playlist state — only populated when mode === 'playlist' and artistId is present
+  const [playlists, setPlaylists] = useState<YouTubePlaylistOption[]>([]);
+  const [playlistsLoading, setPlaylistsLoading] = useState(false);
+  const [playlistsError, setPlaylistsError] = useState<string | null>(null);
+
+  // Fetch playlists whenever we enter playlist mode with a known artistId
+  useEffect(() => {
+    if (currentMode !== 'playlist' || !artistId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function fetchPlaylists() {
+      setPlaylistsLoading(true);
+      setPlaylistsError(null);
+
+      try {
+        const params = new URLSearchParams({ artistId: artistId! });
+        const res = await fetch(`/api/blocks/youtube-playlists?${params.toString()}`, {
+          cache: 'no-store',
+        });
+        if (!res.ok) {
+          if (!cancelled) setPlaylistsError(t('source_mode_playlist_error'));
+          return;
+        }
+        const data = (await res.json()) as YouTubePlaylistOption[];
+        if (!cancelled) {
+          setPlaylists(data);
+          if (data.length === 0) {
+            setPlaylistsError(null);
+          }
+        }
+      } catch {
+        if (!cancelled) setPlaylistsError(t('source_mode_playlist_error'));
+      } finally {
+        if (!cancelled) setPlaylistsLoading(false);
+      }
+    }
+
+    void fetchPlaylists();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentMode, artistId, t]);
+
   function handleProviderChange(provider: VideoEmbedBlockConfig['provider']) {
     // Reset sourceUrl and mode when provider changes — old URL won't parse for new provider
     onChange({
@@ -459,12 +512,17 @@ function VideoEmbedForm({
       embedUrl: '',
       resourceType: 'video',
       mode: 'manual',
+      playlistId: undefined,
     });
   }
 
-  function handleModeChange(mode: 'manual' | 'latest_video') {
-    // Clear sourceUrl when switching modes — stale data from previous mode shouldn't carry over
-    onChange({ ...config, mode, sourceUrl: '', embedUrl: '' });
+  function handleModeChange(mode: 'manual' | 'latest_video' | 'playlist') {
+    // Clear sourceUrl + playlistId when switching modes
+    onChange({ ...config, mode, sourceUrl: '', embedUrl: '', playlistId: undefined });
+  }
+
+  function handlePlaylistSelect(playlistId: string) {
+    onChange({ ...config, playlistId, embedUrl: '' });
   }
 
   return (
@@ -490,7 +548,7 @@ function VideoEmbedForm({
       {showModeSelector && (
         <div>
           <label className="mb-1 block text-sm font-medium">{t('source_mode_label')}</label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => handleModeChange('manual')}
@@ -512,6 +570,17 @@ function VideoEmbedForm({
               }`}
             >
               {t('source_mode_latest_video')}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleModeChange('playlist')}
+              className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                currentMode === 'playlist'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-input text-muted-foreground hover:border-primary hover:text-primary'
+              }`}
+            >
+              {t('source_mode_playlist')}
             </button>
           </div>
         </div>
@@ -543,6 +612,50 @@ function VideoEmbedForm({
           <p className="text-xs text-muted-foreground">{t('source_mode_latest_info_youtube')}</p>
           {!artistId && (
             <p className="mt-1 text-xs text-amber-400">{t('source_mode_latest_no_connection')}</p>
+          )}
+        </div>
+      )}
+
+      {/* Playlist picker — shown in playlist mode */}
+      {currentMode === 'playlist' && (
+        <div className="space-y-2">
+          {!artistId ? (
+            <div className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2">
+              <p className="text-xs text-amber-400">{t('source_mode_playlist_no_artist')}</p>
+            </div>
+          ) : playlistsLoading ? (
+            <p className="text-xs text-muted-foreground">{t('source_mode_playlist_loading')}</p>
+          ) : playlistsError ? (
+            <p className="text-xs text-destructive">{playlistsError}</p>
+          ) : playlists.length === 0 ? (
+            <div className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2">
+              <p className="text-xs text-muted-foreground">{t('source_mode_playlist_empty')}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t('source_mode_playlist_no_connection')}
+              </p>
+            </div>
+          ) : (
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                {t('source_mode_playlist_label')}
+              </label>
+              <select
+                value={config.playlistId ?? ''}
+                onChange={(e) => handlePlaylistSelect(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="" disabled>
+                  — {t('source_mode_playlist_label')} —
+                </option>
+                {playlists.map((pl) => (
+                  <option key={pl.id} value={pl.id}>
+                    {pl.title}
+                    {pl.itemCount !== null ? ` (${pl.itemCount})` : ''}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-muted-foreground">{t('source_mode_playlist_info')}</p>
+            </div>
           )}
         </div>
       )}

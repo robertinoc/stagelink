@@ -129,6 +129,23 @@ export class InsightsController {
     return this.insightsService.syncYouTubeConnection(artistId, user.id, extractClientIp(req));
   }
 
+  /**
+   * GET /:artistId/youtube/playlists
+   *
+   * Returns the public playlists from the artist's connected YouTube channel.
+   * Used by the video_embed block 'playlist' mode picker in the dashboard editor.
+   * Returns an empty array when no YouTube channel is connected (graceful fallback).
+   */
+  @Get(':artistId/youtube/playlists')
+  @CheckOwnership('artist', 'artistId', 'read')
+  @UseGuards(OwnershipGuard)
+  getYouTubePlaylists(
+    @Param('artistId') artistId: string,
+    @CurrentUser() user: User,
+  ): Promise<import('./providers/youtube-insights.provider').YouTubePlaylistSummary[]> {
+    return this.insightsService.getYouTubePlaylists(artistId, user.id);
+  }
+
   @Post(':artistId/soundcloud/validate')
   @CheckOwnership('artist', 'artistId', 'write')
   @UseGuards(OwnershipGuard)

@@ -1537,7 +1537,15 @@
       "source_url_hint_youtube_playlist": "ej. https://www.youtube.com/playlist?list=…",
       "error_invalid_youtube_url": "Esta no parece ser una URL válida de YouTube.",
       "error_invalid_soundcloud_url": "Esta no parece ser una URL válida de SoundCloud.",
-      "error_invalid_playlist_url": "No encontramos un ID de playlist en esta URL."
+      "error_invalid_playlist_url": "No encontramos un ID de playlist en esta URL.",
+      "source_mode_playlist": "Playlist del canal",
+      "source_mode_playlist_label": "Seleccioná una playlist",
+      "source_mode_playlist_loading": "Cargando playlists…",
+      "source_mode_playlist_error": "No se pudieron cargar las playlists.",
+      "source_mode_playlist_empty": "No se encontraron playlists en este canal.",
+      "source_mode_playlist_no_connection": "Conectá tu canal de YouTube en Insights para usar este modo.",
+      "source_mode_playlist_no_artist": "El modo playlist solo está disponible al editar una página.",
+      "source_mode_playlist_info": "La playlist seleccionada se incrustará en tu página."
     },
     "smart_link": {
       "destination": "Destino",

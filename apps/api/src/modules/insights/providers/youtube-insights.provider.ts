@@ -90,6 +90,28 @@ interface YouTubeChannelSummary {
   uploadsPlaylistId: string | null;
 }
 
+interface YouTubePlaylistItem {
+  id: string;
+  snippet?: {
+    title?: string;
+    thumbnails?: {
+      default?: { url?: string };
+      medium?: { url?: string };
+      high?: { url?: string };
+    };
+  };
+  contentDetails?: {
+    itemCount?: number;
+  };
+}
+
+export interface YouTubePlaylistSummary {
+  id: string;
+  title: string;
+  thumbnailUrl: string | null;
+  itemCount: number | null;
+}
+
 @Injectable()
 export class YouTubeInsightsProvider implements PlatformInsightsProvider {
   readonly platform = 'youtube' as const;
@@ -181,6 +203,32 @@ export class YouTubeInsightsProvider implements PlatformInsightsProvider {
         externalUrl: `https://www.youtube.com/watch?v=${video.id}`,
       })),
     };
+  }
+
+  /**
+   * Fetches the public playlists for a given channel ID (up to 50).
+   * Excludes the auto-generated uploads playlist — only manually curated playlists are returned.
+   * Throws if the YouTube API key is not configured.
+   */
+  async getChannelPlaylists(channelId: string): Promise<YouTubePlaylistSummary[]> {
+    this.assertConfigured();
+
+    const response = await this.youtubeRequest<YouTubeApiListResponse<YouTubePlaylistItem>>(
+      '/playlists',
+      new URLSearchParams({
+        part: 'snippet,contentDetails',
+        channelId,
+        maxResults: '50',
+      }),
+    );
+
+    const items = Array.isArray(response.items) ? response.items : [];
+    return items.map((item) => ({
+      id: item.id,
+      title: item.snippet?.title ?? 'Untitled playlist',
+      thumbnailUrl: this.readThumbnail(item.snippet?.thumbnails),
+      itemCount: item.contentDetails?.itemCount ?? null,
+    }));
   }
 
   private isConfigured(): boolean {

@@ -135,6 +135,8 @@ interface VideoEmbedRendererProps {
 export function VideoEmbedRenderer({ title, config, artistId }: VideoEmbedRendererProps) {
   const mode = config.mode ?? 'manual';
   const isLatestMode = mode === 'latest_video';
+  // 'playlist' mode uses a pre-derived embedUrl stored in config (set by backend on save).
+  // No client-side resolution needed — same behaviour as 'manual'.
 
   // Resolve latest embed URL when in latest_video mode
   const latest = useLatestEmbed(
