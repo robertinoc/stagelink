@@ -1,4 +1,12 @@
-import { Activity, ExternalLink, ListChecks, ShieldCheck } from 'lucide-react';
+import {
+  Activity,
+  ExternalLink,
+  Filter,
+  ListChecks,
+  MousePointerClick,
+  ShieldCheck,
+  TrendingUp,
+} from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -6,17 +14,54 @@ const umamiShareUrl = process.env.NEXT_PUBLIC_UMAMI_BEHIND_SHARE_URL;
 
 const EVENTS = [
   'behind_nav_clicked',
+  'behind_logout_clicked',
+  'behind_umami_opened',
   'behind_invite_opened',
   'behind_invitation_submitted',
   'behind_invitation_sent',
   'behind_invitation_failed',
   'behind_users_filtered',
   'behind_users_sorted',
+  'behind_user_profile_updated',
   'behind_role_updated',
   'behind_user_status_updated',
   'behind_access_granted',
   'behind_access_extended',
   'behind_access_revoked',
+] as const;
+
+const DASHBOARD_MODULES = [
+  {
+    title: 'Traffic overview',
+    description: 'Pageviews, visitors, visits, referrers, device context, and geography.',
+    icon: Activity,
+  },
+  {
+    title: 'Campañas UTM',
+    description: 'Use the campaign templates to compare WhatsApp, email, referrals, and outreach.',
+    icon: TrendingUp,
+  },
+  {
+    title: 'Eventos behind_*',
+    description:
+      'Navigation, invitation funnel, filters, sorting, roles, status, and access actions.',
+    icon: MousePointerClick,
+  },
+] as const;
+
+const UTM_FIELDS = [
+  ['utm_source', 'whatsapp | email | instagram_dm | manual_outreach'],
+  ['utm_medium', 'direct_message | email_invite | referral'],
+  ['utm_campaign', 'behind_invites_2026_q2'],
+  ['utm_content', 'artist_beta | pro_lead | friend_referral'],
+] as const;
+
+const VALIDATION_CHECKS = [
+  'Open behind.stagelink.art and confirm the Umami script loads only there.',
+  'Open /behind/analytics and confirm a pageview appears in Umami.',
+  'Switch between Users and Analytics to trigger behind_nav_clicked.',
+  'Open and submit an invite to trigger the invitation funnel events.',
+  'Verify event properties exclude PII and free-text values.',
 ] as const;
 
 interface BehindAnalyticsPanelProps {
@@ -56,27 +101,21 @@ export function BehindAnalyticsPanel({ compact = false }: BehindAnalyticsPanelPr
 
       {!compact && (
         <div className="grid gap-3 md:grid-cols-3">
-          <div className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
-              <Activity className="h-4 w-4 text-primary" aria-hidden="true" />
-              Live product usage
-            </div>
-            <p className="mt-1 text-xs text-white/45">Traffic, referrers, devices, and events.</p>
-          </div>
-          <div className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
-              <ShieldCheck className="h-4 w-4 text-emerald-300" aria-hidden="true" />
-              Behind only
-            </div>
-            <p className="mt-1 text-xs text-white/45">Allowed domain: behind.stagelink.art.</p>
-          </div>
-          <div className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
-              <ListChecks className="h-4 w-4 text-sky-300" aria-hidden="true" />
-              PII excluded
-            </div>
-            <p className="mt-1 text-xs text-white/45">No emails, names, handles, or search text.</p>
-          </div>
+          {DASHBOARD_MODULES.map((module) => {
+            const Icon = module.icon;
+            return (
+              <div
+                key={module.title}
+                className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3"
+              >
+                <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
+                  <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
+                  {module.title}
+                </div>
+                <p className="mt-1 text-xs text-white/45">{module.description}</p>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -139,26 +178,117 @@ export function BehindAnalyticsPanel({ compact = false }: BehindAnalyticsPanelPr
       </Card>
 
       {!compact && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Tracked product events</CardTitle>
-            <CardDescription>
-              Operational events captured by the Behind-only Umami website.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {EVENTS.map((event) => (
-                <code
-                  key={event}
-                  className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/65"
-                >
-                  {event}
-                </code>
-              ))}
+        <>
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-primary" aria-hidden="true" />
+                  UTM campaigns
+                </CardTitle>
+                <CardDescription>
+                  Campaign naming for outreach links. Visitor-side UTM sessions stay outside this
+                  Behind-only Umami website.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-2">
+                  {UTM_FIELDS.map(([field, example]) => (
+                    <div
+                      key={field}
+                      className="grid gap-1 rounded-md border border-white/10 bg-white/[0.04] px-3 py-2 text-xs sm:grid-cols-[8rem_minmax(0,1fr)]"
+                    >
+                      <code className="font-semibold text-white/75">{field}</code>
+                      <span className="text-white/45">{example}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ListChecks className="h-4 w-4 text-sky-300" aria-hidden="true" />
+                  Manual validation
+                </CardTitle>
+                <CardDescription>
+                  End-to-end checks for the current Behind Umami setup.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ol className="grid gap-2">
+                  {VALIDATION_CHECKS.map((check, index) => (
+                    <li
+                      key={check}
+                      className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-2 rounded-md border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/55"
+                    >
+                      <span className="font-semibold text-white/35">{index + 1}</span>
+                      <span>{check}</span>
+                    </li>
+                  ))}
+                </ol>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MousePointerClick className="h-4 w-4 text-primary" aria-hidden="true" />
+                  Tracked product events
+                </CardTitle>
+                <CardDescription>
+                  Operational events captured by the Behind-only Umami website.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {EVENTS.map((event) => (
+                    <code
+                      key={event}
+                      className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/65"
+                    >
+                      {event}
+                    </code>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-emerald-300" aria-hidden="true" />
+                  Native dashboard path
+                </CardTitle>
+                <CardDescription>
+                  Future API-backed metrics can replace selected iframe sections after v1
+                  validation.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-xs text-white/50">
+                  <p>Current source: shared Umami iframe.</p>
+                  <p>Next source: server-side Umami API/widgets with no public token exposure.</p>
+                  <p>Constraint: keep public pages and artist dashboards out of this website.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
+              <ShieldCheck className="h-4 w-4 text-emerald-300" aria-hidden="true" />
+              Privacy guardrail
             </div>
-          </CardContent>
-        </Card>
+            <p className="mt-1 text-xs text-white/45">
+              Umami remains limited to behind.stagelink.art and event properties exclude emails,
+              names, handles, user IDs, artist IDs, search text, and outreach content.
+            </p>
+          </div>
+        </>
       )}
     </section>
   );
