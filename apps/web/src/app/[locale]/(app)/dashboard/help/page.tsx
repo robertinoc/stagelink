@@ -235,7 +235,7 @@ export default async function DashboardHelpPage({
             desc={r('community_desc')}
             status={<Pill tone="blue">{r('community_status')}</Pill>}
             cta={r('community_cta')}
-            href="#"
+            href="https://discord.gg/76dFVydHH"
           />
         </div>
       </div>
