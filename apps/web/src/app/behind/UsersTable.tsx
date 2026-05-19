@@ -70,6 +70,12 @@ const COLS: ColDef[] = [
 
 const PLAN_RANK: Record<string, number> = { free: 0, pro: 1, pro_plus: 2 };
 const ROLE_RANK: Record<string, number> = { owner: 2, admin: 1 };
+const INVITATION_UMAMI_CONTEXT = {
+  surface: 'users_table',
+  channel: 'workos_email',
+  source: 'behind_users',
+  medium: 'email_invite',
+} as const;
 
 // ─── Plan helpers ─────────────────────────────────────────────────────────────
 
@@ -953,6 +959,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
     if (!email.trim()) return;
     setState('sending');
     setErrorMsg('');
+    trackUmamiEvent('behind_invitation_submitted', INVITATION_UMAMI_CONTEXT);
     try {
       const res = await fetch('/api/admin/invitations', {
         method: 'POST',
@@ -963,13 +970,25 @@ function InviteModal({ onClose }: { onClose: () => void }) {
         const body = (await res.json().catch(() => ({}))) as { message?: string };
         setErrorMsg(body.message ?? 'Failed to send invitation.');
         setState('error');
+        trackUmamiEvent('behind_invitation_failed', {
+          ...INVITATION_UMAMI_CONTEXT,
+          result: 'api_error',
+          status: res.status,
+        });
         return;
       }
       setState('sent');
-      trackUmamiEvent('behind_invitation_sent');
+      trackUmamiEvent('behind_invitation_sent', {
+        ...INVITATION_UMAMI_CONTEXT,
+        result: 'sent',
+      });
     } catch {
       setErrorMsg('Network error. Please try again.');
       setState('error');
+      trackUmamiEvent('behind_invitation_failed', {
+        ...INVITATION_UMAMI_CONTEXT,
+        result: 'network_error',
+      });
     }
   }
 
@@ -1617,6 +1636,11 @@ export function UsersTable({
     });
   }
 
+  function handleInviteOpen() {
+    trackUmamiEvent('behind_invite_opened', INVITATION_UMAMI_CONTEXT);
+    setModal({ type: 'invite' });
+  }
+
   const allUsers = state.status === 'ok' ? state.users : [];
   const filteredUsers = applySort(
     applyFilters(allUsers, search.trim(), filterPlan, filterRole, filterStatus, roles),
@@ -1665,11 +1689,7 @@ export function UsersTable({
               </CardDescription>
             </div>
             {currentUserRole === 'owner' && (
-              <Button
-                size="sm"
-                data-umami-event="behind_invite_opened"
-                onClick={() => setModal({ type: 'invite' })}
-              >
+              <Button size="sm" onClick={handleInviteOpen}>
                 Invite user
               </Button>
             )}

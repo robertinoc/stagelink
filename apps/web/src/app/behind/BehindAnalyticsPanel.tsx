@@ -7,7 +7,9 @@ const umamiShareUrl = process.env.NEXT_PUBLIC_UMAMI_BEHIND_SHARE_URL;
 const EVENTS = [
   'behind_nav_clicked',
   'behind_invite_opened',
+  'behind_invitation_submitted',
   'behind_invitation_sent',
+  'behind_invitation_failed',
   'behind_users_filtered',
   'behind_users_sorted',
   'behind_role_updated',

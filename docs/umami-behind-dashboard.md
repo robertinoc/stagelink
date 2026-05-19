@@ -50,7 +50,9 @@ Current explicit events:
 - `behind_logout_clicked`
 - `behind_umami_opened`
 - `behind_invite_opened`
+- `behind_invitation_submitted`
 - `behind_invitation_sent`
+- `behind_invitation_failed`
 - `behind_users_sorted`
 - `behind_users_filtered`
 - `behind_user_profile_updated`
@@ -66,9 +68,16 @@ Allowed event properties:
 - filter names and values, such as `plan=pro`;
 - sort field and direction;
 - role/access/status outcomes.
+- invitation funnel context, such as `surface=users_table`,
+  `channel=workos_email`, `source=behind_users`, `medium=email_invite`,
+  `result=sent|api_error|network_error`, and API error `status`.
 
-Do not send user email, artist handle, user id, name, or free-text search query
-to Umami.
+Do not send user email, artist handle, user id, artist id, name, free-text
+search query, or outreach content to Umami.
+
+UTM campaign conventions and outreach templates live in
+`docs/umami-acquisition-utm-playbook.md`. They are operational templates only:
+the Behind Umami website does not measure public signup or landing sessions.
 
 ## Dashboard V1
 

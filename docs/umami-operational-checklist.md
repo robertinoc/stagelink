@@ -52,7 +52,9 @@ In Umami Realtime or Events, validate:
 - `behind_nav_clicked` after switching between Users and Analytics;
 - `behind_umami_opened` after opening the shared Umami dashboard;
 - `behind_invite_opened` after opening the invite modal;
+- `behind_invitation_submitted` after submitting the invite form;
 - `behind_invitation_sent` after sending an invite;
+- `behind_invitation_failed` if the invitation API or network fails;
 - `behind_users_filtered` after changing plan, role, or status filters;
 - `behind_users_sorted` after sorting the users table;
 - access and role events only when those admin operations are performed.
@@ -66,3 +68,5 @@ In Umami Realtime or Events, validate:
 - Keep `NEXT_PUBLIC_UMAMI_DOMAINS=behind.stagelink.art` in production.
 - Keep Umami out of artist-facing analytics until a separate product/privacy
   review explicitly approves it.
+- Use `docs/umami-acquisition-utm-playbook.md` for outreach UTMs. Those links
+  are campaign templates only and do not expand the Behind-only tracking scope.

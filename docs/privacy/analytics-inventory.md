@@ -49,7 +49,9 @@ Current explicit events:
 - `behind_logout_clicked`
 - `behind_umami_opened`
 - `behind_invite_opened`
+- `behind_invitation_submitted`
 - `behind_invitation_sent`
+- `behind_invitation_failed`
 - `behind_users_sorted`
 - `behind_users_filtered`
 - `behind_user_profile_updated`
@@ -66,6 +68,10 @@ Controls:
 - configured by `NEXT_PUBLIC_UMAMI_BEHIND_WEBSITE_ID`;
 - event properties must avoid end-user PII and should describe product/admin
   actions, sections, filters, and outcomes.
+- invitation funnel properties are limited to safe operational values such as
+  `surface`, `channel`, `source`, `medium`, `result`, and failed API `status`.
+- outreach UTM templates are documented in `docs/umami-acquisition-utm-playbook.md`
+  but do not expand Umami tracking to public signup or landing routes.
 
 ### Local PostgreSQL `analytics_events`
 
