@@ -66,6 +66,8 @@ Controls:
 - loaded only inside `apps/web/src/app/behind/layout.tsx`;
 - `data-do-not-track="true"`;
 - configured by `NEXT_PUBLIC_UMAMI_BEHIND_WEBSITE_ID`;
+- `/behind/analytics` embeds the shared Umami dashboard and adds a visible v1
+  operating center for traffic, UTM conventions, events, and validation checks;
 - event properties must avoid end-user PII and should describe product/admin
   actions, sections, filters, and outcomes.
 - invitation funnel properties are limited to safe operational values such as

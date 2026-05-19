@@ -59,6 +59,33 @@ In Umami Realtime or Events, validate:
 - `behind_users_sorted` after sorting the users table;
 - access and role events only when those admin operations are performed.
 
+## Dashboard V1 Validation
+
+In `https://behind.stagelink.art/behind/analytics`, validate:
+
+- the embedded Umami dashboard renders when `NEXT_PUBLIC_UMAMI_BEHIND_SHARE_URL`
+  is configured;
+- the page shows Traffic overview, UTM campaigns, tracked `behind_*` events, and
+  manual validation sections;
+- UTM campaign fields match `docs/umami-acquisition-utm-playbook.md`;
+- the native dashboard path is presented as future API-backed work, not as an
+  active API integration.
+
+## End-to-End Validation
+
+Use this sequence before closing the v1 setup:
+
+1. Open `https://behind.stagelink.art/`.
+2. Confirm the Umami script is present on Behind.
+3. Confirm the Umami script is absent on `https://stagelink.art/` public,
+   landing, auth, and artist dashboard routes.
+4. Open `/behind/analytics`.
+5. Confirm a `/behind/analytics` pageview appears in Umami.
+6. Trigger nav, invite, filter, sort, role/status/access actions as applicable.
+7. Confirm the resulting events use only the documented safe properties.
+8. Confirm UTM templates are usable for outreach but do not imply public session
+   tracking in the Behind website.
+
 ## Privacy Guardrails
 
 - Do not send emails, names, handles, user IDs, artist IDs, or free-text search

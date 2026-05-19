@@ -81,12 +81,23 @@ the Behind Umami website does not measure public signup or landing sessions.
 
 ## Dashboard V1
 
-Recommended Umami dashboard sections:
+The `/behind/analytics` page is the StageLink Behind analytics operating center.
+It keeps the shared Umami iframe as the primary data source and adds StageLink
+context around it.
 
-1. Traffic overview: pageviews, visits, referrers, device/browser, and country.
-2. Product usage: top events from the `behind_*` taxonomy.
-3. Users table workflow: filters, sorts, invites, status changes, role changes.
-4. Access operations: grants, extensions, and revokes.
+Current sections:
+
+1. Traffic overview: pageviews, visitors, visits, referrers, devices, and
+   geography from the Umami dashboard.
+2. UTM campaigns: operational naming for outreach links, using the templates in
+   `docs/umami-acquisition-utm-playbook.md`.
+3. `behind_*` events: navigation, invitation funnel, filters, sorts, roles,
+   status, and access operations.
+4. Manual validation: visible end-to-end checks for the active Behind setup.
+
+The future native dashboard path is intentionally documented but not
+implemented in v1. A later API-backed version should fetch Umami metrics
+server-side and avoid exposing API tokens in the browser.
 
 ## Validation Checklist
 
@@ -103,5 +114,9 @@ Minimum release checks:
 5. Confirm the Umami script is present on Behind.
 6. Confirm the script is absent on `https://stagelink.art/`, public artist pages,
    artist dashboards, login, and marketing routes.
-7. Trigger a filter, sort, and invite modal open in Behind.
-8. Confirm only `behind_*` events appear in the `StageLink Behind` website.
+7. Open `/behind/analytics` and confirm the embedded dashboard renders.
+8. Trigger a nav click, invite open, invite submit, filter, and sort in Behind.
+9. Confirm pageviews and only `behind_*` events appear in the `StageLink Behind`
+   website.
+10. Confirm UTM templates remain documentation-only and public signup/landing
+    routes are not tracked by this Behind Umami website.
