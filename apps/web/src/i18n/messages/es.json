@@ -1687,6 +1687,12 @@
     "edit": "Editar",
     "delete": "Eliminar",
     "cancel": "Cancelar",
+    "blocks_label": "Bloques",
+    "active_label": "activos",
+    "auto_saved": "Cambios guardados automáticamente",
+    "url_label": "Tu URL",
+    "copy": "Copiar",
+    "copied": "¡Copiado!",
     "renderer": {
       "embed_unavailable": "Vista previa no disponible",
       "email_capture": {

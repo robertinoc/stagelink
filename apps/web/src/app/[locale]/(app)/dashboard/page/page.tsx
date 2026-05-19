@@ -113,6 +113,7 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
         canUseShopifyIntegration={billingSummary.entitlements.shopify_integration}
         canUseSmartMerch={billingSummary.entitlements.smart_merch}
         galleryImages={artist?.galleryImageUrls ?? []}
+        username={artist?.username ?? undefined}
         textSources={[
           artist?.bio
             ? {
