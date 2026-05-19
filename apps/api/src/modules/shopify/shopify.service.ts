@@ -564,15 +564,25 @@ export class ShopifyService {
     }
 
     if (!response.ok) {
-      const message = payload?.errors?.[0]?.message ?? 'Shopify connection failed';
-      if (response.status === 401 || response.status === 403 || response.status === 404) {
-        throw new BadRequestException(message);
+      // Use || (not ??) so empty-string messages from Shopify don't slip through as falsy
+      const shopifyMessage = payload?.errors?.[0]?.message || '';
+      if (response.status === 401 || response.status === 403) {
+        throw new BadRequestException(
+          shopifyMessage ||
+            'Invalid Shopify storefront token. Please check your token in Shopify Admin → Apps → API credentials.',
+        );
       }
-      throw new ServiceUnavailableException(message);
+      if (response.status === 404) {
+        throw new BadRequestException(
+          shopifyMessage || 'Shopify store not found. Please check your store domain.',
+        );
+      }
+      throw new ServiceUnavailableException(shopifyMessage || 'Shopify connection failed');
     }
 
     if (payload?.errors?.length) {
-      throw new BadRequestException(payload.errors[0]?.message ?? 'Shopify returned an error');
+      // Use || so an empty Shopify error message doesn't produce a confusing error
+      throw new BadRequestException(payload.errors[0]?.message || 'Shopify returned an error');
     }
 
     if (!payload?.data) {
