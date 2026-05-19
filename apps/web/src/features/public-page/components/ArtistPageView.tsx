@@ -203,12 +203,58 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
     return (block.config as VideoEmbedBlockConfig).provider;
   }
 
+  // ── Theme mapping ────────────────────────────────────────────────────────────
+  // Minimal per-theme overrides for background and glow colours.
+  // All other colours remain unchanged to avoid a full CSS-var refactor.
+  const themeName = page.theme?.name ?? 'noche';
+  const themeStyles: Record<string, { bg: string; glow1: string; glow2: string; glow3: string }> = {
+    noche: {
+      bg: '#090411',
+      glow1: 'rgba(139,92,246,0.20)',
+      glow2: 'rgba(217,70,239,0.10)',
+      glow3: 'rgba(6,182,212,0.10)',
+    },
+    aurora: {
+      bg: '#050d1a',
+      glow1: 'rgba(0,212,255,0.18)',
+      glow2: 'rgba(0,180,220,0.10)',
+      glow3: 'rgba(139,92,246,0.10)',
+    },
+    forge: {
+      bg: '#100800',
+      glow1: 'rgba(255,100,34,0.22)',
+      glow2: 'rgba(255,80,20,0.10)',
+      glow3: 'rgba(255,200,50,0.08)',
+    },
+    papel: {
+      bg: '#f5f0e8',
+      glow1: 'rgba(45,74,140,0.10)',
+      glow2: 'rgba(45,74,140,0.06)',
+      glow3: 'rgba(45,74,140,0.06)',
+    },
+  };
+  const theme = themeStyles[themeName] ?? themeStyles['noche']!;
+  const isPapel = themeName === 'papel';
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#090411] text-white">
+    <div
+      className="relative min-h-screen overflow-hidden"
+      style={{ background: theme.bg, color: isPapel ? '#1a1a1a' : '#ffffff' }}
+      data-theme={themeName}
+    >
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-0 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-violet-500/20 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-[320px] w-[320px] rounded-full bg-fuchsia-500/10 blur-3xl" />
-        <div className="absolute left-0 top-1/3 h-[260px] w-[260px] rounded-full bg-cyan-500/10 blur-3xl" />
+        <div
+          className="absolute left-1/2 top-0 h-[420px] w-[420px] -translate-x-1/2 rounded-full blur-3xl"
+          style={{ background: theme.glow1 }}
+        />
+        <div
+          className="absolute bottom-0 right-0 h-[320px] w-[320px] rounded-full blur-3xl"
+          style={{ background: theme.glow2 }}
+        />
+        <div
+          className="absolute left-0 top-1/3 h-[260px] w-[260px] rounded-full blur-3xl"
+          style={{ background: theme.glow3 }}
+        />
       </div>
 
       <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">

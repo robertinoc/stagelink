@@ -6,8 +6,28 @@ export interface ArtistPage {
   artistId: string;
   title: string | null;
   isPublished: boolean;
+  theme?: Record<string, string>;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * PATCH /api/pages/:pageId
+ * Updates mutable page fields (title, isPublished, theme).
+ * Proxied through the Next.js web route handler to keep the access token server-side.
+ */
+export async function updatePage(
+  pageId: string,
+  data: { theme?: Record<string, string> },
+): Promise<ArtistPage> {
+  const res = await fetch(`/api/pages/${pageId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(`Failed to update page: ${res.status}`);
+  return res.json() as Promise<ArtistPage>;
 }
 
 /**

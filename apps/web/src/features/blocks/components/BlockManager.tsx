@@ -494,6 +494,7 @@ function BlockRow({
   block,
   isFirst,
   isLast,
+  isPrimary,
   isDragging,
   dragDisabled,
   onEdit,
@@ -508,6 +509,7 @@ function BlockRow({
   block: Block;
   isFirst: boolean;
   isLast: boolean;
+  isPrimary: boolean;
   isDragging: boolean;
   dragDisabled: boolean;
   onEdit: () => void;
@@ -628,9 +630,19 @@ function BlockRow({
 
       {/* Title + type */}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[14px] font-semibold text-white">
-          {block.title ?? t(`types.${block.type}`)}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="truncate text-[14px] font-semibold text-white">
+            {block.title ?? t(`types.${block.type}`)}
+          </p>
+          {isPrimary && (
+            <span
+              className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 font-[family-name:var(--font-heading)] text-[9px] font-bold uppercase tracking-[1.5px] text-white"
+              style={{ background: 'var(--sl-grad)' }}
+            >
+              Primario
+            </span>
+          )}
+        </div>
         <p className="text-[12px] text-white/40">
           {t(`types.${block.type}`)}
           <span className="mx-1.5 text-white/20">·</span>
@@ -808,6 +820,7 @@ export function BlockManager({
   }
 
   const activeCount = blocks.filter((b) => b.isPublished).length;
+  const firstPublishedIndex = blocks.findIndex((b) => b.isPublished);
 
   return (
     <div className="space-y-4">
@@ -851,6 +864,7 @@ export function BlockManager({
                 block={block}
                 isFirst={index === 0}
                 isLast={index === blocks.length - 1}
+                isPrimary={index === firstPublishedIndex && firstPublishedIndex !== -1}
                 isDragging={draggedBlockId === block.id || dragTargetBlockId === block.id}
                 dragDisabled={blocks.length <= 1}
                 onEdit={() => setEditingBlock(block)}

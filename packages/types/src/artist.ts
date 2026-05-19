@@ -180,6 +180,8 @@ export interface PublicPageResponse {
   epkTechRequirements: string | null;
   locale: SupportedLocale;
   contentLocale: SupportedLocale;
+  /** Visual theme selected by the artist — e.g. { name: 'aurora' } */
+  theme?: Record<string, string>;
 }
 
 export type CustomDomainStatus = 'pending' | 'active' | 'failed' | 'disabled';

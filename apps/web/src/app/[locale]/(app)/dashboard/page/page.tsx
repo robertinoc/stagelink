@@ -9,6 +9,8 @@ import { getArtistEpk } from '@/lib/api/epk';
 import { getAuthMe } from '@/lib/api/me';
 import { getArtistPages } from '@/lib/api/pages';
 import { BlockManager } from '@/features/blocks/components/BlockManager';
+import { ThemeSelector } from '@/features/blocks/components/ThemeSelector';
+import { PhonePreviewFrame } from '@/features/blocks/components/PhonePreviewFrame';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('blocks');
@@ -76,8 +78,47 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
           pressQuote: 'Press quote',
         };
 
+  const textSourceList = [
+    artist?.bio
+      ? { id: 'profile-bio', label: textSourceLabels.profileBio, body: artist.bio }
+      : null,
+    artist?.fullBio
+      ? { id: 'profile-full-bio', label: textSourceLabels.profileFullBio, body: artist.fullBio }
+      : null,
+    epkData?.epk.shortBio
+      ? { id: 'epk-short-bio', label: textSourceLabels.epkShortBio, body: epkData.epk.shortBio }
+      : null,
+    epkData?.epk.fullBio
+      ? { id: 'epk-full-bio', label: textSourceLabels.epkFullBio, body: epkData.epk.fullBio }
+      : null,
+    epkData?.epk.availabilityNotes
+      ? {
+          id: 'epk-availability',
+          label: textSourceLabels.availability,
+          body: epkData.epk.availabilityNotes,
+        }
+      : null,
+    epkData?.epk.riderInfo
+      ? {
+          id: 'epk-artist-requirements',
+          label: textSourceLabels.artistRequirements,
+          body: epkData.epk.riderInfo,
+        }
+      : null,
+    epkData?.epk.techRequirements
+      ? {
+          id: 'epk-technical-rider',
+          label: textSourceLabels.technicalRider,
+          body: epkData.epk.techRequirements,
+        }
+      : null,
+    epkData?.epk.pressQuote
+      ? { id: 'epk-press-quote', label: textSourceLabels.pressQuote, body: epkData.epk.pressQuote }
+      : null,
+  ].filter((item): item is { id: string; label: string; body: string } => Boolean(item));
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-10">
       {/* ── SL-style page header ───────────────────────────────────────── */}
       <div className="sl-header flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
@@ -96,7 +137,7 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
         {artist?.username && (
           <div className="flex shrink-0 items-center gap-2">
             <Link
-              href={`/p/${artist.username}`}
+              href={`/${locale}/${artist.username}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-white/10"
@@ -107,72 +148,29 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
         )}
       </div>
 
-      <BlockManager
-        pageId={page.id}
-        artistId={artistId}
-        canUseShopifyIntegration={billingSummary.entitlements.shopify_integration}
-        canUseSmartMerch={billingSummary.entitlements.smart_merch}
-        galleryImages={artist?.galleryImageUrls ?? []}
-        username={artist?.username ?? undefined}
-        textSources={[
-          artist?.bio
-            ? {
-                id: 'profile-bio',
-                label: textSourceLabels.profileBio,
-                body: artist.bio,
-              }
-            : null,
-          artist?.fullBio
-            ? {
-                id: 'profile-full-bio',
-                label: textSourceLabels.profileFullBio,
-                body: artist.fullBio,
-              }
-            : null,
-          epkData?.epk.shortBio
-            ? {
-                id: 'epk-short-bio',
-                label: textSourceLabels.epkShortBio,
-                body: epkData.epk.shortBio,
-              }
-            : null,
-          epkData?.epk.fullBio
-            ? {
-                id: 'epk-full-bio',
-                label: textSourceLabels.epkFullBio,
-                body: epkData.epk.fullBio,
-              }
-            : null,
-          epkData?.epk.availabilityNotes
-            ? {
-                id: 'epk-availability',
-                label: textSourceLabels.availability,
-                body: epkData.epk.availabilityNotes,
-              }
-            : null,
-          epkData?.epk.riderInfo
-            ? {
-                id: 'epk-artist-requirements',
-                label: textSourceLabels.artistRequirements,
-                body: epkData.epk.riderInfo,
-              }
-            : null,
-          epkData?.epk.techRequirements
-            ? {
-                id: 'epk-technical-rider',
-                label: textSourceLabels.technicalRider,
-                body: epkData.epk.techRequirements,
-              }
-            : null,
-          epkData?.epk.pressQuote
-            ? {
-                id: 'epk-press-quote',
-                label: textSourceLabels.pressQuote,
-                body: epkData.epk.pressQuote,
-              }
-            : null,
-        ].filter((item): item is { id: string; label: string; body: string } => Boolean(item))}
-      />
+      {/* ── Two-column editor layout ────────────────────────────────────── */}
+      <div className="grid gap-5 xl:grid-cols-[1fr_320px] xl:items-start">
+        {/* Left: Block manager */}
+        <BlockManager
+          pageId={page.id}
+          artistId={artistId}
+          canUseShopifyIntegration={billingSummary.entitlements.shopify_integration}
+          canUseSmartMerch={billingSummary.entitlements.smart_merch}
+          galleryImages={artist?.galleryImageUrls ?? []}
+          username={artist?.username ?? undefined}
+          textSources={textSourceList}
+        />
+
+        {/* Right: Phone frame preview (sticky on xl+) */}
+        {artist?.username && (
+          <div className="hidden xl:block xl:sticky xl:top-6">
+            <PhonePreviewFrame username={artist.username} locale={locale} />
+          </div>
+        )}
+      </div>
+
+      {/* ── Theme selector ──────────────────────────────────────────────── */}
+      <ThemeSelector pageId={page.id} currentTheme={page.theme ?? undefined} />
     </div>
   );
 }

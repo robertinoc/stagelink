@@ -521,6 +521,7 @@ export class PublicPagesService {
       where: { artistId },
       select: {
         id: true,
+        theme: true,
         artist: {
           select: {
             username: true,
@@ -845,6 +846,7 @@ export class PublicPagesService {
       epkTechRequirements,
       locale,
       contentLocale: localizedArtist.contentLocale,
+      theme: (page.theme as Record<string, string> | null) ?? undefined,
     };
   }
 }

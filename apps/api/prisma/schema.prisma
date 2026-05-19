@@ -275,6 +275,7 @@ model Page {
   artistId    String   @unique @map("artist_id")
   title       String?
   isPublished Boolean  @default(false) @map("is_published")
+  theme       Json?
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
