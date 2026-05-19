@@ -5,7 +5,7 @@ import { getSession } from '@/lib/auth';
 import { getArtist } from '@/lib/api/artists';
 import { getBillingEntitlements } from '@/lib/api/billing';
 import { getAuthMe } from '@/lib/api/me';
-import { ArtistProfileSettings } from '@/features/artist/components/ArtistProfileSettings';
+import { ProfileEditor } from '@/features/artist/components/ProfileEditor';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('dashboard.profile');
@@ -48,20 +48,11 @@ export default async function DashboardProfilePage({ params }: DashboardProfileP
   ]);
   if (!artist) redirect(`/${locale}/onboarding`);
 
-  const t = await getTranslations('dashboard.profile');
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('description')}</p>
-      </div>
-
-      <ArtistProfileSettings
-        artist={artist}
-        hasMultiLanguageAccess={!!entitlements?.features.multi_language_pages}
-        billingHref={`/${locale}/dashboard/billing`}
-      />
-    </div>
+    <ProfileEditor
+      artist={artist}
+      hasMultiLanguageAccess={!!entitlements?.features.multi_language_pages}
+      billingHref={`/${locale}/dashboard/billing`}
+    />
   );
 }
