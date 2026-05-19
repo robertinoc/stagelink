@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
@@ -6,6 +7,7 @@ import { AuditService } from '../audit/audit.service';
 export interface UpdatePageDto {
   title?: string;
   isPublished?: boolean;
+  theme?: Record<string, unknown>;
 }
 
 @Injectable()
@@ -30,9 +32,15 @@ export class PagesService {
 
     await this.membershipService.validateAccess(userId, artistId, 'write');
 
+    const { theme, ...rest } = dto;
+    const data: Prisma.PageUpdateInput = {
+      ...rest,
+      ...(theme !== undefined && { theme: theme as Prisma.InputJsonValue }),
+    };
+
     const page = await this.prisma.page.update({
       where: { id: pageId },
-      data: dto,
+      data,
     });
 
     this.auditService.log({

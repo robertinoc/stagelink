@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsObject, MaxLength } from 'class-validator';
 
 /**
  * CreatePageDto — POST /api/pages (create public page for an artist)
@@ -29,4 +29,8 @@ export class UpdatePageDto {
   @IsOptional()
   @IsBoolean()
   isPublished?: boolean;
+
+  @IsOptional()
+  @IsObject()
+  theme?: Record<string, unknown>;
 }
