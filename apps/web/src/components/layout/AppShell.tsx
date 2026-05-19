@@ -29,7 +29,11 @@ export function AppShell({ artist, effectivePlan, children }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    // sl-root enables container queries for responsive layout inside this element
+    <div
+      className="sl-root flex h-screen overflow-hidden"
+      style={{ background: 'var(--sl-bg-deep, #0D0A1A)', containerType: 'inline-size' }}
+    >
       {/* ── Desktop sidebar (always visible on lg+) ─────────────────────── */}
       <div className="hidden lg:flex lg:flex-shrink-0">
         <AppSidebar artist={artist} effectivePlan={effectivePlan} />
@@ -41,7 +45,11 @@ export function AppShell({ artist, effectivePlan, children }: AppShellProps) {
          * p-0 lets AppSidebar fill edge-to-edge.
          * SheetContent renders an absolute-positioned × button at right-4 top-4.
          */}
-        <SheetContent side="left" className="w-60 p-0 bg-sidebar border-r border-white/10">
+        <SheetContent
+          side="left"
+          className="w-60 border-r border-white/8 p-0"
+          style={{ background: 'var(--sl-bg-deep, #0D0A1A)' }}
+        >
           {/* Visually hidden title required by Radix Dialog for screen-reader accessibility */}
           <SheetTitle className="sr-only">Navigation menu</SheetTitle>
           <AppSidebar
@@ -56,7 +64,19 @@ export function AppShell({ artist, effectivePlan, children }: AppShellProps) {
       {/* min-w-0 prevents this flex child from growing beyond the viewport width */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <AppTopbar artist={artist} onMenuOpen={() => setMobileOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        {/* Ambient glow background on the scrollable content area */}
+        <main
+          className="flex-1 overflow-y-auto"
+          style={{
+            background: `
+              radial-gradient(ellipse 70% 50% at 75% -10%, rgba(155,48,208,0.18) 0%, transparent 55%),
+              radial-gradient(ellipse 40% 30% at 10% 100%, rgba(0,212,255,0.07) 0%, transparent 60%),
+              var(--sl-bg-deep, #0D0A1A)
+            `,
+          }}
+        >
+          <div className="p-4 sm:p-6">{children}</div>
+        </main>
       </div>
     </div>
   );

@@ -3,16 +3,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import {
-  BadgeCheck,
-  CircleDashed,
-  EyeOff,
+  Check,
+  Copy,
   GripVertical,
   Images,
   Link2,
   Mail,
   MessageSquare,
   Music2,
-  Pencil,
   Play,
   ShoppingBag,
   Shirt,
@@ -43,8 +41,6 @@ import { defaultConfig, BlockConfigForm } from './BlockConfigForm';
 
 // ─── shadcn/ui imports ────────────────────────────────────────────────────────
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -65,6 +61,7 @@ interface Props {
     label: string;
     body: string;
   }>;
+  username?: string;
 }
 
 // ─── Block type metadata ──────────────────────────────────────────────────────
@@ -88,66 +85,6 @@ const MUSIC_PROVIDER_BG: Record<string, string> = {
   soundcloud: 'bg-[#FF5500]',
   apple_music: 'bg-[#FC3C44]',
   youtube: 'bg-[#FF0000]',
-};
-
-const BLOCK_TYPE_ACCENTS: Record<
-  BlockType,
-  {
-    border: string;
-    background: string;
-    preview: string;
-  }
-> = {
-  links: {
-    border: 'border-slate-500/25',
-    background: 'bg-slate-500/8',
-    preview: 'text-slate-300',
-  },
-  music_embed: {
-    border: 'border-emerald-500/25',
-    background: 'bg-emerald-500/8',
-    preview: 'text-emerald-200',
-  },
-  video_embed: {
-    border: 'border-rose-500/25',
-    background: 'bg-rose-500/8',
-    preview: 'text-rose-200',
-  },
-  email_capture: {
-    border: 'border-amber-500/25',
-    background: 'bg-amber-500/8',
-    preview: 'text-amber-200',
-  },
-  text: {
-    border: 'border-zinc-500/25',
-    background: 'bg-zinc-500/8',
-    preview: 'text-zinc-300',
-  },
-  image_gallery: {
-    border: 'border-indigo-500/25',
-    background: 'bg-indigo-500/8',
-    preview: 'text-indigo-200',
-  },
-  shopify_store: {
-    border: 'border-orange-500/25',
-    background: 'bg-orange-500/8',
-    preview: 'text-orange-200',
-  },
-  smart_merch: {
-    border: 'border-cyan-500/25',
-    background: 'bg-cyan-500/8',
-    preview: 'text-cyan-200',
-  },
-  technical_rider: {
-    border: 'border-violet-500/25',
-    background: 'bg-violet-500/8',
-    preview: 'text-violet-200',
-  },
-  contact_form: {
-    border: 'border-sky-500/25',
-    background: 'bg-sky-500/8',
-    preview: 'text-sky-200',
-  },
 };
 
 function hasLocalizedContent(content: BlockLocalizedContent | null | undefined): boolean {
@@ -195,58 +132,6 @@ function getYouTubeThumbnail(url: string): string | null {
   return null;
 }
 
-function getBlockPreview(block: Block, t: ReturnType<typeof useTranslations<'blocks'>>) {
-  switch (block.type) {
-    case 'text': {
-      const body = 'body' in block.config ? block.config.body : '';
-      return body?.trim() ? body.trim().slice(0, 140) : t('type_descriptions.text');
-    }
-    case 'video_embed': {
-      const provider = 'provider' in block.config ? block.config.provider : '';
-      const sourceUrl = 'sourceUrl' in block.config ? block.config.sourceUrl : '';
-      return sourceUrl ? `${provider} • ${sourceUrl}` : t('type_descriptions.video_embed');
-    }
-    case 'music_embed': {
-      const provider = 'provider' in block.config ? block.config.provider : '';
-      const sourceUrl = 'sourceUrl' in block.config ? block.config.sourceUrl : '';
-      return sourceUrl ? `${provider} • ${sourceUrl}` : t('type_descriptions.music_embed');
-    }
-    case 'links': {
-      const items = 'items' in block.config ? block.config.items : [];
-      if (!items?.length) return t('type_descriptions.links');
-      return items
-        .slice(0, 2)
-        .map((item) => item.label || item.url)
-        .filter(Boolean)
-        .join(' • ');
-    }
-    case 'shopify_store': {
-      const products = 'products' in block.config ? block.config.products : [];
-      if (!products?.length) return t('type_descriptions.shopify_store');
-      return `${products.length} products ready to show`;
-    }
-    case 'image_gallery': {
-      const imageUrls = 'imageUrls' in block.config ? block.config.imageUrls : [];
-      return imageUrls?.length
-        ? `${imageUrls.length} images selected`
-        : t('type_descriptions.image_gallery');
-    }
-    case 'smart_merch': {
-      const products = 'products' in block.config ? block.config.products : [];
-      const selectedProducts =
-        'selectedProducts' in block.config ? block.config.selectedProducts : [];
-      const count = products?.length || selectedProducts?.length || 0;
-      return count > 0 ? `${count} merch products selected` : t('type_descriptions.smart_merch');
-    }
-    case 'email_capture': {
-      const headline = 'headline' in block.config ? block.config.headline : '';
-      return headline?.trim() || t('type_descriptions.email_capture');
-    }
-    default:
-      return '';
-  }
-}
-
 function getBlockThumbnail(block: Block): string | null {
   switch (block.type) {
     case 'video_embed':
@@ -274,6 +159,47 @@ function getBlockThumbnail(block: Block): string | null {
     default:
       return null;
   }
+}
+
+// ─── URL Row ──────────────────────────────────────────────────────────────────
+
+function BlockManagerUrlRow({
+  username,
+  t,
+}: {
+  username: string;
+  t: ReturnType<typeof useTranslations<'blocks'>>;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(`https://stagelink.art/${username}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // ignore
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-3 rounded-[16px] border border-white/8 bg-white/[0.025] px-5 py-3">
+      <span className="shrink-0 font-[family-name:var(--font-heading)] text-[10px] font-bold uppercase tracking-[2px] text-white/30">
+        {t('url_label')}
+      </span>
+      <div className="flex min-w-0 flex-1 items-center gap-1">
+        <span className="text-[13px] text-white/40">stagelink.art/</span>
+        <span className="text-[13px] font-semibold text-white">{username}</span>
+      </div>
+      <button
+        onClick={handleCopy}
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-[12px] font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+      >
+        {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+        {copied ? t('copied') : t('copy')}
+      </button>
+    </div>
+  );
 }
 
 // ─── Create Block Dialog ──────────────────────────────────────────────────────
@@ -596,8 +522,6 @@ function BlockRow({
   const t = useTranslations('blocks');
   const [toggling, setToggling] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const accent = BLOCK_TYPE_ACCENTS[block.type];
-  const preview = getBlockPreview(block, t);
   const thumbnail = getBlockThumbnail(block);
 
   async function handleTogglePublish() {
@@ -624,171 +548,138 @@ function BlockRow({
   }
 
   return (
-    <Card
+    <div
       draggable={!dragDisabled}
       onDragStart={() => onDragStart(block.id)}
-      onDragEnter={(event) => {
-        event.preventDefault();
+      onDragEnter={(e) => {
+        e.preventDefault();
         onDragEnter(block.id);
       }}
-      onDragOver={(event) => event.preventDefault()}
-      onDrop={(event) => {
-        event.preventDefault();
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault();
         onDrop(block.id);
       }}
       onDragEnd={onDragEnd}
-      className={`group w-full max-w-full cursor-pointer overflow-hidden transition-all ${
-        accent.border
-      } ${accent.background} ${isDragging ? 'scale-[0.99] opacity-70' : ''}`}
       onClick={onEdit}
+      className={`group flex cursor-pointer items-center gap-3 rounded-[14px] px-3 py-3 transition-all hover:bg-white/[0.04] ${isDragging ? 'scale-[0.99] opacity-60' : ''}`}
     >
-      {/* Top row: drag handle + icon + info + badge */}
-      <CardContent className="flex min-w-0 items-start gap-3 p-4">
-        {/* Order controls */}
-        <div className="flex shrink-0 items-center gap-2 pt-1">
-          <span
-            className="cursor-grab rounded-md border border-white/10 bg-white/5 p-1 text-muted-foreground active:cursor-grabbing"
-            title={t('move_up')}
-            onClick={(event) => event.stopPropagation()}
+      {/* Drag + order controls */}
+      <div className="flex shrink-0 items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+        <span className="cursor-grab rounded p-1 text-white/20 hover:text-white/50 active:cursor-grabbing">
+          <GripVertical className="h-4 w-4" />
+        </span>
+        <div className="flex flex-col">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoved(block.id, 'up');
+            }}
+            disabled={isFirst}
+            className="rounded p-0.5 text-[9px] text-white/20 hover:text-white/60 disabled:opacity-20"
           >
-            <GripVertical className="h-4 w-4" />
-          </span>
-          <div className="flex flex-col gap-0.5">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onMoved(block.id, 'up');
-              }}
-              disabled={isFirst}
-              title={t('move_up')}
-              className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-            >
-              ▲
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onMoved(block.id, 'down');
-              }}
-              disabled={isLast}
-              title={t('move_down')}
-              className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-            >
-              ▼
-            </button>
-          </div>
-        </div>
-
-        {/* Icon + info */}
-        {thumbnail ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={thumbnail}
-            alt=""
-            className="mt-0.5 h-12 w-12 shrink-0 rounded-xl border border-white/10 object-cover"
-          />
-        ) : block.type === 'music_embed' && 'provider' in block.config ? (
-          // Music block — provider-branded background
-          <span
-            className={`mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 ${MUSIC_PROVIDER_BG[block.config.provider] ?? 'bg-black/10'}`}
+            ▲
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoved(block.id, 'down');
+            }}
+            disabled={isLast}
+            className="rounded p-0.5 text-[9px] text-white/20 hover:text-white/60 disabled:opacity-20"
           >
-            <Music2 className="h-5 w-5 text-white" />
-          </span>
-        ) : block.type === 'video_embed' &&
-          'mode' in block.config &&
-          block.config.mode === 'latest_video' ? (
-          // Latest-video placeholder — YouTube red
-          <span className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[#FF0000]/15">
-            <Play className="h-5 w-5 text-[#FF0000]" />
-          </span>
-        ) : (
-          // Generic block-type icon
-          (() => {
-            const BlockIcon = BLOCK_TYPE_ICONS[block.type];
-            return (
-              <span className="mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/10">
-                <BlockIcon className="h-5 w-5 text-muted-foreground" />
-              </span>
-            );
-          })()
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{block.title ?? t(`types.${block.type}`)}</p>
-          <p className="text-xs text-muted-foreground">{t(`types.${block.type}`)}</p>
-          <p className={`mt-1 line-clamp-2 text-xs ${accent.preview}`}>{preview}</p>
+            ▼
+          </button>
         </div>
-
-        {/* Status badge — always visible, shrinks to icon only on very narrow screens */}
-        <div className="shrink-0">
-          <Badge
-            variant={block.isPublished ? 'default' : 'secondary'}
-            className={block.isPublished ? 'bg-emerald-500/90 text-white' : ''}
-          >
-            {block.isPublished ? t('published') : t('draft')}
-          </Badge>
-        </div>
-      </CardContent>
-
-      {/* Action buttons row — separate from the top row so they can wrap independently */}
-      <div
-        className="flex flex-wrap items-center justify-end gap-1 border-t border-white/5 px-4 py-2"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={(event) => {
-            event.stopPropagation();
-            onEdit();
-          }}
-        >
-          <Pencil className="mr-1 h-3.5 w-3.5" />
-          {t('edit')}
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={(event) => {
-            event.stopPropagation();
-            void handleTogglePublish();
-          }}
-          disabled={toggling}
-        >
-          {block.isPublished ? (
-            <>
-              <EyeOff className="mr-1 h-3.5 w-3.5" />
-              {t('unpublish')}
-            </>
-          ) : (
-            <>
-              <BadgeCheck className="mr-1 h-3.5 w-3.5" />
-              {t('publish')}
-            </>
-          )}
-        </Button>
-        {!block.isPublished ? (
-          <Badge variant="outline" className="hidden sm:inline-flex">
-            <CircleDashed className="mr-1 h-3 w-3" />
-            {t('draft')}
-          </Badge>
-        ) : null}
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={(event) => {
-            event.stopPropagation();
-            void handleDelete();
-          }}
-          disabled={deleting}
-          className="text-destructive hover:text-destructive"
-        >
-          <Trash2 className="mr-1 h-3.5 w-3.5" />
-          {t('delete')}
-        </Button>
       </div>
-    </Card>
+
+      {/* Block icon */}
+      {thumbnail ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={thumbnail}
+          alt=""
+          className="h-10 w-10 shrink-0 rounded-[10px] border border-white/10 object-cover"
+        />
+      ) : block.type === 'music_embed' && 'provider' in block.config ? (
+        <span
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border border-white/10 ${MUSIC_PROVIDER_BG[block.config.provider] ?? 'bg-white/8'}`}
+        >
+          <Music2 className="h-4 w-4 text-white" />
+        </span>
+      ) : block.type === 'video_embed' &&
+        'mode' in block.config &&
+        block.config.mode === 'latest_video' ? (
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border border-white/10 bg-[#FF0000]/15">
+          <Play className="h-4 w-4 text-[#FF0000]" />
+        </span>
+      ) : (
+        (() => {
+          const BlockIcon = BLOCK_TYPE_ICONS[block.type];
+          return (
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border border-white/10 bg-white/5">
+              <BlockIcon className="h-4 w-4 text-white/60" />
+            </span>
+          );
+        })()
+      )}
+
+      {/* Title + type */}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[14px] font-semibold text-white">
+          {block.title ?? t(`types.${block.type}`)}
+        </p>
+        <p className="text-[12px] text-white/40">
+          {t(`types.${block.type}`)}
+          <span className="mx-1.5 text-white/20">·</span>
+          <span className="text-white/25">— clicks (30d)</span>
+        </p>
+      </div>
+
+      {/* Edit button — visible on hover */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit();
+        }}
+        className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-[12px] font-semibold text-white/60 opacity-0 transition-all group-hover:opacity-100 hover:bg-white/10 hover:text-white"
+      >
+        {t('edit')}
+      </button>
+
+      {/* Delete — icon only, visible on hover */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          void handleDelete();
+        }}
+        disabled={deleting}
+        className="shrink-0 rounded-lg p-1.5 text-white/20 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-400"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+
+      {/* Publish toggle */}
+      <button
+        type="button"
+        role="switch"
+        aria-checked={block.isPublished}
+        onClick={(e) => {
+          e.stopPropagation();
+          void handleTogglePublish();
+        }}
+        disabled={toggling}
+        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${block.isPublished ? 'bg-[#E040FB]' : 'bg-white/20'} ${toggling ? 'opacity-60' : ''}`}
+      >
+        <span
+          className={`absolute top-0.5 inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${block.isPublished ? 'translate-x-4' : 'translate-x-0.5'}`}
+        />
+      </button>
+    </div>
   );
 }
 
@@ -801,6 +692,7 @@ export function BlockManager({
   canUseSmartMerch,
   galleryImages,
   textSources,
+  username,
 }: Props) {
   const t = useTranslations('blocks');
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -915,56 +807,78 @@ export function BlockManager({
     );
   }
 
+  const activeCount = blocks.filter((b) => b.isPublished).length;
+
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {blocks.length} block{blocks.length !== 1 ? 's' : ''}
-        </p>
-        <Button onClick={() => setCreateOpen(true)} size="sm">
-          + {t('add_block')}
-        </Button>
-      </div>
+      {/* URL row */}
+      {username && <BlockManagerUrlRow username={username} t={t} />}
 
-      {/* Block list */}
-      {blocks.length === 0 ? (
-        <div className="rounded-lg border border-dashed px-6 py-12 text-center">
-          <p className="font-medium">{t('empty_title')}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{t('empty_description')}</p>
-          <Button className="mt-4" onClick={() => setCreateOpen(true)}>
+      {/* Blocks panel */}
+      <div className="overflow-hidden rounded-[20px] border border-white/8">
+        {/* Panel header */}
+        <div className="flex items-center justify-between border-b border-white/8 bg-white/[0.025] px-5 py-4">
+          <p className="font-[family-name:var(--font-heading)] text-[15px] font-bold text-white">
+            {t('blocks_label')}
+            {blocks.length > 0 && (
+              <span className="ml-2 text-[#E040FB]">
+                · {activeCount} {t('active_label')}
+              </span>
+            )}
+          </p>
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: 'var(--sl-grad)' }}
+          >
             + {t('add_block')}
-          </Button>
+          </button>
         </div>
-      ) : (
-        <div className="space-y-2">
-          {blocks.map((block, index) => (
-            <BlockRow
-              key={block.id}
-              block={block}
-              isFirst={index === 0}
-              isLast={index === blocks.length - 1}
-              isDragging={draggedBlockId === block.id || dragTargetBlockId === block.id}
-              dragDisabled={blocks.length <= 1}
-              onEdit={() => setEditingBlock(block)}
-              onUpdated={handleUpdated}
-              onDeleted={handleDeleted}
-              onMoved={handleMoved}
-              onDragStart={(id) => setDraggedBlockId(id)}
-              onDragEnter={(id) => setDragTargetBlockId(id)}
-              onDragEnd={() => {
-                setDraggedBlockId(null);
-                setDragTargetBlockId(null);
-              }}
-              onDrop={(targetId) => {
-                if (draggedBlockId) {
-                  void handleDrop(draggedBlockId, targetId);
-                }
-              }}
-            />
-          ))}
+
+        {/* Block list */}
+        {blocks.length === 0 ? (
+          <div className="bg-white/[0.015] px-6 py-14 text-center">
+            <p className="font-[family-name:var(--font-heading)] text-[16px] font-bold text-white">
+              {t('empty_title')}
+            </p>
+            <p className="mt-1 text-sm text-white/50">{t('empty_description')}</p>
+          </div>
+        ) : (
+          <div className="bg-white/[0.015] px-2 py-2">
+            {blocks.map((block, index) => (
+              <BlockRow
+                key={block.id}
+                block={block}
+                isFirst={index === 0}
+                isLast={index === blocks.length - 1}
+                isDragging={draggedBlockId === block.id || dragTargetBlockId === block.id}
+                dragDisabled={blocks.length <= 1}
+                onEdit={() => setEditingBlock(block)}
+                onUpdated={handleUpdated}
+                onDeleted={handleDeleted}
+                onMoved={handleMoved}
+                onDragStart={(id) => setDraggedBlockId(id)}
+                onDragEnter={(id) => setDragTargetBlockId(id)}
+                onDragEnd={() => {
+                  setDraggedBlockId(null);
+                  setDragTargetBlockId(null);
+                }}
+                onDrop={(targetId) => {
+                  if (draggedBlockId) {
+                    void handleDrop(draggedBlockId, targetId);
+                  }
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Auto-save footer */}
+        <div className="flex items-center gap-2 border-t border-white/5 bg-white/[0.01] px-5 py-3">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" />
+          <span className="text-[11px] text-white/30">{t('auto_saved')}</span>
         </div>
-      )}
+      </div>
 
       {/* Dialogs */}
       <CreateBlockDialog

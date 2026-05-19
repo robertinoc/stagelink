@@ -77,22 +77,33 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
         };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t('title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('description')}</p>
+    <div className="space-y-5">
+      {/* ── SL-style page header ───────────────────────────────────────── */}
+      <div className="sl-header flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="mb-2 font-[family-name:var(--font-heading)] text-[11px] font-semibold uppercase tracking-[3px] text-[#E040FB]">
+            My Page · {locale === 'es' ? 'tu link público' : 'your public link'}
+          </p>
+          <h1 className="m-0 font-[family-name:var(--font-heading)] text-[clamp(24px,4cqw,36px)] font-bold leading-[1.1] tracking-[-0.025em] text-white">
+            {t('title')}{' '}
+            <span className="text-sl-grad">
+              {locale === 'es' ? 'se ve así.' : 'looks like this.'}
+            </span>
+          </h1>
+          <p className="mt-1.5 text-sm text-white/60">{t('description')}</p>
         </div>
 
         {artist?.username && (
-          <Link
-            href={`/p/${artist.username}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-          >
-            {navT('view_page')}
-          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              href={`/p/${artist.username}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-white/10"
+            >
+              {navT('view_page')}
+            </Link>
+          </div>
         )}
       </div>
 
@@ -102,6 +113,7 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
         canUseShopifyIntegration={billingSummary.entitlements.shopify_integration}
         canUseSmartMerch={billingSummary.entitlements.smart_merch}
         galleryImages={artist?.galleryImageUrls ?? []}
+        username={artist?.username ?? undefined}
         textSources={[
           artist?.bio
             ? {
