@@ -77,7 +77,7 @@ export function AppTopbar({ artist, onMenuOpen }: AppTopbarProps) {
         {/* Language toggle — always visible (especially useful in PWA where URL bar is hidden) */}
         <Link
           href={otherLocalePath}
-          className="text-xs font-medium uppercase tracking-widest text-white/40 transition-colors hover:text-white/70"
+          className="text-xs font-medium uppercase tracking-widest text-white/60 transition-colors hover:text-white"
           title={otherLocale === 'en' ? 'Switch to English' : 'Cambiar a Español'}
         >
           {otherLocale}
