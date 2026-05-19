@@ -1,60 +1,33 @@
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
-import {
-  ArrowUpRight,
-  BarChart3,
-  ExternalLink,
-  FileText,
-  Lock,
-  Settings,
-  Sparkles,
-  UserRound,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { BillingStatusBanner } from '@/components/billing/BillingStatusBanner';
+import { Bento } from '@/components/sl/Bento';
+import { Pill, Sparkline, Sparkbars } from '@/components/sl/SlPrimitives';
 import type { Artist } from '@/lib/api/artists';
 import type { BillingSummaryResponse } from '@/lib/api/billing';
-import { getMinimumPlanForFeature } from '@stagelink/types';
+import { DashboardShareStrip } from './DashboardShareStrip';
 
 interface DashboardWelcomeProps {
   artist: Artist | null;
   billingSummary: BillingSummaryResponse | null;
 }
 
-function resolvePlanLabel(plan: 'free' | 'pro' | 'pro_plus') {
-  switch (plan) {
-    case 'pro':
-      return 'Pro';
-    case 'pro_plus':
-      return 'Pro+';
-    default:
-      return 'Free';
-  }
-}
-
-interface ActionCardConfig {
-  key: string;
-  href: string;
-  title: string;
-  description: string;
-  cta: string;
-  icon: React.ElementType;
-  tone: string;
-  target?: '_blank';
-  feature?: 'epk_builder';
-  note?: string | null;
-}
+// Mock sparkline data — will be replaced by real analytics once the API
+// surfaces weekly aggregates on the dashboard endpoint.
+const MOCK_SPARK = [12, 18, 14, 22, 31, 27, 57];
+const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'];
 
 export async function DashboardWelcome({ artist, billingSummary }: DashboardWelcomeProps) {
   const t = await getTranslations('dashboard.home');
   const locale = await getLocale();
+
   const GREETING_COUNT = 12;
   const greetingIndex = Math.floor(Math.random() * GREETING_COUNT);
   const artistName = artist?.displayName ?? artist?.username ?? 'Artist';
   const greeting = t(`intro.greeting_${greetingIndex}`, { name: artistName });
 
+  const hasAnalytics = false; // Wire to real data when analytics API exposes weekly rollup
   const entitlements = billingSummary?.entitlements ?? {
     remove_stagelink_branding: false,
     custom_domain: false,
@@ -67,135 +40,290 @@ export async function DashboardWelcome({ artist, billingSummary }: DashboardWelc
     advanced_fan_insights: false,
   };
 
-  const publicProfileHref = artist?.username
-    ? `/p/${artist.username}`
-    : `/${locale}/dashboard/profile`;
-
-  const cards: ActionCardConfig[] = [
-    {
-      key: 'public_profile',
-      href: publicProfileHref,
-      title: t('cards.public_profile.title'),
-      description: t('cards.public_profile.description'),
-      cta: t('cards.public_profile.cta'),
-      icon: ExternalLink,
-      tone: 'from-violet-500/20 via-fuchsia-500/10 to-transparent',
-      target: '_blank',
-    },
-    {
-      key: 'profile',
-      href: `/${locale}/dashboard/profile`,
-      title: t('cards.profile.title'),
-      description: t('cards.profile.description'),
-      cta: t('cards.profile.cta'),
-      icon: UserRound,
-      tone: 'from-amber-500/20 via-orange-500/10 to-transparent',
-    },
-    {
-      key: 'epk',
-      href: entitlements.epk_builder ? `/${locale}/dashboard/epk` : `/${locale}/dashboard/billing`,
-      title: t('cards.epk.title'),
-      description: t('cards.epk.description'),
-      cta: entitlements.epk_builder ? t('cards.epk.cta') : t('upgrade_cta'),
-      icon: FileText,
-      tone: 'from-sky-500/20 via-cyan-500/10 to-transparent',
-      feature: 'epk_builder',
-    },
-    {
-      key: 'analytics',
-      href: `/${locale}/dashboard/analytics`,
-      title: t('cards.analytics.title'),
-      description: t('cards.analytics.description'),
-      cta: t('cards.analytics.cta'),
-      icon: BarChart3,
-      tone: 'from-emerald-500/20 via-teal-500/10 to-transparent',
-      note: entitlements.stage_link_insights
-        ? t('cards.analytics.pro_plus_on')
-        : t('cards.analytics.pro_plus_off'),
-    },
-    {
-      key: 'settings',
-      href: `/${locale}/dashboard/settings`,
-      title: t('cards.settings.title'),
-      description: t('cards.settings.description'),
-      cta: t('cards.settings.cta'),
-      icon: Settings,
-      tone: 'from-white/10 via-white/5 to-transparent',
-    },
-  ];
-
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight text-white">{greeting}</h1>
-          <p className="max-w-3xl text-sm text-white/60">{t('intro.description')}</p>
+    <div className="space-y-4 pb-8">
+      {/* ── Billing banner (if any) ─────────────────────────────────────── */}
+      {billingSummary ? <BillingStatusBanner summary={billingSummary} /> : null}
+
+      {/* ── Header: greeting + share strip ─────────────────────────────── */}
+      <div className="sl-header flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          {/* Eyebrow — date/day */}
+          <p className="mb-2.5 font-[family-name:var(--font-heading)] text-[11px] font-semibold uppercase tracking-[3px] text-[#E040FB]">
+            ·{' '}
+            {new Date().toLocaleDateString(locale === 'es' ? 'es-AR' : 'en-US', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            })}{' '}
+            ·
+          </p>
+          {/* Main greeting */}
+          <h1 className="m-0 max-w-[640px] font-[family-name:var(--font-heading)] text-[clamp(26px,4cqw,40px)] font-bold leading-[1.08] tracking-[-0.025em] text-white [text-wrap:pretty]">
+            {greeting}
+            <br />
+            <span className="text-sl-grad">Your stage is live.</span>
+          </h1>
+        </div>
+
+        {/* Share strip — only when username exists */}
+        {artist?.username && <DashboardShareStrip username={artist.username} />}
+      </div>
+
+      {/* ── Hero stat card ──────────────────────────────────────────────── */}
+      <div
+        className="relative overflow-hidden rounded-[24px] border border-white/10"
+        style={{
+          background:
+            'linear-gradient(135deg, rgba(155,48,208,0.18) 0%, rgba(74,26,140,0.07) 60%, rgba(255,255,255,0.02) 100%)',
+        }}
+      >
+        {/* Atmospheric glow */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute right-[-120px] top-[-120px] h-[400px] w-[400px]"
+          style={{
+            background: 'radial-gradient(circle, rgba(224,64,251,0.28) 0%, transparent 60%)',
+          }}
+        />
+
+        {hasAnalytics ? (
+          <div className="sl-herostat grid items-center gap-8 p-7">
+            {/* Left: stat */}
+            <div className="relative">
+              <div className="mb-2 text-[13px] text-white/50">{t('hero.eyebrow')}</div>
+              <div
+                className="mb-3 font-[family-name:var(--font-heading)] font-bold leading-none tracking-[-0.03em]"
+                style={{
+                  fontSize: 'clamp(40px, 8cqw, 56px)',
+                  background: 'linear-gradient(135deg, #fff 0%, #E040FB 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                181 people
+              </div>
+              <div className="mb-3 text-[16px] leading-relaxed text-white/70">
+                {t('hero.suffix')}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Pill tone="green">↑ 34%</Pill>
+                <span className="text-[13px] text-white/50">{t('hero.trend_label')}</span>
+              </div>
+            </div>
+            {/* Right: sparkline */}
+            <div className="relative min-w-0">
+              <div className="mb-2 flex justify-between font-[family-name:var(--font-heading)] text-[10px] uppercase tracking-[1px] text-white/30">
+                {DAY_LABELS.map((d) => (
+                  <span key={d}>{d}</span>
+                ))}
+              </div>
+              <Sparkline data={MOCK_SPARK} color="#E040FB" height={100} width={500} />
+              <div className="mt-3 flex flex-wrap gap-3 text-[12px] text-white/50">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#E040FB]" />
+                  {t('hero.peak')}: 57 visits
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#00D4FF]" />7 {t('hero.aux_label')}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Zero / no-data state */
+          <div className="relative flex flex-col gap-3 p-7 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-[family-name:var(--font-heading)] text-lg font-bold text-white">
+                {t('hero.no_data_title')}
+              </p>
+              <p className="mt-1 max-w-md text-sm text-white/60">{t('hero.no_data_body')}</p>
+            </div>
+            <div className="flex min-w-0 flex-1 items-end sm:justify-end">
+              <Sparkbars data={[2, 3, 1, 4, 2, 3, 2]} color="rgba(155,48,208,0.4)" height={48} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Quick actions ────────────────────────────────────────────────── */}
+      <div>
+        <h2 className="mb-3 font-[family-name:var(--font-heading)] text-[12px] font-semibold uppercase tracking-[1.5px] text-white/70">
+          {t('actions.section_label')}
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Primary tile: share */}
+          <ActionTile
+            tone="pink"
+            eyebrow={t('actions.share_eyebrow')}
+            title={t('actions.share_title')}
+            body={t('actions.share_body')}
+            cta={t('actions.share_cta')}
+            href={
+              artist?.username
+                ? `https://stagelink.art/${artist.username}`
+                : `/${locale}/dashboard/profile`
+            }
+            external={!!artist?.username}
+          />
+          {/* My Page */}
+          <ActionTile
+            eyebrow={t('actions.my_page_eyebrow')}
+            title={t('actions.my_page_title')}
+            body={t('actions.my_page_body')}
+            cta={t('actions.my_page_cta')}
+            href={`/${locale}/dashboard/page`}
+          />
+          {/* Press Kit */}
+          <ActionTile
+            eyebrow={t('actions.epk_eyebrow')}
+            title={t('actions.epk_title')}
+            body={t('actions.epk_body')}
+            cta={t('actions.epk_cta')}
+            href={
+              entitlements.epk_builder ? `/${locale}/dashboard/epk` : `/${locale}/dashboard/billing`
+            }
+            locked={!entitlements.epk_builder}
+          />
         </div>
       </div>
 
-      {billingSummary ? <BillingStatusBanner summary={billingSummary} /> : null}
+      {/* ── Activity feed + Tip card ─────────────────────────────────────── */}
+      <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
+        {/* Activity feed */}
+        <Bento tone="panel" className="p-5">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h3 className="font-[family-name:var(--font-heading)] text-[17px] font-bold text-white">
+              {t('activity.title')}
+            </h3>
+            <Link
+              href={`/${locale}/dashboard/analytics`}
+              className="text-[12px] text-white/50 transition-colors hover:text-white"
+            >
+              {t('activity.view_all')}
+            </Link>
+          </div>
+          <p className="rounded-xl border border-dashed border-white/10 p-4 text-[13px] text-white/40">
+            {t('activity.no_activity')}
+          </p>
+        </Bento>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        {cards.map((card) => {
-          const requiredPlan = card.feature
-            ? resolvePlanLabel(getMinimumPlanForFeature(card.feature))
-            : null;
-          const locked = card.feature ? !entitlements[card.feature] : false;
-
-          return (
-            <Card key={card.key} className="relative overflow-hidden border-white/10 bg-[#12091f]">
-              <div
-                className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${card.tone}`}
-              />
-              <CardHeader className="relative space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="rounded-xl border border-white/10 bg-white/10 p-2 text-white">
-                        <card.icon className="h-4 w-4" />
-                      </div>
-                      <CardTitle className="text-base text-white">{card.title}</CardTitle>
-                    </div>
-                    <CardDescription className="max-w-xl text-white/60">
-                      {card.description}
-                    </CardDescription>
-                  </div>
-                  {locked ? (
-                    <Badge variant="outline" className="border-amber-500/30 text-amber-100">
-                      <Lock className="mr-1 h-3 w-3" />
-                      {t('locked_badge', { plan: requiredPlan! })}
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary">{t('ready_badge')}</Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="relative space-y-4">
-                {card.note ? (
-                  <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
-                    <div className="flex items-start gap-2">
-                      <Sparkles className="mt-0.5 h-4 w-4 text-white/50" />
-                      <span>{card.note}</span>
-                    </div>
-                  </div>
-                ) : null}
-
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-white/40">
-                    {locked ? t('upgrade_required') : t('available_now')}
-                  </p>
-                  <Button asChild variant={locked ? 'outline' : 'default'}>
-                    <Link href={card.href} target={card.target}>
-                      {card.cta}
-                      <ArrowUpRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {/* Tip card */}
+        <div
+          className="relative flex flex-col overflow-hidden rounded-[20px] border border-[rgba(155,48,208,0.30)] p-5"
+          style={{
+            background:
+              'linear-gradient(160deg, rgba(155,48,208,0.18) 0%, rgba(74,26,140,0.04) 100%)',
+          }}
+        >
+          {/* Glow blob */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute right-[-40px] top-[-40px] h-[180px] w-[180px]"
+            style={{
+              background: 'radial-gradient(circle, rgba(224,64,251,0.22) 0%, transparent 60%)',
+            }}
+          />
+          <div className="relative mb-3.5 inline-flex items-center gap-1.5 font-[family-name:var(--font-heading)] text-[10px] font-bold uppercase tracking-[2px] text-[#E040FB]">
+            <Sparkles className="h-3 w-3" />
+            {t('tip.eyebrow')}
+          </div>
+          <h4 className="relative m-0 mb-2.5 font-[family-name:var(--font-heading)] text-[20px] font-bold leading-[1.2] text-white">
+            {t('tip.title')}
+          </h4>
+          <p className="relative flex-1 text-[13.5px] leading-[1.55] text-white/70">
+            {t('tip.body')}
+          </p>
+          <Link
+            href={`/${locale}/dashboard/page`}
+            className="relative mt-4 inline-flex items-center gap-1.5 self-start rounded-full border border-[rgba(224,64,251,0.4)] bg-transparent px-4 py-2.5 text-[13px] font-semibold text-[#E040FB] transition-colors hover:bg-[rgba(224,64,251,0.08)]"
+          >
+            {t('tip.cta')}
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
       </div>
     </div>
+  );
+}
+
+// ── ActionTile ──────────────────────────────────────────────────────────────
+
+interface ActionTileProps {
+  tone?: 'pink' | 'default';
+  eyebrow: string;
+  title: string;
+  body: string;
+  cta: string;
+  href: string;
+  external?: boolean;
+  locked?: boolean;
+}
+
+function ActionTile({
+  tone = 'default',
+  eyebrow,
+  title,
+  body,
+  cta,
+  href,
+  external,
+  locked,
+}: ActionTileProps) {
+  const isPrimary = tone === 'pink';
+
+  return (
+    <Link
+      href={href}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+      className="group relative flex min-h-[140px] flex-col overflow-hidden rounded-[20px] border p-[22px] transition-opacity hover:opacity-90"
+      style={{
+        background: isPrimary
+          ? 'linear-gradient(135deg, #9B30D0 0%, #4A1A8C 100%)'
+          : 'rgba(255,255,255,0.025)',
+        border: isPrimary ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(255,255,255,0.10)',
+        boxShadow: isPrimary ? '0 0 32px rgba(224,64,251,0.25)' : 'none',
+      }}
+    >
+      {/* Eyebrow + icon row */}
+      <div className="mb-3.5 flex items-center justify-between">
+        <span
+          className="font-[family-name:var(--font-heading)] text-[10px] font-bold uppercase tracking-[2px]"
+          style={{ color: isPrimary ? 'rgba(255,255,255,0.70)' : 'rgba(255,255,255,0.50)' }}
+        >
+          {locked ? '🔒 ' : ''}
+          {eyebrow}
+        </span>
+        <div
+          className="flex h-8 w-8 items-center justify-center rounded-[10px]"
+          style={{
+            background: isPrimary ? 'rgba(255,255,255,0.15)' : 'rgba(224,64,251,0.12)',
+            color: isPrimary ? '#ffffff' : '#E040FB',
+          }}
+        >
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </div>
+      </div>
+
+      <h4 className="m-0 mb-2 font-[family-name:var(--font-heading)] text-[20px] font-bold leading-[1.15] text-white">
+        {title}
+      </h4>
+      <p
+        className="m-0 flex-1 text-[13.5px] leading-[1.55]"
+        style={{ color: isPrimary ? 'rgba(255,255,255,0.78)' : 'rgba(255,255,255,0.70)' }}
+      >
+        {body}
+      </p>
+
+      <div
+        className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold"
+        style={{ color: isPrimary ? '#ffffff' : '#E040FB' }}
+      >
+        {cta}
+        <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+      </div>
+    </Link>
   );
 }

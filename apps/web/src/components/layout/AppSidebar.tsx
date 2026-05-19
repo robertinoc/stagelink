@@ -15,10 +15,8 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
 import type { Artist } from '@/lib/api/artists';
 import type { PlanCode } from '@stagelink/types';
-import { Badge } from '@/components/ui/badge';
 
 interface NavItem {
   icon: React.ElementType;
@@ -35,8 +33,10 @@ const NAV_ITEMS: NavItem[] = [
   { icon: BarChart2, labelKey: 'nav.analytics', href: 'dashboard/analytics', exact: true },
   { icon: FileText, labelKey: 'nav.epk', href: 'dashboard/epk' },
   { icon: Settings, labelKey: 'nav.settings', href: 'dashboard/settings' },
-  { icon: HelpCircle, labelKey: 'nav.help', href: 'dashboard/help' },
 ];
+
+/** Help is separated from the main nav by a spacer */
+const HELP_ITEM: NavItem = { icon: HelpCircle, labelKey: 'nav.help', href: 'dashboard/help' };
 
 interface AppSidebarProps {
   artist: Artist | null;
@@ -52,7 +52,7 @@ function resolvePlanLabel(plan: PlanCode | null) {
     case 'pro_plus':
       return 'Pro+';
     default:
-      return 'Free';
+      return null; // Free plan: no badge
   }
 }
 
@@ -112,132 +112,144 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
 
   /** Initials fallback when no avatar URL is available. */
   const initials = artist?.displayName ? artist.displayName.charAt(0).toUpperCase() : '?';
+  const planLabel = resolvePlanLabel(effectivePlan);
+
+  function NavLink({ item }: { item: NavItem }) {
+    const href = `/${locale}/${item.href}`;
+    const active = isActive(item);
+    const isSettings = item.href === 'dashboard/settings';
+
+    return (
+      <div>
+        <Link
+          href={href}
+          onClick={onNavigate}
+          aria-current={active ? 'page' : undefined}
+          className={cn(
+            'flex items-center gap-3 rounded-[10px] border px-[14px] py-[10px] text-sm transition-colors',
+            active
+              ? 'border-[rgba(155,48,208,0.30)] bg-[rgba(155,48,208,0.18)] font-semibold text-white'
+              : 'border-transparent text-white/70 hover:bg-white/10 hover:text-white',
+          )}
+        >
+          <item.icon
+            className={cn(
+              'h-[18px] w-[18px] flex-shrink-0',
+              active ? 'text-[#E040FB]' : 'text-white/50',
+            )}
+            aria-hidden="true"
+          />
+          <span>{t(item.labelKey)}</span>
+        </Link>
+
+        {isSettings && settingsExpanded ? (
+          <div
+            role="list"
+            aria-label="Settings submenu"
+            className="mt-1 ml-6 space-y-1 border-l border-white/10 pl-3"
+          >
+            {settingsChildren.map((child) => {
+              const childActive =
+                pathname === child.href ||
+                pathname.startsWith(`${child.href}/`) ||
+                (pathname === settingsBaseHref && activeHash === `#${child.id}`);
+
+              return (
+                <Link
+                  key={child.id}
+                  href={child.href}
+                  onClick={onNavigate}
+                  role="listitem"
+                  aria-current={childActive ? 'page' : undefined}
+                  className={cn(
+                    'block rounded-md px-3 py-1.5 text-xs transition-colors',
+                    childActive
+                      ? 'bg-primary/12 text-white'
+                      : 'text-white/55 hover:bg-white/8 hover:text-white/85',
+                  )}
+                >
+                  {child.label}
+                </Link>
+              );
+            })}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
-    <aside className="flex h-full w-60 flex-col bg-sidebar">
-      {/* Logo */}
-      <div className="flex h-14 items-center border-b border-white/10 px-6">
+    <aside
+      className="flex h-full w-60 flex-col border-r border-white/8"
+      style={{ background: 'var(--sl-bg-deep, #0D0A1A)' }}
+    >
+      {/* ── Logo ── */}
+      <div className="px-6 pb-6 pt-5">
         <Link
           href={`/${locale}`}
-          className="font-bold text-lg tracking-tight font-[family-name:var(--font-heading)]"
+          className="font-[family-name:var(--font-heading)] text-[22px] font-extrabold leading-none tracking-[-0.02em]"
         >
           <span className="text-white">Stage</span>
-          <span className="text-gradient-brand">Link</span>
+          <span className="text-sl-grad">Link</span>
         </Link>
       </div>
 
-      {/* Artist identity */}
-      <div className="flex items-center gap-3 px-4 py-4">
+      {/* ── Artist profile card ── */}
+      <div className="mx-4 mb-5 flex items-center gap-2.5 rounded-xl border border-white/8 bg-white/[0.025] px-[10px] py-3">
         {artist?.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={artist.avatarUrl}
             alt={artist.displayName}
-            className="h-9 w-9 rounded-full object-cover flex-shrink-0 ring-2 ring-white/10"
+            className="h-[38px] w-[38px] flex-shrink-0 rounded-full object-cover"
           />
         ) : (
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-gradient text-white text-sm font-semibold">
+          <div className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-full bg-brand-gradient text-sm font-semibold text-white">
             {initials}
           </div>
         )}
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium leading-tight text-white">
-            {artist?.displayName ?? '—'}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13px] font-bold tracking-[0.3px] text-white">
+            {artist?.displayName ?? artist?.username ?? '—'}
           </p>
-          {artist?.username && <p className="truncate text-xs text-white/50">@{artist.username}</p>}
-          {effectivePlan && (
-            <Badge variant="secondary" className="mt-1.5 text-[10px] uppercase tracking-wide">
-              {resolvePlanLabel(effectivePlan)}
-            </Badge>
+          {artist?.username && (
+            <p className="truncate text-[11px] text-white/50">@{artist.username}</p>
           )}
         </div>
+        {planLabel && (
+          <span
+            className="shrink-0 rounded-full border border-[rgba(224,64,251,0.3)] px-[7px] py-[3px] text-[9px] font-bold uppercase tracking-[1px] text-[#E040FB]"
+            style={{ background: 'var(--sl-grad-soft)' }}
+          >
+            {planLabel}
+          </span>
+        )}
       </div>
 
-      <Separator className="bg-white/10" />
+      {/* ── Primary navigation ── */}
+      <nav className="flex flex-1 flex-col gap-0.5 px-4">
+        {NAV_ITEMS.map((item) => (
+          <NavLink key={item.href} item={item} />
+        ))}
 
-      {/* Primary navigation */}
-      <nav className="flex-1 space-y-0.5 p-3 pt-2">
-        {NAV_ITEMS.map((item) => {
-          const href = `/${locale}/${item.href}`;
-          const active = isActive(item);
-          const isDashboard = item.href === 'dashboard';
-          const isSettings = item.href === 'dashboard/settings';
-
-          return (
-            <div key={item.href}>
-              <Link
-                href={href}
-                onClick={onNavigate}
-                aria-current={active ? 'page' : undefined}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
-                  isDashboard &&
-                    'mb-2 border border-primary/30 bg-primary/12 text-white shadow-[0_0_18px_rgba(168,85,247,0.12)]',
-                  isDashboard && active && 'bg-primary/20 text-white font-medium',
-                  isDashboard && !active && 'text-white hover:bg-primary/15',
-                  !isDashboard &&
-                    (active
-                      ? 'bg-white/10 text-white font-medium'
-                      : 'text-white/70 hover:bg-white/10 hover:text-white'),
-                )}
-              >
-                <item.icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-                <span>{t(item.labelKey)}</span>
-              </Link>
-
-              {isSettings && settingsExpanded ? (
-                <div
-                  role="list"
-                  aria-label="Settings submenu"
-                  className="mt-1 ml-6 space-y-1 border-l border-white/10 pl-3"
-                >
-                  {settingsChildren.map((child) => {
-                    const childActive =
-                      pathname === child.href ||
-                      pathname.startsWith(`${child.href}/`) ||
-                      (pathname === settingsBaseHref && activeHash === `#${child.id}`);
-
-                    return (
-                      <Link
-                        key={child.id}
-                        href={child.href}
-                        onClick={onNavigate}
-                        role="listitem"
-                        aria-current={childActive ? 'page' : undefined}
-                        className={cn(
-                          'block rounded-md px-3 py-1.5 text-xs transition-colors',
-                          childActive
-                            ? 'bg-primary/12 text-white'
-                            : 'text-white/55 hover:bg-white/8 hover:text-white/85',
-                        )}
-                      >
-                        {child.label}
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
+        {/* Spacer + Help (visually separated) */}
+        <div className="mt-3" />
+        <NavLink item={HELP_ITEM} />
       </nav>
 
-      {/* Footer: view public page link */}
+      {/* ── Footer: view public page link ── */}
       {artist?.username && (
-        <>
-          <Separator className="bg-white/10" />
-          <div className="p-3">
-            <a
-              href={`/p/${artist.username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-white/50 transition-colors hover:bg-white/10 hover:text-white"
-            >
-              <ExternalLink className="h-4 w-4 flex-shrink-0" />
-              <span>{t('nav.view_page')}</span>
-            </a>
-          </div>
-        </>
+        <div className="border-t border-white/8 p-4">
+          <a
+            href={`/p/${artist.username}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 rounded-[10px] border border-transparent px-[10px] py-3 text-[13px] text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <ExternalLink className="h-[14px] w-[14px] flex-shrink-0 text-white/50" />
+            <span>{t('nav.view_page')}</span>
+          </a>
+        </div>
       )}
     </aside>
   );

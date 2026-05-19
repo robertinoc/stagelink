@@ -98,6 +98,46 @@
         "greeting_10": "{name} has entered the chat. Let's get to work.",
         "greeting_11": "Ah, {name}. We knew you'd be back. The art doesn't make itself."
       },
+      "share_strip": {
+        "share": "Share",
+        "copied": "Copied!",
+        "copy": "Copy link"
+      },
+      "hero": {
+        "eyebrow": "This week",
+        "suffix": "visited your stage.",
+        "trend_label": "vs. last week",
+        "peak": "Peak on Thursday",
+        "aux_label": "clicks to your links",
+        "no_data_title": "No data yet",
+        "no_data_body": "Once your page gets its first visit, you'll see stats here."
+      },
+      "actions": {
+        "section_label": "What are we doing today?",
+        "share_title": "Share your link",
+        "share_body": "Drop it in your Instagram bio, send it to a booker, or paste it in your next flyer.",
+        "share_cta": "Copy link",
+        "share_eyebrow": "Quick action",
+        "my_page_eyebrow": "My page",
+        "my_page_title": "Edit your page",
+        "my_page_body": "Add blocks, reorder sections, and customize how fans see your stage.",
+        "my_page_cta": "Open My Page",
+        "epk_eyebrow": "Press kit",
+        "epk_title": "View your Press Kit",
+        "epk_body": "Your EPK is ready in English and Spanish — ready for promoters.",
+        "epk_cta": "Open Press Kit"
+      },
+      "activity": {
+        "title": "This week on your stage",
+        "view_all": "View all →",
+        "no_activity": "No activity yet. Once fans visit your page, events will appear here."
+      },
+      "tip": {
+        "eyebrow": "Tip of the day",
+        "title": "The first block sells the rest.",
+        "body": "Your most-clicked link is always the first one. Move 'Latest Release' to position #1 and see what happens.",
+        "cta": "Reorder blocks"
+      },
       "ready_badge": "Ready",
       "locked_badge": "{plan} feature",
       "available_now": "Available now",
@@ -1391,6 +1431,42 @@
         "title": "Need more help?",
         "description": "If you still have questions or need help with your StageLink account, contact our Support Center and we'll help you get back on stage.",
         "button": "Contact Support Center"
+      },
+      "redesign": {
+        "eyebrow": "Help · guides & support",
+        "title": "How can we",
+        "title_gradient": "help you?",
+        "subtitle": "Quick answers, step-by-step guides, and a direct line when you'd rather talk to a real person.",
+        "search_label": "Search for help",
+        "search_placeholder": "How do I connect Spotify? · Why are my stats not showing? · How do I change my handle?",
+        "common_label": "Common searches:",
+        "common_searches": [
+          "connect Spotify",
+          "add languages",
+          "change handle",
+          "download my EPK",
+          "cancel plan"
+        ],
+        "categories_label": "Guides by topic",
+        "view_all": "View all →",
+        "contact_label": "Talk to us",
+        "chat_name": "Live Chat",
+        "chat_desc": "Mon–Fri · 10:00–19:00 ART",
+        "chat_status": "Online now",
+        "chat_cta": "Open chat",
+        "email_name": "Email",
+        "email_desc": "For questions that need back and forth. We reply in under 24h.",
+        "email_status": "hola@stagelink.art",
+        "email_cta": "Send email",
+        "community_name": "Community",
+        "community_desc": "Connect with other artists. Tips, feedback, and collabs.",
+        "community_status": "Active community",
+        "community_cta": "Join Discord",
+        "changelog_label": "What's new · changelog",
+        "feature_request_label": "Need more?",
+        "feature_request_title": "Request a feature",
+        "feature_request_body": "Missing something you need for your workflow? Send us the idea. If it's viable and useful for the community, we'll prioritize it.",
+        "feature_request_cta": "Suggest improvement"
       }
     }
   },

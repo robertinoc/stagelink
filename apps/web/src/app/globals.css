@@ -83,6 +83,42 @@
 
   /* Brand gradient */
   --gradient-brand: linear-gradient(135deg, #9b30d0 0%, #4a1a8c 55%, #1a0a3d 100%);
+
+  /* ── SL Design tokens (UX Optimization) ──────────────────────────── */
+  /* Backgrounds */
+  --sl-bg-deep: #0d0a1a;
+  --sl-bg-dark: #130d2b;
+  --sl-bg-mid: #1e1040;
+  --sl-bg-panel: rgba(255, 255, 255, 0.025);
+  --sl-bg-panel-hi: rgba(255, 255, 255, 0.06);
+
+  /* Borders */
+  --sl-border: rgba(255, 255, 255, 0.08);
+  --sl-border-hi: rgba(255, 255, 255, 0.14);
+
+  /* Brand accent colors */
+  --sl-pink: #9b30d0;
+  --sl-pink-hot: #7b20b0;
+  --sl-purple: #4a1a8c;
+  --sl-magenta: #e040fb;
+  --sl-cyan: #00d4ff;
+  --sl-blue: #4a90ff;
+  --sl-green: #4ade80;
+  --sl-yellow: #fbbf24;
+
+  /* White opacity scale */
+  --sl-w70: rgba(255, 255, 255, 0.72);
+  --sl-w50: rgba(255, 255, 255, 0.5);
+  --sl-w30: rgba(255, 255, 255, 0.3);
+  --sl-w10: rgba(255, 255, 255, 0.1);
+
+  /* Gradients */
+  --sl-grad: linear-gradient(135deg, #e040fb 0%, #9b30d0 45%, #4a1a8c 100%);
+  --sl-grad-soft: linear-gradient(
+    135deg,
+    rgba(224, 64, 251, 0.22) 0%,
+    rgba(123, 63, 228, 0.12) 100%
+  );
 }
 
 /* ── Base styles ────────────────────────────────────────────────────── */
@@ -145,6 +181,54 @@ textarea {
 
 @utility border-brand {
   border-color: #9b30d0;
+}
+
+/* ── SL container-query responsive classes ──────────────────────────── */
+/* Used by AppShell (sl-root) and SectionHeader (sl-header) */
+
+.sl-root {
+  container-type: inline-size;
+}
+
+.sl-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+@container (max-width: 720px) {
+  .sl-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+}
+
+/* ── SL Utilities ───────────────────────────────────────────────────── */
+@utility sl-panel {
+  background-color: var(--sl-bg-panel);
+  border: 1px solid var(--sl-border);
+}
+
+@utility sl-panel-hi {
+  background-color: var(--sl-bg-panel-hi);
+  border: 1px solid var(--sl-border-hi);
+}
+
+@utility sl-grad {
+  background-image: var(--sl-grad);
+}
+
+@utility sl-grad-soft {
+  background-image: var(--sl-grad-soft);
+}
+
+@utility text-sl-grad {
+  background-image: var(--sl-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .landing-shell {

@@ -98,6 +98,46 @@
         "greeting_10": "{name} entró al chat. A trabajar.",
         "greeting_11": "Ah, {name}. Sabíamos que ibas a volver. El arte no se hace solo."
       },
+      "share_strip": {
+        "share": "Compartir",
+        "copied": "¡Copiado!",
+        "copy": "Copiar link"
+      },
+      "hero": {
+        "eyebrow": "Esta semana",
+        "suffix": "entraron a tu escenario.",
+        "trend_label": "vs. la semana pasada",
+        "peak": "Pico el jueves",
+        "aux_label": "clicks a tus links",
+        "no_data_title": "Aún sin datos",
+        "no_data_body": "Una vez que tu página tenga su primera visita, verás tus estadísticas aquí."
+      },
+      "actions": {
+        "section_label": "¿Qué hacemos hoy?",
+        "share_title": "Compartí tu link",
+        "share_body": "Subilo a tu bio de Instagram, mandalo a un booker, o pegalo en tu próximo flyer.",
+        "share_cta": "Copiar link",
+        "share_eyebrow": "Acción rápida",
+        "my_page_eyebrow": "Mi página",
+        "my_page_title": "Editá tu página",
+        "my_page_body": "Agregá bloques, reordená secciones y personalizá cómo los fans ven tu escenario.",
+        "my_page_cta": "Ir a Mi página",
+        "epk_eyebrow": "Press Kit",
+        "epk_title": "Ver tu Press Kit",
+        "epk_body": "Tu EPK está listo en inglés y español. Listo para promotores.",
+        "epk_cta": "Abrir Press Kit"
+      },
+      "activity": {
+        "title": "Esta semana en tu escenario",
+        "view_all": "Ver todo →",
+        "no_activity": "Aún sin actividad. Cuando los fans visiten tu página, los eventos aparecerán aquí."
+      },
+      "tip": {
+        "eyebrow": "Tip del día",
+        "title": "El primer bloque vende el resto.",
+        "body": "Tu link más clickeado siempre es el primero de la lista. Subí \"Latest Release\" a la posición #1 y mirá qué pasa.",
+        "cta": "Reordenar bloques"
+      },
       "ready_badge": "Listo",
       "locked_badge": "Feature {plan}",
       "available_now": "Disponible ahora",
@@ -1391,6 +1431,42 @@
         "title": "¿Necesitás más ayuda?",
         "description": "Si todavía tenés preguntas o necesitás ayuda con tu cuenta de StageLink, contactá a nuestro Support Center y te ayudamos a volver al escenario.",
         "button": "Contact Support Center"
+      },
+      "redesign": {
+        "eyebrow": "Ayuda · guías y soporte",
+        "title": "¿En qué te",
+        "title_gradient": "ayudamos?",
+        "subtitle": "Respuestas rápidas, guías paso a paso, y un canal directo cuando preferís hablar con una persona real.",
+        "search_label": "Buscá ayuda",
+        "search_placeholder": "¿Cómo conecto Spotify? · ¿Por qué no veo mis stats? · ¿Cómo cambio mi handle?",
+        "common_label": "Búsquedas comunes:",
+        "common_searches": [
+          "conectar Spotify",
+          "agregar idiomas",
+          "cambiar handle",
+          "descargar mi EPK",
+          "cancelar plan"
+        ],
+        "categories_label": "Guías por tema",
+        "view_all": "Ver todo →",
+        "contact_label": "Hablá con nosotros",
+        "chat_name": "Chat en vivo",
+        "chat_desc": "Lun a Vie · 10:00–19:00 ART",
+        "chat_status": "En línea ahora",
+        "chat_cta": "Abrir chat",
+        "email_name": "Email",
+        "email_desc": "Para temas que necesiten ida y vuelta. Te respondemos en menos de 24h.",
+        "email_status": "hola@stagelink.art",
+        "email_cta": "Mandar email",
+        "community_name": "Community",
+        "community_desc": "Conectate con otros artistas. Tips, feedback y colabs.",
+        "community_status": "Comunidad activa",
+        "community_cta": "Unirse a Discord",
+        "changelog_label": "Novedades · changelog",
+        "feature_request_label": "¿Necesitás más?",
+        "feature_request_title": "Pedinos una feature",
+        "feature_request_body": "¿Falta algo que necesitás para tu workflow? Mandanos la idea. Si es viable y útil para la comunidad, la priorizamos.",
+        "feature_request_cta": "Sugerir mejora"
       }
     }
   },
