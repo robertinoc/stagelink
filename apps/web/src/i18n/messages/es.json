@@ -1438,7 +1438,7 @@
         "title_gradient": "ayudamos?",
         "subtitle": "Respuestas rápidas, guías paso a paso, y un canal directo cuando preferís hablar con una persona real.",
         "search_label": "Buscá ayuda",
-        "search_placeholder": "¿Cómo conecto Spotify? · ¿Por qué no veo mis stats? · ¿Cómo cambio mi handle?",
+        "search_placeholder": "¿Cómo conecto Spotify? · ¿Cómo cambio mi handle?",
         "common_label": "Búsquedas comunes:",
         "common_searches": [
           "conectar Spotify",
@@ -1463,6 +1463,8 @@
         "community_status": "Comunidad activa",
         "community_cta": "Unirse a Discord",
         "changelog_label": "Novedades · changelog",
+        "coming_soon": "Próximamente",
+        "articles_count": "artículos",
         "feature_request_label": "¿Necesitás más?",
         "feature_request_title": "Pedinos una feature",
         "feature_request_body": "¿Falta algo que necesitás para tu workflow? Mandanos la idea. Si es viable y útil para la comunidad, la priorizamos.",

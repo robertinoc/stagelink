@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { ArrowRight, Sparkles } from 'lucide-react';
-import { BillingStatusBanner } from '@/components/billing/BillingStatusBanner';
 import { Bento } from '@/components/sl/Bento';
 import { Pill, Sparkline, Sparkbars } from '@/components/sl/SlPrimitives';
 import type { Artist } from '@/lib/api/artists';
@@ -42,9 +41,6 @@ export async function DashboardWelcome({ artist, billingSummary }: DashboardWelc
 
   return (
     <div className="space-y-4 pb-8">
-      {/* ── Billing banner (if any) ─────────────────────────────────────── */}
-      {billingSummary ? <BillingStatusBanner summary={billingSummary} /> : null}
-
       {/* ── Header: greeting + share strip ─────────────────────────────── */}
       <div className="sl-header flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">

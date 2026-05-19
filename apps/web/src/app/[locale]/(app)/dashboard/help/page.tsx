@@ -19,7 +19,6 @@ export async function generateMetadata(): Promise<Metadata> {
 // "UX Optimization" pending task.
 const GUIDE_CATEGORIES = [
   {
-    emoji: '🚀',
     sectionKey: 'getting_started' as const,
     articles: [
       'Create your first page',
@@ -29,7 +28,6 @@ const GUIDE_CATEGORIES = [
     ],
   },
   {
-    emoji: '🔗',
     sectionKey: 'profile' as const,
     articles: [
       'What is my profile for?',
@@ -39,7 +37,6 @@ const GUIDE_CATEGORIES = [
     ],
   },
   {
-    emoji: '📊',
     sectionKey: 'analytics' as const,
     articles: [
       'Understanding your metrics',
@@ -49,7 +46,6 @@ const GUIDE_CATEGORIES = [
     ],
   },
   {
-    emoji: '💳',
     sectionKey: 'plans' as const,
     articles: [
       'Compare Free vs. Pro+',
@@ -158,15 +154,14 @@ export default async function DashboardHelpPage({
             const sectionTitle = t(`sections.${cat.sectionKey}.title`);
             return (
               <Bento key={cat.sectionKey} tone="panel" className="p-5">
-                <div className="mb-3.5 flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-[11px] bg-[rgba(224,64,251,0.12)] text-xl">
-                    {cat.emoji}
-                  </div>
-                  <span className="text-[11px] text-white/50">{cat.articles.length} articles</span>
+                <div className="mb-3.5 flex items-center justify-between gap-2">
+                  <h4 className="m-0 font-[family-name:var(--font-heading)] text-[17px] font-bold text-white">
+                    {sectionTitle}
+                  </h4>
+                  <span className="shrink-0 text-[11px] text-white/50">
+                    {cat.articles.length} {r('articles_count')}
+                  </span>
                 </div>
-                <h4 className="m-0 mb-3.5 font-[family-name:var(--font-heading)] text-[17px] font-bold text-white">
-                  {sectionTitle}
-                </h4>
                 <div className="flex flex-col gap-2">
                   {cat.articles.map((article) => (
                     <a
@@ -249,11 +244,9 @@ export default async function DashboardHelpPage({
       <div className="grid gap-3.5 lg:grid-cols-[1.5fr_1fr]">
         {/* Changelog */}
         <Bento tone="panel" className="p-5">
-          <div className="mb-4 flex items-baseline justify-between">
+          <div className="mb-4 flex items-center gap-2">
             <BentoLabel>{r('changelog_label')}</BentoLabel>
-            <span className="cursor-pointer text-[12px] text-white/50 transition-colors hover:text-white">
-              {r('view_all')}
-            </span>
+            <Pill tone="yellow">{r('coming_soon')}</Pill>
           </div>
           <div className="space-y-0">
             {CHANGELOG.map((item, i) => (
@@ -290,7 +283,7 @@ export default async function DashboardHelpPage({
             {r('feature_request_body')}
           </p>
           <a
-            href="#"
+            href="mailto:stagelink.qa@gmail.com?subject=Feature request"
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[rgba(0,212,255,0.4)] bg-transparent py-2.5 text-[13px] font-semibold text-[#00D4FF] transition-colors hover:bg-[rgba(0,212,255,0.08)]"
           >
             <Sparkles className="h-3.5 w-3.5" />

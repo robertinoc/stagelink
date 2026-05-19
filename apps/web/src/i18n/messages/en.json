@@ -1438,7 +1438,7 @@
         "title_gradient": "help you?",
         "subtitle": "Quick answers, step-by-step guides, and a direct line when you'd rather talk to a real person.",
         "search_label": "Search for help",
-        "search_placeholder": "How do I connect Spotify? · Why are my stats not showing? · How do I change my handle?",
+        "search_placeholder": "How do I connect Spotify? · How do I change my handle?",
         "common_label": "Common searches:",
         "common_searches": [
           "connect Spotify",
@@ -1463,6 +1463,8 @@
         "community_status": "Active community",
         "community_cta": "Join Discord",
         "changelog_label": "What's new · changelog",
+        "coming_soon": "Coming soon",
+        "articles_count": "articles",
         "feature_request_label": "Need more?",
         "feature_request_title": "Request a feature",
         "feature_request_body": "Missing something you need for your workflow? Send us the idea. If it's viable and useful for the community, we'll prioritize it.",
