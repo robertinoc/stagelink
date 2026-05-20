@@ -161,7 +161,7 @@ export function SocialTab({ form }: SocialTabProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Overview card */}
-      <Bento tone="accent" pad={22} glow>
+      <Bento tone="accent" pad={isMobile ? 16 : 22} glow>
         <Glow x="100%" y="0%" color="rgba(0,212,255,0.2)" size={320} />
         <div
           style={{
@@ -281,7 +281,7 @@ export function SocialTab({ form }: SocialTabProps) {
         }).length;
 
         return (
-          <Bento key={group.title} pad={22}>
+          <Bento key={group.title} pad={isMobile ? 16 : 22}>
             <SubHead
               title={group.title}
               hint={group.hint}

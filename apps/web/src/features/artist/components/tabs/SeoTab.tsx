@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { type UseFormReturn } from 'react-hook-form';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { Bento } from '@/components/sl/Bento';
 import { Icon } from '@/components/sl/Icon';
 import { Btn } from '@/components/sl/Btn';
@@ -53,6 +54,7 @@ interface SeoTabProps {
 
 export function SeoTab({ form, handle }: SeoTabProps) {
   const { watch, setValue, register } = form;
+  const isMobile = useIsMobile();
   const baseLocale = watch('baseLocale');
   const seoTitle = watch('seoTitle') ?? '';
   const seoDescription = watch('seoDescription') ?? '';
@@ -109,7 +111,7 @@ export function SeoTab({ form, handle }: SeoTabProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* ── URL handle ────────────────────────────────────────────────── */}
-      <Bento pad={22}>
+      <Bento pad={isMobile ? 16 : 22}>
         <SubHead
           title="Tu URL pública"
           hint="Cómo te encuentran. Cambiarla requiere verificación de identidad."
@@ -185,7 +187,7 @@ export function SeoTab({ form, handle }: SeoTabProps) {
       </Bento>
 
       {/* ── SEO title + meta ──────────────────────────────────────────── */}
-      <Bento pad={22}>
+      <Bento pad={isMobile ? 16 : 22}>
         <SeoInput
           label="Título de página · cómo aparece en Google"
           value={seoTitle}
@@ -302,7 +304,7 @@ export function SeoTab({ form, handle }: SeoTabProps) {
       </Bento>
 
       {/* ── Localized content ─────────────────────────────────────────── */}
-      <Bento pad={22}>
+      <Bento pad={isMobile ? 16 : 22}>
         <SubHead
           title="Contenido localizado"
           hint="Tu Press Kit y página pueden mostrarse en varios idiomas. Si un idioma está incompleto, StageLink usa el contenido base como fallback."

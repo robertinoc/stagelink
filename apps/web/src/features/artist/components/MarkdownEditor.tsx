@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { Icon } from '@/components/sl/Icon';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface MarkdownEditorProps {
   value: string;
@@ -100,6 +101,7 @@ export function MarkdownEditor({
   placeholder,
 }: MarkdownEditorProps) {
   const [mode, setMode] = useState<Mode>('write');
+  const isMobile = useIsMobile();
 
   const handleToolbar = (action: (s: string) => string) => {
     const ta = document.activeElement as HTMLTextAreaElement | null;
@@ -206,7 +208,7 @@ export function MarkdownEditor({
                 gap: 4,
               }}
             >
-              {m === 'write' ? '✎ Escribir' : '👁 Preview'}
+              {m === 'write' ? (isMobile ? '✎' : '✎ Escribir') : isMobile ? '👁' : '👁 Preview'}
             </button>
           ))}
         </div>

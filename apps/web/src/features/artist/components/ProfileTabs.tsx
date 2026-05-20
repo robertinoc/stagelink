@@ -4,6 +4,7 @@
 
 import { cn } from '@/lib/utils';
 import type { TabCompletion } from '../utils/profileCompletion';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 export type ProfileTabId = 'identity' | 'social' | 'catalog' | 'seo';
 
@@ -27,6 +28,8 @@ interface ProfileTabsProps {
 }
 
 export function ProfileTabs({ value, onChange, completion }: ProfileTabsProps) {
+  const isMobile = useIsMobile();
+
   return (
     <nav
       style={{
@@ -37,7 +40,7 @@ export function ProfileTabs({ value, onChange, completion }: ProfileTabsProps) {
         backdropFilter: 'blur(20px) saturate(160%)',
         WebkitBackdropFilter: 'blur(20px) saturate(160%)',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
-        padding: '0 32px',
+        padding: isMobile ? '0 4px' : '0 32px',
         overflowX: 'auto',
         scrollbarWidth: 'none',
       }}
