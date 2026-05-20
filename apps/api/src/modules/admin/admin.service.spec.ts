@@ -1,5 +1,10 @@
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { getWorkOS } from '../../lib/workos';
 import { AdminService } from './admin.service';
+
+jest.mock('../../lib/workos', () => ({
+  getWorkOS: jest.fn(),
+}));
 
 const baseUser = {
   id: 'user_1',
@@ -42,6 +47,10 @@ function createService() {
 }
 
 describe('AdminService', () => {
+  beforeEach(() => {
+    jest.mocked(getWorkOS).mockReset();
+  });
+
   it('lists users without exposing WorkOS IDs', async () => {
     const { service, prisma } = createService();
     prisma.user.findMany.mockResolvedValueOnce([baseUser]);
@@ -134,6 +143,91 @@ describe('AdminService', () => {
     prisma.user.findUnique.mockResolvedValueOnce({ id: 'user_1' });
 
     await expect(service.sendInvitation('artist@example.com', 'owner_1')).rejects.toThrow(
+      BadRequestException,
+    );
+  });
+
+  it('sends new WorkOS invitations and writes an audit log', async () => {
+    const { service, prisma, auditService } = createService();
+    const invitation = {
+      id: 'inv_1',
+      email: 'new@example.com',
+      expiresAt: '2026-06-01T00:00:00.000Z',
+    };
+    const workos = {
+      userManagement: {
+        listInvitations: jest.fn().mockResolvedValueOnce({ data: [] }),
+        sendInvitation: jest.fn().mockResolvedValueOnce(invitation),
+        resendInvitation: jest.fn(),
+      },
+    };
+    jest.mocked(getWorkOS).mockReturnValueOnce(workos as never);
+    prisma.user.findUnique.mockResolvedValueOnce(null);
+
+    await expect(
+      service.sendInvitation(' New@Example.com ', 'owner_1', '198.51.100.10'),
+    ).resolves.toEqual(invitation);
+
+    expect(workos.userManagement.listInvitations).toHaveBeenCalledWith({
+      email: 'new@example.com',
+      limit: 10,
+    });
+    expect(workos.userManagement.sendInvitation).toHaveBeenCalledWith({ email: 'new@example.com' });
+    expect(auditService.log).toHaveBeenCalledWith({
+      actorId: 'owner_1',
+      action: 'admin.invitation.send',
+      entityType: 'workos_invitation',
+      entityId: 'inv_1',
+      metadata: { targetEmail: 'new@example.com' },
+      ipAddress: '198.51.100.10',
+    });
+  });
+
+  it('resends pending WorkOS invitations instead of creating a duplicate', async () => {
+    const { service, prisma, auditService } = createService();
+    const invitation = {
+      id: 'inv_pending',
+      email: 'pending@example.com',
+      state: 'pending',
+      expiresAt: '2026-06-01T00:00:00.000Z',
+    };
+    const workos = {
+      userManagement: {
+        listInvitations: jest.fn().mockResolvedValueOnce({ data: [invitation] }),
+        sendInvitation: jest.fn(),
+        resendInvitation: jest.fn().mockResolvedValueOnce(invitation),
+      },
+    };
+    jest.mocked(getWorkOS).mockReturnValueOnce(workos as never);
+    prisma.user.findUnique.mockResolvedValueOnce(null);
+
+    await expect(service.sendInvitation('pending@example.com', 'owner_1')).resolves.toEqual({
+      id: 'inv_pending',
+      email: 'pending@example.com',
+      expiresAt: '2026-06-01T00:00:00.000Z',
+    });
+
+    expect(workos.userManagement.sendInvitation).not.toHaveBeenCalled();
+    expect(workos.userManagement.resendInvitation).toHaveBeenCalledWith('inv_pending');
+    expect(auditService.log).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'admin.invitation.resend' }),
+    );
+  });
+
+  it('maps WorkOS client errors to a safe bad request', async () => {
+    const { service, prisma } = createService();
+    const workos = {
+      userManagement: {
+        listInvitations: jest.fn().mockResolvedValueOnce({ data: [] }),
+        sendInvitation: jest
+          .fn()
+          .mockRejectedValueOnce(Object.assign(new Error('WorkOS error'), { status: 422 })),
+      },
+    };
+    jest.mocked(getWorkOS).mockReturnValueOnce(workos as never);
+    prisma.user.findUnique.mockResolvedValueOnce(null);
+
+    await expect(service.sendInvitation('new@example.com', 'owner_1')).rejects.toThrow(
       BadRequestException,
     );
   });
