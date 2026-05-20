@@ -36,7 +36,7 @@ const BORDER: Record<BentoTone, string> = {
   green: 'border-[rgba(74,222,128,0.25)]',
 };
 
-export function Bento({ children, tone = 'panel', glow = false, className }: BentoProps) {
+export function Bento({ children, tone = 'panel', pad, glow = false, className }: BentoProps) {
   return (
     <div
       className={cn(
@@ -48,6 +48,7 @@ export function Bento({ children, tone = 'panel', glow = false, className }: Ben
           : 'shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
         className,
       )}
+      style={pad !== undefined ? { padding: pad } : undefined}
     >
       {children}
     </div>
