@@ -188,7 +188,7 @@ export function PublishBanner({
               ? 'rgba(255,107,107,0.12)'
               : !publishReadiness.ready
                 ? 'rgba(255,255,255,0.06)'
-                : 'linear-gradient(135deg,#E040FB_0%,#9B30D0_45%,#4A1A8C_100%)',
+                : 'linear-gradient(135deg,#E040FB 0%,#9B30D0 45%,#4A1A8C 100%)',
             color: isPublished
               ? '#ff6b6b'
               : !publishReadiness.ready
