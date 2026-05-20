@@ -1,8 +1,10 @@
 import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
   BadRequestException,
+  ConflictException,
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { Prisma, PlanTier } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
@@ -250,8 +252,9 @@ export class AdminService {
     actorId: string,
     ipAddress?: string,
   ): Promise<{ id: string; email: string; expiresAt: string | null }> {
+    const normalizedEmail = email.trim().toLowerCase();
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email: normalizedEmail },
       select: { id: true },
     });
 
@@ -259,23 +262,59 @@ export class AdminService {
       throw new BadRequestException('A user with this email already exists');
     }
 
-    const wos = getWorkOS();
-    const invitation = await wos.userManagement.sendInvitation({ email });
+    try {
+      const wos = getWorkOS();
+      const existingInvitations = await wos.userManagement.listInvitations({
+        email: normalizedEmail,
+        limit: 10,
+      });
+      const pendingInvitation = existingInvitations.data.find(
+        (invitation) =>
+          invitation.email.toLowerCase() === normalizedEmail && invitation.state === 'pending',
+      );
 
-    this.auditService.log({
-      actorId,
-      action: 'admin.invitation.send',
-      entityType: 'workos_invitation',
-      entityId: invitation.id,
-      metadata: { targetEmail: invitation.email },
-      ipAddress,
-    });
+      const invitation = pendingInvitation
+        ? await wos.userManagement.resendInvitation(pendingInvitation.id)
+        : await wos.userManagement.sendInvitation({ email: normalizedEmail });
 
-    return {
-      id: invitation.id,
-      email: invitation.email,
-      expiresAt: invitation.expiresAt ?? null,
-    };
+      this.auditService.log({
+        actorId,
+        action: pendingInvitation ? 'admin.invitation.resend' : 'admin.invitation.send',
+        entityType: 'workos_invitation',
+        entityId: invitation.id,
+        metadata: { targetEmail: invitation.email },
+        ipAddress,
+      });
+
+      return {
+        id: invitation.id,
+        email: invitation.email,
+        expiresAt: invitation.expiresAt ?? null,
+      };
+    } catch (error) {
+      throw this.mapWorkOSInvitationError(error);
+    }
+  }
+
+  private mapWorkOSInvitationError(error: unknown): Error {
+    if (error instanceof Error && 'status' in error) {
+      const status = Number((error as { status?: unknown }).status);
+      if (status === 409) {
+        return new ConflictException('Invitation already exists or cannot be resent yet');
+      }
+      if (status >= 400 && status < 500) {
+        return new BadRequestException('Invitation could not be sent');
+      }
+      if (status >= 500) {
+        return new ServiceUnavailableException('WorkOS invitation service is unavailable');
+      }
+    }
+
+    if (error instanceof Error && error.message.includes('WORKOS_API_KEY')) {
+      return new ServiceUnavailableException('WorkOS invitation service is not configured');
+    }
+
+    return new ServiceUnavailableException('Invitation service is unavailable');
   }
 
   // ─── Manual (admin-granted) temporary access ──────────────────────────────
