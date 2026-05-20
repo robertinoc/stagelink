@@ -1967,5 +1967,135 @@
       "username_too_long": "Username must be 30 characters or less.",
       "generic": "Something went wrong. Please try again."
     }
+  },
+  "analytics": {
+    "v2": {
+      "eyebrow": "Analytics · your real audience",
+      "titlePart1": "What's",
+      "titlePart2": "happening.",
+      "subtitle": "Your visits, clicks, captured fans and what is going on across your external platforms. Filtered by period.",
+      "period": {
+        "d7": "7 days",
+        "d30": "30 days",
+        "d90": "90 days",
+        "y1": "1 year",
+        "proBadge": "PRO+"
+      },
+      "tabs": {
+        "page": "Your page",
+        "pageHint": "Visits, clicks, fan capture",
+        "platforms": "External platforms",
+        "platformsHint": "Spotify · YouTube · SoundCloud"
+      },
+      "hero": {
+        "eyebrow": "Visits · last 30 days",
+        "bestDay": "Your best day had",
+        "visits": "visits",
+        "avgDaily": "Daily average:",
+        "ctrFragment": "CTR:",
+        "didClick": "clicked something",
+        "vsPrevious": "vs. previous period"
+      },
+      "kpi": {
+        "linkClicks": "Link clicks",
+        "ctr": "CTR",
+        "smartResolutions": "Smart link resolutions",
+        "captures": "Fan captures"
+      },
+      "series": {
+        "visits": "visits",
+        "clicks": "clicks",
+        "smart": "smart",
+        "captures": "captures",
+        "capturesComingSoon": "Coming soon — once backend exposes the daily series"
+      },
+      "trends": {
+        "title": "Trends by day",
+        "hint": "One series at a time so it stays easy to read. Click to switch."
+      },
+      "topLinks": {
+        "title": "Top links",
+        "hint": "Which links are pulling the most clicks this period.",
+        "active": "active",
+        "empty": "No link clicks were recorded in this period.",
+        "typeSmart": "Smart link",
+        "typeRegular": "Link",
+        "untitled": "Untitled"
+      },
+      "sources": {
+        "title": "Where they come from",
+        "hint": "Estimated traffic sources.",
+        "comingSoon": "Coming soon: we'll show you where your audience comes from. Working on it."
+      },
+      "fanCapture": {
+        "title": "Fan capture",
+        "hint": "How many people dropped their info in forms. We don't show who — just the count.",
+        "empty": "No fan captures yet. Advanced insights will appear once your page starts getting submissions.",
+        "successful": "Successful captures",
+        "successfulDesc": "New subscribers in this range.",
+        "conversion": "Conversion rate",
+        "conversionDesc": "Captures ÷ visits.",
+        "visits": "Visits used in the calc",
+        "visitsDesc": "Period total.",
+        "capturesOverTime": "Captures over time",
+        "topBlocks": "Top capturing blocks",
+        "conv": "conv",
+        "unnamedBlock": "Untitled block"
+      },
+      "infoStrip": "Bot traffic filtered · Unique-visitor dedup coming soon · The capture rate is an approximation (signups ÷ visits).",
+      "platforms": {
+        "eyebrow": "StageLink Insights",
+        "heroSuffix": "of {total} platforms synced",
+        "heroBoldNumber": "{count} snapshots stored.",
+        "heroBody": "Each successful sync saves one so you can review the evolution later.",
+        "viewSnapshots": "View snapshots",
+        "connect": "Connect platform",
+        "statsConnected": "Connected",
+        "statsSynced": "With data synced",
+        "statsSnapshots": "Snapshots stored",
+        "statsSupported": "Supported platforms",
+        "none": "None yet",
+        "atLeastOneSync": "At least one sync",
+        "historical": "Historical",
+        "today": "Today",
+        "topContent": "Top content",
+        "newPlatform": "New platform",
+        "viewOnPlatform": "View on the platform",
+        "explore": "Explore",
+        "connected": "Connected",
+        "lastSync": "Last sync",
+        "openIn": "Open in",
+        "syncNow": "Sync now",
+        "manage": "Manage",
+        "followers": "Followers",
+        "popularity": "Popularity",
+        "genres": "Genres",
+        "spotifyTopTracksEmpty": "Spotify returned no top tracks for this artist in the configured market. Try changing the market in Settings.",
+        "spotifyFooter": "Spotify does not expose a public API equivalent to Spotify for Artists. We only show artist-level public data.",
+        "subscribers": "Subscribers",
+        "totalViews": "Total views",
+        "videos": "Videos",
+        "recentVideos": "Recent videos",
+        "viewAllVideos": "View all videos",
+        "views": "views",
+        "youtubeFooter": "YouTube Analytics private metrics (watch time, revenue, traffic sources, geography) are not included in this phase.",
+        "soundcloudTitle": "SoundCloud",
+        "soundcloudDesc": "Full integration arrives in v2. Tight support for profile + public summary data.",
+        "soundcloudPill": "Coming soon · v2",
+        "freshnessTitle": "Data freshness",
+        "freshnessHint": "When was the last successful sync per platform.",
+        "lastUpdated": "Last updated",
+        "syncSuccess": "Sync successful",
+        "syncPartial": "Metrics only",
+        "syncPending": "Pending",
+        "syncError": "Error",
+        "syncNever": "Never synced",
+        "unavailable": "External platforms data is unavailable right now."
+      },
+      "lock": {
+        "title": "This period isn't included in your plan",
+        "cta": "Upgrade"
+      }
+    }
   }
 }

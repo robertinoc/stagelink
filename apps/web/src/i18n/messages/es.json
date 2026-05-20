@@ -1967,5 +1967,135 @@
       "username_too_long": "El nombre de usuario debe tener 30 caracteres o menos.",
       "generic": "Algo salió mal. Por favor, intentá de nuevo."
     }
+  },
+  "analytics": {
+    "v2": {
+      "eyebrow": "Analytics · tu audiencia real",
+      "titlePart1": "Lo que está",
+      "titlePart2": "pasando.",
+      "subtitle": "Tus visitas, tus clicks, tus fans capturados y lo que pasa en tus plataformas externas. Filtrado por período.",
+      "period": {
+        "d7": "7 días",
+        "d30": "30 días",
+        "d90": "90 días",
+        "y1": "1 año",
+        "proBadge": "PRO+"
+      },
+      "tabs": {
+        "page": "Tu página",
+        "pageHint": "Visitas, clicks, captura de fans",
+        "platforms": "Plataformas externas",
+        "platformsHint": "Spotify · YouTube · SoundCloud"
+      },
+      "hero": {
+        "eyebrow": "Visitas · últimos 30 días",
+        "bestDay": "Tu mejor día tuvo",
+        "visits": "visitas",
+        "avgDaily": "Promedio diario:",
+        "ctrFragment": "El",
+        "didClick": "hizo click en algo",
+        "vsPrevious": "vs. período anterior"
+      },
+      "kpi": {
+        "linkClicks": "Clicks en links",
+        "ctr": "CTR",
+        "smartResolutions": "Resoluciones smart link",
+        "captures": "Capturas de fan"
+      },
+      "series": {
+        "visits": "visitas",
+        "clicks": "clicks",
+        "smart": "smart",
+        "captures": "capturas",
+        "capturesComingSoon": "Próximamente — cuando backend exponga la serie diaria"
+      },
+      "trends": {
+        "title": "Tendencias por día",
+        "hint": "Una serie por vez para que sea fácil de leer. Tocá para cambiar."
+      },
+      "topLinks": {
+        "title": "Top links",
+        "hint": "Qué links están atrayendo más clicks en este período.",
+        "active": "activos",
+        "empty": "No se registraron clicks en links en este período.",
+        "typeSmart": "Smart Link",
+        "typeRegular": "Link",
+        "untitled": "Sin título"
+      },
+      "sources": {
+        "title": "De dónde vienen",
+        "hint": "Fuentes de tráfico estimadas.",
+        "comingSoon": "Próximamente: vamos a mostrarte de dónde viene tu audiencia. Trabajando en ello."
+      },
+      "fanCapture": {
+        "title": "Captura de fans",
+        "hint": "Cuántas personas dejaron sus datos en formularios. No mostramos quiénes — solo el conteo.",
+        "empty": "Todavía no hay capturas de fans. Los insights avanzados aparecerán cuando tu página empiece a recibir registros.",
+        "successful": "Capturas exitosas",
+        "successfulDesc": "Nuevos suscriptores en este rango.",
+        "conversion": "Tasa de conversión",
+        "conversionDesc": "Capturas ÷ visitas.",
+        "visits": "Visitas usadas en el cálculo",
+        "visitsDesc": "Total del período.",
+        "capturesOverTime": "Capturas a lo largo del tiempo",
+        "topBlocks": "Top bloques que capturan",
+        "conv": "conv",
+        "unnamedBlock": "Bloque sin nombre"
+      },
+      "infoStrip": "Tráfico de bots filtrado · Deduplicación de visitantes únicos próximamente · La tasa de captura es una aproximación (registros ÷ visitas).",
+      "platforms": {
+        "eyebrow": "StageLink Insights",
+        "heroSuffix": "de {total} plataformas sincronizadas",
+        "heroBoldNumber": "{count} snapshots guardados.",
+        "heroBody": "Cada sync exitoso guarda uno para que puedas mirar la evolución después.",
+        "viewSnapshots": "Ver snapshots",
+        "connect": "Conectar plataforma",
+        "statsConnected": "Conectadas",
+        "statsSynced": "Con data sincronizada",
+        "statsSnapshots": "Snapshots guardados",
+        "statsSupported": "Plataformas soportadas",
+        "none": "Ninguna todavía",
+        "atLeastOneSync": "Mín. un sync",
+        "historical": "Históricos",
+        "today": "Hoy",
+        "topContent": "Top contenido",
+        "newPlatform": "Nueva plataforma",
+        "viewOnPlatform": "Ver en la plataforma",
+        "explore": "Explorar",
+        "connected": "Conectado",
+        "lastSync": "Último sync",
+        "openIn": "Abrir en",
+        "syncNow": "Sincronizar",
+        "manage": "Gestionar",
+        "followers": "Seguidores",
+        "popularity": "Popularidad",
+        "genres": "Géneros",
+        "spotifyTopTracksEmpty": "Spotify no devolvió top tracks para este artista en el mercado configurado. Probá cambiar el mercado en Configuración.",
+        "spotifyFooter": "Spotify no expone una API pública equivalente a Spotify for Artists. Mostramos solo data pública a nivel artista.",
+        "subscribers": "Suscriptores",
+        "totalViews": "Vistas totales",
+        "videos": "Videos",
+        "recentVideos": "Videos recientes",
+        "viewAllVideos": "Ver todos los videos",
+        "views": "vistas",
+        "youtubeFooter": "Métricas privadas de YouTube Analytics (watch time, revenue, fuentes de tráfico, geografía) no están incluidas en esta fase.",
+        "soundcloudTitle": "SoundCloud",
+        "soundcloudDesc": "La integración completa llega en la v2. Soporte para profile + summary data pública bien acotada.",
+        "soundcloudPill": "Próximamente · v2",
+        "freshnessTitle": "Frescura de datos",
+        "freshnessHint": "Cuándo fue el último sync exitoso por plataforma.",
+        "lastUpdated": "Última actualización",
+        "syncSuccess": "Sync exitoso",
+        "syncPartial": "Sólo métricas",
+        "syncPending": "Pendiente",
+        "syncError": "Error",
+        "syncNever": "Sin sync",
+        "unavailable": "Datos de plataformas externas no disponibles en este momento."
+      },
+      "lock": {
+        "title": "Este período no está incluido en tu plan",
+        "cta": "Actualizar"
+      }
+    }
   }
 }
