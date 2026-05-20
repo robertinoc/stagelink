@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { type UseFormReturn } from 'react-hook-form';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import {
   DndContext,
   closestCenter,
@@ -211,6 +212,7 @@ interface CatalogTabProps {
 
 export function CatalogTab({ form }: CatalogTabProps) {
   const { watch, setValue } = form;
+  const isMobile = useIsMobile();
 
   const labels = watch('recordLabels') ?? [];
   const releases = watch('releases') ?? [];
@@ -350,7 +352,7 @@ export function CatalogTab({ form }: CatalogTabProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* ── Counters ─────────────────────────────────────────────────── */}
-      <Bento pad={22}>
+      <Bento pad={isMobile ? 16 : 22}>
         <SubHead
           title="Contadores públicos"
           hint='Aparecen como "social proof" en tu landing pública. Dejá un campo vacío para ocultarlo.'

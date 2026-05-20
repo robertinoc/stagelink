@@ -467,7 +467,7 @@ export function IdentityTab({
       {/* ── Categories + Descriptors — 2-col desktop / 1-col mobile ──── */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
         {/* Categories */}
-        <Bento pad={22}>
+        <Bento pad={isMobile ? 16 : 22}>
           <SubHead
             title="Categoría *"
             hint="Hasta 3. Tocá para seleccionar; tocá de nuevo para quitar."
@@ -604,7 +604,7 @@ export function IdentityTab({
         </Bento>
 
         {/* Descriptors */}
-        <Bento pad={22}>
+        <Bento pad={isMobile ? 16 : 22}>
           <SubHead
             title="Descriptores"
             hint="Géneros, estilos o nichos. Hasta 6."
