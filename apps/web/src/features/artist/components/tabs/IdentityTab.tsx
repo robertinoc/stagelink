@@ -3,7 +3,8 @@
 // Tab 1 — Identidad y galería
 // Hero card (cover + avatar + name) + categories + descriptors + bios + gallery
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState } from 'react';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { useController, type UseFormReturn } from 'react-hook-form';
 import {
   DndContext,
@@ -230,6 +231,9 @@ export function IdentityTab({
     );
   }
 
+  // ── Responsive ───────────────────────────────────────────────────────
+  const isMobile = useIsMobile();
+
   // ── Artwork url ───────────────────────────────────────────────────────
   const avatarDisplay = localAvatarPreview ?? currentAvatarUrl;
   const coverDisplay = localCoverPreview ?? currentCoverUrl;
@@ -321,10 +325,11 @@ export function IdentityTab({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'auto 1fr auto',
-            gap: 24,
-            padding: '0 28px 26px',
-            marginTop: -56,
+            // Mobile: 2 cols (avatar + name). Desktop: 3 cols (avatar + name + button pill).
+            gridTemplateColumns: isMobile ? 'auto 1fr' : 'auto 1fr auto',
+            gap: isMobile ? 14 : 24,
+            padding: isMobile ? '0 18px 22px' : '0 28px 26px',
+            marginTop: isMobile ? -44 : -56,
             alignItems: 'flex-end',
           }}
         >
@@ -332,8 +337,8 @@ export function IdentityTab({
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <div
               style={{
-                width: 120,
-                height: 120,
+                width: isMobile ? 90 : 120,
+                height: isMobile ? 90 : 120,
                 borderRadius: '50%',
                 border: '4px solid #0D0A1A',
                 outline: '1px solid rgba(255,255,255,0.10)',
@@ -376,8 +381,8 @@ export function IdentityTab({
             </button>
           </div>
 
-          {/* Name + URL chip */}
-          <div style={{ paddingTop: 64, minWidth: 0 }}>
+          {/* Name */}
+          <div style={{ paddingTop: isMobile ? 48 : 64, minWidth: 0 }}>
             <div
               style={{
                 fontFamily: 'var(--font-heading)',
@@ -396,7 +401,8 @@ export function IdentityTab({
               placeholder="Tu nombre artístico"
               style={{
                 fontFamily: 'var(--font-heading)',
-                fontSize: 'clamp(22px,3cqw,38px)',
+                // On mobile: fixed 22px so it doesn't overflow. Desktop: fluid clamp.
+                fontSize: isMobile ? 22 : 'clamp(22px,3cqw,38px)',
                 fontWeight: 700,
                 letterSpacing: '-0.02em',
                 color: 'white',
@@ -424,19 +430,21 @@ export function IdentityTab({
             )}
           </div>
 
-          {/* "Cambiar foto" pill (right col) */}
-          <div style={{ paddingTop: 64 }}>
-            <Btn
-              variant="ghost"
-              size="sm"
-              icon={<Icon.Camera size={13} />}
-              onClick={() => avatarInputRef.current?.click()}
-              disabled={avatarUploading}
-              style={{ borderRadius: 10 }}
-            >
-              Cambiar foto
-            </Btn>
-          </div>
+          {/* "Cambiar foto" pill — desktop only (mobile uses camera icon on avatar) */}
+          {!isMobile && (
+            <div style={{ paddingTop: 64 }}>
+              <Btn
+                variant="ghost"
+                size="sm"
+                icon={<Icon.Camera size={13} />}
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={avatarUploading}
+                style={{ borderRadius: 10 }}
+              >
+                Cambiar foto
+              </Btn>
+            </div>
+          )}
         </div>
 
         {/* Hidden inputs */}
@@ -456,8 +464,8 @@ export function IdentityTab({
         />
       </Bento>
 
-      {/* ── Categories + Descriptors (2-col) ─────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      {/* ── Categories + Descriptors — 2-col desktop / 1-col mobile ──── */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
         {/* Categories */}
         <Bento pad={22}>
           <SubHead
