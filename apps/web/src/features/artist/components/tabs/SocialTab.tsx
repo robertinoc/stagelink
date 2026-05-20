@@ -4,6 +4,7 @@
 // Platform overview + 4 groups (social / streaming / stores / contact)
 
 import { type UseFormReturn } from 'react-hook-form';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { Bento } from '@/components/sl/Bento';
 import { Glow } from '@/components/sl/SlPrimitives';
 import { BentoLabel } from '@/components/sl/Bento';
@@ -149,6 +150,7 @@ interface SocialTabProps {
 
 export function SocialTab({ form }: SocialTabProps) {
   const { watch, setValue } = form;
+  const isMobile = useIsMobile();
 
   const values = watch();
   const activePlatforms = ALL_PLATFORMS.filter((p) => {
@@ -289,7 +291,13 @@ export function SocialTab({ form }: SocialTabProps) {
                 </Chip>
               }
             />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                gap: 12,
+              }}
+            >
               {group.platforms.map((p) => {
                 const raw = values[p.key];
                 const val = typeof raw === 'string' ? raw : '';
