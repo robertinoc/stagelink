@@ -28,9 +28,13 @@ import type {
   UpdateEpkPayload,
 } from '@stagelink/types';
 import { publishArtistEpk, unpublishArtistEpk, updateArtistEpk } from '@/lib/api/epk';
+import { SectionHeader } from '@/components/sl/SlPrimitives';
+import { Btn } from '@/components/sl/Btn';
+import { Icon } from '@/components/sl/Icon';
 import { epkFormSchema, type EpkFormValues } from '../schemas/epk.schema';
 import { PublishBanner } from './PublishBanner';
 import { EpkTabBar, type EpkTab } from './EpkTabBar';
+import { EpkLockedBanner } from './EpkLockedBanner';
 import { EpkIdentityTab } from './tabs/EpkIdentityTab';
 import { EpkMediaTab } from './tabs/EpkMediaTab';
 import { EpkBookingTab } from './tabs/EpkBookingTab';
@@ -385,6 +389,10 @@ export function EpkEditorV2({
 
   const sharePath = `/${locale}/${username}/epk`;
   const printPath = `/${locale}/${username}/epk/print`;
+  // Public-facing URL for the "Copiar URL" button — no protocol prefix shown in UI.
+  // Assumes prod domain stagelink.art; on previews shows the same string for design
+  // consistency. The clipboard copy adds `https://` at copy time.
+  const publicUrl = `stagelink.art/${username}/epk`;
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -394,13 +402,61 @@ export function EpkEditorV2({
       onSubmit={handleSubmit(onSubmit)}
       noValidate
     >
+      {/* ── Hero header ── */}
+      <SectionHeader
+        eyebrow="Press Kit (EPK) · tu kit público"
+        title="Tu kit"
+        gradient="listo para promotores."
+        subtitle="Bio, rider técnico, contactos y galería en un solo lugar. Publicalo cuando esté listo — los cambios quedan en draft hasta que pulsás Publicar."
+        className="!px-0 !pt-2"
+        right={
+          editorData.epk.isPublished ? (
+            <>
+              <Btn
+                size="sm"
+                variant="ghost"
+                type="button"
+                icon={<Icon.Eye size={14} />}
+                onClick={() => window.open(sharePath, '_blank', 'noopener,noreferrer')}
+              >
+                Ver EPK público
+              </Btn>
+              <Btn
+                size="sm"
+                variant="ghost"
+                type="button"
+                onClick={() => window.open(printPath, '_blank', 'noopener,noreferrer')}
+                icon={
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="6 9 6 2 18 2 18 9" />
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                    <rect x="6" y="14" width="12" height="8" />
+                  </svg>
+                }
+              >
+                Print view
+              </Btn>
+            </>
+          ) : null
+        }
+      />
+
       {/* ── Publish banner ── */}
       <PublishBanner
         isPublished={editorData.epk.isPublished}
         publishBusy={publishBusy}
         publishReadiness={publishReadiness}
         sharePath={sharePath}
-        printPath={printPath}
+        publicUrl={publicUrl}
         onToggle={() => togglePublish(!editorData.epk.isPublished)}
       />
 
@@ -413,40 +469,52 @@ export function EpkEditorV2({
 
       {/* ── Tab content ── */}
       {activeTab === 'identity' && (
-        <EpkIdentityTab
-          form={form}
-          disabled={formDisabled}
-          artistId={artistId}
-          locale={locale}
-          inherited={inherited}
-          profileAndSmartLinks={profileAndSmartLinks}
-          displayedCoverImage={displayedCoverImage}
-          displayedArtistImage={displayedArtistImage}
-          onSetCoverImage={setCoverImage}
-          onSetAvatarImage={setAvatarImage}
-        />
+        <>
+          {editorLocked && <EpkLockedBanner />}
+          <EpkIdentityTab
+            form={form}
+            disabled={formDisabled}
+            artistId={artistId}
+            locale={locale}
+            inherited={inherited}
+            profileAndSmartLinks={profileAndSmartLinks}
+            displayedCoverImage={displayedCoverImage}
+            displayedArtistImage={displayedArtistImage}
+            onSetCoverImage={setCoverImage}
+            onSetAvatarImage={setAvatarImage}
+          />
+        </>
       )}
 
       {activeTab === 'media' && (
-        <EpkMediaTab
-          form={form}
-          disabled={formDisabled}
-          artistId={artistId}
-          inherited={inherited}
-        />
+        <>
+          {editorLocked && <EpkLockedBanner />}
+          <EpkMediaTab
+            form={form}
+            disabled={formDisabled}
+            artistId={artistId}
+            inherited={inherited}
+          />
+        </>
       )}
 
       {activeTab === 'booking' && (
-        <EpkBookingTab form={form} disabled={formDisabled} inherited={inherited} />
+        <>
+          {editorLocked && <EpkLockedBanner />}
+          <EpkBookingTab form={form} disabled={formDisabled} inherited={inherited} />
+        </>
       )}
 
       {activeTab === 'locales' && hasMultiLanguageAccess && (
-        <EpkLocalesTab
-          form={form}
-          disabled={formDisabled}
-          hasMultiLanguageAccess={hasMultiLanguageAccess}
-          billingHref={billingHref}
-        />
+        <>
+          {editorLocked && <EpkLockedBanner />}
+          <EpkLocalesTab
+            form={form}
+            disabled={formDisabled}
+            hasMultiLanguageAccess={hasMultiLanguageAccess}
+            billingHref={billingHref}
+          />
+        </>
       )}
 
       {/* ── Save bar ── */}
