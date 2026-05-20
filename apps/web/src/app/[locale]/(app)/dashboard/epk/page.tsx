@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { FeatureLockCta } from '@/components/billing/FeatureLockCta';
 import { Badge } from '@/components/ui/badge';
-import { EpkEditor } from '@/features/epk/components/EpkEditor';
+import { EpkEditorV2 } from '@/features/epk/components/EpkEditorV2';
 import { getArtist } from '@/lib/api/artists';
 import { getArtistAssets } from '@/lib/api/assets';
 import { getBillingSummary } from '@/lib/api/billing';
@@ -99,7 +99,7 @@ export default async function DashboardEpkPage({
           <Badge variant="outline">Public routes available after publish</Badge>
         </div>
       </div>
-      <EpkEditor
+      <EpkEditorV2
         artistId={artistId}
         username={artist.username}
         locale={locale}
