@@ -8,6 +8,7 @@
 //   Tab 4 — SEO & idiomas
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type Artist } from '@/lib/api/artists';
@@ -38,6 +39,7 @@ export function ProfileEditor({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   billingHref,
 }: ProfileEditorProps) {
+  const t = useTranslations('dashboard.profile');
   const [activeTab, setActiveTab] = useState<ProfileTabId>('identity');
 
   // Avatar/cover are uploaded immediately via S3 — not part of the form state.
@@ -133,7 +135,7 @@ export function ProfileEditor({
               lineHeight: 1.15,
             }}
           >
-            Mi perfil artístico
+            {t('heading_title')}
           </h1>
           <p
             style={{
@@ -143,7 +145,7 @@ export function ProfileEditor({
               margin: '5px 0 0',
             }}
           >
-            Tu Press Kit digital · stagelink.art/{artist.username}
+            {t('heading_subtitle', { username: artist.username })}
           </p>
         </div>
 
@@ -180,7 +182,7 @@ export function ProfileEditor({
             }}
           >
             <Icon.ExternalLink size={14} />
-            Ver mi página
+            {t('view_page')}
           </a>
         </div>
       </div>

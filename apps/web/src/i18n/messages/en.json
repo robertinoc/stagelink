@@ -681,6 +681,9 @@
     },
     "profile": {
       "title": "Profile",
+      "heading_title": "My artist profile",
+      "heading_subtitle": "Your digital Press Kit · stagelink.art/{username}",
+      "view_page": "View my page",
       "description": "Your artist identity in one place — page, Press Kit, and Insights all pull from here.",
       "sections": {
         "images": "Images",
