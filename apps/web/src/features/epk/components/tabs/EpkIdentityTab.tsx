@@ -108,6 +108,63 @@ export function EpkIdentityTab({
         onSetAvatarImage={onSetAvatarImage}
       />
 
+      {/* ── Contacts ── */}
+      <Bento pad={isMobile ? 16 : 20}>
+        <SubHead
+          title="Contactos y datos prácticos"
+          hint="Estos campos son públicos. Agregá al menos un contacto antes de publicar. Mostrá solo lo que querés que vean bookers y prensa."
+        />
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+            gap: 14,
+          }}
+        >
+          <div>
+            <FieldLabel required>Booking email</FieldLabel>
+            <input
+              type="email"
+              placeholder={inherited.contactEmail ?? 'booking@artist.com'}
+              disabled={disabled}
+              style={INPUT_STYLE}
+              {...register('bookingEmail')}
+            />
+            <FieldError message={errors.bookingEmail?.message} />
+          </div>
+          <div>
+            <FieldLabel>Management contact</FieldLabel>
+            <input
+              type="text"
+              placeholder="Nombre / email / teléfono"
+              disabled={disabled}
+              style={INPUT_STYLE}
+              {...register('managementContact')}
+            />
+          </div>
+          <div>
+            <FieldLabel>Press contact</FieldLabel>
+            <input
+              type="text"
+              placeholder="Nombre / email / teléfono"
+              disabled={disabled}
+              style={INPUT_STYLE}
+              {...register('pressContact')}
+            />
+          </div>
+          <div>
+            <FieldLabel>Location / base</FieldLabel>
+            <input
+              type="text"
+              placeholder="Buenos Aires, AR"
+              disabled={disabled}
+              style={INPUT_STYLE}
+              {...register('location')}
+            />
+          </div>
+        </div>
+      </Bento>
+
       {/* ── Bio ── */}
       <Bento pad={isMobile ? 16 : 20}>
         <div

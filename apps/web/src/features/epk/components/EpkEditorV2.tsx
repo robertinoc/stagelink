@@ -35,6 +35,7 @@ import { epkFormSchema, type EpkFormValues } from '../schemas/epk.schema';
 import { PublishBanner } from './PublishBanner';
 import { EpkTabBar, type EpkTab } from './EpkTabBar';
 import { EpkLockedBanner } from './EpkLockedBanner';
+import { EpkSaveBar } from './EpkSaveBar';
 import { EpkIdentityTab } from './tabs/EpkIdentityTab';
 import { EpkMediaTab } from './tabs/EpkMediaTab';
 import { EpkBookingTab } from './tabs/EpkBookingTab';
@@ -493,6 +494,7 @@ export function EpkEditorV2({
             disabled={formDisabled}
             artistId={artistId}
             inherited={inherited}
+            profileAndSmartLinks={profileAndSmartLinks}
           />
         </>
       )}
@@ -516,71 +518,16 @@ export function EpkEditorV2({
         </>
       )}
 
-      {/* ── Save bar ── */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-          padding: 16,
-          borderRadius: 16,
-          border: '1px solid rgba(255,255,255,0.08)',
-          background: 'rgba(0,0,0,0.2)',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-          }}
-        >
-          <div style={{ fontSize: 13, flex: 1, minWidth: 0 }}>
-            {saveStatus === 'success' ? (
-              <span style={{ color: '#4ADE80' }}>EPK saved successfully.</span>
-            ) : saveStatus === 'error' ? (
-              <span style={{ color: '#ff6b6b' }}>{saveError}</span>
-            ) : editorLocked ? (
-              <span style={{ color: 'rgba(255,255,255,0.4)' }}>
-                Unpublish this Press Kit first to edit and save changes.
-              </span>
-            ) : !publishReadiness.ready ? (
-              <span style={{ color: 'rgba(255,255,255,0.4)' }}>
-                Complete required fields before saving: {publishReadiness.missing.join(', ')}.
-              </span>
-            ) : isDirty ? (
-              <span style={{ color: 'rgba(255,255,255,0.55)' }}>You have unsaved EPK changes.</span>
-            ) : (
-              <span style={{ color: 'rgba(255,255,255,0.35)' }}>Public EPK: {sharePath}</span>
-            )}
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting || !publishReadiness.ready || editorLocked}
-            style={{
-              padding: '9px 20px',
-              borderRadius: 10,
-              background:
-                isSubmitting || !publishReadiness.ready || editorLocked
-                  ? 'rgba(255,255,255,0.06)'
-                  : 'linear-gradient(135deg,#E040FB,#9B30D0)',
-              border: 'none',
-              color: 'white',
-              fontSize: 13,
-              fontWeight: 700,
-              fontFamily: 'var(--font-heading)',
-              cursor:
-                isSubmitting || !publishReadiness.ready || editorLocked ? 'not-allowed' : 'pointer',
-              opacity: isSubmitting || !publishReadiness.ready || editorLocked ? 0.45 : 1,
-              transition: 'opacity 0.15s',
-            }}
-          >
-            {isSubmitting ? 'Saving…' : 'Save changes'}
-          </button>
-        </div>
-      </div>
+      {/* ── Floating save pill (only when dirty or status non-idle) ── */}
+      <EpkSaveBar
+        status={saveStatus}
+        errorMessage={saveError}
+        isDirty={isDirty}
+        locked={editorLocked}
+        ready={publishReadiness.ready}
+        missing={publishReadiness.missing}
+        onSave={() => handleSubmit(onSubmit)()}
+      />
     </form>
   );
 }
