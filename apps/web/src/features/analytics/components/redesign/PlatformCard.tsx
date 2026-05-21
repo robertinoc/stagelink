@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Bento } from '@/components/sl/Bento';
 import { Pill } from '@/components/sl/SlPrimitives';
 import { Btn } from '@/components/sl/Btn';
-import { RefreshCw, Settings, ExternalLink } from 'lucide-react';
+import { RefreshCw, Settings, ExternalLink, Check, AlertCircle } from 'lucide-react';
 import { formatFullDateTime } from '../../lib/format';
 
 interface PlatformCardProps {
@@ -27,6 +27,16 @@ interface PlatformCardProps {
   locale?: 'es' | 'en';
 }
 
+type SyncStatus = 'idle' | 'syncing' | 'success' | 'error';
+
+const SYNC_FEEDBACK: Record<
+  Exclude<SyncStatus, 'idle' | 'syncing'>,
+  Record<'es' | 'en', string>
+> = {
+  success: { es: 'Sync exitoso', en: 'Sync successful' },
+  error: { es: 'Error al sincronizar', en: 'Sync failed' },
+};
+
 export function PlatformCard({
   brand,
   emoji,
@@ -45,16 +55,27 @@ export function PlatformCard({
   locale = 'es',
 }: PlatformCardProps) {
   const router = useRouter();
-  const [syncing, setSyncing] = useState(false);
+  const [status, setStatus] = useState<SyncStatus>('idle');
+
+  const syncing = status === 'syncing';
 
   async function handleSync() {
     if (!syncEndpoint || syncing) return;
-    setSyncing(true);
+    setStatus('syncing');
     try {
-      await fetch(syncEndpoint, { method: 'POST' });
-    } finally {
-      setSyncing(false);
+      const response = await fetch(syncEndpoint, { method: 'POST' });
+      if (!response.ok) {
+        throw new Error(`Sync responded with ${response.status}`);
+      }
+      setStatus('success');
+      // Refresh server data so lastSyncIso + metrics update visually
       router.refresh();
+    } catch {
+      setStatus('error');
+    } finally {
+      // Auto-clear success/error after 3s so the user sees the feedback
+      // but the card returns to its normal state.
+      setTimeout(() => setStatus('idle'), 3000);
     }
   }
 
@@ -104,16 +125,37 @@ export function PlatformCard({
               <ExternalLink size={14} /> {openLabel} {name}
             </a>
           )}
-          <Btn
-            variant="ghost"
-            size="sm"
-            icon={<RefreshCw size={14} className={syncing ? 'animate-spin' : undefined} />}
-            onClick={handleSync}
-            disabled={!syncEndpoint || syncing}
-            aria-label={`${syncLabel} ${name}`}
-          >
-            {syncLabel}
-          </Btn>
+          <div className="flex items-center gap-2">
+            <Btn
+              variant="ghost"
+              size="sm"
+              icon={<RefreshCw size={14} className={syncing ? 'animate-spin' : undefined} />}
+              onClick={handleSync}
+              disabled={!syncEndpoint || syncing}
+              aria-label={`${syncLabel} ${name}`}
+            >
+              {syncLabel}
+            </Btn>
+            {/* Inline status feedback — auto-clears 3s after success/error */}
+            {status === 'success' && (
+              <span
+                role="status"
+                aria-live="polite"
+                className="inline-flex items-center gap-1 rounded-full border border-[rgba(74,222,128,0.35)] bg-[rgba(74,222,128,0.12)] px-2.5 py-1 text-[11px] font-semibold text-[#4ADE80]"
+              >
+                <Check size={11} aria-hidden="true" /> {SYNC_FEEDBACK.success[locale]}
+              </span>
+            )}
+            {status === 'error' && (
+              <span
+                role="status"
+                aria-live="polite"
+                className="inline-flex items-center gap-1 rounded-full border border-[rgba(255,107,107,0.35)] bg-[rgba(255,107,107,0.12)] px-2.5 py-1 text-[11px] font-semibold text-[#ff6b6b]"
+              >
+                <AlertCircle size={11} aria-hidden="true" /> {SYNC_FEEDBACK.error[locale]}
+              </span>
+            )}
+          </div>
           <Btn
             variant="outline"
             size="sm"
