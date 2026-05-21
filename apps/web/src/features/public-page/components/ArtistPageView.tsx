@@ -347,6 +347,10 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                         href={social.href}
                         label={social.label}
                         color={social.color}
+                        platformKey={social.key}
+                        artistId={page.artistId}
+                        username={artist.username}
+                        pageId={page.pageId}
                       >
                         <social.Icon className="h-5 w-5" />
                       </SocialIconLink>

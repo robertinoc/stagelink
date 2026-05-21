@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link2, Zap, Share2, Heart } from 'lucide-react';
 import type {
@@ -15,6 +15,7 @@ import { KpiRow } from './KpiRow';
 import { KpiTile } from './KpiTile';
 import { TrendCard, type TrendSeries } from './TrendCard';
 import { TopLinksCard } from './TopLinksCard';
+import { TopLinksModal } from './TopLinksModal';
 import { SourcesCard } from './SourcesCard';
 import { FanCaptureCard } from './FanCaptureCard';
 import { InfoStrip } from './InfoStrip';
@@ -41,6 +42,7 @@ function halfSum(series: AnalyticsTrendPoint[] | undefined): { current: number; 
 
 export function PageTab({ overview, proTrends, fanInsights, locale }: PageTabProps) {
   const t = useTranslations('analytics.v2');
+  const [topLinksModalOpen, setTopLinksModalOpen] = useState(false);
 
   const summary = overview?.summary;
   const visits = summary?.pageViews ?? 0;
@@ -149,6 +151,7 @@ export function PageTab({ overview, proTrends, fanInsights, locale }: PageTabPro
           <KpiTile
             position="first"
             label={t('kpi.linkClicks')}
+            hint={t('kpi.linkClicksHint')}
             value={linkClicks}
             prev={clicksHalf.prev}
             icon={<Link2 size={14} />}
@@ -202,6 +205,12 @@ export function PageTab({ overview, proTrends, fanInsights, locale }: PageTabPro
           activeLabel={t('topLinks.active')}
           emptyMessage={t('topLinks.empty')}
           items={topLinkItems}
+          seeMoreLabel={
+            (overview?.topLinks ?? []).length > topLinkItems.length
+              ? t('topLinks.seeAll')
+              : undefined
+          }
+          onSeeMore={() => setTopLinksModalOpen(true)}
           locale={locale}
         />
         <SourcesCard
@@ -239,6 +248,29 @@ export function PageTab({ overview, proTrends, fanInsights, locale }: PageTabPro
       />
 
       <InfoStrip>{t('infoStrip')}</InfoStrip>
+
+      {/* Full breakdown modal — opens from "Ver todos →" in TopLinksCard. */}
+      <TopLinksModal
+        open={topLinksModalOpen}
+        onClose={() => setTopLinksModalOpen(false)}
+        links={overview?.topLinks ?? []}
+        categories={{
+          social: t('topLinks.typeSocial'),
+          smart: t('topLinks.typeSmart'),
+          block: t('topLinks.typeRegular'),
+        }}
+        labels={{
+          title: t('topLinks.modalTitle'),
+          empty: t('topLinks.empty'),
+          closeLabel: t('topLinks.modalClose'),
+          columnLabel: t('topLinks.columnLabel'),
+          columnType: t('topLinks.columnType'),
+          columnClicks: t('topLinks.columnClicks'),
+          columnShare: t('topLinks.columnShare'),
+          summaryTemplate: t('topLinks.summary'),
+        }}
+        locale={locale}
+      />
     </div>
   );
 }

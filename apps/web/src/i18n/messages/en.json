@@ -2360,7 +2360,8 @@
         "vsPrevious": "vs. previous period"
       },
       "kpi": {
-        "linkClicks": "Link clicks",
+        "linkClicks": "All clicks",
+        "linkClicksHint": "Sum of social media and block link clicks",
         "ctr": "CTR",
         "smartResolutions": "Smart link resolutions",
         "captures": "Fan captures"
@@ -2382,8 +2383,17 @@
         "active": "active",
         "empty": "No link clicks were recorded in this period.",
         "typeSmart": "Smart link",
-        "typeRegular": "Link",
-        "untitled": "Untitled"
+        "typeRegular": "Block",
+        "typeSocial": "Social",
+        "untitled": "Untitled",
+        "seeAll": "See all clicks",
+        "modalTitle": "Click breakdown",
+        "modalClose": "Close",
+        "columnLabel": "Destination",
+        "columnType": "Type",
+        "columnClicks": "Clicks",
+        "columnShare": "%",
+        "summary": "{block}% from blocks · {social}% from social media · {smart}% from smart links"
       },
       "sources": {
         "title": "Where they come from",
