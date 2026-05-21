@@ -1,0 +1,68 @@
+'use client';
+
+import type { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
+import { TrendPill } from './TrendPill';
+import { MiniSparkline } from './MiniSparkline';
+
+interface KpiTileProps {
+  label: string;
+  value: number;
+  prev: number;
+  /** Optional unit suffix like "%". Rendered next to the number. */
+  unit?: string;
+  /** Decimals for the displayed value. */
+  decimals?: number;
+  icon: ReactNode;
+  sparkData: number[];
+  sparkColor?: string;
+  /** Position in the strip — controls left border between tiles. */
+  position?: 'first' | 'middle';
+  className?: string;
+  locale?: 'es' | 'en';
+}
+
+export function KpiTile({
+  label,
+  value,
+  prev,
+  unit,
+  decimals = 0,
+  icon,
+  sparkData,
+  sparkColor = '#E040FB',
+  position = 'middle',
+  className,
+  locale = 'es',
+}: KpiTileProps) {
+  const fmt = new Intl.NumberFormat(locale === 'es' ? 'es-AR' : 'en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+  return (
+    <div
+      className={cn(
+        'sl-kpi-tile flex flex-col justify-between px-[22px] py-5',
+        position === 'middle' && 'border-l border-white/[0.08]',
+        className,
+      )}
+    >
+      <div className="flex items-center gap-2">
+        <span className="inline-flex h-[22px] w-[22px] items-center justify-center rounded-md bg-white/[0.05] text-white/70">
+          {icon}
+        </span>
+        <span className="text-[11.5px] font-medium text-white/70">{label}</span>
+      </div>
+      <div className="mt-3 flex items-baseline gap-1.5 font-[family-name:var(--font-heading)] text-[32px] font-bold leading-none tracking-[-0.02em] text-white">
+        {fmt.format(value)}
+        {unit && <span className="text-[16px] font-semibold text-white/50">{unit}</span>}
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <TrendPill value={value} prev={prev} small />
+        <div className="flex-1 min-w-0">
+          <MiniSparkline data={sparkData} color={sparkColor} height={28} />
+        </div>
+      </div>
+    </div>
+  );
+}

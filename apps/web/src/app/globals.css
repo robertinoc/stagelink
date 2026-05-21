@@ -205,6 +205,32 @@ textarea {
   }
 }
 
+/* ── Analytics v2 container-query responsive ─────────────────────────── */
+.sl-analytics {
+  container-type: inline-size;
+}
+
+@container (max-width: 720px) {
+  .sl-analytics-hero,
+  .sl-platforms-hero,
+  .sl-platform-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .sl-kpi-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .sl-kpi-row > .sl-kpi-tile {
+    border-left: none;
+    border-top: 1px solid var(--sl-border);
+  }
+  .sl-kpi-row > .sl-kpi-tile:nth-child(odd) {
+    border-right: 1px solid var(--sl-border);
+  }
+  .sl-insight-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── SL Utilities ───────────────────────────────────────────────────── */
 @utility sl-panel {
   background-color: var(--sl-bg-panel);
