@@ -7,9 +7,8 @@
 import type { UseFormReturn } from 'react-hook-form';
 import type { EpkInheritedArtistSnapshot, EpkFeaturedLinkItem } from '@stagelink/types';
 import { Bento } from '@/components/sl/Bento';
-import { Btn } from '@/components/sl/Btn';
 import { EpkBioGenerator } from '../EpkBioGenerator';
-import { EpkImageUploader } from '../EpkImageUploader';
+import { EpkImagesHero } from '../EpkImagesHero';
 import { SubHead, Chip } from '@/features/artist/components/SubHead';
 import { useIsMobile } from '@/features/artist/hooks/useIsMobile';
 import type { EpkFormValues } from '../../schemas/epk.schema';
@@ -59,137 +58,6 @@ const TEXTAREA_STYLE: React.CSSProperties = {
   lineHeight: 1.6,
 };
 
-// ── Image slot ─────────────────────────────────────────────────────────────────
-
-interface ImageSlotProps {
-  label: string;
-  hint: string;
-  imageUrl: string;
-  altText: string;
-  artistId: string;
-  disabled: boolean;
-  profileBtnLabel?: string;
-  onProfileBtn?: () => void;
-  onUploaded: (url: string) => void;
-}
-
-function ImageSlot({
-  label,
-  hint,
-  imageUrl,
-  altText,
-  artistId,
-  disabled,
-  profileBtnLabel,
-  onProfileBtn,
-  onUploaded,
-}: ImageSlotProps) {
-  return (
-    <div
-      style={{
-        background: 'rgba(0,0,0,0.2)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 14,
-        padding: 14,
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 10,
-        }}
-      >
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>{label}</div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>{hint}</div>
-        </div>
-        {profileBtnLabel && onProfileBtn && (
-          <Btn size="sm" variant="ghost" type="button" disabled={disabled} onClick={onProfileBtn}>
-            {profileBtnLabel}
-          </Btn>
-        )}
-      </div>
-      <EpkImageUploader
-        artistId={artistId}
-        disabled={disabled}
-        helperText="JPEG, PNG or WebP · max 8 MB"
-        onUploaded={(asset) => {
-          if (asset.deliveryUrl) onUploaded(asset.deliveryUrl);
-        }}
-        renderTrigger={({ open, uploading, disabled: d }) => (
-          <button
-            type="button"
-            onClick={open}
-            disabled={d}
-            style={{
-              display: 'block',
-              width: '100%',
-              position: 'relative',
-              overflow: 'hidden',
-              borderRadius: 10,
-              border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.03)',
-              cursor: d ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={imageUrl}
-                alt={altText}
-                style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block' }}
-              />
-            ) : (
-              <div
-                style={{
-                  height: 160,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 12,
-                  color: 'rgba(255,255,255,0.3)',
-                }}
-              >
-                No image yet — click to upload
-              </div>
-            )}
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'rgba(0,0,0,0.45)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: 0,
-                transition: 'opacity 0.15s',
-              }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = '0')}
-            >
-              <span
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 999,
-                  background: 'rgba(0,0,0,0.6)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  fontSize: 11,
-                  color: 'white',
-                  fontWeight: 600,
-                }}
-              >
-                {uploading ? 'Uploading…' : 'Replace image'}
-              </span>
-            </div>
-          </button>
-        )}
-      />
-    </div>
-  );
-}
-
 // ── Main component ─────────────────────────────────────────────────────────────
 
 interface EpkIdentityTabProps {
@@ -230,49 +98,17 @@ export function EpkIdentityTab({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* ── Images ── */}
-      <Bento pad={isMobile ? 16 : 20}>
-        <SubHead
-          title="Photos"
-          hint="Hero photo shown at the top of your EPK, plus your artist portrait"
-        />
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-            gap: 12,
-          }}
-        >
-          <ImageSlot
-            label="Hero image"
-            hint="Full-width cover at the top of your EPK"
-            imageUrl={displayedCoverImage}
-            altText="EPK hero"
-            artistId={artistId}
-            disabled={disabled}
-            profileBtnLabel={inherited.coverUrl ? 'Use profile cover' : undefined}
-            onProfileBtn={
-              inherited.coverUrl ? () => onSetCoverImage(inherited.coverUrl!) : undefined
-            }
-            onUploaded={(url) => {
-              onSetCoverImage(url);
-            }}
-          />
-          <ImageSlot
-            label="Artist image"
-            hint="Your main artist photo"
-            imageUrl={displayedArtistImage}
-            altText="EPK artist"
-            artistId={artistId}
-            disabled={disabled}
-            profileBtnLabel={inherited.avatarUrl ? 'Use profile avatar' : undefined}
-            onProfileBtn={
-              inherited.avatarUrl ? () => onSetAvatarImage(inherited.avatarUrl!) : undefined
-            }
-            onUploaded={onSetAvatarImage}
-          />
-        </div>
-      </Bento>
+      {/* ── Images hero (cover band + overlapping avatar) ── */}
+      <EpkImagesHero
+        artistId={artistId}
+        disabled={disabled}
+        inheritedCoverUrl={inherited.coverUrl}
+        inheritedAvatarUrl={inherited.avatarUrl}
+        displayedCoverImage={displayedCoverImage}
+        displayedArtistImage={displayedArtistImage}
+        onSetCoverImage={onSetCoverImage}
+        onSetAvatarImage={onSetAvatarImage}
+      />
 
       {/* ── Bio ── */}
       <Bento pad={isMobile ? 16 : 20}>
