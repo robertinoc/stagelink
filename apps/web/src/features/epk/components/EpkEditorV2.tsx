@@ -477,7 +477,6 @@ export function EpkEditorV2({
             artistId={artistId}
             locale={locale}
             inherited={inherited}
-            profileAndSmartLinks={profileAndSmartLinks}
             displayedCoverImage={displayedCoverImage}
             displayedArtistImage={displayedArtistImage}
             onSetCoverImage={setCoverImage}

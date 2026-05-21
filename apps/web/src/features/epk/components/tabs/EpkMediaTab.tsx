@@ -1,20 +1,16 @@
 'use client';
 
 // Tab 2 — Media
-// Photo gallery (extra slots 2+), featured media (Spotify/YouTube/SoundCloud),
-// and inherited record labels (read-only, managed from Profile).
+// Photo gallery + featured media (Spotify/YouTube/SoundCloud links).
+// Featured links visibility will be added in Commit B (moved from Identity).
+// Record labels moved to Booking tab.
 
 import { useState } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
-import type {
-  EpkFeaturedMediaItem,
-  EpkInheritedArtistSnapshot,
-  RecordLabel,
-} from '@stagelink/types';
+import type { EpkFeaturedMediaItem, EpkInheritedArtistSnapshot } from '@stagelink/types';
 import { Bento } from '@/components/sl/Bento';
 import { Btn } from '@/components/sl/Btn';
 import { EpkGallerySection } from '../EpkGallerySection';
-import { RecordLabelLogo } from '../RecordLabelLogo';
 import { SubHead, Chip } from '@/features/artist/components/SubHead';
 import { useIsMobile } from '@/features/artist/hooks/useIsMobile';
 import type { EpkFormValues } from '../../schemas/epk.schema';
@@ -333,84 +329,6 @@ export function EpkMediaTab({ form, disabled, artistId, inherited }: EpkMediaTab
           </button>
         )}
       </Bento>
-
-      {/* ── Record labels (inherited) ── */}
-      {inherited.recordLabels.length > 0 && (
-        <Bento pad={isMobile ? 16 : 20}>
-          <SubHead
-            title="Record labels"
-            hint="Inherited from your artist profile — manage them in Profile"
-            right={<Chip>{inherited.recordLabels.length}</Chip>}
-          />
-          <div
-            style={{
-              borderRadius: 12,
-              border: '1px solid rgba(255,255,255,0.08)',
-              overflow: 'hidden',
-            }}
-          >
-            {inherited.recordLabels.map((label: RecordLabel, i: number) => {
-              const logoSrc =
-                label.logoUrl ??
-                (() => {
-                  try {
-                    return `https://logo.clearbit.com/${new URL(label.websiteUrl ?? '').hostname}`;
-                  } catch {
-                    return null;
-                  }
-                })();
-              return (
-                <div
-                  key={label.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '10px 14px',
-                    borderBottom:
-                      i < inherited.recordLabels.length - 1
-                        ? '1px solid rgba(255,255,255,0.06)'
-                        : 'none',
-                  }}
-                >
-                  <RecordLabelLogo
-                    logoSrc={logoSrc}
-                    alt={label.name}
-                    className="h-8 w-8 flex-shrink-0 rounded-md border border-white/10 bg-white object-contain p-0.5"
-                  />
-                  <div style={{ minWidth: 0 }}>
-                    <p
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: 'white',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {label.name}
-                    </p>
-                    {label.websiteUrl && (
-                      <p
-                        style={{
-                          fontSize: 11,
-                          color: 'rgba(255,255,255,0.4)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {label.websiteUrl}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Bento>
-      )}
     </div>
   );
 }

@@ -1,15 +1,16 @@
 'use client';
 
 // Tab 1 — Identity
-// Hero image, headline, short bio, press quote, career highlights, featured links,
-// location, availability notes. EpkBioGenerator lives here too.
+// Hero images (cover + avatar) + bio (artist name, headline, short bio,
+// full-bio link to Profile, press quote). Contacts will be added in Commit B.
+// Highlights / availability / featured links live in Booking and Media tabs.
 
 import type { UseFormReturn } from 'react-hook-form';
-import type { EpkInheritedArtistSnapshot, EpkFeaturedLinkItem } from '@stagelink/types';
+import type { EpkInheritedArtistSnapshot } from '@stagelink/types';
 import { Bento } from '@/components/sl/Bento';
 import { EpkBioGenerator } from '../EpkBioGenerator';
 import { EpkImagesHero } from '../EpkImagesHero';
-import { SubHead, Chip } from '@/features/artist/components/SubHead';
+import { SubHead } from '@/features/artist/components/SubHead';
 import { useIsMobile } from '@/features/artist/hooks/useIsMobile';
 import type { EpkFormValues } from '../../schemas/epk.schema';
 import type { EpkGenerateBioResponse } from '@stagelink/types';
@@ -66,7 +67,6 @@ interface EpkIdentityTabProps {
   artistId: string;
   locale: string;
   inherited: EpkInheritedArtistSnapshot;
-  profileAndSmartLinks: { label: string; url: string }[];
   displayedCoverImage: string;
   displayedArtistImage: string;
   onSetCoverImage: (url: string) => void;
@@ -79,7 +79,6 @@ export function EpkIdentityTab({
   artistId,
   locale,
   inherited,
-  profileAndSmartLinks,
   displayedCoverImage,
   displayedArtistImage,
   onSetCoverImage,
@@ -94,7 +93,6 @@ export function EpkIdentityTab({
   } = form;
   const isMobile = useIsMobile();
   const watchedHighlights = watch('highlights');
-  const watchedFeaturedLinks = watch('featuredLinks');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -219,214 +217,6 @@ export function EpkIdentityTab({
             />
           </div>
         </div>
-      </Bento>
-
-      {/* ── Location & availability ── */}
-      <Bento pad={isMobile ? 16 : 20}>
-        <SubHead title="Location & availability" hint="Displayed on your public EPK" />
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-            gap: 12,
-          }}
-        >
-          <div>
-            <FieldLabel>Base location</FieldLabel>
-            <input
-              type="text"
-              placeholder="Buenos Aires, AR"
-              disabled={disabled}
-              style={INPUT_STYLE}
-              {...register('location')}
-            />
-          </div>
-          <div>
-            <FieldLabel>Availability notes</FieldLabel>
-            <textarea
-              rows={3}
-              placeholder="e.g. Available for bookings across South America and Europe…"
-              disabled={disabled}
-              style={TEXTAREA_STYLE}
-              {...register('availabilityNotes')}
-            />
-          </div>
-        </div>
-      </Bento>
-
-      {/* ── Career highlights ── */}
-      <Bento pad={isMobile ? 16 : 20}>
-        <SubHead
-          title="Career highlights"
-          hint="Notable releases, venues, press mentions, or milestones"
-          right={<Chip>{watchedHighlights.length}/8</Chip>}
-        />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {watchedHighlights.map((_, index) => (
-            <div key={`highlight-${index}`} style={{ display: 'flex', gap: 8 }}>
-              <input
-                type="text"
-                placeholder="Notable release, venue, quote or press mention"
-                disabled={disabled}
-                style={{ ...INPUT_STYLE, flex: 1 }}
-                {...register(`highlights.${index}`)}
-              />
-              <button
-                type="button"
-                disabled={disabled}
-                onClick={() =>
-                  setValue(
-                    'highlights',
-                    watchedHighlights.filter((_, i) => i !== index),
-                    { shouldDirty: true },
-                  )
-                }
-                style={{
-                  padding: '0 12px',
-                  borderRadius: 10,
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  color: 'rgba(255,255,255,0.6)',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-          {watchedHighlights.length < 8 && !disabled && (
-            <button
-              type="button"
-              onClick={() =>
-                setValue('highlights', [...watchedHighlights, ''], { shouldDirty: true })
-              }
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                height: 40,
-                borderRadius: 10,
-                border: '1px dashed rgba(255,255,255,0.15)',
-                background: 'transparent',
-                color: 'rgba(255,255,255,0.45)',
-                fontSize: 12,
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
-            >
-              <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
-              {watchedHighlights.length === 0 ? 'Add a highlight' : 'Add another highlight'}
-            </button>
-          )}
-          {watchedHighlights.length === 0 && (
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', textAlign: 'center' }}>
-              No highlights yet. Each highlight becomes a card on your public EPK.
-            </p>
-          )}
-        </div>
-      </Bento>
-
-      {/* ── Links ── */}
-      <Bento pad={isMobile ? 16 : 20}>
-        <SubHead
-          title="Featured links"
-          hint="Choose which links from your profile appear on your EPK"
-          right={
-            <Chip>
-              {watchedFeaturedLinks.length}/{profileAndSmartLinks.length}
-            </Chip>
-          }
-        />
-        {profileAndSmartLinks.length === 0 ? (
-          <p
-            style={{
-              fontSize: 12,
-              color: 'rgba(255,255,255,0.35)',
-              textAlign: 'center',
-              padding: '12px 0',
-            }}
-          >
-            No links found. Add social or streaming links to your profile first.
-          </p>
-        ) : (
-          <div
-            style={{
-              borderRadius: 12,
-              border: '1px solid rgba(255,255,255,0.08)',
-              overflow: 'hidden',
-            }}
-          >
-            {profileAndSmartLinks.map((link, i) => {
-              const visible = watchedFeaturedLinks.some(
-                (item: EpkFeaturedLinkItem) => item.url === link.url,
-              );
-              return (
-                <div
-                  key={link.url}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '10px 14px',
-                    borderBottom:
-                      i < profileAndSmartLinks.length - 1
-                        ? '1px solid rgba(255,255,255,0.06)'
-                        : 'none',
-                    background: 'rgba(255,255,255,0.01)',
-                  }}
-                >
-                  <span style={{ fontSize: 13, color: 'white', fontWeight: 500 }}>
-                    {link.label}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => {
-                      const currentLinks = watchedFeaturedLinks;
-                      const exists = currentLinks.some(
-                        (item: EpkFeaturedLinkItem) => item.url === link.url,
-                      );
-                      if (exists) {
-                        setValue(
-                          'featuredLinks',
-                          currentLinks.filter((item: EpkFeaturedLinkItem) => item.url !== link.url),
-                          { shouldDirty: true },
-                        );
-                      } else {
-                        setValue(
-                          'featuredLinks',
-                          [
-                            ...currentLinks,
-                            { id: crypto.randomUUID(), label: link.label, url: link.url },
-                          ],
-                          { shouldDirty: true },
-                        );
-                      }
-                    }}
-                    style={{
-                      padding: '4px 12px',
-                      borderRadius: 999,
-                      border: visible
-                        ? '1px solid rgba(224,64,251,0.4)'
-                        : '1px solid rgba(255,255,255,0.12)',
-                      background: visible ? 'rgba(224,64,251,0.12)' : 'transparent',
-                      color: visible ? '#E040FB' : 'rgba(255,255,255,0.5)',
-                      fontSize: 11,
-                      fontWeight: 600,
-                      cursor: disabled ? 'not-allowed' : 'pointer',
-                      fontFamily: 'var(--font-heading)',
-                    }}
-                  >
-                    {visible ? 'Visible' : 'Hidden'}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </Bento>
     </div>
   );
