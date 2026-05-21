@@ -1,50 +1,16 @@
-import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import {
-  startCheckoutAction,
-  startPortalAction,
-} from '@/app/[locale]/(app)/dashboard/billing/actions';
-import {
-  loadDashboardSettingsData,
-  canUpgradeToPlan,
-  resolvePlanLabel,
-} from '@/features/dashboard/settings/settings-data';
-import {
-  PlansBillingSection,
-  SettingsSectionShell,
-} from '@/features/dashboard/settings/SettingsSections';
+import { redirect } from 'next/navigation';
 
-export async function generateMetadata(): Promise<Metadata> {
-  return { title: 'StageLink | Plans and Billing' };
-}
-
-export default async function DashboardSettingsPlansBillingPage({
+/**
+ * Legacy route preserved as a 301 redirect to /dashboard/settings?tab=plan.
+ * The standalone settings sub-pages were collapsed into a single tabbed
+ * page; we keep this stub so bookmarks, sidebar links, and email CTAs
+ * continue to land on the right surface.
+ */
+export default async function LegacySettingsRedirect({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const t = await getTranslations('dashboard.settings');
-  const data = await loadDashboardSettingsData(locale);
-
-  return (
-    <SettingsSectionShell
-      eyebrow={t('navigation.plans_billing')}
-      title={t('plans.title')}
-      description={t('plans.description')}
-      backHref={`/${locale}/dashboard/settings`}
-      backLabel={t('title')}
-    >
-      <PlansBillingSection
-        locale={locale}
-        artistId={data.artistId}
-        summary={data.summary}
-        t={t}
-        startCheckoutAction={startCheckoutAction}
-        startPortalAction={startPortalAction}
-        resolvePlanLabel={resolvePlanLabel}
-        canUpgradeToPlan={canUpgradeToPlan}
-      />
-    </SettingsSectionShell>
-  );
+  redirect(`/${locale}/dashboard/settings?tab=plan`);
 }

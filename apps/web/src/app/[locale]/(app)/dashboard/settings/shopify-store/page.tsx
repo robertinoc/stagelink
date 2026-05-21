@@ -1,41 +1,16 @@
-import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import {
-  loadDashboardSettingsData,
-  resolvePlanLabel,
-} from '@/features/dashboard/settings/settings-data';
-import {
-  SettingsSectionShell,
-  ShopifyStoreSection,
-} from '@/features/dashboard/settings/SettingsSections';
+import { redirect } from 'next/navigation';
 
-export async function generateMetadata(): Promise<Metadata> {
-  return { title: 'StageLink | Shopify Store' };
-}
-
-export default async function DashboardSettingsShopifyPage({
+/**
+ * Legacy route preserved as a 301 redirect to /dashboard/settings?tab=stores.
+ * The standalone settings sub-pages were collapsed into a single tabbed
+ * page; we keep this stub so bookmarks, sidebar links, and email CTAs
+ * continue to land on the right surface.
+ */
+export default async function LegacySettingsRedirect({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const t = await getTranslations('dashboard.settings');
-  const data = await loadDashboardSettingsData(locale);
-
-  return (
-    <SettingsSectionShell
-      eyebrow={t('navigation.shopify_store')}
-      title={t('navigation.shopify_store')}
-      description={t('overview.shopify_store')}
-      backHref={`/${locale}/dashboard/settings`}
-      backLabel={t('title')}
-    >
-      <ShopifyStoreSection
-        artistId={data.artistId}
-        currentPlanLabel={resolvePlanLabel(data.summary.effectivePlan)}
-        hasFeatureAccess={data.summary.entitlements.shopify_integration}
-        initialConnection={data.shopifyConnection}
-      />
-    </SettingsSectionShell>
-  );
+  redirect(`/${locale}/dashboard/settings?tab=stores`);
 }

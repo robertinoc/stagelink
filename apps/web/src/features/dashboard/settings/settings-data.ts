@@ -7,90 +7,32 @@ import { getMerchConnection } from '@/lib/api/merch';
 import { getShopifyConnection } from '@/lib/api/shopify';
 import { getSession } from '@/lib/auth';
 import type { BillingUiSummary } from '@stagelink/types';
-
-export function resolvePlanLabel(plan: 'free' | 'pro' | 'pro_plus') {
-  switch (plan) {
-    case 'pro':
-      return 'Pro';
-    case 'pro_plus':
-      return 'Pro+';
-    default:
-      return 'Free';
-  }
-}
-
-export function canUpgradeToPlan(
-  currentPlan: 'free' | 'pro' | 'pro_plus',
-  nextPlan: 'free' | 'pro' | 'pro_plus',
-) {
-  const rank = { free: 0, pro: 1, pro_plus: 2 };
-  return rank[nextPlan] > rank[currentPlan];
-}
-
-export type SettingsTabId = 'plan' | 'connections' | 'stores' | 'privacy';
-
-export const SETTINGS_TAB_IDS: SettingsTabId[] = ['plan', 'connections', 'stores', 'privacy'];
-
-export function resolveTabId(input: string | string[] | undefined): SettingsTabId {
-  const raw = Array.isArray(input) ? input[0] : input;
-  if (raw && (SETTINGS_TAB_IDS as readonly string[]).includes(raw)) {
-    return raw as SettingsTabId;
-  }
-  return 'plan';
-}
+import {
+  defaultUsageForPlan,
+  type SettingsInvoice,
+  type SettingsTabBadgeCounts,
+  type SettingsUsage,
+} from './settings-types';
 
 /**
- * Usage figures shown in the Plan tab usage panel. `null` max = unlimited
- * (rendered with the striped magenta fill).
- *
- * Per-artist counts (smart link resolutions, language count, page count,
- * storage bytes) are still wired to plan defaults. Switching them to live
- * data is tracked as a follow-up — the table already accepts real values.
+ * Server-side loader for the Settings page. Pure helpers + types live in
+ * `./settings-types` so client components and unit tests can import them
+ * without dragging the server bundle (authkit, Supabase) into jsdom.
  */
-export interface SettingsUsage {
-  smartLinkResolutions: { value: number; max: number | null };
-  activeLanguages: { value: number; max: number | null };
-  artistPages: { value: number; max: number | null };
-  storageMb: { value: number; max: number | null };
-}
-
-export function defaultUsageForPlan(plan: 'free' | 'pro' | 'pro_plus'): SettingsUsage {
-  if (plan === 'pro_plus') {
-    return {
-      smartLinkResolutions: { value: 0, max: null },
-      activeLanguages: { value: 1, max: null },
-      artistPages: { value: 1, max: 3 },
-      storageMb: { value: 0, max: 2048 },
-    };
-  }
-  if (plan === 'pro') {
-    return {
-      smartLinkResolutions: { value: 0, max: null },
-      activeLanguages: { value: 1, max: 1 },
-      artistPages: { value: 1, max: 3 },
-      storageMb: { value: 0, max: 1024 },
-    };
-  }
-  return {
-    smartLinkResolutions: { value: 0, max: 50 },
-    activeLanguages: { value: 1, max: 1 },
-    artistPages: { value: 1, max: 1 },
-    storageMb: { value: 0, max: 256 },
-  };
-}
-
-export interface SettingsInvoice {
-  id: string;
-  date: string;
-  amount: string;
-  status: 'paid' | 'pending';
-  pdfUrl: string | null;
-}
-
-export interface SettingsTabBadgeCounts {
-  connections: { connected: number; total: number };
-  stores: { connected: number; total: number };
-}
+export {
+  resolvePlanLabel,
+  canUpgradeToPlan,
+  resolveTabId,
+  SETTINGS_TAB_IDS,
+  defaultUsageForPlan,
+} from './settings-types';
+export type {
+  PlanCode,
+  SettingsTabId,
+  SettingsUsage,
+  SettingsInvoice,
+  SettingsTabBadgeCounts,
+} from './settings-types';
 
 export interface DashboardSettingsData {
   session: NonNullable<Awaited<ReturnType<typeof getSession>>>;
