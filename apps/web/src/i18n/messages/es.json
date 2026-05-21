@@ -1997,7 +1997,8 @@
         "vsPrevious": "vs. período anterior"
       },
       "kpi": {
-        "linkClicks": "Clicks en links",
+        "linkClicks": "Todos los clicks",
+        "linkClicksHint": "Suma de clicks en redes sociales y links de bloques",
         "ctr": "CTR",
         "smartResolutions": "Resoluciones smart link",
         "captures": "Capturas de fan"
@@ -2019,8 +2020,17 @@
         "active": "activos",
         "empty": "No se registraron clicks en links en este período.",
         "typeSmart": "Smart Link",
-        "typeRegular": "Link",
-        "untitled": "Sin título"
+        "typeRegular": "Bloque",
+        "typeSocial": "Social",
+        "untitled": "Sin título",
+        "seeAll": "Ver todos los clicks",
+        "modalTitle": "Desglose de clicks",
+        "modalClose": "Cerrar",
+        "columnLabel": "Destino",
+        "columnType": "Tipo",
+        "columnClicks": "Clicks",
+        "columnShare": "%",
+        "summary": "{block}% en bloques · {social}% en redes sociales · {smart}% en smart links"
       },
       "sources": {
         "title": "De dónde vienen",

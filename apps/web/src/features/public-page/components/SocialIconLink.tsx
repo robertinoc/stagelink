@@ -2,16 +2,55 @@
 
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import { trackPublicLinkClick } from '@/lib/analytics/track';
 
 interface SocialIconLinkProps {
   href: string;
   label: string;
   color: string;
   children: ReactNode;
+  /** Stable platform key (e.g. "instagram", "tiktok") — used as link_item_id suffix. */
+  platformKey: string;
+  /** Page metadata for analytics tracking. */
+  artistId: string;
+  username: string;
+  pageId: string;
 }
 
-export function SocialIconLink({ href, label, color, children }: SocialIconLinkProps) {
+/**
+ * SocialIconLink — renders a single social-media icon link with hover glow.
+ *
+ * Click tracking:
+ *   On click, fires trackPublicLinkClick with block_type='social'. Each platform
+ *   uses a deterministic linkItemId (`social-${platformKey}`) so per-platform
+ *   click counts aggregate cleanly in the analytics topLinks query.
+ *   Tracking is fire-and-forget and never blocks navigation.
+ */
+export function SocialIconLink({
+  href,
+  label,
+  color,
+  children,
+  platformKey,
+  artistId,
+  username,
+  pageId,
+}: SocialIconLinkProps) {
   const [hovered, setHovered] = useState(false);
+
+  function handleClick() {
+    trackPublicLinkClick({
+      artist_id: artistId,
+      username,
+      environment: process.env.NEXT_PUBLIC_APP_ENV ?? process.env.NODE_ENV ?? 'development',
+      page_id: pageId,
+      block_type: 'social',
+      // Synthetic link_item_id — must match LINK_ITEM_ID_PATTERN ^[\w-]+$
+      link_item_id: `social-${platformKey}`,
+      label,
+      destination_url: href,
+    });
+  }
 
   return (
     <div className="relative flex flex-col items-center">
@@ -20,6 +59,7 @@ export function SocialIconLink({ href, label, color, children }: SocialIconLinkP
         target="_blank"
         rel="noopener noreferrer"
         aria-label={label}
+        onClick={handleClick}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={

@@ -79,14 +79,25 @@ export interface PublicPageViewProps extends BasePublicProps {
 
 export interface PublicLinkClickProps extends BasePublicProps {
   page_id: string;
-  block_id: string;
-  /** Always 'links' for now. Extensible for future block types. */
+  /**
+   * Block ID this click came from, when the click was on an item inside a
+   * dashboard-managed block (e.g. the Links block). Omitted for clicks that
+   * are not part of any block — e.g. social media buttons in the page hero.
+   */
+  block_id?: string;
+  /**
+   * Category of the source UI element. Known values:
+   *   'links'  — item inside the Links block
+   *   'social' — social media button in the page hero
+   *   Future block types extend this freely.
+   */
   block_type: string;
   link_item_id: string;
   label: string;
   /** Destination domain only — not the full URL (privacy). */
   destination_domain?: string;
-  is_smart_link: boolean;
+  /** True when the click resolved through a Smart Link redirect. Defaults to false. */
+  is_smart_link?: boolean;
   smart_link_id?: string;
 }
 
