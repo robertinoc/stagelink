@@ -28,9 +28,14 @@ import type {
   UpdateEpkPayload,
 } from '@stagelink/types';
 import { publishArtistEpk, unpublishArtistEpk, updateArtistEpk } from '@/lib/api/epk';
+import { SectionHeader } from '@/components/sl/SlPrimitives';
+import { Btn } from '@/components/sl/Btn';
+import { Icon } from '@/components/sl/Icon';
 import { epkFormSchema, type EpkFormValues } from '../schemas/epk.schema';
 import { PublishBanner } from './PublishBanner';
 import { EpkTabBar, type EpkTab } from './EpkTabBar';
+import { EpkLockedBanner } from './EpkLockedBanner';
+import { EpkSaveBar } from './EpkSaveBar';
 import { EpkIdentityTab } from './tabs/EpkIdentityTab';
 import { EpkMediaTab } from './tabs/EpkMediaTab';
 import { EpkBookingTab } from './tabs/EpkBookingTab';
@@ -238,6 +243,60 @@ export function EpkEditorV2({
     }
   }, [getValues, normalizedFeaturedLinks, setValue]);
 
+  // ── Unsaved-changes guard ────────────────────────────────────────────────
+  // Two layers:
+  //   1. `beforeunload` — covers tab close, hard refresh, browser back, typing
+  //      a new URL in the address bar. Native browser confirmation.
+  //   2. Document-level capture-phase click interceptor for internal <a>
+  //      navigation (sidebar links, top nav). Next App Router has no built-in
+  //      router event for this; intercepting the anchor click is the standard
+  //      workaround. Triggers a synchronous confirm() before letting the click
+  //      proceed.
+  //
+  // Both guards short-circuit when the form isn't dirty or when the editor is
+  // locked (read-only published state — nothing to lose).
+  useEffect(() => {
+    if (!isDirty || editorLocked) return;
+
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault();
+      // Modern browsers ignore the message and show their own copy, but the
+      // `returnValue` assignment is still required for the prompt to appear.
+      e.returnValue = '';
+    }
+
+    function handleClick(e: MouseEvent) {
+      // Only care about plain left-clicks on real anchors without modifier keys
+      // (let cmd/ctrl/middle-click open new tabs without nagging).
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      const anchor = target?.closest('a');
+      if (!anchor) return;
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+      // Ignore in-page anchors and download links.
+      if (href.startsWith('#') || anchor.hasAttribute('download')) return;
+      // External links → let the browser's beforeunload handle them.
+      if (anchor.target === '_blank') return;
+      // Confirm. Spanish copy matches the dashboard locale; if the user is in
+      // an English locale this will still read correctly enough — short copy.
+      const ok = window.confirm(
+        'Tenés cambios sin guardar en el Press Kit. ¿Salir de todas formas?',
+      );
+      if (!ok) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('click', handleClick, true);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('click', handleClick, true);
+    };
+  }, [isDirty, editorLocked]);
+
   // ── Image handlers ────────────────────────────────────────────────────────
 
   function setGalleryImageAt(index: number, url: string) {
@@ -385,6 +444,10 @@ export function EpkEditorV2({
 
   const sharePath = `/${locale}/${username}/epk`;
   const printPath = `/${locale}/${username}/epk/print`;
+  // Public-facing URL for the "Copiar URL" button — no protocol prefix shown in UI.
+  // Assumes prod domain stagelink.art; on previews shows the same string for design
+  // consistency. The clipboard copy adds `https://` at copy time.
+  const publicUrl = `stagelink.art/${username}/epk`;
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -394,13 +457,61 @@ export function EpkEditorV2({
       onSubmit={handleSubmit(onSubmit)}
       noValidate
     >
+      {/* ── Hero header ── */}
+      <SectionHeader
+        eyebrow="Press Kit (EPK) · tu kit público"
+        title="Tu kit"
+        gradient="listo para promotores."
+        subtitle="Bio, rider técnico, contactos y galería en un solo lugar. Publicalo cuando esté listo — los cambios quedan en draft hasta que pulsás Publicar."
+        className="!px-0 !pt-2"
+        right={
+          editorData.epk.isPublished ? (
+            <>
+              <Btn
+                size="sm"
+                variant="ghost"
+                type="button"
+                icon={<Icon.Eye size={14} />}
+                onClick={() => window.open(sharePath, '_blank', 'noopener,noreferrer')}
+              >
+                Ver EPK público
+              </Btn>
+              <Btn
+                size="sm"
+                variant="ghost"
+                type="button"
+                onClick={() => window.open(printPath, '_blank', 'noopener,noreferrer')}
+                icon={
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="6 9 6 2 18 2 18 9" />
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                    <rect x="6" y="14" width="12" height="8" />
+                  </svg>
+                }
+              >
+                Print view
+              </Btn>
+            </>
+          ) : null
+        }
+      />
+
       {/* ── Publish banner ── */}
       <PublishBanner
         isPublished={editorData.epk.isPublished}
         publishBusy={publishBusy}
         publishReadiness={publishReadiness}
         sharePath={sharePath}
-        printPath={printPath}
+        publicUrl={publicUrl}
         onToggle={() => togglePublish(!editorData.epk.isPublished)}
       />
 
@@ -413,107 +524,64 @@ export function EpkEditorV2({
 
       {/* ── Tab content ── */}
       {activeTab === 'identity' && (
-        <EpkIdentityTab
-          form={form}
-          disabled={formDisabled}
-          artistId={artistId}
-          locale={locale}
-          inherited={inherited}
-          profileAndSmartLinks={profileAndSmartLinks}
-          displayedCoverImage={displayedCoverImage}
-          displayedArtistImage={displayedArtistImage}
-          onSetCoverImage={setCoverImage}
-          onSetAvatarImage={setAvatarImage}
-        />
+        <>
+          {editorLocked && <EpkLockedBanner />}
+          <EpkIdentityTab
+            form={form}
+            disabled={formDisabled}
+            artistId={artistId}
+            locale={locale}
+            inherited={inherited}
+            displayedCoverImage={displayedCoverImage}
+            displayedArtistImage={displayedArtistImage}
+            onSetCoverImage={setCoverImage}
+            onSetAvatarImage={setAvatarImage}
+          />
+        </>
       )}
 
       {activeTab === 'media' && (
-        <EpkMediaTab
-          form={form}
-          disabled={formDisabled}
-          artistId={artistId}
-          inherited={inherited}
-        />
+        <>
+          {editorLocked && <EpkLockedBanner />}
+          <EpkMediaTab
+            form={form}
+            disabled={formDisabled}
+            artistId={artistId}
+            inherited={inherited}
+            profileAndSmartLinks={profileAndSmartLinks}
+          />
+        </>
       )}
 
       {activeTab === 'booking' && (
-        <EpkBookingTab form={form} disabled={formDisabled} inherited={inherited} />
+        <>
+          {editorLocked && <EpkLockedBanner />}
+          <EpkBookingTab form={form} disabled={formDisabled} inherited={inherited} />
+        </>
       )}
 
-      {activeTab === 'locales' && hasMultiLanguageAccess && (
-        <EpkLocalesTab
-          form={form}
-          disabled={formDisabled}
-          hasMultiLanguageAccess={hasMultiLanguageAccess}
-          billingHref={billingHref}
-        />
+      {activeTab === 'locales' && (
+        <>
+          {editorLocked && hasMultiLanguageAccess && <EpkLockedBanner />}
+          <EpkLocalesTab
+            form={form}
+            disabled={formDisabled}
+            hasMultiLanguageAccess={hasMultiLanguageAccess}
+            billingHref={billingHref}
+          />
+        </>
       )}
 
-      {/* ── Save bar ── */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-          padding: 16,
-          borderRadius: 16,
-          border: '1px solid rgba(255,255,255,0.08)',
-          background: 'rgba(0,0,0,0.2)',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-          }}
-        >
-          <div style={{ fontSize: 13, flex: 1, minWidth: 0 }}>
-            {saveStatus === 'success' ? (
-              <span style={{ color: '#4ADE80' }}>EPK saved successfully.</span>
-            ) : saveStatus === 'error' ? (
-              <span style={{ color: '#ff6b6b' }}>{saveError}</span>
-            ) : editorLocked ? (
-              <span style={{ color: 'rgba(255,255,255,0.4)' }}>
-                Unpublish this Press Kit first to edit and save changes.
-              </span>
-            ) : !publishReadiness.ready ? (
-              <span style={{ color: 'rgba(255,255,255,0.4)' }}>
-                Complete required fields before saving: {publishReadiness.missing.join(', ')}.
-              </span>
-            ) : isDirty ? (
-              <span style={{ color: 'rgba(255,255,255,0.55)' }}>You have unsaved EPK changes.</span>
-            ) : (
-              <span style={{ color: 'rgba(255,255,255,0.35)' }}>Public EPK: {sharePath}</span>
-            )}
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting || !publishReadiness.ready || editorLocked}
-            style={{
-              padding: '9px 20px',
-              borderRadius: 10,
-              background:
-                isSubmitting || !publishReadiness.ready || editorLocked
-                  ? 'rgba(255,255,255,0.06)'
-                  : 'linear-gradient(135deg,#E040FB,#9B30D0)',
-              border: 'none',
-              color: 'white',
-              fontSize: 13,
-              fontWeight: 700,
-              fontFamily: 'var(--font-heading)',
-              cursor:
-                isSubmitting || !publishReadiness.ready || editorLocked ? 'not-allowed' : 'pointer',
-              opacity: isSubmitting || !publishReadiness.ready || editorLocked ? 0.45 : 1,
-              transition: 'opacity 0.15s',
-            }}
-          >
-            {isSubmitting ? 'Saving…' : 'Save changes'}
-          </button>
-        </div>
-      </div>
+      {/* ── Floating save pill (only when dirty or status non-idle) ── */}
+      <EpkSaveBar
+        status={saveStatus}
+        errorMessage={saveError}
+        isDirty={isDirty}
+        locked={editorLocked}
+        ready={publishReadiness.ready}
+        missing={publishReadiness.missing}
+        onSave={() => handleSubmit(onSubmit)()}
+      />
     </form>
   );
 }

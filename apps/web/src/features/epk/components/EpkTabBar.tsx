@@ -1,21 +1,22 @@
 'use client';
 
-// EpkTabBar — 4-tab horizontal navigation for EpkEditorV2.
-// Tabs: Identity | Media | Booking | Locales (Locales gated on hasMultiLanguageAccess)
+// EpkTabBar — sticky 4-tab navigation matching design handoff.
+// Each tab has a label + hint subtitle, with an underline gradient indicator
+// on the active tab. Sticky at top with backdrop blur.
 
 export type EpkTab = 'identity' | 'media' | 'booking' | 'locales';
 
 interface TabDef {
   id: EpkTab;
   label: string;
-  icon: string;
+  hint: string;
 }
 
 const TABS: TabDef[] = [
-  { id: 'identity', label: 'Identity', icon: '✦' },
-  { id: 'media', label: 'Media', icon: '🖼' },
-  { id: 'booking', label: 'Booking', icon: '📋' },
-  { id: 'locales', label: 'Languages', icon: '🌐' },
+  { id: 'identity', label: 'Identidad & contacto', hint: 'Hero, bio, contactos' },
+  { id: 'media', label: 'Media & galería', hint: 'Fotos, video, links' },
+  { id: 'booking', label: 'Booking & rider', hint: 'Logística, técnico' },
+  { id: 'locales', label: 'Idiomas', hint: 'Traducción del EPK' },
 ];
 
 interface EpkTabBarProps {
@@ -25,52 +26,114 @@ interface EpkTabBarProps {
 }
 
 export function EpkTabBar({ activeTab, onChange, hasMultiLanguageAccess }: EpkTabBarProps) {
-  const visibleTabs = TABS.filter((t) => t.id !== 'locales' || hasMultiLanguageAccess);
+  // All 4 tabs are always visible. Free users see the Languages tab with a
+  // lock badge; the content panel inside (LocalizedEpkContentSection) handles
+  // the FeatureLockCta upsell.
+  const visibleTabs = TABS;
 
   return (
     <div
       style={{
-        display: 'flex',
-        gap: 4,
-        overflowX: 'auto',
-        padding: '4px 0',
-        scrollbarWidth: 'none',
-        WebkitOverflowScrolling: 'touch',
+        position: 'sticky',
+        top: 0,
+        zIndex: 5,
+        background: 'rgba(13,10,26,0.85)',
+        backdropFilter: 'blur(20px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        marginLeft: -32,
+        marginRight: -32,
+        paddingLeft: 32,
+        paddingRight: 32,
       }}
     >
-      {visibleTabs.map((tab) => {
-        const active = tab.id === activeTab;
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => onChange(tab.id)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 16px',
-              borderRadius: 10,
-              border: active
-                ? '1px solid rgba(224,64,251,0.35)'
-                : '1px solid rgba(255,255,255,0.07)',
-              background: active ? 'rgba(224,64,251,0.12)' : 'rgba(255,255,255,0.03)',
-              color: active ? '#E040FB' : 'rgba(255,255,255,0.55)',
-              fontFamily: 'var(--font-heading)',
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: 0.5,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.15s',
-              flexShrink: 0,
-            }}
-          >
-            <span style={{ fontSize: 13, lineHeight: 1 }}>{tab.icon}</span>
-            {tab.label}
-          </button>
-        );
-      })}
+      <div
+        style={{
+          display: 'flex',
+          gap: 4,
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
+        {visibleTabs.map((tab) => {
+          const active = tab.id === activeTab;
+          const locked = tab.id === 'locales' && !hasMultiLanguageAccess;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => onChange(tab.id)}
+              style={{
+                position: 'relative',
+                background: 'transparent',
+                border: 'none',
+                padding: '14px 18px 16px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: 10,
+                fontFamily: 'var(--font-body)',
+                color: active ? 'white' : 'rgba(255,255,255,0.5)',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                transition: 'color 0.15s',
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {tab.label}
+              </span>
+              <span
+                style={{
+                  fontSize: 11,
+                  color: active ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)',
+                }}
+              >
+                {tab.hint}
+              </span>
+              {locked && (
+                <span
+                  aria-hidden="true"
+                  title="Disponible en Pro+"
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                    background: 'rgba(224,64,251,0.15)',
+                    color: '#E040FB',
+                    border: '1px solid rgba(224,64,251,0.35)',
+                    letterSpacing: 0.4,
+                  }}
+                >
+                  PRO+
+                </span>
+              )}
+              {active && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    left: 12,
+                    right: 12,
+                    bottom: 0,
+                    height: 2,
+                    background: 'linear-gradient(135deg,#E040FB 0%,#9B30D0 45%,#4A1A8C 100%)',
+                    borderRadius: 2,
+                    boxShadow: '0 0 8px rgba(224,64,251,0.5)',
+                  }}
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
