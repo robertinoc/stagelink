@@ -1,18 +1,17 @@
 'use client';
 
-// PublishBanner — full-width status card shown above the EPK tab bar.
-// Shows Live/Draft status, public URL, and publish/unpublish action.
+// PublishBanner — sticky prominent publish status card shown above the EPK tab bar.
+// Matches the design handoff prototype: 44×44 status icon square, title + PRO+ pill,
+// descriptive subtitle that changes per state, "Copiar URL" + "Publish/Unpublish".
 
-import { Bento } from '@/components/sl/Bento';
-import { Btn } from '@/components/sl/Btn';
-import { Glow } from '@/components/sl/SlPrimitives';
+import { useState } from 'react';
 
 interface PublishBannerProps {
   isPublished: boolean;
   publishBusy: 'publish' | 'unpublish' | null;
   publishReadiness: { ready: boolean; missing: string[] };
   sharePath: string;
-  printPath: string;
+  publicUrl: string;
   onToggle: () => void;
 }
 
@@ -21,139 +20,202 @@ export function PublishBanner({
   publishBusy,
   publishReadiness,
   sharePath,
-  printPath,
+  publicUrl,
   onToggle,
 }: PublishBannerProps) {
+  const [copied, setCopied] = useState(false);
+  void sharePath;
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(`https://${publicUrl}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard blocked — silently fail
+    }
+  }
+
+  const accent = isPublished
+    ? { color: '#4ADE80', rgb: '74,222,128', icon: '✓' }
+    : { color: '#FBBF24', rgb: '251,191,36', icon: '✎' };
+
   return (
-    <Bento tone={isPublished ? 'green' : 'accent'} pad={20} glow={isPublished}>
-      {isPublished && <Glow x="100%" y="0%" color="rgba(74,222,128,0.2)" size={280} />}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 16,
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        {/* Left — status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '4px 10px',
-              borderRadius: 999,
-              fontSize: 11,
-              fontWeight: 700,
-              fontFamily: 'var(--font-heading)',
-              letterSpacing: 1,
-              textTransform: 'uppercase',
-              background: isPublished ? 'rgba(74,222,128,0.18)' : 'rgba(255,255,255,0.08)',
-              border: isPublished
-                ? '1px solid rgba(74,222,128,0.4)'
-                : '1px solid rgba(255,255,255,0.14)',
-              color: isPublished ? '#4ADE80' : 'rgba(255,255,255,0.6)',
-            }}
-          >
+    <div
+      style={{
+        padding: '18px 24px',
+        borderRadius: 16,
+        background: isPublished
+          ? 'linear-gradient(135deg, rgba(74,222,128,0.10) 0%, rgba(0,212,255,0.04) 100%)'
+          : 'linear-gradient(135deg, rgba(251,191,36,0.10) 0%, rgba(224,64,251,0.04) 100%)',
+        border: `1px solid rgba(${accent.rgb},0.3)`,
+        boxShadow: `0 0 36px rgba(${accent.rgb},0.10)`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 16,
+        flexWrap: 'wrap',
+      }}
+    >
+      {/* Left — icon + title + subtitle */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 280 }}>
+        <span
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            background: `rgba(${accent.rgb},0.18)`,
+            color: accent.color,
+            border: `1px solid rgba(${accent.rgb},0.35)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 20,
+            flexShrink: 0,
+            boxShadow: `0 0 16px rgba(${accent.rgb},0.3)`,
+          }}
+        >
+          {accent.icon}
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: isPublished ? '#4ADE80' : 'rgba(255,255,255,0.4)',
-              }}
-            />
-            {isPublished ? 'Live' : 'Draft'}
-          </span>
-          <div>
-            <div
               style={{
                 fontFamily: 'var(--font-heading)',
+                fontSize: 17,
                 fontWeight: 700,
-                fontSize: 15,
                 color: 'white',
+                letterSpacing: '-0.01em',
               }}
             >
-              Press Kit (EPK)
-            </div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 1 }}>
-              {isPublished ? `Public at ${sharePath}` : 'Not visible to the public yet'}
-            </div>
-          </div>
-        </div>
-
-        {/* Right — actions */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {isPublished && (
-            <>
-              <Btn
-                size="sm"
-                variant="ghost"
-                type="button"
-                onClick={() => window.open(sharePath, '_blank', 'noopener,noreferrer')}
-              >
-                View EPK ↗
-              </Btn>
-              <Btn
-                size="sm"
-                variant="ghost"
-                type="button"
-                onClick={() => window.open(printPath, '_blank', 'noopener,noreferrer')}
-              >
-                Print ↗
-              </Btn>
-            </>
-          )}
-          {!publishReadiness.ready && !isPublished && (
+              {isPublished ? 'Press Kit publicado' : 'En borrador'}
+            </span>
             <span
               style={{
-                fontSize: 12,
-                color: 'rgba(255,255,255,0.45)',
-                alignSelf: 'center',
-                maxWidth: 220,
+                padding: '3px 9px',
+                borderRadius: 999,
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 0.5,
+                background: 'rgba(224,64,251,0.15)',
+                color: '#E040FB',
+                border: '1px solid rgba(224,64,251,0.3)',
               }}
             >
-              Complete required fields to publish: {publishReadiness.missing.join(', ')}
+              PRO+
             </span>
-          )}
-          <Btn
-            size="sm"
-            variant={isPublished ? 'outline' : 'primary'}
-            type="button"
-            disabled={publishBusy !== null || (!isPublished && !publishReadiness.ready)}
-            onClick={onToggle}
+          </div>
+          <div
+            style={{
+              fontSize: 12.5,
+              color: 'rgba(255,255,255,0.7)',
+              marginTop: 3,
+              lineHeight: 1.45,
+            }}
           >
-            {publishBusy === 'publish'
-              ? 'Publishing…'
-              : publishBusy === 'unpublish'
-                ? 'Unpublishing…'
-                : isPublished
-                  ? 'Unpublish'
-                  : 'Publish EPK'}
-          </Btn>
+            {isPublished ? (
+              <>
+                Cambios futuros quedan privados hasta que vuelvas a publicar. Tu URL pública:{' '}
+                <span
+                  style={{
+                    color: 'white',
+                    fontFamily: '"Space Grotesk", monospace',
+                    fontWeight: 600,
+                  }}
+                >
+                  {publicUrl}
+                </span>
+              </>
+            ) : !publishReadiness.ready ? (
+              <>
+                Completá los campos requeridos antes de publicar:{' '}
+                <span style={{ color: 'white', fontWeight: 600 }}>
+                  {publishReadiness.missing.join(', ')}
+                </span>
+              </>
+            ) : (
+              'Los cambios se guardan en draft. La página pública sigue mostrando la última versión publicada.'
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Lock notice when published */}
-      {isPublished && (
-        <div
+      {/* Right — actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        {isPublished && (
+          <button
+            type="button"
+            onClick={handleCopy}
+            style={{
+              padding: '9px 14px',
+              borderRadius: 10,
+              background: 'rgba(255,255,255,0.05)',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.1)',
+              fontFamily: 'var(--font-body)',
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            {copied ? '¡Copiado!' : 'Copiar URL'}
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onToggle}
+          disabled={publishBusy !== null || (!isPublished && !publishReadiness.ready)}
           style={{
-            marginTop: 12,
-            padding: '8px 12px',
+            padding: '10px 18px',
             borderRadius: 10,
-            background: 'rgba(74,222,128,0.08)',
-            border: '1px solid rgba(74,222,128,0.2)',
-            fontSize: 12,
-            color: 'rgba(74,222,128,0.85)',
+            background: isPublished
+              ? 'rgba(255,107,107,0.12)'
+              : !publishReadiness.ready
+                ? 'rgba(255,255,255,0.06)'
+                : 'linear-gradient(135deg,#E040FB 0%,#9B30D0 45%,#4A1A8C 100%)',
+            color: isPublished
+              ? '#ff6b6b'
+              : !publishReadiness.ready
+                ? 'rgba(255,255,255,0.4)'
+                : 'white',
+            border: isPublished ? '1px solid rgba(255,107,107,0.3)' : 'none',
+            fontFamily: 'var(--font-body)',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor:
+              publishBusy !== null || (!isPublished && !publishReadiness.ready)
+                ? 'not-allowed'
+                : 'pointer',
+            boxShadow:
+              isPublished || !publishReadiness.ready ? 'none' : '0 0 18px rgba(224,64,251,0.35)',
+            opacity: publishBusy !== null ? 0.6 : 1,
           }}
         >
-          Your EPK is live. Click <strong>Unpublish</strong> to edit fields below.
-        </div>
-      )}
-    </Bento>
+          {publishBusy === 'publish'
+            ? 'Publicando…'
+            : publishBusy === 'unpublish'
+              ? 'Despublicando…'
+              : isPublished
+                ? 'Unpublish y editar'
+                : '✓ Publicar Press Kit'}
+        </button>
+      </div>
+    </div>
   );
 }

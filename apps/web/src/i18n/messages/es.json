@@ -681,9 +681,6 @@
     },
     "profile": {
       "title": "Perfil",
-      "heading_title": "Mi perfil artístico",
-      "heading_subtitle": "Tu Press Kit digital · stagelink.art/{username}",
-      "view_page": "Ver mi página",
       "description": "Tu identidad artística en un solo lugar — tu página, Press Kit e Insights se nutren de acá.",
       "sections": {
         "images": "Imágenes",
