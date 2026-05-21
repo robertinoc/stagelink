@@ -82,33 +82,15 @@ export default async function DashboardEpkPage({
   ]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Press Kit (EPK)</h1>
-          <p className="text-sm text-muted-foreground">
-            Build a professional Press Kit (EPK) from your StageLink profile, then layer on only the
-            extra press-specific details you need for sharing, booking, and export.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary">
-            {billingSummary.effectivePlan === 'pro_plus' ? 'Pro+' : 'Pro'}
-          </Badge>
-          <Badge variant="outline">Public routes available after publish</Badge>
-        </div>
-      </div>
-      <EpkEditorV2
-        artistId={artistId}
-        username={artist.username}
-        locale={locale}
-        initialData={epkData}
-        smartLinks={smartLinks}
-        assets={assets}
-        hasMultiLanguageAccess={billingSummary.entitlements.multi_language_pages}
-        billingHref={`/${locale}/dashboard/billing`}
-      />
-    </div>
+    <EpkEditorV2
+      artistId={artistId}
+      username={artist.username}
+      locale={locale}
+      initialData={epkData}
+      smartLinks={smartLinks}
+      assets={assets}
+      hasMultiLanguageAccess={billingSummary.entitlements.multi_language_pages}
+      billingHref={`/${locale}/dashboard/billing`}
+    />
   );
 }
