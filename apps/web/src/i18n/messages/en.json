@@ -1352,6 +1352,372 @@
           "description": "Access deeper audience signals and future premium reporting.",
           "note": "Advanced fan insights are not implemented yet. This capability is reserved for Pro+."
         }
+      },
+      "layout": {
+        "eyebrow": "Settings · your workspace",
+        "title_lead": "Your plan,",
+        "title_gradient": "your connections, your privacy.",
+        "subtitle": "Manage subscription, external integrations and personal data — all from one place."
+      },
+      "tabs": {
+        "aria_label": "Settings sections",
+        "plan": {
+          "label": "Plan & Billing",
+          "hint": "Subscription and invoices"
+        },
+        "connections": {
+          "label": "Connections",
+          "hint": "Spotify · YouTube · SoundCloud",
+          "badge": "{connected}/{total} active"
+        },
+        "stores": {
+          "label": "Stores",
+          "hint": "Shopify · Smart Merch",
+          "badge": "{connected}/{total} connected"
+        },
+        "privacy": {
+          "label": "Privacy & data",
+          "hint": "Cookies · transparency · account"
+        }
+      },
+      "plan": {
+        "hero": {
+          "label": "Your current plan",
+          "price": "{price}/mo · billed monthly",
+          "next_billing_known": "Next invoice on <strong>{date}</strong>. Plan changes apply after checkout.",
+          "next_billing_unknown": "Plan changes apply after checkout.",
+          "cta_change_plan": "Change plan",
+          "cta_portal": "Open billing portal",
+          "cta_invoices": "View invoices"
+        },
+        "compare": {
+          "title": "Compare plans",
+          "hint": "Each plan includes everything from the previous one. Switch any time — you only pay the prorated difference."
+        },
+        "tiers": {
+          "current": "Plan actual",
+          "popular": "POPULAR",
+          "cta": {
+            "free": "Managed via billing",
+            "pro": "Managed via billing",
+            "pro_plus": "Upgrade to Pro+"
+          }
+        }
+      },
+      "usage": {
+        "heading": "Usage this month",
+        "reset": "Reset: monthly",
+        "smart_links": "Smart Link resolutions",
+        "languages": "Active languages",
+        "pages": "Pages (artist pages)",
+        "storage": "Storage (photos)",
+        "mb": "MB",
+        "gb": "GB"
+      },
+      "invoices": {
+        "title": "Invoices",
+        "hint": "Your payment history. Each one can be downloaded as PDF.",
+        "portal_cta": "Open full portal",
+        "empty": "Your invoices live in the Stripe portal. Open it to download PDFs.",
+        "paid": "Paid",
+        "pending": "Pending",
+        "pdf_aria": "Download invoice PDF",
+        "headers": {
+          "date": "Date",
+          "status": "Status",
+          "amount": "Amount",
+          "pdf": "PDF"
+        }
+      },
+      "tiers": {
+        "free": {
+          "sub": "When you're ready, upgrade to unlock more of StageLink.",
+          "features": ["Public page with branding", "3 Smart Links", "Basic analytics"]
+        },
+        "pro": {
+          "sub": "For artists ready to start unlocking features.",
+          "features": ["Remove branding", "Custom domain", "EPK builder", "Unlimited Smart Links"]
+        },
+        "pro_plus": {
+          "sub": "This is the plan currently linked to your billing.",
+          "features": [
+            "Everything in Pro",
+            "Multiple languages (EPK)",
+            "Advanced analytics",
+            "StageLink Insights",
+            "Priority support"
+          ]
+        }
+      },
+      "danger": {
+        "plan": {
+          "title": "Want to downgrade or cancel?",
+          "body": "Use the billing portal to downgrade, cancel or review invoices. You can also drop back to Free from here.",
+          "downgrade": "Downgrade to Pro",
+          "cancel": "Cancel plan"
+        },
+        "delete_dialog": {
+          "title": "Delete my account",
+          "step1_body": "We'll remove your public visibility, delete workspaces where you're the sole owner and anonymise the account. This is irreversible — billing, infra and security logs may retain legally required records for limited periods.",
+          "ack_label": "I understand this is irreversible.",
+          "step2_body": "Type your authenticated email <strong>{email}</strong> to confirm.",
+          "input_aria": "Email confirmation",
+          "cancel": "Cancel",
+          "continue": "Continue",
+          "confirm": "Delete account",
+          "deleting": "Deleting…",
+          "error_email_mismatch": "The email doesn't match the one on file.",
+          "error_generic": "Could not delete the account. Try again or contact support."
+        }
+      },
+      "connections": {
+        "help": {
+          "title": "First you connect, then you read the numbers",
+          "body": "Use this section to validate and store references to external platforms. Metrics and snapshot history live in <strong>Analytics → Platforms</strong>."
+        },
+        "status": {
+          "connected": "Connected",
+          "disconnected": "Not connected"
+        },
+        "last_sync": "Last sync",
+        "connected_panel": {
+          "ok": "Connected correctly",
+          "snapshots": "Automatic snapshots every 24h",
+          "open": "Open in platform",
+          "analytics": "View analytics",
+          "disconnect": "Disconnect"
+        },
+        "actions": {
+          "validate": "Validate",
+          "update": "Update connection",
+          "validating": "Validating…",
+          "syncing": "Syncing…",
+          "validate_success": "Connection validated.",
+          "validate_error": "Couldn't validate the connection."
+        },
+        "spotify": {
+          "title": "Artist profile",
+          "hint": "Syncs followers, monthly listeners and top markets.",
+          "input_label": "Spotify artist URL or ID",
+          "input_hint": "Paste an artist URL, URI, or the raw 22-character ID.",
+          "tier": "Metrics only",
+          "tip": "Spotify does not expose a Spotify for Artists API equivalent. We sync followers, monthly listeners and public top tracks."
+        },
+        "youtube": {
+          "title": "Channel connection",
+          "hint": "Reads your channel for subscriber, view and video performance tracking.",
+          "input_label": "YouTube channel URL, @handle or channel ID",
+          "input_hint": "StageLink uses the channel saved in your artist profile. To change it, update your profile first.",
+          "tier": "Partial",
+          "tip": "We pick up the channel from your profile. To change it, edit Profile → Networks and come back to re-validate."
+        },
+        "soundcloud": {
+          "coming_soon": "Coming soon · v2",
+          "body": "Full SoundCloud integration ships in v2. Meanwhile, keep your public SoundCloud URL in your Profile so StageLink has the reference ready.",
+          "cta": "Go to Profile"
+        }
+      },
+      "stores": {
+        "help": {
+          "title": "Connect a store — sell from your page",
+          "body": "Connect Shopify to surface existing products or Printful (Smart Merch) for print-on-demand without inventory. Once connected you can add the Merch block in <strong>My page</strong>."
+        },
+        "shopify": {
+          "header": {
+            "title": "Shopify storefront",
+            "hint": "Connect your storefront and pick which products to show.",
+            "connected": "Connected",
+            "disconnected": "Not connected"
+          },
+          "domain": {
+            "label": "Store domain",
+            "hint": "Hostname only, no https:// or paths."
+          },
+          "token": {
+            "label": "Storefront token",
+            "placeholder": "Leave empty to keep the stored token",
+            "hint": "Stored securely on the backend. Never exposed on your public page."
+          },
+          "mode": {
+            "label": "What to show on your page?",
+            "collection": "Collection",
+            "products": "Individual products"
+          },
+          "handle": {
+            "label": "Collection handle",
+            "hint": "StageLink will fetch products from this Shopify collection handle."
+          },
+          "actions": {
+            "validate": "Validate connection",
+            "save": "Save",
+            "disconnect": "Disconnect store"
+          },
+          "feedback": {
+            "validating": "Validating…",
+            "saving": "Saving…",
+            "validate_ok": "Connection valid.",
+            "validate_error": "Could not validate this storefront.",
+            "save_ok": "Storefront saved.",
+            "save_error": "Could not save the storefront."
+          },
+          "preview": {
+            "label": "Product preview",
+            "sub": "What your visitors will see when you add the Merch block.",
+            "collection_pill": "Collection · {handle}"
+          }
+        },
+        "printful": {
+          "header": {
+            "name": "Smart Merch (Printful)",
+            "title": "Print-on-demand",
+            "hint": "Connect Printful, validate your token and use real merch products inside Smart Merch blocks.",
+            "connected": "Connected",
+            "disconnected": "Not connected"
+          },
+          "provider": {
+            "label": "Provider",
+            "body": "Printful is the provider connected to this workspace."
+          },
+          "token": {
+            "label": "Printful API token",
+            "placeholder": "Leave empty to keep the stored token",
+            "hint": "Stored on the backend and never exposed on your public page."
+          },
+          "connected": {
+            "title_with_name": "Connected to {name}",
+            "title_generic": "Printful is connected",
+            "store_id": "Store ID: {id}"
+          },
+          "actions": {
+            "validate": "Validate connection",
+            "save": "Save",
+            "disconnect": "Disconnect Printful"
+          },
+          "feedback": {
+            "validating": "Validating…",
+            "saving": "Saving…",
+            "validate_ok": "Token valid.",
+            "validate_error": "Could not validate the Printful token.",
+            "save_ok": "Token saved.",
+            "save_error": "Could not save the Printful token."
+          },
+          "preview": {
+            "label": "Product preview",
+            "sub": "These products are available inside the Smart Merch block."
+          }
+        }
+      },
+      "privacy_tab": {
+        "trust": {
+          "label": "Your data, no mystery",
+          "headline": "We separate private data from public content",
+          "body": "Your public profile and EPK only become public when you publish them. You can change optional analytics and marketing here whenever you want. Connected providers are used only for the features you set up."
+        },
+        "cookies": {
+          "title": "Cookie and analytics preferences",
+          "hint": "Manage optional tracking without leaving your dashboard.",
+          "reject_cta": "Reject optional tracking",
+          "locked": "Always on",
+          "active": "ACTIVE",
+          "inactive": "DISABLED",
+          "footer_note": "Necessary cookies and security logs keep login, language, billing and abuse prevention working. They are not used for advertising.",
+          "necessary": {
+            "label": "Necessary",
+            "desc": "Required for authentication, security, language, rate limiting and core platform functions."
+          },
+          "analytics": {
+            "label": "Analytics",
+            "desc": "Helps show visits, clicks, fan capture trends and product usage signals. Public tracking stays off unless you allow analytics."
+          },
+          "marketing": {
+            "label": "Marketing",
+            "desc": "Reserved for future campaign attribution or advertising pixels. StageLink does not turn this on by default."
+          }
+        },
+        "data_use": {
+          "title": "How your data is used",
+          "hint": "Short version: we use your data to run your workspace, publish what you choose and show useful metrics.",
+          "items": {
+            "public_page": {
+              "label": "Artist page",
+              "tag": "Public",
+              "desc": "Your name, bio, links, media and selected blocks can appear publicly when your page is published."
+            },
+            "press_kit": {
+              "label": "Press Kit",
+              "tag": "You control it",
+              "desc": "The EPK can include booking data, images, quotes and rider notes. Keep private details out until you're ready to publish or share."
+            },
+            "analytics": {
+              "label": "Analytics",
+              "tag": "Active",
+              "desc": "StageLink counts visits, clicks, smart link activity and fan capture totals. We avoid storing raw IPs in local analytics."
+            },
+            "account": {
+              "label": "Account & security",
+              "tag": "Private",
+              "desc": "Your login, billing, data requests and security logs stay private and are used to operate and protect your account."
+            }
+          }
+        },
+        "integrations": {
+          "title": "Integration transparency",
+          "hint": "A simple view of what StageLink uses each connected provider for.",
+          "items": {
+            "spotify": {
+              "name": "Spotify",
+              "purpose": "Insights",
+              "desc": "Artist insights as public profile references — followers, monthly listeners, top markets and top tracks when available.",
+              "note": "Not used to publish to Spotify nor manage your Spotify account."
+            },
+            "youtube": {
+              "name": "YouTube",
+              "purpose": "Insights",
+              "desc": "Channel insights: subscribers, views and video performance signals once you've set the reference.",
+              "note": "Not used to upload, edit or delete videos."
+            },
+            "soundcloud": {
+              "name": "SoundCloud",
+              "purpose": "Reference",
+              "desc": "Used today as a public profile reference while full sync stays on the roadmap.",
+              "note": "No full SoundCloud account management active today."
+            },
+            "shopify": {
+              "name": "Shopify",
+              "purpose": "Store",
+              "desc": "Surface selected products from your storefront on the public page when a store is connected.",
+              "note": "StageLink does not collect card data nor run Shopify checkout."
+            },
+            "printful": {
+              "name": "Printful",
+              "purpose": "Merch",
+              "desc": "Validate Smart Merch products and keep them available inside your blocks.",
+              "note": "StageLink does not expose your stored API token on your public page."
+            }
+          }
+        },
+        "personal": {
+          "title": "Correct personal data",
+          "hint": "Update the name StageLink stores for your profile. Email is managed by our identity provider.",
+          "first_name": "First name",
+          "last_name": "Last name",
+          "save_cta": "Save changes",
+          "saving": "Saving…",
+          "saved": "Personal data updated.",
+          "error": "Could not save your personal data.",
+          "email_note": "Authenticated email: <strong>{email}</strong>. Contact support if this identity isn't right."
+        },
+        "download": {
+          "title": "Download my data",
+          "hint": "Export a structured JSON with your account, workspaces, public page, EPK, integration metadata and recent activity.",
+          "cta": "Download JSON export",
+          "toast": "Your export is on its way."
+        },
+        "delete": {
+          "title": "Delete my account",
+          "body": "Request deletion. StageLink removes public visibility, deletes workspaces where you're the sole owner and anonymises the account. <strong>It is irreversible.</strong> Billing, infra and security logs may retain legally required records for limited periods.",
+          "cta": "Delete account"
+        }
       }
     },
     "help": {

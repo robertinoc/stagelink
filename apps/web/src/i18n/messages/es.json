@@ -1352,6 +1352,377 @@
           "description": "Accedé a señales de audiencia más profundas y reportes premium futuros.",
           "note": "Los insights avanzados todavía no están implementados. Esta capability queda reservada para Pro+."
         }
+      },
+      "layout": {
+        "eyebrow": "Settings · tu workspace",
+        "title_lead": "Tu plan,",
+        "title_gradient": "tus conexiones, tu privacidad.",
+        "subtitle": "Gestioná suscripción, integraciones externas y datos personales — todo desde un mismo lugar."
+      },
+      "tabs": {
+        "aria_label": "Secciones de Settings",
+        "plan": {
+          "label": "Plan & Billing",
+          "hint": "Suscripción y facturas"
+        },
+        "connections": {
+          "label": "Conexiones",
+          "hint": "Spotify · YouTube · SoundCloud",
+          "badge": "{connected}/{total} activas"
+        },
+        "stores": {
+          "label": "Tiendas",
+          "hint": "Shopify · Smart Merch",
+          "badge": "{connected}/{total} conectadas"
+        },
+        "privacy": {
+          "label": "Privacidad y datos",
+          "hint": "Cookies · transparencia · cuenta"
+        }
+      },
+      "plan": {
+        "hero": {
+          "label": "Tu plan actual",
+          "price": "{price}/mes · facturado mensual",
+          "next_billing_known": "Próxima factura el <strong>{date}</strong>. Los cambios de plan se aplican después del checkout.",
+          "next_billing_unknown": "Los cambios de plan se aplican después del checkout.",
+          "cta_change_plan": "Cambiar de plan",
+          "cta_portal": "Abrir portal de billing",
+          "cta_invoices": "Ver facturas"
+        },
+        "compare": {
+          "title": "Comparar planes",
+          "hint": "Cada plan incluye todo lo del anterior. Cambiá en cualquier momento — pagás solo la diferencia prorrateada."
+        },
+        "tiers": {
+          "current": "Plan actual",
+          "popular": "POPULAR",
+          "cta": {
+            "free": "Se gestiona desde billing",
+            "pro": "Se gestiona desde billing",
+            "pro_plus": "Upgrade a Pro+"
+          }
+        }
+      },
+      "usage": {
+        "heading": "Uso este mes",
+        "reset": "Reset: mensual",
+        "smart_links": "Smart Links resoluciones",
+        "languages": "Idiomas activos",
+        "pages": "Páginas (artist pages)",
+        "storage": "Almacenamiento (fotos)",
+        "mb": "MB",
+        "gb": "GB"
+      },
+      "invoices": {
+        "title": "Facturas",
+        "hint": "Tu historial de pagos. Cada una se puede descargar como PDF.",
+        "portal_cta": "Abrir portal completo",
+        "empty": "Tus facturas viven en el portal de Stripe. Abrí el portal para descargarlas en PDF.",
+        "paid": "Pagada",
+        "pending": "Pendiente",
+        "pdf_aria": "Descargar PDF de la factura",
+        "headers": {
+          "date": "Fecha",
+          "status": "Estado",
+          "amount": "Monto",
+          "pdf": "PDF"
+        }
+      },
+      "tiers": {
+        "free": {
+          "sub": "Cuando estés listo, actualizá para desbloquear más de StageLink.",
+          "features": ["Página pública con branding", "3 Smart Links", "Analytics básico"]
+        },
+        "pro": {
+          "sub": "Para artistas que quieren empezar a desbloquear features.",
+          "features": [
+            "Quitar branding",
+            "Dominio personalizado",
+            "Constructor de EPK",
+            "Smart Links ilimitados"
+          ]
+        },
+        "pro_plus": {
+          "sub": "Este es el plan actualmente asociado a tu billing.",
+          "features": [
+            "Todo lo de Pro",
+            "Idiomas múltiples (EPK)",
+            "Analíticas avanzadas",
+            "StageLink Insights",
+            "Soporte prioritario"
+          ]
+        }
+      },
+      "danger": {
+        "plan": {
+          "title": "¿Querés bajar de plan o cancelar?",
+          "body": "Usá el portal de billing para bajar de plan, cancelar o revisar facturas. También podés volver a Free desde acá.",
+          "downgrade": "Bajar a Pro",
+          "cancel": "Cancelar plan"
+        },
+        "delete_dialog": {
+          "title": "Eliminar mi cuenta",
+          "step1_body": "Vamos a remover tu visibilidad pública, eliminar workspaces donde sos único owner y anonimizar la cuenta. Es irreversible — billing, infra y logs de seguridad pueden retener registros legalmente requeridos por períodos limitados.",
+          "ack_label": "Entiendo que esto es irreversible.",
+          "step2_body": "Escribí tu email autenticado <strong>{email}</strong> para confirmar.",
+          "input_aria": "Confirmación de email",
+          "cancel": "Cancelar",
+          "continue": "Continuar",
+          "confirm": "Eliminar cuenta",
+          "deleting": "Eliminando…",
+          "error_email_mismatch": "El email no coincide con el registrado.",
+          "error_generic": "No se pudo eliminar la cuenta. Probá de nuevo o contactá a soporte."
+        }
+      },
+      "connections": {
+        "help": {
+          "title": "Primero conectás, después leés los números",
+          "body": "Usá esta sección para validar y guardar referencias de plataformas externas. Las métricas y el historial de snapshots aparecen en <strong>Analíticas → Plataformas</strong>."
+        },
+        "status": {
+          "connected": "Conectado",
+          "disconnected": "Sin conectar"
+        },
+        "last_sync": "Último sync",
+        "connected_panel": {
+          "ok": "Conectado correctamente",
+          "snapshots": "Snapshots automáticos cada 24h",
+          "open": "Abrir en plataforma",
+          "analytics": "Ver analíticas",
+          "disconnect": "Desconectar"
+        },
+        "actions": {
+          "validate": "Validar",
+          "update": "Actualizar conexión",
+          "validating": "Validando…",
+          "syncing": "Sincronizando…",
+          "validate_success": "Conexión validada.",
+          "validate_error": "No se pudo validar la conexión."
+        },
+        "spotify": {
+          "title": "Perfil de artista",
+          "hint": "Sincroniza seguidores, oyentes mensuales y mercados principales.",
+          "input_label": "URL o ID del artista en Spotify",
+          "input_hint": "Pegá una URL de artista, un URI o el ID crudo de 22 caracteres.",
+          "tier": "Sólo métricas",
+          "tip": "Spotify no expone una API equivalente a Spotify for Artists. Sincronizamos seguidores, oyentes mensuales y top tracks públicos."
+        },
+        "youtube": {
+          "title": "Conexión de canal",
+          "hint": "Lee tu canal para seguimiento de suscriptores, vistas y rendimiento de videos.",
+          "input_label": "URL del canal de YouTube, @handle o channel ID",
+          "input_hint": "StageLink usa el canal guardado en tu perfil de artista. Si querés cambiarlo, actualizá primero tu perfil.",
+          "tier": "Parcial",
+          "tip": "Tomamos el canal de tu perfil. Para cambiarlo, editá tu Perfil → Redes y volvé acá a re-validar."
+        },
+        "soundcloud": {
+          "coming_soon": "Próximamente · v2",
+          "body": "La integración completa con SoundCloud llega en la v2. Mientras tanto, mantené tu URL pública de SoundCloud en tu Perfil para que StageLink tenga la referencia lista.",
+          "cta": "Ir al Perfil"
+        }
+      },
+      "stores": {
+        "help": {
+          "title": "Conectá una tienda — vendé desde tu página",
+          "body": "Conectá Shopify para mostrar productos existentes o Printful (Smart Merch) para print-on-demand sin inventario. Una vez conectadas, podés agregar el bloque Merch en <strong>Mi página</strong>."
+        },
+        "shopify": {
+          "header": {
+            "title": "Tienda Shopify",
+            "hint": "Conectá tu storefront y elegí qué productos mostrar.",
+            "connected": "Conectada",
+            "disconnected": "Sin conectar"
+          },
+          "domain": {
+            "label": "Dominio de la tienda",
+            "hint": "Solo el hostname, sin https:// ni paths."
+          },
+          "token": {
+            "label": "Storefront token",
+            "placeholder": "Dejalo vacío para mantener el token guardado",
+            "hint": "Se guarda de forma segura en backend. Nunca se expone en tu página pública."
+          },
+          "mode": {
+            "label": "¿Qué mostrar en tu página?",
+            "collection": "Colección",
+            "products": "Productos individuales"
+          },
+          "handle": {
+            "label": "Handle de la colección",
+            "hint": "StageLink traerá productos desde este handle de colección de Shopify."
+          },
+          "actions": {
+            "validate": "Validar conexión",
+            "save": "Guardar",
+            "disconnect": "Desconectar tienda"
+          },
+          "feedback": {
+            "validating": "Validando…",
+            "saving": "Guardando…",
+            "validate_ok": "Conexión válida.",
+            "validate_error": "No se pudo validar la tienda.",
+            "save_ok": "Tienda guardada.",
+            "save_error": "No se pudo guardar la tienda."
+          },
+          "preview": {
+            "label": "Vista previa de productos",
+            "sub": "Lo que tus visitantes verán cuando agregues el bloque Merch.",
+            "collection_pill": "Colección · {handle}"
+          }
+        },
+        "printful": {
+          "header": {
+            "name": "Smart Merch (Printful)",
+            "title": "Print-on-demand",
+            "hint": "Conectá Printful, validá tu token y usá productos reales de merch dentro de los bloques Smart Merch.",
+            "connected": "Conectado",
+            "disconnected": "Sin conectar"
+          },
+          "provider": {
+            "label": "Proveedor",
+            "body": "Printful es el proveedor conectado para este workspace."
+          },
+          "token": {
+            "label": "API token de Printful",
+            "placeholder": "Dejalo vacío para mantener el token guardado",
+            "hint": "Se guarda en backend y nunca se expone en la página pública."
+          },
+          "connected": {
+            "title_with_name": "Conectado a {name}",
+            "title_generic": "Printful está conectado",
+            "store_id": "Store ID: {id}"
+          },
+          "actions": {
+            "validate": "Validar conexión",
+            "save": "Guardar",
+            "disconnect": "Desconectar Printful"
+          },
+          "feedback": {
+            "validating": "Validando…",
+            "saving": "Guardando…",
+            "validate_ok": "Token válido.",
+            "validate_error": "No se pudo validar el token de Printful.",
+            "save_ok": "Token guardado.",
+            "save_error": "No se pudo guardar el token de Printful."
+          },
+          "preview": {
+            "label": "Vista previa de productos",
+            "sub": "Estos productos quedan disponibles para seleccionar dentro del bloque Smart Merch."
+          }
+        }
+      },
+      "privacy_tab": {
+        "trust": {
+          "label": "Tus datos, sin misterio",
+          "headline": "Separamos datos privados del contenido público",
+          "body": "El perfil público y el EPK solo se vuelven públicos cuando los publicás. Podés cambiar analytics opcionales y marketing desde acá cuando quieras. Los proveedores conectados se usan solo para las funciones que configurás."
+        },
+        "cookies": {
+          "title": "Preferencias de cookies y analytics",
+          "hint": "Gestioná tracking opcional sin salir de tu dashboard.",
+          "reject_cta": "Rechazar tracking opcional",
+          "locked": "Siempre activo",
+          "active": "ACTIVO",
+          "inactive": "DESACTIVADO",
+          "footer_note": "Las cookies necesarias y los logs de seguridad mantienen funcionando login, idioma, billing y prevención de abuso. No se usan para publicidad.",
+          "necessary": {
+            "label": "Necesarias",
+            "desc": "Requeridas para autenticación, seguridad, idioma, rate limiting y funciones centrales de la plataforma."
+          },
+          "analytics": {
+            "label": "Analytics",
+            "desc": "Ayuda a mostrar visitas, clics, tendencias de capturas de fans y señales de uso del producto. El tracking público queda apagado salvo que permitas analytics."
+          },
+          "marketing": {
+            "label": "Marketing",
+            "desc": "Reservado para atribución de campañas o píxeles publicitarios futuros. StageLink no lo activa por defecto."
+          }
+        },
+        "data_use": {
+          "title": "Cómo se usan tus datos",
+          "hint": "Versión corta: usamos tus datos para operar tu workspace, publicar lo que elegís y mostrar métricas útiles.",
+          "items": {
+            "public_page": {
+              "label": "Página de artista",
+              "tag": "Público",
+              "desc": "Tu nombre, bio, links, media y bloques seleccionados pueden aparecer públicamente cuando tu página está publicada."
+            },
+            "press_kit": {
+              "label": "Press Kit",
+              "tag": "Vos lo controlás",
+              "desc": "El EPK puede incluir datos de booking, imágenes, quotes y notas de rider. Mantené los detalles privados afuera hasta que estés listo para publicar o compartir."
+            },
+            "analytics": {
+              "label": "Analytics",
+              "tag": "Activo",
+              "desc": "StageLink cuenta visitas, clics, actividad de smart links y totales de capturas de fans. Evitamos guardar IP cruda en analytics local."
+            },
+            "account": {
+              "label": "Cuenta y seguridad",
+              "tag": "Privado",
+              "desc": "Tu login, billing, solicitudes de datos y registros de seguridad quedan privados y se usan para operar y proteger tu cuenta."
+            }
+          }
+        },
+        "integrations": {
+          "title": "Transparencia de integraciones",
+          "hint": "Una vista simple de para qué usa StageLink cada proveedor conectado.",
+          "items": {
+            "spotify": {
+              "name": "Spotify",
+              "purpose": "Insights",
+              "desc": "Insights de artista como referencias públicas del perfil, seguidores, oyentes mensuales, mercados principales y top tracks cuando están disponibles.",
+              "note": "No se usa para publicar en Spotify ni administrar tu cuenta de Spotify."
+            },
+            "youtube": {
+              "name": "YouTube",
+              "purpose": "Insights",
+              "desc": "Insights del canal: suscriptores, vistas y señales de rendimiento de videos cuando configurás la referencia.",
+              "note": "No se usa para subir, editar ni eliminar videos."
+            },
+            "soundcloud": {
+              "name": "SoundCloud",
+              "purpose": "Referencia",
+              "desc": "Hoy se usa como referencia pública de perfil mientras la sincronización completa sigue en roadmap.",
+              "note": "No hay administración completa de cuenta de SoundCloud activa hoy."
+            },
+            "shopify": {
+              "name": "Shopify",
+              "purpose": "Tienda",
+              "desc": "Mostrar productos seleccionados de tu storefront en la página pública cuando conectás una tienda.",
+              "note": "StageLink no recolecta datos de tarjeta ni ejecuta checkout de Shopify."
+            },
+            "printful": {
+              "name": "Printful",
+              "purpose": "Merch",
+              "desc": "Validar productos de Smart Merch y dejarlos disponibles dentro de tus bloques.",
+              "note": "StageLink no expone el API token guardado en tu página pública."
+            }
+          }
+        },
+        "personal": {
+          "title": "Corregir datos personales",
+          "hint": "Actualizá el nombre que StageLink guarda para tu perfil. El email queda gestionado por nuestro proveedor de identidad.",
+          "first_name": "Nombre",
+          "last_name": "Apellido",
+          "save_cta": "Guardar cambios",
+          "saving": "Guardando…",
+          "saved": "Datos personales actualizados.",
+          "error": "No se pudieron guardar los datos personales.",
+          "email_note": "Email autenticado: <strong>{email}</strong>. Contactá soporte si esta identidad no es correcta."
+        },
+        "download": {
+          "title": "Descargar mis datos",
+          "hint": "Exportá un JSON estructurado con tu cuenta, workspaces, página pública, EPK, metadata de integraciones y actividad reciente.",
+          "cta": "Descargar export JSON",
+          "toast": "Tu export está en camino."
+        },
+        "delete": {
+          "title": "Eliminar mi cuenta",
+          "body": "Solicitá la eliminación. StageLink remueve visibilidad pública, elimina workspaces donde sos único owner y anonimiza la cuenta. <strong>Es irreversible.</strong> Billing, infra y logs de seguridad pueden retener registros legalmente requeridos por períodos limitados.",
+          "cta": "Eliminar cuenta"
+        }
       }
     },
     "help": {
