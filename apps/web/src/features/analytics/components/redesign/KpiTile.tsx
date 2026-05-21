@@ -18,6 +18,8 @@ interface KpiTileProps {
   sparkColor?: string;
   /** Position in the strip — controls left border between tiles. */
   position?: 'first' | 'middle';
+  /** Optional explanatory tooltip shown on hover (and as info-dot for visibility). */
+  hint?: string;
   className?: string;
   locale?: 'es' | 'en';
 }
@@ -32,6 +34,7 @@ export function KpiTile({
   sparkData,
   sparkColor = '#E040FB',
   position = 'middle',
+  hint,
   className,
   locale = 'es',
 }: KpiTileProps) {
@@ -52,6 +55,16 @@ export function KpiTile({
           {icon}
         </span>
         <span className="text-[11.5px] font-medium text-white/70">{label}</span>
+        {hint && (
+          <span
+            role="img"
+            aria-label={hint}
+            title={hint}
+            className="inline-flex h-[14px] w-[14px] cursor-help items-center justify-center rounded-full border border-white/15 text-[9px] font-bold text-white/40"
+          >
+            ?
+          </span>
+        )}
       </div>
       <div className="mt-3 flex items-baseline gap-1.5 font-[family-name:var(--font-heading)] text-[32px] font-bold leading-none tracking-[-0.02em] text-white">
         {fmt.format(value)}

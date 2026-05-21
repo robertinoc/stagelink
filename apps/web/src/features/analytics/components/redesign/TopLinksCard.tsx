@@ -19,6 +19,9 @@ interface TopLinksCardProps {
   activeLabel: string;
   emptyMessage: string;
   items: TopLinksCardItem[];
+  /** Optional "see all" button — when provided, rendered at the bottom of the card. */
+  seeMoreLabel?: string;
+  onSeeMore?: () => void;
   locale?: 'es' | 'en';
 }
 
@@ -28,6 +31,8 @@ export function TopLinksCard({
   activeLabel,
   emptyMessage,
   items,
+  seeMoreLabel,
+  onSeeMore,
   locale = 'es',
 }: TopLinksCardProps) {
   return (
@@ -60,6 +65,15 @@ export function TopLinksCard({
             />
           ))}
         </div>
+      )}
+      {seeMoreLabel && onSeeMore && items.length > 0 && (
+        <button
+          type="button"
+          onClick={onSeeMore}
+          className="mt-4 inline-flex items-center gap-1 text-[12px] font-semibold text-[#E040FB] transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E040FB] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D0A1A] rounded"
+        >
+          {seeMoreLabel} →
+        </button>
       )}
     </Bento>
   );
