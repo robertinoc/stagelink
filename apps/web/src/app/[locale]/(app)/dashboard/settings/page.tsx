@@ -1,14 +1,11 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { SectionHeader } from '@/components/sl/SlPrimitives';
+import { SettingsTabs } from '@/features/dashboard/settings/tabs/SettingsTabs';
 import {
   loadDashboardSettingsData,
-  resolvePlanLabel,
+  resolveTabId,
 } from '@/features/dashboard/settings/settings-data';
-import {
-  SettingsSupportBanner,
-  SettingsOverviewGrid,
-  type SettingsSectionCardItem,
-} from '@/features/dashboard/settings/SettingsSections';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('dashboard.settings');
@@ -17,86 +14,27 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function DashboardSettingsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ tab?: string | string[] }>;
 }) {
   const { locale } = await params;
-  const t = await getTranslations('dashboard.settings');
+  const { tab } = await searchParams;
+  const initialTab = resolveTabId(tab);
+
+  const t = await getTranslations('dashboard.settings.layout');
   const data = await loadDashboardSettingsData(locale);
 
-  const items: SettingsSectionCardItem[] = [
-    {
-      slug: 'plans-billing',
-      label: t('navigation.plans_billing'),
-      description: t('overview.plans_billing'),
-      badge: resolvePlanLabel(data.summary.effectivePlan),
-      href: `/${locale}/dashboard/settings/plans-billing`,
-    },
-    {
-      slug: 'insights-connections',
-      label: t('navigation.insights_connections'),
-      description: t('overview.insights_connections'),
-      badge: data.summary.entitlements.stage_link_insights
-        ? t('overview.badges.enabled')
-        : t('overview.badges.locked'),
-      href: `/${locale}/dashboard/settings/insights-connections`,
-      muted: !data.summary.entitlements.stage_link_insights,
-    },
-    {
-      slug: 'shopify-store',
-      label: t('navigation.shopify_store'),
-      description: t('overview.shopify_store'),
-      badge:
-        data.summary.entitlements.shopify_integration && data.shopifyConnection
-          ? t('overview.badges.connected')
-          : data.summary.entitlements.shopify_integration
-            ? t('overview.badges.ready')
-            : t('overview.badges.locked'),
-      href: `/${locale}/dashboard/settings/shopify-store`,
-      muted: !data.summary.entitlements.shopify_integration,
-    },
-    {
-      slug: 'smart-merch',
-      label: t('navigation.smart_merch'),
-      description: t('overview.smart_merch'),
-      badge:
-        data.summary.entitlements.smart_merch && data.merchConnection
-          ? t('overview.badges.connected')
-          : data.summary.entitlements.smart_merch
-            ? t('overview.badges.ready')
-            : t('overview.badges.locked'),
-      href: `/${locale}/dashboard/settings/smart-merch`,
-      muted: !data.summary.entitlements.smart_merch,
-    },
-    {
-      slug: 'privacy',
-      label: t('navigation.privacy'),
-      description: t('overview.privacy'),
-      badge: t('overview.badges.ready'),
-      href: `/${locale}/dashboard/settings/privacy`,
-    },
-  ];
-
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-sm text-muted-foreground">{t('description')}</p>
-      </div>
-
-      <SettingsOverviewGrid
-        title={t('navigation.title')}
-        description={t('navigation.description')}
-        items={items}
-        openLabel={t('overview.open_section')}
+    <div className="space-y-0">
+      <SectionHeader
+        eyebrow={t('eyebrow')}
+        title={t('title_lead')}
+        gradient={t('title_gradient')}
+        subtitle={t('subtitle')}
       />
-
-      <SettingsSupportBanner
-        title={t('support.title')}
-        description={t('support.description')}
-        ctaLabel={t('support.cta')}
-        href="mailto:robertinoc@gmail.com?subject=StageLink%20Support"
-      />
+      <SettingsTabs initialTab={initialTab} locale={locale} data={data} />
     </div>
   );
 }
