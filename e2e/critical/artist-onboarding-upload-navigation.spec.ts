@@ -21,17 +21,21 @@ test.describe('Critical authenticated journeys', () => {
 
     test.skip(page.url().includes('/onboarding'), 'Seeded account has no artist profile yet');
 
+    // Each dashboard surface renders its own top-level <h1> hero. We assert the
+    // surface loaded (correct URL + a visible level-1 heading) rather than
+    // matching exact heading copy — that copy churns on every visual redesign
+    // (e.g. PRs #383/#387/#389) and turned this smoke test into a false alarm.
     await page.goto('/en/dashboard/profile');
     await expect(page).toHaveURL(/\/en\/dashboard\/profile/);
-    await expect(page.getByRole('heading', { name: /profile/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
 
     await page.goto('/en/dashboard/page');
     await expect(page).toHaveURL(/\/en\/dashboard\/page/);
-    await expect(page.getByRole('heading', { name: /page|blocks|my page/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
 
     await page.goto('/en/dashboard/analytics');
     await expect(page).toHaveURL(/\/en\/dashboard\/analytics/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Analytics' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
   });
 
   test('new artist can complete profile creation through onboarding', async ({ page }) => {
