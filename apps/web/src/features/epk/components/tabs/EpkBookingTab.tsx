@@ -204,54 +204,24 @@ export function EpkBookingTab({ form, disabled, inherited }: EpkBookingTabProps)
               marginTop: 16,
             }}
           >
-            {inherited.recordLabels.map((label: RecordLabel) => {
-              const initials = label.name
-                .split(' ')
-                .map((w) => w[0])
-                .filter(Boolean)
-                .slice(0, 2)
-                .join('')
-                .toUpperCase();
-              // Deterministic color hash from name
-              const h1 = (label.name.charCodeAt(0) * 17) % 360;
-              const h2 = (label.name.charCodeAt(0) * 23) % 360;
-              return (
-                <span
-                  key={label.id}
-                  style={{
-                    padding: '8px 14px',
-                    borderRadius: 10,
-                    background: 'rgba(0,0,0,0.25)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    fontSize: 12.5,
-                    color: 'white',
-                    fontWeight: 500,
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 6,
-                      background: `linear-gradient(135deg, hsl(${h1}, 50%, 30%) 0%, hsl(${h2}, 45%, 15%) 100%)`,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontFamily: 'var(--font-heading)',
-                      fontSize: 9,
-                      fontWeight: 700,
-                      color: 'white',
-                    }}
-                  >
-                    {initials || '?'}
-                  </span>
-                  {label.name}
-                </span>
-              );
-            })}
+            {inherited.recordLabels.map((label: RecordLabel) => (
+              <span
+                key={label.id}
+                style={{
+                  padding: '7px 14px',
+                  borderRadius: 10,
+                  background: 'rgba(0,0,0,0.25)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  fontSize: 12.5,
+                  color: 'white',
+                  fontWeight: 500,
+                }}
+              >
+                {label.name}
+              </span>
+            ))}
           </div>
         )}
       </Bento>
