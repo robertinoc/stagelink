@@ -15,6 +15,7 @@
 //   │               Por defecto se usan...    │
 //   └──────────────────────────────────────────┘
 
+import { useTranslations } from 'next-intl';
 import { EpkImageUploader } from './EpkImageUploader';
 import { BentoLabel } from '@/components/sl/Bento';
 
@@ -77,6 +78,7 @@ export function EpkImagesHero({
   onSetCoverImage,
   onSetAvatarImage,
 }: EpkImagesHeroProps) {
+  const t = useTranslations('dashboard.epk.editor');
   return (
     <div
       style={{
@@ -120,7 +122,7 @@ export function EpkImagesHero({
             textTransform: 'uppercase',
           }}
         >
-          Hero · 1500×500
+          {t('images.heroSpec')}
         </div>
 
         {/* Action buttons (top-right) */}
@@ -154,7 +156,7 @@ export function EpkImagesHero({
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                   <polyline points="14 2 14 8 20 8" />
                 </svg>
-                Usar cover del Perfil
+                {t('images.useProfileCover')}
               </button>
             )}
             <EpkImageUploader
@@ -179,7 +181,7 @@ export function EpkImagesHero({
                     <polyline points="17 8 12 3 7 8" />
                     <line x1="12" y1="3" x2="12" y2="15" />
                   </svg>
-                  {uploading ? 'Subiendo…' : 'Subir nueva'}
+                  {uploading ? t('images.uploading') : t('images.uploadNew')}
                 </button>
               )}
             />
@@ -198,7 +200,7 @@ export function EpkImagesHero({
             letterSpacing: 0.3,
           }}
         >
-          JPEG · PNG · WebP · máx 8 MB
+          {t('images.fileSpec')}
         </div>
       </div>
 
@@ -245,7 +247,7 @@ export function EpkImagesHero({
                   type="button"
                   onClick={open}
                   disabled={d}
-                  title="Cambiar artist image"
+                  title={t('images.changeAvatar')}
                   style={{
                     position: 'absolute',
                     bottom: 2,
@@ -285,7 +287,7 @@ export function EpkImagesHero({
 
         {/* Right — title block */}
         <div style={{ paddingTop: 62, minWidth: 0 }}>
-          <BentoLabel tint="#E040FB">Imágenes del EPK</BentoLabel>
+          <BentoLabel tint="#E040FB">{t('images.eyebrow')}</BentoLabel>
           <div
             style={{
               fontFamily: 'var(--font-heading)',
@@ -296,7 +298,7 @@ export function EpkImagesHero({
               letterSpacing: '-0.01em',
             }}
           >
-            Hero + Artist image
+            {t('images.title')}
           </div>
           <div
             style={{
@@ -307,8 +309,7 @@ export function EpkImagesHero({
               maxWidth: 540,
             }}
           >
-            Por defecto se usan las del Perfil. Subí versiones aparte si querés un cover o avatar
-            distinto sólo para el EPK.
+            {t('images.description')}
           </div>
         </div>
 
@@ -329,7 +330,7 @@ export function EpkImagesHero({
               onClick={() => onSetAvatarImage(inheritedAvatarUrl)}
               style={SMALL_OUTLINE_STYLE}
             >
-              Usar avatar del Perfil
+              {t('images.useProfileAvatar')}
             </button>
           </div>
         )}

@@ -18,6 +18,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { getEpkPublishReadiness } from '@stagelink/types';
 import type {
   AssetDto,
@@ -136,6 +137,7 @@ export function EpkEditorV2({
 }: EpkEditorV2Props) {
   void _assets;
 
+  const t = useTranslations('dashboard.epk.editor');
   const [editorData, setEditorData] = useState(initialData);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -459,10 +461,10 @@ export function EpkEditorV2({
     >
       {/* ── Hero header ── */}
       <SectionHeader
-        eyebrow="Press Kit (EPK) · tu kit público"
-        title="Tu kit"
-        gradient="listo para promotores."
-        subtitle="Bio, rider técnico, contactos y galería en un solo lugar. Publicalo cuando esté listo — los cambios quedan en draft hasta que pulsás Publicar."
+        eyebrow={t('header.eyebrow')}
+        title={t('header.title')}
+        gradient={t('header.gradient')}
+        subtitle={t('header.subtitle')}
         className="!px-0 !pt-2"
         right={
           editorData.epk.isPublished ? (
@@ -474,7 +476,7 @@ export function EpkEditorV2({
                 icon={<Icon.Eye size={14} />}
                 onClick={() => window.open(sharePath, '_blank', 'noopener,noreferrer')}
               >
-                Ver EPK público
+                {t('header.viewPublic')}
               </Btn>
               <Btn
                 size="sm"
@@ -498,7 +500,7 @@ export function EpkEditorV2({
                   </svg>
                 }
               >
-                Print view
+                {t('header.printView')}
               </Btn>
             </>
           ) : null

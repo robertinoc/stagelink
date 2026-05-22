@@ -9,6 +9,7 @@
 // Expanded (locked):   same header + read-only preview below
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface EpkBookingSectionProps {
   icon: string;
@@ -39,6 +40,7 @@ export function EpkBookingSection({
   last,
   onChange,
 }: EpkBookingSectionProps) {
+  const t = useTranslations('dashboard.epk.editor');
   const [expanded, setExpanded] = useState(false);
   const trimmed = value.trim();
   const preview = trimmed ? trimmed.slice(0, 110) + (trimmed.length > 110 ? '…' : '') : null;
@@ -99,7 +101,7 @@ export function EpkBookingSection({
                 fontStyle: 'italic',
               }}
             >
-              Sin contenido aún
+              {t('bookingSection.emptyContent')}
             </div>
           )}
         </div>
@@ -119,7 +121,11 @@ export function EpkBookingSection({
             whiteSpace: 'nowrap',
           }}
         >
-          {expanded ? 'Cerrar' : locked ? 'Ver' : 'Editar'}
+          {expanded
+            ? t('bookingSection.close')
+            : locked
+              ? t('bookingSection.view')
+              : t('bookingSection.edit')}
         </button>
       </div>
 

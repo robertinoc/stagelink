@@ -4,6 +4,7 @@
 // label + URL + Quitar button. Stacks inside the Media tab's Featured media
 // Bento card.
 
+import { useTranslations } from 'next-intl';
 import type { EpkFeaturedMediaItem } from '@stagelink/types';
 
 interface EpkMediaRowProps {
@@ -24,6 +25,7 @@ const BRAND: Record<
 };
 
 export function EpkMediaRow({ media, locked, last, onRemove }: EpkMediaRowProps) {
+  const t = useTranslations('dashboard.epk.editor');
   const brand = BRAND[media.provider];
 
   return (
@@ -109,7 +111,7 @@ export function EpkMediaRow({ media, locked, last, onRemove }: EpkMediaRowProps)
             cursor: 'pointer',
           }}
         >
-          Quitar
+          {t('mediaRow.remove')}
         </button>
       )}
     </div>

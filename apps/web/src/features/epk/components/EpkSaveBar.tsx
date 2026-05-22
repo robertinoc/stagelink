@@ -4,6 +4,8 @@
 // Appears only when there are unsaved changes (controlled by parent's isDirty).
 // Renders nothing when EPK is locked (published) or when there are no changes.
 
+import { useTranslations } from 'next-intl';
+
 interface EpkSaveBarProps {
   /** Pure 'idle' | 'saving' | 'success' | 'error' from parent */
   status: 'idle' | 'saving' | 'success' | 'error';
@@ -30,6 +32,8 @@ export function EpkSaveBar({
   missing,
   onSave,
 }: EpkSaveBarProps) {
+  const t = useTranslations('dashboard.epk.editor');
+
   // Hide when locked (can't save anyway) or no changes & idle
   if (locked) return null;
   if (!isDirty && status === 'idle') return null;
@@ -41,19 +45,19 @@ export function EpkSaveBar({
   const canSave = ready && !isSaving;
 
   let dotColor = '#E040FB';
-  let label = 'Draft sin guardar';
+  let label = t('saveBar.draftUnsaved');
   if (isSaving) {
     dotColor = '#FBBF24';
-    label = 'Guardando…';
+    label = t('saveBar.saving');
   } else if (isSuccess) {
     dotColor = '#4ADE80';
-    label = 'Guardado';
+    label = t('saveBar.saved');
   } else if (isError) {
     dotColor = '#ff6b6b';
-    label = errorMessage ?? 'Error al guardar';
+    label = errorMessage ?? t('saveBar.error');
   } else if (!ready) {
     dotColor = '#FBBF24';
-    label = `Faltan: ${missing.join(', ')}`;
+    label = t('saveBar.missing', { fields: missing.join(', ') });
   }
 
   return (
@@ -126,7 +130,11 @@ export function EpkSaveBar({
           whiteSpace: 'nowrap',
         }}
       >
-        {isSaving ? '⟳ Guardando…' : isSuccess ? '✓ Guardado' : '✓ Guardar draft'}
+        {isSaving
+          ? `⟳ ${t('saveBar.saving')}`
+          : isSuccess
+            ? `✓ ${t('saveBar.saved')}`
+            : `✓ ${t('saveBar.saveDraft')}`}
       </button>
     </div>
   );

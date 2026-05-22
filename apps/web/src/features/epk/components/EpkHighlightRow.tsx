@@ -5,6 +5,7 @@
 // Career highlights Bento card.
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface EpkHighlightRowProps {
   value: string;
@@ -16,6 +17,7 @@ interface EpkHighlightRowProps {
 }
 
 export function EpkHighlightRow({ value, locked, last, onChange, onRemove }: EpkHighlightRowProps) {
+  const t = useTranslations('dashboard.epk.editor');
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,7 +44,7 @@ export function EpkHighlightRow({ value, locked, last, onChange, onRemove }: Epk
     if (!editing) setDraft(value);
   }, [value, editing]);
 
-  const displayValue = value.trim() || 'Highlight sin texto';
+  const displayValue = value.trim() || t('highlight.empty');
 
   return (
     <div
@@ -95,7 +97,7 @@ export function EpkHighlightRow({ value, locked, last, onChange, onRemove }: Epk
               }
             }}
             maxLength={160}
-            placeholder="Headline @ Salon Recoleta 2024 · 800 personas · noviembre 2024"
+            placeholder={t('highlight.placeholder')}
             style={{
               width: '100%',
               padding: '6px 10px',
@@ -133,7 +135,7 @@ export function EpkHighlightRow({ value, locked, last, onChange, onRemove }: Epk
           <button
             type="button"
             onClick={() => setEditing(true)}
-            title="Editar"
+            title={t('highlight.edit')}
             style={iconBtnStyle}
           >
             <svg
@@ -153,7 +155,7 @@ export function EpkHighlightRow({ value, locked, last, onChange, onRemove }: Epk
           <button
             type="button"
             onClick={onRemove}
-            title="Borrar"
+            title={t('highlight.delete')}
             style={{ ...iconBtnStyle, color: '#ff6b6b' }}
           >
             <svg

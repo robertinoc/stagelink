@@ -4,6 +4,8 @@
 // toggle switch (or Pill when locked). Stacks inside the Media tab's
 // "Visibilidad de links" Bento card.
 
+import { useTranslations } from 'next-intl';
+
 interface EpkLinkRowProps {
   label: string;
   url: string;
@@ -37,6 +39,7 @@ function brandColor(label: string): string {
 }
 
 export function EpkLinkRow({ label, url, visible, locked, last, onToggle }: EpkLinkRowProps) {
+  const t = useTranslations('dashboard.epk.editor');
   const color = brandColor(label);
 
   return (
@@ -96,7 +99,7 @@ export function EpkLinkRow({ label, url, visible, locked, last, onToggle }: EpkL
             border: `1px solid ${visible ? 'rgba(74,222,128,0.25)' : 'rgba(255,255,255,0.1)'}`,
           }}
         >
-          {visible ? '● Visible' : '○ Oculto'}
+          {visible ? `● ${t('linkRow.visible')}` : `○ ${t('linkRow.hidden')}`}
         </span>
       ) : (
         <button
