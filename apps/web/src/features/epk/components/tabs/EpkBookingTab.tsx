@@ -7,6 +7,7 @@
 //   3. Record labels — inherited from Profile, shown as chips with colored initials
 
 import type { UseFormReturn } from 'react-hook-form';
+import { useTranslations } from 'next-intl';
 import type { EpkInheritedArtistSnapshot, RecordLabel } from '@stagelink/types';
 import { Bento } from '@/components/sl/Bento';
 import { Btn } from '@/components/sl/Btn';
@@ -24,6 +25,7 @@ interface EpkBookingTabProps {
 }
 
 export function EpkBookingTab({ form, disabled, inherited }: EpkBookingTabProps) {
+  const t = useTranslations('dashboard.epk.editor');
   const { watch, setValue } = form;
   const isMobile = useIsMobile();
   const watchedHighlights = watch('highlights');
@@ -33,37 +35,32 @@ export function EpkBookingTab({ form, disabled, inherited }: EpkBookingTabProps)
       {/* ── Booking info & rider (3 collapsibles) ───────────────────────── */}
       <Bento pad={0}>
         <div style={{ padding: isMobile ? '16px 16px 6px' : '20px 24px 10px' }}>
-          <SubHead
-            title="Booking info & rider"
-            hint="Las tres secciones que un promotor mira primero: logística, requerimientos del artista y setup técnico. Mantenelas claras y separadas."
-          />
+          <SubHead title={t('bookingTab.riderTitle')} hint={t('bookingTab.riderHint')} />
         </div>
 
         <EpkBookingSection
           icon="📅"
-          title="Availability and logistics"
-          description="Touring windows, airport transfers, hotel needs, in/out logistics, or event timing notes."
-          placeholder="e.g. Available for bookings across South America and Europe. Travel from Buenos Aires (EZE). Requires roundtrip flights + 2 hotel nights for events outside Buenos Aires…"
+          title={t('bookingTab.availabilityTitle')}
+          description={t('bookingTab.availabilityDesc')}
+          placeholder={t('bookingTab.availabilityPlaceholder')}
           value={watch('availabilityNotes') ?? ''}
           locked={disabled}
           onChange={(v) => setValue('availabilityNotes', v, { shouldDirty: true })}
         />
         <EpkBookingSection
           icon="🎤"
-          title="Artist requirements"
-          description="Hospitality, staff, guest list, catering, dressing room notes, or other artist-side requirements."
-          placeholder="e.g. 1 dressing room with lockable door. Guest list: up to 4 people. Catering: water, juice, snacks. No media access to dressing room before the show…"
+          title={t('bookingTab.artistTitle')}
+          description={t('bookingTab.artistDesc')}
+          placeholder={t('bookingTab.artistPlaceholder')}
           value={watch('riderInfo') ?? ''}
           locked={disabled}
           onChange={(v) => setValue('riderInfo', v, { shouldDirty: true })}
         />
         <EpkBookingSection
           icon="🎛️"
-          title="Technical rider"
-          description="DJ setup, mixers, CDJs, sound system, monitors, lights, screens, stage plot, or production notes."
-          placeholder={
-            'SETUP 01: CDJ+MIXER\n• (1) Pioneer DJM-900 NEXUS\n• (2) Pioneer CDJ-3000\n• (2) Monitor speakers — 1 to 2m from DJ\n\nSETUP 02: TRAKTOR\n• (1) Traktor Kontrol Z1…'
-          }
+          title={t('bookingTab.techTitle')}
+          description={t('bookingTab.techDesc')}
+          placeholder={t('bookingTab.techPlaceholder')}
           value={watch('techRequirements') ?? ''}
           locked={disabled}
           last
@@ -75,8 +72,8 @@ export function EpkBookingTab({ form, disabled, inherited }: EpkBookingTabProps)
       <Bento pad={0}>
         <div style={{ padding: isMobile ? '16px 16px 6px' : '20px 24px 10px' }}>
           <SubHead
-            title="Career highlights"
-            hint="Releases notables, venues, menciones de prensa o milestones. Cada uno aparece como card en tu EPK público."
+            title={t('bookingTab.highlightsTitle')}
+            hint={t('bookingTab.highlightsHint')}
             right={
               <>
                 <Chip>{watchedHighlights.length}/8</Chip>
@@ -90,7 +87,7 @@ export function EpkBookingTab({ form, disabled, inherited }: EpkBookingTabProps)
                       setValue('highlights', [...watchedHighlights, ''], { shouldDirty: true })
                     }
                   >
-                    Agregar highlight
+                    {t('bookingTab.addHighlight')}
                   </Btn>
                 )}
               </>
@@ -109,7 +106,7 @@ export function EpkBookingTab({ form, disabled, inherited }: EpkBookingTabProps)
             }}
           >
             <div style={{ fontSize: 28, marginBottom: 6, opacity: 0.5 }}>★</div>
-            Sin highlights todavía. Cada uno aparece como card en tu EPK público.
+            {t('bookingTab.emptyHighlights')}
           </div>
         )}
 
@@ -167,7 +164,7 @@ export function EpkBookingTab({ form, disabled, inherited }: EpkBookingTabProps)
                 letterSpacing: '-0.01em',
               }}
             >
-              Record labels
+              {t('bookingTab.labelsTitle')}
             </div>
             <div
               style={{
@@ -177,8 +174,7 @@ export function EpkBookingTab({ form, disabled, inherited }: EpkBookingTabProps)
                 lineHeight: 1.5,
               }}
             >
-              Sellos donde editaste — heredados del Perfil. Aparecen automáticamente en tu EPK;
-              editá la lista desde tu Perfil para actualizarlos acá.
+              {t('bookingTab.labelsDesc')}
             </div>
           </div>
         </div>
@@ -197,7 +193,7 @@ export function EpkBookingTab({ form, disabled, inherited }: EpkBookingTabProps)
               fontStyle: 'italic',
             }}
           >
-            Aún no agregaste sellos en tu Perfil.
+            {t('bookingTab.emptyLabels')}
           </div>
         ) : (
           <div

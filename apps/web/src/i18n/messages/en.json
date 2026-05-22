@@ -870,6 +870,143 @@
           "rider": "Localized hospitality, guest list, and artist-side requirements",
           "tech_requirements": "Localized DJ setup, sound, lights, screens, and technical needs"
         }
+      },
+      "editor": {
+        "header": {
+          "eyebrow": "Press Kit (EPK) · your public kit",
+          "title": "Your kit",
+          "gradient": "ready for promoters.",
+          "subtitle": "Bio, technical rider, contacts and gallery in one place. Publish when ready — changes stay in draft until you hit Publish.",
+          "viewPublic": "View public EPK",
+          "printView": "Print view"
+        },
+        "publish": {
+          "publishedTitle": "Press Kit published",
+          "draftTitle": "Draft",
+          "publishedSubtitlePrefix": "Future changes stay private until you publish again. Your public URL:",
+          "missingPrefix": "Complete the required fields before publishing:",
+          "draftSubtitle": "Changes are saved as draft. The public page still shows the last published version.",
+          "copyUrl": "Copy URL",
+          "copied": "Copied!",
+          "publishing": "Publishing…",
+          "unpublishing": "Unpublishing…",
+          "unpublish": "Unpublish & edit",
+          "publishCta": "✓ Publish Press Kit"
+        },
+        "tabs": {
+          "identityLabel": "Identity & contact",
+          "identityHint": "Hero, bio, contacts",
+          "mediaLabel": "Media & gallery",
+          "mediaHint": "Photos, video, links",
+          "bookingLabel": "Booking & rider",
+          "bookingHint": "Logistics, technical",
+          "localesLabel": "Languages",
+          "localesHint": "EPK translation",
+          "lockedTitle": "Available on Pro+"
+        },
+        "locked": {
+          "notice": "This Press Kit is published. Hit <strong>Unpublish & edit</strong> above to return to draft and modify the fields."
+        },
+        "saveBar": {
+          "draftUnsaved": "Unsaved draft",
+          "saving": "Saving…",
+          "saved": "Saved",
+          "error": "Error saving",
+          "missing": "Missing: {fields}",
+          "saveDraft": "Save draft"
+        },
+        "images": {
+          "heroSpec": "Hero · 1500×500",
+          "useProfileCover": "Use profile cover",
+          "uploadNew": "Upload new",
+          "uploading": "Uploading…",
+          "fileSpec": "JPEG · PNG · WebP · max 8 MB",
+          "eyebrow": "EPK images",
+          "title": "Hero + Artist image",
+          "description": "Profile images are used by default. Upload separate versions if you want a different cover or avatar just for the EPK.",
+          "useProfileAvatar": "Use profile avatar",
+          "changeAvatar": "Change artist image"
+        },
+        "bookingSection": {
+          "emptyContent": "No content yet",
+          "close": "Close",
+          "view": "View",
+          "edit": "Edit"
+        },
+        "highlight": {
+          "empty": "Highlight with no text",
+          "placeholder": "Headline @ Salon Recoleta 2024 · 800 people · November 2024",
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "mediaRow": {
+          "remove": "Remove"
+        },
+        "linkRow": {
+          "visible": "Visible",
+          "hidden": "Hidden"
+        },
+        "identity": {
+          "contactsTitle": "Contacts & practical info",
+          "contactsHint": "These fields are public. Add at least one contact before publishing. Only show what you want bookers and press to see.",
+          "bookingEmail": "Booking email",
+          "managementContact": "Management contact",
+          "pressContact": "Press contact",
+          "location": "Location / base",
+          "contactPlaceholder": "Name / email / phone",
+          "locationPlaceholder": "Buenos Aires, AR",
+          "bioTitle": "Bio & headline",
+          "bioHint": "The short bio and headline appear at the top of your EPK",
+          "artistName": "Artist name",
+          "artistNameNote": "Managed in your artist profile.",
+          "headline": "Headline",
+          "headlinePlaceholder": "Genre, positioning, key context…",
+          "shortBio": "Short bio",
+          "shortBioPlaceholder": "Short artist summary",
+          "fullBio": "Full bio",
+          "fullBioNote": "The full bio is managed in your <link>Profile</link>. Edit it there and it will update here automatically.",
+          "pressQuote": "Press quote",
+          "pressQuotePlaceholder": "Optional quote from media, curator or promoter"
+        },
+        "mediaTab": {
+          "galleryTitle": "Photo gallery",
+          "galleryHint": "Add photos that appear in the Gallery section of your public EPK",
+          "featuredTitle": "Featured media",
+          "featuredHint": "Music, video, or audio links shown in the Media section of your EPK",
+          "addMedia": "Add media",
+          "emptyMedia": "Add a Spotify, YouTube or SoundCloud link.",
+          "newMediaLink": "New media link",
+          "mediaTitlePlaceholder": "Title — New Single, Live Set, Album…",
+          "mediaUrlPlaceholder": "https://open.spotify.com/…",
+          "detected": "Detected: {provider}",
+          "cancel": "Cancel",
+          "add": "Add",
+          "linksTitle": "Link visibility",
+          "linksHint": "Your links live in your Profile. Choose which ones show as pills on your EPK. All visible ones display with equal weight.",
+          "emptyLinks": "No links in your Profile yet. Add them first from Profile.",
+          "colPlatform": "Platform · URL",
+          "colVisibility": "Visibility"
+        },
+        "bookingTab": {
+          "riderTitle": "Booking info & rider",
+          "riderHint": "The three sections a promoter looks at first: logistics, artist requirements and technical setup. Keep them clear and separate.",
+          "availabilityTitle": "Availability and logistics",
+          "availabilityDesc": "Touring windows, airport transfers, hotel needs, in/out logistics, or event timing notes.",
+          "availabilityPlaceholder": "e.g. Available for bookings across South America and Europe. Travel from Buenos Aires (EZE). Requires roundtrip flights + 2 hotel nights for events outside Buenos Aires…",
+          "artistTitle": "Artist requirements",
+          "artistDesc": "Hospitality, staff, guest list, catering, dressing room notes, or other artist-side requirements.",
+          "artistPlaceholder": "e.g. 1 dressing room with lockable door. Guest list: up to 4 people. Catering: water, juice, snacks. No media access to dressing room before the show…",
+          "techTitle": "Technical rider",
+          "techDesc": "DJ setup, mixers, CDJs, sound system, monitors, lights, screens, stage plot, or production notes.",
+          "highlightsTitle": "Career highlights",
+          "highlightsHint": "Notable releases, venues, press mentions or milestones. Each appears as a card on your public EPK.",
+          "addHighlight": "Add highlight",
+          "emptyHighlights": "No highlights yet. Each appears as a card on your public EPK.",
+          "labelsTitle": "Record labels",
+          "labelsDesc": "Labels you've released on — inherited from your Profile. They appear automatically on your EPK; edit the list from your Profile to update them here.",
+          "emptyLabels": "You haven't added labels in your Profile yet.",
+          "techPlaceholder": "SETUP 01: CDJ+MIXER\n• (1) Pioneer DJM-900 NEXUS\n• (2) Pioneer CDJ-3000\n• (2) Monitor speakers — 1 to 2m from DJ\n\nSETUP 02: TRAKTOR\n• (1) Traktor Kontrol Z1…"
+        }
       }
     },
     "billing": {

@@ -6,6 +6,7 @@
 // Highlights / availability / featured links live in Booking and Media tabs.
 
 import type { UseFormReturn } from 'react-hook-form';
+import { useTranslations } from 'next-intl';
 import type { EpkInheritedArtistSnapshot } from '@stagelink/types';
 import { Bento } from '@/components/sl/Bento';
 import { EpkBioGenerator } from '../EpkBioGenerator';
@@ -84,7 +85,7 @@ export function EpkIdentityTab({
   onSetCoverImage,
   onSetAvatarImage,
 }: EpkIdentityTabProps) {
-  void locale;
+  const t = useTranslations('dashboard.epk.editor');
   const {
     register,
     watch,
@@ -110,10 +111,7 @@ export function EpkIdentityTab({
 
       {/* ── Contacts ── */}
       <Bento pad={isMobile ? 16 : 20}>
-        <SubHead
-          title="Contactos y datos prácticos"
-          hint="Estos campos son públicos. Agregá al menos un contacto antes de publicar. Mostrá solo lo que querés que vean bookers y prensa."
-        />
+        <SubHead title={t('identity.contactsTitle')} hint={t('identity.contactsHint')} />
         <div
           style={{
             display: 'grid',
@@ -122,7 +120,7 @@ export function EpkIdentityTab({
           }}
         >
           <div>
-            <FieldLabel required>Booking email</FieldLabel>
+            <FieldLabel required>{t('identity.bookingEmail')}</FieldLabel>
             <input
               type="email"
               placeholder={inherited.contactEmail ?? 'booking@artist.com'}
@@ -133,30 +131,30 @@ export function EpkIdentityTab({
             <FieldError message={errors.bookingEmail?.message} />
           </div>
           <div>
-            <FieldLabel>Management contact</FieldLabel>
+            <FieldLabel>{t('identity.managementContact')}</FieldLabel>
             <input
               type="text"
-              placeholder="Nombre / email / teléfono"
+              placeholder={t('identity.contactPlaceholder')}
               disabled={disabled}
               style={INPUT_STYLE}
               {...register('managementContact')}
             />
           </div>
           <div>
-            <FieldLabel>Press contact</FieldLabel>
+            <FieldLabel>{t('identity.pressContact')}</FieldLabel>
             <input
               type="text"
-              placeholder="Nombre / email / teléfono"
+              placeholder={t('identity.contactPlaceholder')}
               disabled={disabled}
               style={INPUT_STYLE}
               {...register('pressContact')}
             />
           </div>
           <div>
-            <FieldLabel>Location / base</FieldLabel>
+            <FieldLabel>{t('identity.location')}</FieldLabel>
             <input
               type="text"
-              placeholder="Buenos Aires, AR"
+              placeholder={t('identity.locationPlaceholder')}
               disabled={disabled}
               style={INPUT_STYLE}
               {...register('location')}
@@ -177,10 +175,7 @@ export function EpkIdentityTab({
           }}
         >
           <div>
-            <SubHead
-              title="Bio & headline"
-              hint="The short bio and headline appear at the top of your EPK"
-            />
+            <SubHead title={t('identity.bioTitle')} hint={t('identity.bioHint')} />
           </div>
           {!disabled && (
             <EpkBioGenerator
@@ -199,7 +194,7 @@ export function EpkIdentityTab({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Artist name — read-only */}
           <div>
-            <FieldLabel>Artist name</FieldLabel>
+            <FieldLabel>{t('identity.artistName')}</FieldLabel>
             <input
               type="text"
               value={inherited.displayName}
@@ -207,16 +202,16 @@ export function EpkIdentityTab({
               style={{ ...INPUT_STYLE, opacity: 0.5, cursor: 'not-allowed' }}
             />
             <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 4 }}>
-              Managed in your artist profile.
+              {t('identity.artistNameNote')}
             </p>
           </div>
 
           {/* Headline */}
           <div>
-            <FieldLabel required>Headline</FieldLabel>
+            <FieldLabel required>{t('identity.headline')}</FieldLabel>
             <input
               type="text"
-              placeholder="Genre, positioning, key context…"
+              placeholder={t('identity.headlinePlaceholder')}
               disabled={disabled}
               style={INPUT_STYLE}
               {...register('headline')}
@@ -226,10 +221,10 @@ export function EpkIdentityTab({
 
           {/* Short bio */}
           <div>
-            <FieldLabel required>Short bio</FieldLabel>
+            <FieldLabel required>{t('identity.shortBio')}</FieldLabel>
             <textarea
               rows={4}
-              placeholder={inherited.bio ?? 'Short artist summary'}
+              placeholder={inherited.bio ?? t('identity.shortBioPlaceholder')}
               disabled={disabled}
               style={TEXTAREA_STYLE}
               {...register('shortBio')}
@@ -239,7 +234,7 @@ export function EpkIdentityTab({
 
           {/* Full bio — link to profile */}
           <div>
-            <FieldLabel>Full bio</FieldLabel>
+            <FieldLabel>{t('identity.fullBio')}</FieldLabel>
             <div
               style={{
                 padding: '10px 14px',
@@ -251,23 +246,29 @@ export function EpkIdentityTab({
                 lineHeight: 1.5,
               }}
             >
-              The full bio is managed in your{' '}
-              <a
-                href={`/${locale}/dashboard/profile`}
-                style={{ color: '#C084FC', textDecoration: 'underline', textUnderlineOffset: 3 }}
-              >
-                Profile
-              </a>
-              . Edit it there and it will update here automatically.
+              {t.rich('identity.fullBioNote', {
+                link: (chunks) => (
+                  <a
+                    href={`/${locale}/dashboard/profile`}
+                    style={{
+                      color: '#C084FC',
+                      textDecoration: 'underline',
+                      textUnderlineOffset: 3,
+                    }}
+                  >
+                    {chunks}
+                  </a>
+                ),
+              })}
             </div>
           </div>
 
           {/* Press quote */}
           <div>
-            <FieldLabel>Press quote</FieldLabel>
+            <FieldLabel>{t('identity.pressQuote')}</FieldLabel>
             <textarea
               rows={3}
-              placeholder="Optional quote from media, curator or promoter"
+              placeholder={t('identity.pressQuotePlaceholder')}
               disabled={disabled}
               style={TEXTAREA_STYLE}
               {...register('pressQuote')}

@@ -5,6 +5,7 @@
 // descriptive subtitle that changes per state, "Copiar URL" + "Publish/Unpublish".
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface PublishBannerProps {
   isPublished: boolean;
@@ -23,6 +24,7 @@ export function PublishBanner({
   publicUrl,
   onToggle,
 }: PublishBannerProps) {
+  const t = useTranslations('dashboard.epk.editor');
   const [copied, setCopied] = useState(false);
   void sharePath;
 
@@ -88,7 +90,7 @@ export function PublishBanner({
                 letterSpacing: '-0.01em',
               }}
             >
-              {isPublished ? 'Press Kit publicado' : 'En borrador'}
+              {isPublished ? t('publish.publishedTitle') : t('publish.draftTitle')}
             </span>
             <span
               style={{
@@ -115,7 +117,7 @@ export function PublishBanner({
           >
             {isPublished ? (
               <>
-                Cambios futuros quedan privados hasta que vuelvas a publicar. Tu URL pública:{' '}
+                {t('publish.publishedSubtitlePrefix')}{' '}
                 <span
                   style={{
                     color: 'white',
@@ -128,13 +130,13 @@ export function PublishBanner({
               </>
             ) : !publishReadiness.ready ? (
               <>
-                Completá los campos requeridos antes de publicar:{' '}
+                {t('publish.missingPrefix')}{' '}
                 <span style={{ color: 'white', fontWeight: 600 }}>
                   {publishReadiness.missing.join(', ')}
                 </span>
               </>
             ) : (
-              'Los cambios se guardan en draft. La página pública sigue mostrando la última versión publicada.'
+              t('publish.draftSubtitle')
             )}
           </div>
         </div>
@@ -174,7 +176,7 @@ export function PublishBanner({
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
             </svg>
-            {copied ? '¡Copiado!' : 'Copiar URL'}
+            {copied ? t('publish.copied') : t('publish.copyUrl')}
           </button>
         )}
         <button
@@ -208,12 +210,12 @@ export function PublishBanner({
           }}
         >
           {publishBusy === 'publish'
-            ? 'Publicando…'
+            ? t('publish.publishing')
             : publishBusy === 'unpublish'
-              ? 'Despublicando…'
+              ? t('publish.unpublishing')
               : isPublished
-                ? 'Unpublish y editar'
-                : '✓ Publicar Press Kit'}
+                ? t('publish.unpublish')
+                : t('publish.publishCta')}
         </button>
       </div>
     </div>

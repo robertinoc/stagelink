@@ -3,7 +3,10 @@
 // EpkLockedBanner — green notice shown at top of each tab when EPK is published.
 // Tells the user to unpublish to enable editing. Matches design handoff prototype.
 
+import { useTranslations } from 'next-intl';
+
 export function EpkLockedBanner() {
+  const t = useTranslations('dashboard.epk.editor');
   return (
     <div
       style={{
@@ -19,9 +22,11 @@ export function EpkLockedBanner() {
       }}
     >
       <span style={{ color: '#4ADE80', fontSize: 14 }}>🔒</span>
-      Este Press Kit está publicado. Pulsá{' '}
-      <strong style={{ color: 'white' }}>Unpublish y editar</strong> arriba para volver a draft y
-      modificar los campos.
+      <span>
+        {t.rich('locked.notice', {
+          strong: (chunks) => <strong style={{ color: 'white' }}>{chunks}</strong>,
+        })}
+      </span>
     </div>
   );
 }

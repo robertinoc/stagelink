@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
+import { useTranslations } from 'next-intl';
 import type {
   EpkFeaturedLinkItem,
   EpkFeaturedMediaItem,
@@ -45,6 +46,7 @@ export function EpkMediaTab({
   inherited,
   profileAndSmartLinks,
 }: EpkMediaTabProps) {
+  const t = useTranslations('dashboard.epk.editor');
   const { watch, setValue, getValues } = form;
   const isMobile = useIsMobile();
   const watchedGallery = watch('galleryImageUrls');
@@ -101,8 +103,8 @@ export function EpkMediaTab({
       {/* ── Photo gallery ────────────────────────────────────────────────── */}
       <Bento pad={isMobile ? 16 : 20}>
         <SubHead
-          title="Galería de fotos"
-          hint="Add photos that appear in the Gallery section of your public EPK"
+          title={t('mediaTab.galleryTitle')}
+          hint={t('mediaTab.galleryHint')}
           right={<Chip>{watchedGallery.slice(2).filter(Boolean).length}/6</Chip>}
         />
         <EpkGallerySection
@@ -118,8 +120,8 @@ export function EpkMediaTab({
       <Bento pad={0}>
         <div style={{ padding: isMobile ? '16px 16px 6px' : '20px 24px 10px' }}>
           <SubHead
-            title="Media destacada"
-            hint="Music, video, or audio links shown in the Media section of your EPK"
+            title={t('mediaTab.featuredTitle')}
+            hint={t('mediaTab.featuredHint')}
             right={
               <>
                 <Chip>{watchedFeaturedMedia.length}/6</Chip>
@@ -131,7 +133,7 @@ export function EpkMediaTab({
                     icon={<Icon.Plus size={12} />}
                     onClick={() => setDraftMedia({ title: '', url: '', provider: 'other' })}
                   >
-                    Agregar media
+                    {t('mediaTab.addMedia')}
                   </Btn>
                 )}
               </>
@@ -163,7 +165,7 @@ export function EpkMediaTab({
             }}
           >
             <div style={{ fontSize: 28, marginBottom: 6, opacity: 0.5 }}>🎧</div>
-            Sumá un link de Spotify, YouTube o SoundCloud.
+            {t('mediaTab.emptyMedia')}
           </div>
         )}
 
@@ -186,7 +188,7 @@ export function EpkMediaTab({
                 fontFamily: 'var(--font-heading)',
               }}
             >
-              Nuevo link de media
+              {t('mediaTab.newMediaLink')}
             </p>
             <div
               style={{
@@ -198,14 +200,14 @@ export function EpkMediaTab({
             >
               <input
                 type="text"
-                placeholder="Título — New Single, Live Set, Album…"
+                placeholder={t('mediaTab.mediaTitlePlaceholder')}
                 value={draftMedia.title}
                 onChange={(e) => setDraftMedia({ ...draftMedia, title: e.target.value })}
                 style={DRAFT_INPUT_STYLE}
               />
               <input
                 type="text"
-                placeholder="https://open.spotify.com/…"
+                placeholder={t('mediaTab.mediaUrlPlaceholder')}
                 value={draftMedia.url}
                 onChange={(e) => {
                   const url = e.target.value;
@@ -228,11 +230,11 @@ export function EpkMediaTab({
                   fontWeight: 700,
                 }}
               >
-                Detectado: {draftMedia.provider}
+                {t('mediaTab.detected', { provider: draftMedia.provider })}
               </span>
               <div style={{ display: 'flex', gap: 6 }}>
                 <Btn size="sm" variant="ghost" type="button" onClick={() => setDraftMedia(null)}>
-                  Cancelar
+                  {t('mediaTab.cancel')}
                 </Btn>
                 <Btn
                   size="sm"
@@ -241,7 +243,7 @@ export function EpkMediaTab({
                   disabled={!draftMedia.title.trim() || !draftMedia.url.trim()}
                   onClick={confirmDraftMedia}
                 >
-                  Agregar
+                  {t('mediaTab.add')}
                 </Btn>
               </div>
             </div>
@@ -253,8 +255,8 @@ export function EpkMediaTab({
       <Bento pad={0}>
         <div style={{ padding: isMobile ? '16px 16px 6px' : '20px 24px 10px' }}>
           <SubHead
-            title="Visibilidad de links"
-            hint="Tus links existen en tu Perfil. Elegí cuáles aparecen como pills en tu EPK. Todos los visibles se muestran con el mismo peso."
+            title={t('mediaTab.linksTitle')}
+            hint={t('mediaTab.linksHint')}
             right={
               <Chip>
                 {watchedFeaturedLinks.length}/{profileAndSmartLinks.length}
@@ -274,7 +276,7 @@ export function EpkMediaTab({
               fontStyle: 'italic',
             }}
           >
-            Sin links en tu Perfil todavía. Agregalos primero desde Profile.
+            {t('mediaTab.emptyLinks')}
           </div>
         ) : (
           <>
@@ -294,8 +296,8 @@ export function EpkMediaTab({
                 borderTop: '1px solid rgba(255,255,255,0.06)',
               }}
             >
-              <div>Plataforma · URL</div>
-              <div>Visibilidad</div>
+              <div>{t('mediaTab.colPlatform')}</div>
+              <div>{t('mediaTab.colVisibility')}</div>
             </div>
 
             {profileAndSmartLinks.map((link, i) => {

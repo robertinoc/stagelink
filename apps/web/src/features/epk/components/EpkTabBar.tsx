@@ -4,19 +4,21 @@
 // Each tab has a label + hint subtitle, with an underline gradient indicator
 // on the active tab. Sticky at top with backdrop blur.
 
+import { useTranslations } from 'next-intl';
+
 export type EpkTab = 'identity' | 'media' | 'booking' | 'locales';
 
 interface TabDef {
   id: EpkTab;
-  label: string;
-  hint: string;
+  labelKey: string;
+  hintKey: string;
 }
 
 const TABS: TabDef[] = [
-  { id: 'identity', label: 'Identidad & contacto', hint: 'Hero, bio, contactos' },
-  { id: 'media', label: 'Media & galería', hint: 'Fotos, video, links' },
-  { id: 'booking', label: 'Booking & rider', hint: 'Logística, técnico' },
-  { id: 'locales', label: 'Idiomas', hint: 'Traducción del EPK' },
+  { id: 'identity', labelKey: 'tabs.identityLabel', hintKey: 'tabs.identityHint' },
+  { id: 'media', labelKey: 'tabs.mediaLabel', hintKey: 'tabs.mediaHint' },
+  { id: 'booking', labelKey: 'tabs.bookingLabel', hintKey: 'tabs.bookingHint' },
+  { id: 'locales', labelKey: 'tabs.localesLabel', hintKey: 'tabs.localesHint' },
 ];
 
 interface EpkTabBarProps {
@@ -26,6 +28,7 @@ interface EpkTabBarProps {
 }
 
 export function EpkTabBar({ activeTab, onChange, hasMultiLanguageAccess }: EpkTabBarProps) {
+  const t = useTranslations('dashboard.epk.editor');
   // All 4 tabs are always visible. Free users see the Languages tab with a
   // lock badge; the content panel inside (LocalizedEpkContentSection) handles
   // the FeatureLockCta upsell.
@@ -88,7 +91,7 @@ export function EpkTabBar({ activeTab, onChange, hasMultiLanguageAccess }: EpkTa
                   letterSpacing: '-0.01em',
                 }}
               >
-                {tab.label}
+                {t(tab.labelKey)}
               </span>
               <span
                 style={{
@@ -96,12 +99,12 @@ export function EpkTabBar({ activeTab, onChange, hasMultiLanguageAccess }: EpkTa
                   color: active ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)',
                 }}
               >
-                {tab.hint}
+                {t(tab.hintKey)}
               </span>
               {locked && (
                 <span
                   aria-hidden="true"
-                  title="Disponible en Pro+"
+                  title={t('tabs.lockedTitle')}
                   style={{
                     fontSize: 10,
                     fontWeight: 700,
