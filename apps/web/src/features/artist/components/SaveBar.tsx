@@ -62,6 +62,11 @@ export function SaveBar({ isDirty, isSaving, onSave, onDiscard }: SaveBarProps) 
         bottom: 20,
         left: '50%',
         transform: 'translateX(-50%)',
+        // maxWidth ensures the pill never overflows the viewport on narrow
+        // mobile screens. Without this, the pill can exceed 390px on small
+        // phones, pushing the "Guardar cambios" button partially off-screen
+        // where iOS Safari drops touch events entirely.
+        maxWidth: 'calc(100vw - 32px)',
         zIndex: 50,
         display: 'flex',
         alignItems: 'center',
@@ -73,7 +78,6 @@ export function SaveBar({ isDirty, isSaving, onSave, onDiscard }: SaveBarProps) 
         boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 0 28px rgba(224,64,251,0.25)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
-        whiteSpace: 'nowrap',
       }}
     >
       {/* Pulsing dot */}
@@ -89,13 +93,19 @@ export function SaveBar({ isDirty, isSaving, onSave, onDiscard }: SaveBarProps) 
         }}
       />
 
+      {/* Label — hidden on very narrow viewports so the buttons always fit */}
       <span
         style={{
           fontFamily: 'var(--font-body)',
           fontSize: 13,
           fontWeight: 500,
           color: 'white',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          minWidth: 0,
         }}
+        className="hidden xs:inline sm:inline"
       >
         Cambios sin guardar
       </span>
@@ -103,9 +113,10 @@ export function SaveBar({ isDirty, isSaving, onSave, onDiscard }: SaveBarProps) 
       <Btn
         variant="bare"
         size="sm"
+        type="button"
         onClick={onDiscard}
         disabled={isSaving}
-        className="text-white/50 hover:text-white/80"
+        className="shrink-0 text-white/50 hover:text-white/80"
       >
         Descartar
       </Btn>
@@ -113,11 +124,13 @@ export function SaveBar({ isDirty, isSaving, onSave, onDiscard }: SaveBarProps) 
       <Btn
         variant="primary"
         size="sm"
+        type="button"
         icon={<Icon.Check size={14} />}
         onClick={onSave}
         disabled={isSaving}
+        className="shrink-0"
       >
-        {isSaving ? 'Guardando…' : 'Guardar cambios'}
+        {isSaving ? 'Guardando…' : 'Guardar'}
       </Btn>
     </div>
   );
