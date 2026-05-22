@@ -36,7 +36,9 @@ export function StickyTabs<TId extends string = string>({
       role="tablist"
       aria-label={ariaLabel}
       className={cn(
-        'sticky top-0 z-[5] -mx-8 flex gap-1 overflow-x-auto border-b border-white/10 bg-[rgba(13,10,26,0.85)] px-8 backdrop-blur-md',
+        // -mx-4 px-4 on mobile (matches AppShell p-4); sm:-mx-6 sm:px-6 on sm+ (matches sm:p-6).
+        // Keeps the tab bar full-bleed without overflowing the viewport.
+        'sticky top-0 z-[5] -mx-4 flex gap-1 overflow-x-auto border-b border-white/10 bg-[rgba(13,10,26,0.85)] px-4 backdrop-blur-md sm:-mx-6 sm:px-6',
         className,
       )}
     >

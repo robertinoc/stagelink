@@ -66,7 +66,7 @@ export function AppShell({ artist, effectivePlan, children }: AppShellProps) {
         <AppTopbar artist={artist} onMenuOpen={() => setMobileOpen(true)} />
         {/* Ambient glow background on the scrollable content area */}
         <main
-          className="flex-1 overflow-y-auto"
+          className="flex-1 overflow-x-hidden overflow-y-auto"
           style={{
             background: `
               radial-gradient(ellipse 70% 50% at 75% -10%, rgba(155,48,208,0.18) 0%, transparent 55%),

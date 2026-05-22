@@ -36,6 +36,10 @@ export function EpkTabBar({ activeTab, onChange, hasMultiLanguageAccess }: EpkTa
 
   return (
     <div
+      // -mx-4 px-4 on mobile (matches AppShell p-4); -mx-6 px-6 on sm+ (matches sm:p-6).
+      // These mirror the content wrapper's horizontal padding so the tab bar goes
+      // full-bleed without overflowing the viewport and triggering horizontal scroll.
+      className="-mx-4 px-4 sm:-mx-6 sm:px-6"
       style={{
         position: 'sticky',
         top: 0,
@@ -44,10 +48,6 @@ export function EpkTabBar({ activeTab, onChange, hasMultiLanguageAccess }: EpkTa
         backdropFilter: 'blur(20px) saturate(160%)',
         WebkitBackdropFilter: 'blur(20px) saturate(160%)',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
-        marginLeft: -32,
-        marginRight: -32,
-        paddingLeft: 32,
-        paddingRight: 32,
       }}
     >
       <div
