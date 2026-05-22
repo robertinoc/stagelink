@@ -681,6 +681,7 @@
     },
     "profile": {
       "title": "Perfil",
+      "editor_subtitle": "Tu Press Kit digital",
       "description": "Tu identidad artística en un solo lugar — tu página, Press Kit e Insights se nutren de acá.",
       "sections": {
         "images": "Imágenes",
