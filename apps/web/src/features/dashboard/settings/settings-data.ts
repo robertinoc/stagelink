@@ -82,9 +82,8 @@ export async function loadDashboardSettingsData(locale: string): Promise<Dashboa
       : Promise.resolve(null),
   ]);
 
-  const insights = insightsResult && 'kind' in insightsResult ? insightsResult : null;
-  const spotifyConnected = isInsightsPlatformConnected(insights, 'spotify');
-  const youtubeConnected = isInsightsPlatformConnected(insights, 'youtube');
+  const spotifyConnected = isInsightsPlatformConnected(insightsResult, 'spotify');
+  const youtubeConnected = isInsightsPlatformConnected(insightsResult, 'youtube');
 
   const connectionsBadge = {
     connected: (spotifyConnected ? 1 : 0) + (youtubeConnected ? 1 : 0),
@@ -118,9 +117,11 @@ function isInsightsPlatformConnected(
   insights: Awaited<ReturnType<typeof getStageLinkInsightsDashboard>> | null,
   platform: 'spotify' | 'youtube',
 ): boolean {
-  if (!insights || insights.kind === 'error') return false;
-  const record = (insights as unknown as Record<string, unknown>)[platform];
-  if (!record || typeof record !== 'object') return false;
-  const status = (record as Record<string, unknown>)['status'];
-  return status === 'connected' || status === 'ok';
+  // getStageLinkInsightsDashboard returns { kind: 'ok', data } | locked | error.
+  // The dashboard exposes platforms as an ARRAY of platform summaries — each
+  // with a nested `connection.status`. Earlier code read insights[platform]
+  // (a non-existent top-level key), so the badge always counted 0.
+  if (!insights || !('kind' in insights) || insights.kind !== 'ok') return false;
+  const summary = insights.data.platforms.find((p) => p.platform === platform);
+  return summary?.connection?.status === 'connected';
 }
