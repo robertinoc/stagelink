@@ -1,99 +1,103 @@
 # Umami Operational Checklist
 
-Status: active for Behind the Stage when the public Umami env vars are configured.
+Status: active for StageLink Platform when the public Umami env vars are
+configured.
 
 ## Production Environment
 
-Configure these variables in the Vercel project that serves `behind.stagelink.art`:
+Configure these variables in the Vercel project that serves `stagelink.art`:
 
-- `NEXT_PUBLIC_UMAMI_BEHIND_WEBSITE_ID`: required. Use the `data-website-id`
-  value from the `StageLink Behind` website in Umami.
-- `NEXT_PUBLIC_UMAMI_BEHIND_SHARE_URL`: optional but recommended. Use the
-  Umami shared dashboard URL to embed analytics in `/behind/analytics`.
+- `NEXT_PUBLIC_UMAMI_PLATFORM_WEBSITE_ID`: required. Use the `data-website-id`
+  value from the `StageLink Platform` website in Umami.
+- `NEXT_PUBLIC_UMAMI_PLATFORM_SHARE_URL`: recommended. Use the Umami shared
+  dashboard URL so Behind can embed the platform analytics dashboard at
+  `/behind/analytics`.
 - `NEXT_PUBLIC_UMAMI_SCRIPT_URL`: optional. Default for Umami Cloud is
   `https://cloud.umami.is/script.js`.
 - `NEXT_PUBLIC_UMAMI_HOST_URL`: leave empty for Umami Cloud. Set only for a
   self-hosted Umami collection endpoint.
-- `NEXT_PUBLIC_UMAMI_DOMAINS`: required in production. Use
-  `behind.stagelink.art`.
+- `NEXT_PUBLIC_UMAMI_DOMAINS`: use `stagelink.art`. Add preview domains only
+  when intentionally validating preview traffic.
 
-Railway does not need these variables for the current v1 because the script and
-embed are Next.js/Vercel frontend concerns.
+Railway does not need these variables because the Umami browser script and the
+Behind iframe are Next.js/Vercel frontend concerns.
 
 ## Expected Website Setup
 
-- Umami website name: `StageLink Behind`.
-- Umami website domain: `behind.stagelink.art`.
-- Tracking scope: StageLink operator/product analytics only.
-- Exclusions: public artist pages, artist dashboards, auth pages, landing pages,
-  marketing pages, fan traffic, and artist-specific performance.
+- Umami website name: `StageLink Platform`.
+- Umami website domain: `stagelink.art`.
+- Tracking source: product and growth surfaces on `stagelink.art`.
+- Dashboard location: `https://behind.stagelink.art/behind/analytics`.
+- Behind scope: viewer only. Behind must not be the tracked product surface.
 
 ## Route Validation
 
-The Umami script should load on:
+The Umami script should load, after analytics consent, on:
 
-- `https://behind.stagelink.art/`
-- `https://behind.stagelink.art/behind`
-- `https://behind.stagelink.art/behind/analytics`
+- `https://stagelink.art/`;
+- localized marketing pages, such as `https://stagelink.art/es`;
+- localized auth pages, such as `https://stagelink.art/es/signup` and
+  `https://stagelink.art/es/login`;
+- onboarding routes;
+- authenticated product routes under `/{locale}/dashboard`.
 
 The Umami script should not load on:
 
-- `https://stagelink.art/`
-- public artist pages;
-- authenticated artist dashboards;
-- auth/sign-in routes;
-- marketing/landing pages.
+- `https://behind.stagelink.art/`;
+- `https://behind.stagelink.art/behind`;
+- `https://behind.stagelink.art/behind/analytics`;
+- public artist pages under `/p/{username}`, unless a separate product/privacy
+  review explicitly adds them later.
 
 ## Manual Event Validation
 
-In Umami Realtime or Events, validate:
+In the `StageLink Platform` Umami website, validate:
 
-- pageview for `/behind` or `/behind/analytics`;
-- `behind_nav_clicked` after switching between Users and Analytics;
-- `behind_umami_opened` after opening the shared Umami dashboard;
-- `behind_invite_opened` after opening the invite modal;
-- `behind_invitation_submitted` after submitting the invite form;
-- `behind_invitation_sent` after sending an invite;
-- `behind_invitation_failed` if the invitation API or network fails;
-- `behind_users_filtered` after changing plan, role, or status filters;
-- `behind_users_sorted` after sorting the users table;
-- access and role events only when those admin operations are performed.
+- pageview for `stagelink.art`;
+- pageview for `/es/signup`;
+- `platform_signup_started` after submitting the signup form;
+- `platform_signup_login_clicked` when clicking the login link from signup;
+- `platform_login_started` after submitting the login form;
+- `platform_login_signup_clicked` when clicking the signup link from login;
+- pageview for `/es/dashboard` after authenticated navigation.
+
+Signup completion is inferred in v1 from the authenticated post-signup pageview
+or onboarding/dashboard entry. A future API-backed phase can add a server-side
+conversion event if it is needed.
 
 ## Dashboard V1 Validation
 
 In `https://behind.stagelink.art/behind/analytics`, validate:
 
-- the embedded Umami dashboard renders when `NEXT_PUBLIC_UMAMI_BEHIND_SHARE_URL`
-  is configured;
-- the page shows Traffic overview, UTM campaigns, tracked `behind_*` events, and
+- the embedded Umami dashboard renders when
+  `NEXT_PUBLIC_UMAMI_PLATFORM_SHARE_URL` is configured;
+- the iframe shows the `StageLink Platform` website, not a Behind website;
+- the page shows Traffic overview, UTM campaigns, tracked platform events, and
   manual validation sections;
-- UTM campaign fields match `docs/umami-acquisition-utm-playbook.md`;
 - the native dashboard path is presented as future API-backed work, not as an
   active API integration.
 
 ## End-to-End Validation
 
-Use this sequence before closing the v1 setup:
+Use this sequence before closing the platform setup:
 
-1. Open `https://behind.stagelink.art/`.
-2. Confirm the Umami script is present on Behind.
-3. Confirm the Umami script is absent on `https://stagelink.art/` public,
-   landing, auth, and artist dashboard routes.
-4. Open `/behind/analytics`.
-5. Confirm a `/behind/analytics` pageview appears in Umami.
-6. Trigger nav, invite, filter, sort, role/status/access actions as applicable.
-7. Confirm the resulting events use only the documented safe properties.
-8. Confirm UTM templates are usable for outreach but do not imply public session
-   tracking in the Behind website.
+1. Open `https://stagelink.art/`.
+2. Grant analytics consent.
+3. Confirm the Umami script is present on `stagelink.art`.
+4. Open `/es/signup`.
+5. Trigger signup and login intent events.
+6. Open `/es/dashboard` with an authenticated account.
+7. Confirm pageviews and `platform_*` events appear in the `StageLink Platform`
+   Umami website.
+8. Open `https://behind.stagelink.art/behind/analytics`.
+9. Confirm Behind embeds the same platform dashboard.
+10. Confirm the Umami script itself is absent on Behind routes.
 
 ## Privacy Guardrails
 
 - Do not send emails, names, handles, user IDs, artist IDs, or free-text search
   queries to Umami.
-- Event properties may include only product/admin context such as section,
-  filter, sort direction, role, status, and access plan.
-- Keep `NEXT_PUBLIC_UMAMI_DOMAINS=behind.stagelink.art` in production.
-- Keep Umami out of artist-facing analytics until a separate product/privacy
-  review explicitly approves it.
-- Use `docs/umami-acquisition-utm-playbook.md` for outreach UTMs. Those links
-  are campaign templates only and do not expand the Behind-only tracking scope.
+- Explicit event properties must describe product context only.
+- Keep `NEXT_PUBLIC_UMAMI_DOMAINS=stagelink.art` in production.
+- Keep public artist page tracking out of this Umami website until there is a
+  separate product/privacy decision.

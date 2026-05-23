@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { getAuthMe } from '@/lib/api/me';
+import { UmamiProvider } from '@/lib/analytics/UmamiProvider';
 import { OnboardingWizard } from '@/features/onboarding/components/OnboardingWizard';
 import { completeOnboardingAction } from './actions';
 
@@ -42,5 +43,9 @@ export default async function OnboardingPage({ params }: OnboardingPageProps) {
     redirect(`/${locale}/dashboard`);
   }
 
-  return <OnboardingWizard locale={locale} completeOnboardingAction={completeOnboardingAction} />;
+  return (
+    <UmamiProvider>
+      <OnboardingWizard locale={locale} completeOnboardingAction={completeOnboardingAction} />
+    </UmamiProvider>
+  );
 }

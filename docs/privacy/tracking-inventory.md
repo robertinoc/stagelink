@@ -55,22 +55,23 @@ Current repo status after Umami Project v1:
 
 - Optional runtime support lives in `apps/web/src/lib/analytics/UmamiProvider.tsx`
   and `apps/web/src/lib/analytics/umami.ts`.
-- The provider is mounted only in `apps/web/src/app/behind/layout.tsx`, so Umami
-  measures Behind the Stage product/admin usage only.
-- The script is not loaded unless `NEXT_PUBLIC_UMAMI_BEHIND_WEBSITE_ID` is
+- The provider is mounted only in platform route groups/pages, so Umami measures
+  StageLink platform traffic on `stagelink.art` without loading on localized
+  public artist pages.
+- The script is not loaded unless `NEXT_PUBLIC_UMAMI_PLATFORM_WEBSITE_ID` is
   configured.
-- Public artist pages, artist dashboards, auth pages, and landing/marketing
-  routes do not load the Umami script.
-- The intended Umami website/domain is only `behind.stagelink.art`.
+- Behind routes and public artist pages do not load the Umami script in v1.
+- The intended Umami website/domain is `stagelink.art`.
 - `UmamiProvider` defaults `NEXT_PUBLIC_UMAMI_DOMAINS` to
-  `behind.stagelink.art` and skips script injection when the current hostname is
-  not in that allowlist.
+  `stagelink.art,www.stagelink.art` and skips script injection when the current
+  hostname is not in that allowlist.
+- Umami script injection is gated by analytics consent.
 
 Production rule:
 
-- Keep Umami enabled only for the `StageLink Behind` website after the Behind
-  website ID, accepted domain, and product dashboard modules are configured and
-  verified end to end.
+- Keep Umami enabled only for the `StageLink Platform` website after the
+  platform website ID, accepted domain, and Behind dashboard embed are configured
+  and verified end to end.
 
 ### Stripe
 
@@ -127,14 +128,14 @@ Future check:
 | WorkOS cookies               | Auth/session/PKCE                      | Necessary                         |
 | `sl_qa` cookie               | QA-only analytics exclusion            | Internal testing only             |
 | PostHog localStorage/cookies | Product analytics identifiers          | Only after analytics consent      |
-| Umami storage                | Optional Behind product analytics      | Behind admin/product usage only   |
+| Umami storage                | Optional StageLink platform analytics  | Product/growth analytics          |
 
 ## No-Consent Expected Behavior
 
 Before optional consent:
 
 - No PostHog initialization.
-- No Umami script injection outside Behind the Stage.
+- No Umami script injection on Behind or public artist pages in v1.
 - No public link-click analytics request.
 - No public page-view analytics persistence.
 - No SmartLink analytics persistence.

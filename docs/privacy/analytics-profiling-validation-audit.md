@@ -164,7 +164,7 @@ Result: good code controls, provider evidence incomplete.
 Strong points:
 
 - PostHog code disables risky browser defaults;
-- Umami scoped to Behind-only product/admin analytics;
+- Umami scoped to StageLink Platform analytics after consent;
 - provider expansion triggers are documented.
 
 Gaps:
@@ -235,7 +235,8 @@ Severity: Medium to High depending public launch posture.
 
 ### Low
 
-- Umami scoped to Behind-only product/admin analytics.
+- Umami scoped to StageLink Platform analytics after consent, with Behind as
+  viewer only.
 - No session replay, heatmaps, autocapture, fingerprinting, or Article 22
   automated decisions found.
 

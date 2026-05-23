@@ -18,9 +18,10 @@ StageLink currently has four analytics layers:
 4. Operational/audit/security telemetry for debugging, abuse prevention, and
    incident response.
 
-Umami is now supported as an optional Behind the Stage product/admin analytics
-layer. It stays inactive unless `NEXT_PUBLIC_UMAMI_BEHIND_WEBSITE_ID` is
-configured, and it is mounted only in `apps/web/src/app/behind/layout.tsx`.
+Umami is now supported as an optional StageLink Platform analytics layer. It
+stays inactive unless `NEXT_PUBLIC_UMAMI_PLATFORM_WEBSITE_ID` is configured, and
+it is mounted only in platform route groups/pages so Behind can remain a viewer
+rather than a tracked surface.
 
 ## Analytics Data Matrix
 
@@ -37,43 +38,30 @@ configured, and it is mounted only in `apps/web/src/app/behind/layout.tsx`.
 | Operational analytics/security logs | `security_event`, request ID, status/path, rate-limit events, audit logs                                                               | Security, abuse prevention, debugging, incident response | Railway/Vercel logs, PostgreSQL `audit_logs`, provider consoles     | Necessary/legitimate interests; not optional analytics                                                                                 | Runtime/provider retention not finalized                 | Pseudonymous/internal IDs; can include IP if needed                    | Not product profiling; can reveal behavior if over-collected                            | Medium |
 | QA/internal flags                   | `sl_qa`, `isQa`, `isInternal`, environment quality flags                                                                               | Exclude QA/internal traffic from metrics                 | Cookies/headers and `analytics_events` flags                        | Necessary for QA/data quality when used intentionally                                                                                  | Same as analytics events                                 | Pseudonymous flagging                                                  | No user profiling; internal data-quality control                                        | Low    |
 | PostHog browser identifiers         | PostHog localStorage/cookies after consent                                                                                             | Product/public analytics event delivery                  | PostHog browser SDK                                                 | Analytics consent required                                                                                                             | PostHog retention not confirmed                          | Pseudonymous provider identifier                                       | Behavioral tracking if expanded                                                         | High   |
-| Umami                               | Behind the Stage page views/referrers, admin navigation clicks, and product/admin usage events                                         | Internal product analytics for StageLink operations      | Umami Cloud or self-hosted Umami via `NEXT_PUBLIC_UMAMI_*` env vars | Internal/admin product analytics only; not loaded on public artist, artist dashboard, auth, landing, or marketing routes               | Configured in Umami                                      | Aggregated/pseudonymous provider data                                  | Internal admin/product behavior analytics                                               | Medium |
+| Umami                               | StageLink platform page views/referrers, signup/login intent events, UTM campaign parameters                                           | Product and growth analytics for StageLink Platform      | Umami Cloud or self-hosted Umami via `NEXT_PUBLIC_UMAMI_*` env vars | Analytics consent required before loading the browser script; not loaded on Behind or public artist pages in v1                        | Configured in Umami                                      | Aggregated/pseudonymous provider data                                  | Product behavior and acquisition analytics                                              | Medium |
 
 ## Active Event Catalog
 
-### Umami Behind Product Events
+### Umami StageLink Platform Events
 
 Current explicit events:
 
-- `behind_nav_clicked`
-- `behind_logout_clicked`
-- `behind_umami_opened`
-- `behind_invite_opened`
-- `behind_invitation_submitted`
-- `behind_invitation_sent`
-- `behind_invitation_failed`
-- `behind_users_sorted`
-- `behind_users_filtered`
-- `behind_user_profile_updated`
-- `behind_user_status_updated`
-- `behind_role_updated`
-- `behind_access_granted`
-- `behind_access_extended`
-- `behind_access_revoked`
+- `platform_signup_started`
+- `platform_signup_login_clicked`
+- `platform_login_started`
+- `platform_login_signup_clicked`
 
 Controls:
 
-- loaded only inside `apps/web/src/app/behind/layout.tsx`;
+- loaded inside platform route groups/pages;
+- not mounted inside `apps/web/src/app/behind/layout.tsx`;
 - `data-do-not-track="true"`;
-- configured by `NEXT_PUBLIC_UMAMI_BEHIND_WEBSITE_ID`;
-- `/behind/analytics` embeds the shared Umami dashboard and adds a visible v1
-  operating center for traffic, UTM conventions, events, and validation checks;
-- event properties must avoid end-user PII and should describe product/admin
-  actions, sections, filters, and outcomes.
-- invitation funnel properties are limited to safe operational values such as
-  `surface`, `channel`, `source`, `medium`, `result`, and failed API `status`.
-- outreach UTM templates are documented in `docs/umami-acquisition-utm-playbook.md`
-  but do not expand Umami tracking to public signup or landing routes.
+- configured by `NEXT_PUBLIC_UMAMI_PLATFORM_WEBSITE_ID`;
+- gated by the StageLink analytics consent cookie;
+- `/behind/analytics` embeds the shared StageLink Platform Umami dashboard;
+- event properties must avoid end-user PII and should describe product context
+  only;
+- public artist pages remain out of scope for this Umami website in v1.
 
 ### Local PostgreSQL `analytics_events`
 
@@ -157,7 +145,7 @@ Risk:
 | `sl_consent`                                | canonical consent record          | necessary for consent enforcement | Low                                    |
 | `sl_ac`                                     | compact analytics consent header  | necessary for consent enforcement | Low                                    |
 | PostHog cookies/localStorage/sessionStorage | analytics identifier after opt-in | analytics consent required        | High if expanded to autocapture/replay |
-| Umami script/runtime storage                | Behind product analytics          | Behind admin/product usage only   | Medium                                 |
+| Umami script/runtime storage                | StageLink Platform analytics      | analytics consent required        | Medium                                 |
 | `sl_qa`                                     | QA traffic exclusion              | internal testing only             | Low                                    |
 | WorkOS cookies                              | authentication/session/PKCE       | necessary                         | High if leaked, but not analytics      |
 | `NEXT_LOCALE`                               | localization                      | necessary/preference              | Low                                    |

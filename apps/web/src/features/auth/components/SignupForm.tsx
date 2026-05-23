@@ -23,7 +23,14 @@ interface SignupFormProps {
 function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" size="lg" className="w-full" disabled={pending} aria-disabled={pending}>
+    <Button
+      type="submit"
+      size="lg"
+      className="w-full"
+      disabled={pending}
+      aria-disabled={pending}
+      data-umami-event="platform_signup_started"
+    >
       {pending && <Loader2 className="h-4 w-4 animate-spin" />}
       {label}
     </Button>
@@ -57,6 +64,7 @@ export function SignupForm({ action, locale }: SignupFormProps) {
         <Link
           href={`/${locale}/login`}
           className="text-foreground underline-offset-4 hover:underline"
+          data-umami-event="platform_signup_login_clicked"
         >
           {t('login_link')}
         </Link>
