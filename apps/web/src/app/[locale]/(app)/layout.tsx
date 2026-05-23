@@ -4,6 +4,7 @@ import { getArtist } from '@/lib/api/artists';
 import { getBillingSummary } from '@/lib/api/billing';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import { AppShell } from '@/components/layout/AppShell';
+import { UmamiProvider } from '@/lib/analytics/UmamiProvider';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -57,8 +58,10 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
   }
 
   return (
-    <AppShell artist={artist} effectivePlan={effectivePlan}>
-      {children}
-    </AppShell>
+    <UmamiProvider>
+      <AppShell artist={artist} effectivePlan={effectivePlan}>
+        {children}
+      </AppShell>
+    </UmamiProvider>
   );
 }

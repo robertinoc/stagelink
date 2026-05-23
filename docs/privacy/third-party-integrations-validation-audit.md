@@ -216,8 +216,8 @@ None confirmed in this phase.
 
 ### Low
 
-- Umami is scoped to Behind-only product/admin analytics; provider evidence is
-  still pending.
+- Umami is scoped to StageLink Platform analytics after consent; provider
+  evidence is still pending.
 - Printify exists as future enum/provider but is not implemented.
 
 ## Integration Compliance Readiness Score

@@ -8,22 +8,22 @@ access.
 
 ## Scope Matrix
 
-| Provider       | Current credential/scope                                         | Needed for current feature?                                       | Least-privilege decision                            | Action                                                           |
-| -------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------- |
-| WorkOS AuthKit | AuthKit app client, API key, session/JWT validation              | Yes                                                               | Auth/session only; Radar/security features allowed  | Keep server-only and env-specific                                |
-| Spotify        | Client Credentials, artist/profile/top-tracks read               | Yes for public insights                                           | No user OAuth scopes today                          | Keep; do not add user scopes without new review                  |
-| YouTube        | Data API key, `channels`, `playlistItems`, `videos` public reads | Yes for public channel insights                                   | API-key public data only                            | Keep; do not add OAuth scopes until owner-only feature exists    |
-| SoundCloud     | `SOUNDCLOUD_CLIENT_ID`, public profile/tracks reads              | Yes for SoundCloud insights, but policy-fragile                   | Treat as provisional/high risk                      | Confirm official permission or downgrade feature                 |
-| Stripe         | Secret key + webhook secret                                      | Yes for checkout/portal/subscriptions                             | Billing-only; no raw card data                      | Keep; confirm webhook secret by env                              |
-| Shopify        | Storefront token; product/collection/shop read                   | Yes for store block                                               | Storefront read only                                | Keep; document no Admin API tokens                               |
-| Printful       | API token; stores/products read                                  | Yes for Smart Merch if enabled                                    | Product/store read only where possible              | Keep; document token authority and rotation                      |
-| Printify       | Future provider enum; not implemented                            | No current feature                                                | No scopes/credential yet                            | Review before implementation                                     |
-| PostHog        | Project API key                                                  | Yes if analytics enabled                                          | Consent-gated analytics only; no autocapture/ads    | Keep with consent and retention controls                         |
-| Umami          | Public website ID and optional share URL                         | Yes for Behind product/admin analytics if env vars are configured | Behind-only web analytics; no API token in v1       | Keep scoped to `behind.stagelink.art`; confirm provider evidence |
-| Resend         | API key for outbound email                                       | Yes if landing contact enabled                                    | Send-only transactional/contact email               | Keep server-only                                                 |
-| EmailJS        | public key/service/template ids                                  | Yes if public contact block enabled                               | Browser public identifiers only                     | Keep; do not treat public keys as secrets                        |
-| Upstash Redis  | REST URL/token                                                   | Yes if Behind roles configured                                    | Role/admin metadata only; TTL for counters if added | Keep server-only                                                 |
-| S3/R2 storage  | bucket/region/access key/secret                                  | Yes for uploads                                                   | Presigned upload only; scoped object keys           | Keep server-only and lifecycle-reviewed                          |
+| Provider       | Current credential/scope                                         | Needed for current feature?                                     | Least-privilege decision                            | Action                                                        |
+| -------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------- |
+| WorkOS AuthKit | AuthKit app client, API key, session/JWT validation              | Yes                                                             | Auth/session only; Radar/security features allowed  | Keep server-only and env-specific                             |
+| Spotify        | Client Credentials, artist/profile/top-tracks read               | Yes for public insights                                         | No user OAuth scopes today                          | Keep; do not add user scopes without new review               |
+| YouTube        | Data API key, `channels`, `playlistItems`, `videos` public reads | Yes for public channel insights                                 | API-key public data only                            | Keep; do not add OAuth scopes until owner-only feature exists |
+| SoundCloud     | `SOUNDCLOUD_CLIENT_ID`, public profile/tracks reads              | Yes for SoundCloud insights, but policy-fragile                 | Treat as provisional/high risk                      | Confirm official permission or downgrade feature              |
+| Stripe         | Secret key + webhook secret                                      | Yes for checkout/portal/subscriptions                           | Billing-only; no raw card data                      | Keep; confirm webhook secret by env                           |
+| Shopify        | Storefront token; product/collection/shop read                   | Yes for store block                                             | Storefront read only                                | Keep; document no Admin API tokens                            |
+| Printful       | API token; stores/products read                                  | Yes for Smart Merch if enabled                                  | Product/store read only where possible              | Keep; document token authority and rotation                   |
+| Printify       | Future provider enum; not implemented                            | No current feature                                              | No scopes/credential yet                            | Review before implementation                                  |
+| PostHog        | Project API key                                                  | Yes if analytics enabled                                        | Consent-gated analytics only; no autocapture/ads    | Keep with consent and retention controls                      |
+| Umami          | Public website ID and optional share URL                         | Yes for StageLink Platform analytics if env vars are configured | Platform web analytics; no API token in v1          | Keep scoped to `stagelink.art`; confirm provider evidence     |
+| Resend         | API key for outbound email                                       | Yes if landing contact enabled                                  | Send-only transactional/contact email               | Keep server-only                                              |
+| EmailJS        | public key/service/template ids                                  | Yes if public contact block enabled                             | Browser public identifiers only                     | Keep; do not treat public keys as secrets                     |
+| Upstash Redis  | REST URL/token                                                   | Yes if Behind roles configured                                  | Role/admin metadata only; TTL for counters if added | Keep server-only                                              |
+| S3/R2 storage  | bucket/region/access key/secret                                  | Yes for uploads                                                 | Presigned upload only; scoped object keys           | Keep server-only and lifecycle-reviewed                       |
 
 ## Provider-Specific Findings
 
@@ -139,8 +139,8 @@ Do not send through either provider:
 ### PostHog and Umami
 
 PostHog is active only if env is set and consent is granted for public/browser
-traffic. Umami is active only for Behind the Stage product/admin analytics when
-`NEXT_PUBLIC_UMAMI_BEHIND_WEBSITE_ID` is configured.
+traffic. Umami is active only for StageLink Platform analytics when
+`NEXT_PUBLIC_UMAMI_PLATFORM_WEBSITE_ID` is configured.
 
 Do not enable:
 
@@ -148,7 +148,7 @@ Do not enable:
 - session recording without separate consent/review;
 - advertising retargeting;
 - raw email/user identifiers as analytics distinct IDs.
-- Umami tracking outside `behind.stagelink.art` without a separate product and
+- Umami tracking on Behind or public artist pages without a separate product and
   privacy review.
 
 ## Required Scope Review Triggers
