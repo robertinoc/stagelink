@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { EPK_VISIBLE_LINKS_LIMITS } from '@stagelink/types';
 import { EpkEditorV2 } from '@/features/epk/components/EpkEditorV2';
 import { getArtist } from '@/lib/api/artists';
 import { getArtistAssets } from '@/lib/api/assets';
@@ -41,6 +42,8 @@ export default async function DashboardEpkPage({
     getArtistAssets(artistId, session.accessToken).catch(() => []),
   ]);
 
+  const maxVisibleLinks = EPK_VISIBLE_LINKS_LIMITS[billingSummary.effectivePlan] ?? 3;
+
   return (
     <EpkEditorV2
       artistId={artistId}
@@ -51,6 +54,7 @@ export default async function DashboardEpkPage({
       assets={assets}
       hasMultiLanguageAccess={billingSummary.entitlements.multi_language_pages}
       billingHref={`/${locale}/dashboard/billing`}
+      maxVisibleLinks={maxVisibleLinks}
     />
   );
 }

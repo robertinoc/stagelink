@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { Prisma, type Artist } from '@prisma/client';
 import {
   DEFAULT_LOCALE,
+  EPK_VISIBLE_LINKS_LIMITS,
   type EpkEditorResponse,
   type EpkFeaturedLinkItem,
   type EpkFeaturedMediaItem,
@@ -70,6 +71,12 @@ function mapInheritedArtist(artist: Artist) {
     spotifyUrl: artist.spotifyUrl,
     soundcloudUrl: artist.soundcloudUrl,
     websiteUrl: artist.websiteUrl,
+    appleMusicUrl: artist.appleMusicUrl,
+    amazonMusicUrl: artist.amazonMusicUrl,
+    deezerUrl: artist.deezerUrl,
+    tidalUrl: artist.tidalUrl,
+    beatportUrl: artist.beatportUrl,
+    traxsourceUrl: artist.traxsourceUrl,
     contactEmail: artist.contactEmail,
     category: artist.category,
     secondaryCategories: artist.secondaryCategories,
@@ -123,7 +130,6 @@ export class EpkService {
 
   async getEditorData(artistId: string, userId: string): Promise<EpkEditorResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'read');
-    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'epk_builder');
 
     const artist = await this.prisma.artist.findUnique({ where: { id: artistId } });
     if (!artist) throw new NotFoundException('Artist not found');
@@ -143,7 +149,6 @@ export class EpkService {
     ipAddress?: string,
   ): Promise<EpkEditorResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'write');
-    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'epk_builder');
     const translations = sanitizeEpkTranslations(dto.translations);
     if (hasAdditionalLocaleContent(translations)) {
       await this.billingEntitlementsService.assertFeatureAccess(artistId, 'multi_language_pages');
@@ -159,6 +164,18 @@ export class EpkService {
     const mergedFeaturedLinks = normalizeFeaturedLinks(
       dto.featuredLinks ?? (epk.featuredLinks as unknown as EpkFeaturedLinkItem[]) ?? [],
     );
+
+    // Enforce plan-based visible-link limit
+    if (dto.featuredLinks) {
+      const entitlements = await this.billingEntitlementsService.getArtistEntitlements(artistId);
+      const maxLinks = EPK_VISIBLE_LINKS_LIMITS[entitlements.effectivePlan] ?? 3;
+      if (mergedFeaturedLinks.length > maxLinks) {
+        throw new BadRequestException(
+          `Your plan allows up to ${maxLinks} visible links. You have ${mergedFeaturedLinks.length}.`,
+        );
+      }
+    }
+
     const mergedGalleryImageUrls =
       dto.galleryImageUrls ?? (epk.galleryImageUrls as unknown as string[]) ?? [];
     const readiness = getEpkPublishValidation(
@@ -205,7 +222,6 @@ export class EpkService {
 
   async publish(artistId: string, userId: string, ipAddress?: string): Promise<EpkEditorResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'write');
-    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'epk_builder');
 
     const artist = await this.prisma.artist.findUnique({ where: { id: artistId } });
     if (!artist) throw new NotFoundException('Artist not found');
@@ -215,6 +231,16 @@ export class EpkService {
     const currentFeaturedLinks = normalizeFeaturedLinks(
       epk.featuredLinks as unknown as EpkFeaturedLinkItem[],
     );
+
+    // Enforce plan-based visible-link limit at publish time
+    const entitlements = await this.billingEntitlementsService.getArtistEntitlements(artistId);
+    const maxLinks = EPK_VISIBLE_LINKS_LIMITS[entitlements.effectivePlan] ?? 3;
+    if (currentFeaturedLinks.length > maxLinks) {
+      throw new BadRequestException(
+        `Your plan allows up to ${maxLinks} visible links. You have ${currentFeaturedLinks.length}.`,
+      );
+    }
+
     const currentGalleryImageUrls = epk.galleryImageUrls as unknown as string[];
     const readiness = getEpkPublishValidation(
       {
@@ -283,7 +309,6 @@ export class EpkService {
     ipAddress?: string,
   ): Promise<EpkEditorResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'write');
-    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'epk_builder');
 
     const artist = await this.prisma.artist.findUnique({ where: { id: artistId } });
     if (!artist) throw new NotFoundException('Artist not found');
@@ -315,7 +340,6 @@ export class EpkService {
     userId: string,
   ): Promise<EpkGenerateBioResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'read');
-    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'epk_builder');
 
     const artist = await this.prisma.artist.findUnique({
       where: { id: artistId },

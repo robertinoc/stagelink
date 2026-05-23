@@ -599,9 +599,7 @@ export class PublicPagesService {
         ? ('none' as const)
         : ('free_branding' as const),
     };
-    const publicEpkAvailable =
-      hasFeature(entitlements.effectivePlan, 'epk_builder') &&
-      page.artist.epk?.isPublished === true;
+    const publicEpkAvailable = page.artist.epk?.isPublished === true;
 
     const epkTranslations = (page.artist.epk?.translations as EpkTranslations | null) ?? {};
     const epkRiderInfo = publicEpkAvailable

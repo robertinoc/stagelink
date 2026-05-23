@@ -8,7 +8,6 @@ import {
   type SupportedLocale,
 } from '@stagelink/types';
 import { PrismaService } from '../../lib/prisma.service';
-import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
 import type { PublicEpkResponseDto } from './dto/public-epk-response.dto';
 import { buildFallbackFeaturedLinks, normalizeFeaturedLinks } from '../epk/epk.helpers';
@@ -23,7 +22,6 @@ export class PublicEpkService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenantResolver: TenantResolverService,
-    private readonly billingEntitlementsService: BillingEntitlementsService,
   ) {}
 
   async getPublishedByUsername(
@@ -32,12 +30,6 @@ export class PublicEpkService {
   ): Promise<PublicEpkResponseDto> {
     const tenant = await this.tenantResolver.resolveByUsername(username);
     if (!tenant) throw new NotFoundException('Artist not found');
-
-    const hasFeature = await this.billingEntitlementsService.hasFeatureAccess(
-      tenant.artistId,
-      'epk_builder',
-    );
-    if (!hasFeature) throw new NotFoundException('EPK not found');
 
     const epk = await this.prisma.epk.findUnique({
       where: { artistId: tenant.artistId },
@@ -79,6 +71,12 @@ export class PublicEpkService {
             youtubeUrl: true,
             spotifyUrl: true,
             soundcloudUrl: true,
+            appleMusicUrl: true,
+            amazonMusicUrl: true,
+            deezerUrl: true,
+            tidalUrl: true,
+            beatportUrl: true,
+            traxsourceUrl: true,
             recordLabels: true,
             epsReleasedCount: true,
             externalCollabsCount: true,
@@ -162,6 +160,12 @@ export class PublicEpkService {
         youtubeUrl: artist.youtubeUrl,
         spotifyUrl: artist.spotifyUrl,
         soundcloudUrl: artist.soundcloudUrl,
+        appleMusicUrl: artist.appleMusicUrl,
+        amazonMusicUrl: artist.amazonMusicUrl,
+        deezerUrl: artist.deezerUrl,
+        tidalUrl: artist.tidalUrl,
+        beatportUrl: artist.beatportUrl,
+        traxsourceUrl: artist.traxsourceUrl,
       },
       headline: resolveDocumentText(
         epk.headline,

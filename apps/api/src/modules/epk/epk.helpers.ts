@@ -13,6 +13,12 @@ interface ArtistLinkSource {
   spotifyUrl: string | null;
   soundcloudUrl: string | null;
   websiteUrl: string | null;
+  appleMusicUrl: string | null;
+  amazonMusicUrl: string | null;
+  deezerUrl: string | null;
+  tidalUrl: string | null;
+  beatportUrl: string | null;
+  traxsourceUrl: string | null;
 }
 
 interface EpkPublishSnapshotInput {
@@ -54,12 +60,26 @@ export function normalizeFeaturedLinks(items: EpkFeaturedLinkItem[]): EpkFeature
 
 export function buildFallbackFeaturedLinks(artist: ArtistLinkSource): EpkFeaturedLinkItem[] {
   const entries = [
-    artist.websiteUrl && { id: 'website', label: 'Website', url: artist.websiteUrl },
+    artist.spotifyUrl && { id: 'spotify', label: 'Spotify', url: artist.spotifyUrl },
+    artist.appleMusicUrl && {
+      id: 'apple-music',
+      label: 'Apple Music',
+      url: artist.appleMusicUrl,
+    },
+    artist.youtubeUrl && { id: 'youtube', label: 'YouTube', url: artist.youtubeUrl },
+    artist.soundcloudUrl && { id: 'soundcloud', label: 'SoundCloud', url: artist.soundcloudUrl },
     artist.instagramUrl && { id: 'instagram', label: 'Instagram', url: artist.instagramUrl },
     artist.tiktokUrl && { id: 'tiktok', label: 'TikTok', url: artist.tiktokUrl },
-    artist.youtubeUrl && { id: 'youtube', label: 'YouTube', url: artist.youtubeUrl },
-    artist.spotifyUrl && { id: 'spotify', label: 'Spotify', url: artist.spotifyUrl },
-    artist.soundcloudUrl && { id: 'soundcloud', label: 'SoundCloud', url: artist.soundcloudUrl },
+    artist.amazonMusicUrl && {
+      id: 'amazon-music',
+      label: 'Amazon Music',
+      url: artist.amazonMusicUrl,
+    },
+    artist.deezerUrl && { id: 'deezer', label: 'Deezer', url: artist.deezerUrl },
+    artist.tidalUrl && { id: 'tidal', label: 'Tidal', url: artist.tidalUrl },
+    artist.beatportUrl && { id: 'beatport', label: 'Beatport', url: artist.beatportUrl },
+    artist.traxsourceUrl && { id: 'traxsource', label: 'Traxsource', url: artist.traxsourceUrl },
+    artist.websiteUrl && { id: 'website', label: 'Website', url: artist.websiteUrl },
   ];
 
   return entries.filter((item): item is EpkFeaturedLinkItem => Boolean(item));
@@ -94,6 +114,12 @@ export function buildPublishedEpkSnapshot(
     | 'spotifyUrl'
     | 'soundcloudUrl'
     | 'websiteUrl'
+    | 'appleMusicUrl'
+    | 'amazonMusicUrl'
+    | 'deezerUrl'
+    | 'tidalUrl'
+    | 'beatportUrl'
+    | 'traxsourceUrl'
   >,
 ) {
   const shortBio = trimNullable(epk.shortBio) ?? trimNullable(artist.bio);

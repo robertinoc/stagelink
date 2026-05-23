@@ -51,6 +51,7 @@ interface EpkEditorV2Props {
   assets: AssetDto[];
   hasMultiLanguageAccess: boolean;
   billingHref: string;
+  maxVisibleLinks: number;
 }
 
 // ── Helpers (same as EpkEditor.tsx) ──────────────────────────────────────────
@@ -134,6 +135,7 @@ export function EpkEditorV2({
   assets: _assets,
   hasMultiLanguageAccess,
   billingHref,
+  maxVisibleLinks,
 }: EpkEditorV2Props) {
   void _assets;
 
@@ -213,11 +215,17 @@ export function EpkEditorV2({
 
   const profileLinkShortcuts = [
     inherited.spotifyUrl && { label: 'Spotify', url: inherited.spotifyUrl },
+    inherited.appleMusicUrl && { label: 'Apple Music', url: inherited.appleMusicUrl },
     inherited.youtubeUrl && { label: 'YouTube', url: inherited.youtubeUrl },
     inherited.soundcloudUrl && { label: 'SoundCloud', url: inherited.soundcloudUrl },
-    inherited.websiteUrl && { label: 'Website', url: inherited.websiteUrl },
     inherited.instagramUrl && { label: 'Instagram', url: inherited.instagramUrl },
     inherited.tiktokUrl && { label: 'TikTok', url: inherited.tiktokUrl },
+    inherited.amazonMusicUrl && { label: 'Amazon Music', url: inherited.amazonMusicUrl },
+    inherited.deezerUrl && { label: 'Deezer', url: inherited.deezerUrl },
+    inherited.tidalUrl && { label: 'Tidal', url: inherited.tidalUrl },
+    inherited.beatportUrl && { label: 'Beatport', url: inherited.beatportUrl },
+    inherited.traxsourceUrl && { label: 'Traxsource', url: inherited.traxsourceUrl },
+    inherited.websiteUrl && { label: 'Website', url: inherited.websiteUrl },
   ].filter((item): item is { label: string; url: string } => Boolean(item));
 
   const profileAndSmartLinks = useMemo(
@@ -551,6 +559,7 @@ export function EpkEditorV2({
             artistId={artistId}
             inherited={inherited}
             profileAndSmartLinks={profileAndSmartLinks}
+            maxVisibleLinks={maxVisibleLinks}
           />
         </>
       )}

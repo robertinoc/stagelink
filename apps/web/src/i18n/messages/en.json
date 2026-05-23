@@ -988,6 +988,10 @@
           "colPlatform": "Platform · URL",
           "colVisibility": "Visibility"
         },
+        "linkLimit": {
+          "reached": "You've reached the limit of {max} visible links for your plan",
+          "upgrade": "Upgrade to show more links"
+        },
         "bookingTab": {
           "riderTitle": "Booking info & rider",
           "riderHint": "The three sections a promoter looks at first: logistics, artist requirements and technical setup. Keep them clear and separate.",

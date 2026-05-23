@@ -951,22 +951,22 @@
           "contactsTitle": "Contactos y datos prácticos",
           "contactsHint": "Estos campos son públicos. Agregá al menos un contacto antes de publicar. Mostrá solo lo que querés que vean bookers y prensa.",
           "bookingEmail": "Booking email",
-          "managementContact": "Management contact",
-          "pressContact": "Press contact",
-          "location": "Location / base",
+          "managementContact": "Contacto de management",
+          "pressContact": "Contacto de prensa",
+          "location": "Ubicación / base",
           "contactPlaceholder": "Nombre / email / teléfono",
           "locationPlaceholder": "Buenos Aires, AR",
-          "bioTitle": "Bio & headline",
-          "bioHint": "La bio corta y el headline aparecen arriba de tu EPK",
-          "artistName": "Artist name",
+          "bioTitle": "Bio & titular",
+          "bioHint": "La bio corta y el titular aparecen arriba de tu EPK",
+          "artistName": "Nombre artístico",
           "artistNameNote": "Se gestiona desde tu perfil de artista.",
-          "headline": "Headline",
+          "headline": "Titular",
           "headlinePlaceholder": "Género, posicionamiento, contexto clave…",
-          "shortBio": "Short bio",
+          "shortBio": "Bio corta",
           "shortBioPlaceholder": "Resumen corto del artista",
-          "fullBio": "Full bio",
+          "fullBio": "Bio completa",
           "fullBioNote": "La bio completa se gestiona en tu <link>Perfil</link>. Editala ahí y se actualiza acá automáticamente.",
-          "pressQuote": "Press quote",
+          "pressQuote": "Cita de prensa",
           "pressQuotePlaceholder": "Cita opcional de un medio, curador o promotor"
         },
         "mediaTab": {
@@ -987,6 +987,10 @@
           "emptyLinks": "Sin links en tu Perfil todavía. Agregalos primero desde Profile.",
           "colPlatform": "Plataforma · URL",
           "colVisibility": "Visibilidad"
+        },
+        "linkLimit": {
+          "reached": "Alcanzaste el límite de {max} links visibles para tu plan",
+          "upgrade": "Mejorá tu plan para mostrar más links"
         },
         "bookingTab": {
           "riderTitle": "Booking info & rider",

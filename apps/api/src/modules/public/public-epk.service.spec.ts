@@ -13,24 +13,15 @@ describe('PublicEpkService', () => {
       resolveByUsername: jest.fn(),
     };
 
-    const billingEntitlementsService = {
-      hasFeatureAccess: jest.fn(),
-    };
+    const service = new PublicEpkService(prisma as never, tenantResolver as never);
 
-    const service = new PublicEpkService(
-      prisma as never,
-      tenantResolver as never,
-      billingEntitlementsService as never,
-    );
-
-    return { service, prisma, tenantResolver, billingEntitlementsService };
+    return { service, prisma, tenantResolver };
   }
 
   it('uses artist bio translations as effective short bio when epk short bio is empty', async () => {
-    const { service, prisma, tenantResolver, billingEntitlementsService } = createService();
+    const { service, prisma, tenantResolver } = createService();
 
     tenantResolver.resolveByUsername.mockResolvedValue({ artistId: 'artist_123' });
-    billingEntitlementsService.hasFeatureAccess.mockResolvedValue(true);
     prisma.epk.findUnique.mockResolvedValue({
       id: 'epk_123',
       isPublished: true,
@@ -61,6 +52,7 @@ describe('PublicEpkService', () => {
         username: 'robertinoc',
         displayName: 'Robertino',
         bio: 'Bio base en espanol',
+        fullBio: null,
         baseLocale: 'es',
         translations: {
           bio: {
@@ -78,6 +70,15 @@ describe('PublicEpkService', () => {
         youtubeUrl: null,
         spotifyUrl: null,
         soundcloudUrl: null,
+        appleMusicUrl: null,
+        amazonMusicUrl: null,
+        deezerUrl: null,
+        tidalUrl: null,
+        beatportUrl: null,
+        traxsourceUrl: null,
+        recordLabels: [],
+        epsReleasedCount: null,
+        externalCollabsCount: null,
       },
     });
 
@@ -87,13 +88,12 @@ describe('PublicEpkService', () => {
     expect(result.contentLocale).toBe('en');
   });
 
-  it('returns not found when epk_builder is not available for the artist', async () => {
-    const { service, tenantResolver, billingEntitlementsService } = createService();
+  it('returns not found when artist does not exist', async () => {
+    const { service, tenantResolver } = createService();
 
-    tenantResolver.resolveByUsername.mockResolvedValue({ artistId: 'artist_123' });
-    billingEntitlementsService.hasFeatureAccess.mockResolvedValue(false);
+    tenantResolver.resolveByUsername.mockResolvedValue(null);
 
-    await expect(service.getPublishedByUsername('robertinoc', 'en')).rejects.toBeInstanceOf(
+    await expect(service.getPublishedByUsername('unknown', 'en')).rejects.toBeInstanceOf(
       NotFoundException,
     );
   });
