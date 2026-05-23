@@ -26,8 +26,6 @@ export function BehindNav() {
             <Link
               key={item.href}
               href={item.href}
-              data-umami-event="behind_nav_clicked"
-              data-umami-event-section={item.section}
               className={cn(
                 'whitespace-nowrap rounded-lg border px-3 py-2 text-sm font-semibold transition-colors font-[family-name:var(--font-heading)] lg:w-full',
                 active

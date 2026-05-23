@@ -151,11 +151,12 @@ Fix:
 
 ## Low Risks
 
-### L1 - Umami is active only for Behind when configured
+### L1 - Umami is active only for StageLink Platform when configured
 
-This is manageable as long as Umami remains scoped to `behind.stagelink.art`,
-event properties exclude PII and artist-specific performance data, and public
-policy wording does not imply Umami tracks artist/fan traffic.
+This is manageable as long as Umami remains scoped to `stagelink.art`, analytics
+consent gates browser script loading, event properties exclude PII and
+artist-specific performance data, and Behind stays a viewer rather than a
+tracked product surface.
 
 ### L2 - Printify exists as a future enum/provider
 
