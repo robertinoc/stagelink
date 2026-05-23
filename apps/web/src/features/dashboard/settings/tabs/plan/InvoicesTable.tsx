@@ -1,5 +1,4 @@
 import { Bento } from '@/components/sl/Bento';
-import { Btn } from '@/components/sl/Btn';
 import { Pill } from '@/components/sl/SlPrimitives';
 import { SubHead } from '@/components/sl/SubHead';
 import type { SettingsInvoice } from '@/features/dashboard/settings/settings-data';
@@ -8,7 +7,6 @@ interface InvoicesTableProps {
   invoices: SettingsInvoice[];
   title: string;
   hint: string;
-  portalCta: string;
   emptyMessage: string;
   paidLabel: string;
   pendingLabel: string;
@@ -16,21 +14,21 @@ interface InvoicesTableProps {
   statusHeader: string;
   amountHeader: string;
   pdfHeader: string;
+  /** Portal CTA rendered in the header; pass undefined to hide (no Stripe customer). */
   portalAction?: React.ReactNode;
   pdfAriaLabel: string;
 }
 
 /**
  * Invoices table for the Plan tab. The data source (`data.invoices`)
- * starts empty — the table renders the empty state + portal CTA so users
- * can hit the source of truth in Stripe. Wiring real Stripe invoice
- * listings to populate the table is a follow-up.
+ * starts empty — the table renders the empty state + (when a Stripe
+ * customer exists) a portal CTA so users can hit the source of truth in
+ * Stripe. Wiring real Stripe invoice listings is a follow-up.
  */
 export function InvoicesTable({
   invoices,
   title,
   hint,
-  portalCta,
   emptyMessage,
   paidLabel,
   pendingLabel,
@@ -44,11 +42,7 @@ export function InvoicesTable({
   return (
     <Bento pad={0}>
       <div className="px-6 pb-4 pt-5">
-        <SubHead
-          title={title}
-          hint={hint}
-          right={portalAction ?? <Btn variant="outline">{portalCta}</Btn>}
-        />
+        <SubHead title={title} hint={hint} right={portalAction} />
       </div>
       <div className="grid grid-cols-[1fr_auto_auto_auto] gap-3 border-t border-white/10 px-6 pb-2.5 pt-2 font-[family-name:var(--font-heading)] text-[10px] font-bold uppercase tracking-[1.2px] text-white/30">
         <span>{dateHeader}</span>

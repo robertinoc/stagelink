@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import type { StageLinkInsightsConnection, StageLinkInsightsDashboard } from '@stagelink/types';
 import type { DashboardSettingsData } from '@/features/dashboard/settings/settings-data';
 import { ConnectionCard, type ConnectionCardCopy } from './connections/ConnectionCard';
 import { SoundCloudCard } from './connections/SoundCloudCard';
@@ -23,16 +24,23 @@ export function ConnectionsTab({ data, locale }: ConnectionsTabProps) {
     open_in_platform: t('connected_panel.open'),
     view_analytics: t('connected_panel.analytics'),
     disconnect: t('connected_panel.disconnect'),
+    disconnecting: t('connected_panel.disconnecting'),
+    disconnect_confirm: t('connected_panel.disconnect_confirm'),
     validate: t('actions.validate'),
+    connect: t('actions.connect'),
     update_connection: t('actions.update'),
     validating: t('actions.validating'),
+    saving: t('actions.saving'),
     syncing: t('actions.syncing'),
-    validate_success: t('actions.validate_success'),
+    sync: t('actions.sync'),
     validate_error: t('actions.validate_error'),
+    save_error: t('actions.save_error'),
+    sync_error: t('actions.sync_error'),
   };
 
-  const spotifyState = extractInsightsState(data, 'spotify');
-  const youtubeState = extractInsightsState(data, 'youtube');
+  const dashboard = resolveDashboard(data);
+  const spotifyConn = findConnection(dashboard, 'spotify');
+  const youtubeConn = findConnection(dashboard, 'youtube');
 
   return (
     <div className="space-y-5">
@@ -56,12 +64,10 @@ export function ConnectionsTab({ data, locale }: ConnectionsTabProps) {
         inputLabel={t('spotify.input_label')}
         inputHint={t('spotify.input_hint')}
         placeholder="https://open.spotify.com/artist/..."
-        tier={spotifyState.connected ? { label: t('spotify.tier') } : null}
+        tier={spotifyConn?.status === 'connected' ? { label: t('spotify.tier') } : null}
         tip={t('spotify.tip')}
-        connected={spotifyState.connected}
-        connectionUrl={spotifyState.url}
-        lastSync={spotifyState.lastSync}
-        externalUrl={spotifyState.url}
+        connection={spotifyConn}
+        artistSavedUrl={readArtistUrl(data, 'spotifyUrl')}
         locale={locale}
         copy={copy}
       />
@@ -77,12 +83,10 @@ export function ConnectionsTab({ data, locale }: ConnectionsTabProps) {
         inputLabel={t('youtube.input_label')}
         inputHint={t('youtube.input_hint')}
         placeholder="https://youtube.com/@..."
-        tier={youtubeState.connected ? { label: t('youtube.tier') } : null}
+        tier={youtubeConn?.status === 'connected' ? { label: t('youtube.tier') } : null}
         tip={t('youtube.tip')}
-        connected={youtubeState.connected}
-        connectionUrl={youtubeState.url}
-        lastSync={youtubeState.lastSync}
-        externalUrl={youtubeState.url}
+        connection={youtubeConn}
+        artistSavedUrl={readArtistUrl(data, 'youtubeUrl')}
         locale={locale}
         copy={copy}
       />
@@ -98,42 +102,27 @@ export function ConnectionsTab({ data, locale }: ConnectionsTabProps) {
   );
 }
 
-function extractInsightsState(
-  data: DashboardSettingsData,
+function resolveDashboard(data: DashboardSettingsData): StageLinkInsightsDashboard | null {
+  const res = data.insightsResult;
+  if (res && 'kind' in res && res.kind === 'ok') {
+    return res.data;
+  }
+  return null;
+}
+
+function findConnection(
+  dashboard: StageLinkInsightsDashboard | null,
   platform: 'spotify' | 'youtube',
-): { connected: boolean; url: string | null; lastSync: string | null } {
-  const insights =
-    data.insightsResult && 'kind' in data.insightsResult ? data.insightsResult : null;
-  if (!insights || insights.kind === 'error') {
-    return { connected: false, url: null, lastSync: null };
-  }
-  const record = (insights as unknown as Record<string, unknown>)[platform];
-  if (!record || typeof record !== 'object') {
-    return { connected: false, url: null, lastSync: null };
-  }
-  const r = record as Record<string, unknown>;
-  const status = typeof r['status'] === 'string' ? (r['status'] as string) : '';
-  const connected = status === 'connected' || status === 'ok';
-  const url =
-    typeof r['profileUrl'] === 'string'
-      ? (r['profileUrl'] as string)
-      : typeof r['url'] === 'string'
-        ? (r['url'] as string)
-        : typeof r['channelUrl'] === 'string'
-          ? (r['channelUrl'] as string)
-          : null;
-  const lastSyncRaw =
-    typeof r['lastSyncAt'] === 'string'
-      ? (r['lastSyncAt'] as string)
-      : typeof r['lastSync'] === 'string'
-        ? (r['lastSync'] as string)
-        : null;
-  let lastSync: string | null = null;
-  if (lastSyncRaw) {
-    const date = new Date(lastSyncRaw);
-    if (!Number.isNaN(date.getTime())) {
-      lastSync = date.toLocaleString();
-    }
-  }
-  return { connected, url, lastSync };
+): StageLinkInsightsConnection | null {
+  if (!dashboard) return null;
+  return dashboard.platforms.find((p) => p.platform === platform)?.connection ?? null;
+}
+
+function readArtistUrl(
+  data: DashboardSettingsData,
+  key: 'spotifyUrl' | 'youtubeUrl',
+): string | null {
+  const artist = data.artist as unknown as Record<string, unknown> | null;
+  const value = artist?.[key];
+  return typeof value === 'string' && value.length > 0 ? value : null;
 }
