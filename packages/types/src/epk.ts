@@ -132,6 +132,12 @@ export interface EpkInheritedArtistSnapshot {
   spotifyUrl: string | null;
   soundcloudUrl: string | null;
   websiteUrl: string | null;
+  appleMusicUrl: string | null;
+  amazonMusicUrl: string | null;
+  deezerUrl: string | null;
+  tidalUrl: string | null;
+  beatportUrl: string | null;
+  traxsourceUrl: string | null;
   contactEmail: string | null;
   category: string;
   secondaryCategories: string[];
@@ -161,6 +167,12 @@ export interface PublicEpkArtist {
   youtubeUrl: string | null;
   spotifyUrl: string | null;
   soundcloudUrl: string | null;
+  appleMusicUrl: string | null;
+  amazonMusicUrl: string | null;
+  deezerUrl: string | null;
+  tidalUrl: string | null;
+  beatportUrl: string | null;
+  traxsourceUrl: string | null;
 }
 
 export interface PublicEpkResponse {
@@ -193,6 +205,17 @@ export interface PublicEpkResponse {
   locale?: SupportedLocale;
   contentLocale?: SupportedLocale;
 }
+
+// ---------------------------------------------------------------------------
+// EPK visible-link limits per billing plan
+// ---------------------------------------------------------------------------
+
+/** Maximum number of links a user can mark as visible in their EPK, by plan. */
+export const EPK_VISIBLE_LINKS_LIMITS: Record<string, number> = {
+  free: 3,
+  pro: 6,
+  pro_plus: 1000,
+};
 
 // ---------------------------------------------------------------------------
 // AI Bio Generation

@@ -37,6 +37,7 @@ interface EpkMediaTabProps {
   artistId: string;
   inherited: EpkInheritedArtistSnapshot;
   profileAndSmartLinks: { label: string; url: string }[];
+  maxVisibleLinks: number;
 }
 
 export function EpkMediaTab({
@@ -45,6 +46,7 @@ export function EpkMediaTab({
   artistId,
   inherited,
   profileAndSmartLinks,
+  maxVisibleLinks,
 }: EpkMediaTabProps) {
   const t = useTranslations('dashboard.epk.editor');
   const { watch, setValue, getValues } = form;
@@ -57,6 +59,7 @@ export function EpkMediaTab({
     url: string;
     provider: EpkFeaturedMediaItem['provider'];
   } | null>(null);
+  const [linkLimitHit, setLinkLimitHit] = useState(false);
 
   function setExtraGalleryImages(urls: string[]) {
     const systemSlots = watchedGallery.slice(0, 2);
@@ -84,12 +87,18 @@ export function EpkMediaTab({
     const current = watchedFeaturedLinks;
     const exists = current.some((item: EpkFeaturedLinkItem) => item.url === link.url);
     if (exists) {
+      setLinkLimitHit(false);
       setValue(
         'featuredLinks',
         current.filter((item: EpkFeaturedLinkItem) => item.url !== link.url),
         { shouldDirty: true },
       );
     } else {
+      if (current.length >= maxVisibleLinks) {
+        setLinkLimitHit(true);
+        return;
+      }
+      setLinkLimitHit(false);
       setValue(
         'featuredLinks',
         [...current, { id: crypto.randomUUID(), label: link.label, url: link.url }],
@@ -259,11 +268,29 @@ export function EpkMediaTab({
             hint={t('mediaTab.linksHint')}
             right={
               <Chip>
-                {watchedFeaturedLinks.length}/{profileAndSmartLinks.length}
+                {watchedFeaturedLinks.length}/{maxVisibleLinks}
               </Chip>
             }
           />
         </div>
+
+        {linkLimitHit && (
+          <div
+            style={{
+              padding: '10px 24px',
+              fontSize: 12,
+              color: '#FBBF24',
+              background: 'rgba(251,191,36,0.08)',
+              borderTop: '1px solid rgba(251,191,36,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <span>⚠️</span>
+            <span>{t('linkLimit.reached', { max: maxVisibleLinks })}</span>
+          </div>
+        )}
 
         {profileAndSmartLinks.length === 0 ? (
           <div
@@ -304,6 +331,7 @@ export function EpkMediaTab({
               const visible = watchedFeaturedLinks.some(
                 (item: EpkFeaturedLinkItem) => item.url === link.url,
               );
+              const atLimit = !visible && watchedFeaturedLinks.length >= maxVisibleLinks;
               return (
                 <EpkLinkRow
                   key={link.url}
@@ -311,6 +339,7 @@ export function EpkMediaTab({
                   url={link.url}
                   visible={visible}
                   locked={disabled}
+                  atLimit={atLimit}
                   last={i === profileAndSmartLinks.length - 1}
                   onToggle={() => toggleLink(link)}
                 />

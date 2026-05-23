@@ -177,10 +177,7 @@ export async function DashboardWelcome({ artist, billingSummary }: DashboardWelc
             title={t('actions.epk_title')}
             body={t('actions.epk_body')}
             cta={t('actions.epk_cta')}
-            href={
-              entitlements.epk_builder ? `/${locale}/dashboard/epk` : `/${locale}/dashboard/billing`
-            }
-            locked={!entitlements.epk_builder}
+            href={`/${locale}/dashboard/epk`}
           />
         </div>
       </div>

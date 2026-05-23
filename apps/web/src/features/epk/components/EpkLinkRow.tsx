@@ -11,6 +11,8 @@ interface EpkLinkRowProps {
   url: string;
   visible: boolean;
   locked: boolean;
+  /** Toggle is visually disabled because the plan limit has been reached */
+  atLimit?: boolean;
   last?: boolean;
   onToggle: () => void;
 }
@@ -29,6 +31,11 @@ const BRAND_COLORS: Record<string, string> = {
   Bandcamp: '#629aa9',
   Twitter: '#1DA1F2',
   X: '#000000',
+  Amazon: '#FF9900',
+  AmazonMusic: '#25D1DA',
+  Deezer: '#A238FF',
+  Tidal: '#000000',
+  Traxsource: '#95C623',
 };
 
 function brandColor(label: string): string {
@@ -38,7 +45,15 @@ function brandColor(label: string): string {
   return '#E040FB';
 }
 
-export function EpkLinkRow({ label, url, visible, locked, last, onToggle }: EpkLinkRowProps) {
+export function EpkLinkRow({
+  label,
+  url,
+  visible,
+  locked,
+  atLimit,
+  last,
+  onToggle,
+}: EpkLinkRowProps) {
   const t = useTranslations('dashboard.epk.editor');
   const color = brandColor(label);
 
@@ -105,6 +120,7 @@ export function EpkLinkRow({ label, url, visible, locked, last, onToggle }: EpkL
         <button
           type="button"
           onClick={onToggle}
+          disabled={atLimit}
           aria-pressed={visible}
           style={{
             width: 38,
@@ -114,11 +130,12 @@ export function EpkLinkRow({ label, url, visible, locked, last, onToggle }: EpkL
               ? 'linear-gradient(135deg,#E040FB 0%,#9B30D0 45%,#4A1A8C 100%)'
               : 'rgba(255,255,255,0.1)',
             border: 'none',
-            cursor: 'pointer',
+            cursor: atLimit ? 'not-allowed' : 'pointer',
             position: 'relative',
             padding: 0,
+            opacity: atLimit ? 0.4 : 1,
             boxShadow: visible ? '0 0 12px rgba(224,64,251,0.4)' : 'none',
-            transition: 'background 0.15s',
+            transition: 'background 0.15s, opacity 0.15s',
             flexShrink: 0,
           }}
         >

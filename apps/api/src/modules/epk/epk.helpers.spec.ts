@@ -43,6 +43,12 @@ describe('epk.helpers', () => {
         spotifyUrl: 'https://spotify.com/a',
         soundcloudUrl: 'https://soundcloud.com/a',
         websiteUrl: 'https://example.com',
+        appleMusicUrl: null,
+        amazonMusicUrl: null,
+        deezerUrl: null,
+        tidalUrl: null,
+        beatportUrl: null,
+        traxsourceUrl: null,
       },
     );
 

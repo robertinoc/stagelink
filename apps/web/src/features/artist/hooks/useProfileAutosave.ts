@@ -116,7 +116,8 @@ export function useProfileAutosave({
 
   const doSave = useCallback(
     async (values: ProfileFormValues) => {
-      if (!form.formState.isValid) return;
+      const valid = await form.trigger();
+      if (!valid) return;
       setSaveStatus('saving');
       try {
         const payload = buildPayload(values);
