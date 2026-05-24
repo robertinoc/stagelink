@@ -22,7 +22,7 @@ function renderMarkdown(text: string): string {
   let inList = false;
 
   for (const raw of lines) {
-    let line = raw;
+    const line = raw;
     // heading
     if (line.startsWith('# ')) {
       if (inList) {

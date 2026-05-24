@@ -91,6 +91,42 @@ jobs:
       - name: Typecheck all packages
         run: pnpm typecheck
 
+  # ── 1b. ESLint (web) ──────────────────────────────────────────────────────
+  lint:
+    name: ESLint (web)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Restore node_modules cache
+        id: nm-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            apps/web/node_modules
+          key: nm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        if: steps.nm-cache.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
+
+      # Fails on errors only; pre-existing warnings are tracked tech debt.
+      - name: Lint web app
+        run: pnpm --filter @stagelink/web lint
+
   # ── 2. API unit tests (NestJS / Jest) ─────────────────────────────────────
   api-tests:
     name: API unit tests
@@ -345,7 +381,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [typecheck, api-tests, web-tests, api-integration-tests]
+    needs: [typecheck, lint, api-tests, web-tests, api-integration-tests]
     env:
       # Placeholders para build time — no son secrets reales
       WORKOS_API_KEY: placeholder
