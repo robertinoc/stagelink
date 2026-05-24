@@ -6,7 +6,8 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: 'StageLink',
     description:
       'A modern artist landing page and link-in-bio platform for musicians, DJs, producers, and creators.',
-    start_url: '/',
+    id: '/',
+    start_url: '/login',
     scope: '/',
     display: 'standalone',
     background_color: '#0b0b0f',
