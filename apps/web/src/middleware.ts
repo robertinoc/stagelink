@@ -88,6 +88,15 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Localized app entrypoints. The PWA manifest starts at /login so installed
+  // app launches land on auth first; /{locale}/login then redirects active
+  // sessions to dashboard and shows login only when the session is absent.
+  if (segments.length === 1 && ['login', 'signup', 'install'].includes(segments[0]!)) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${locale}/${segments[0]!}`;
+    return NextResponse.redirect(url, 302);
+  }
+
   // Rule 1: block direct access to the internal rewrite target for artist pages,
   // but allow explicit public subroutes like /p/{username}/epk and /print.
   if (
