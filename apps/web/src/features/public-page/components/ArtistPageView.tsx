@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
-import { Download, FileText, Globe, Instagram, Mail, Sparkles } from 'lucide-react';
+import { Download, FileText, Globe, Mail, Sparkles } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type {
   MusicEmbedBlockConfig,
@@ -24,6 +24,7 @@ import {
   TidalIcon,
   BeatportIcon,
   TraxsourceIcon,
+  InstagramIcon,
 } from './SocialPlatformIcons';
 
 interface ArtistPageViewProps {
@@ -51,7 +52,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       label: t('social.instagram'),
       key: 'instagram',
       color: '#E1306C',
-      Icon: Instagram as IconComponent,
+      Icon: InstagramIcon as IconComponent,
     },
     artist.tiktokUrl && {
       href: artist.tiktokUrl,
