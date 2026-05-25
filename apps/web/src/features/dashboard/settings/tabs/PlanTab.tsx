@@ -39,6 +39,12 @@ export function PlanTab({ data, locale }: PlanTabProps) {
 
   const planLabel = resolvePlanLabel(data.summary.effectivePlan);
   const nextBilling = formatNextBilling(data.summary.currentPeriodEnd, locale);
+  // The Stripe Customer Portal only exists once the artist has a Stripe
+  // customer (i.e. has gone through checkout at least once). Gating the
+  // portal buttons on this flag prevents the "no pudimos abrir el portal"
+  // error for Free / never-subscribed artists — matching the old
+  // PlansBillingSection behaviour.
+  const portalAvailable = data.summary.portalAvailable;
 
   const tiers: TierCardData[] = [
     {
@@ -96,20 +102,24 @@ export function PlanTab({ data, locale }: PlanTabProps) {
                   {t('hero.cta_change_plan')}
                 </Btn>
               </form>
-              <form action={startPortalAction}>
-                <input type="hidden" name="artistId" value={data.artistId} />
-                <input type="hidden" name="locale" value={locale} />
-                <Btn variant="ghost" type="submit">
-                  {t('hero.cta_portal')}
-                </Btn>
-              </form>
-              <form action={startPortalAction}>
-                <input type="hidden" name="artistId" value={data.artistId} />
-                <input type="hidden" name="locale" value={locale} />
-                <Btn variant="ghost" type="submit">
-                  {t('hero.cta_invoices')}
-                </Btn>
-              </form>
+              {portalAvailable && (
+                <>
+                  <form action={startPortalAction}>
+                    <input type="hidden" name="artistId" value={data.artistId} />
+                    <input type="hidden" name="locale" value={locale} />
+                    <Btn variant="ghost" type="submit">
+                      {t('hero.cta_portal')}
+                    </Btn>
+                  </form>
+                  <form action={startPortalAction}>
+                    <input type="hidden" name="artistId" value={data.artistId} />
+                    <input type="hidden" name="locale" value={locale} />
+                    <Btn variant="ghost" type="submit">
+                      {t('hero.cta_invoices')}
+                    </Btn>
+                  </form>
+                </>
+              )}
             </div>
           </div>
 
@@ -162,7 +172,6 @@ export function PlanTab({ data, locale }: PlanTabProps) {
         invoices={data.invoices}
         title={ti('title')}
         hint={ti('hint')}
-        portalCta={ti('portal_cta')}
         emptyMessage={ti('empty')}
         paidLabel={ti('paid')}
         pendingLabel={ti('pending')}
@@ -172,13 +181,15 @@ export function PlanTab({ data, locale }: PlanTabProps) {
         pdfHeader={ti('headers.pdf')}
         pdfAriaLabel={ti('pdf_aria')}
         portalAction={
-          <form action={startPortalAction}>
-            <input type="hidden" name="artistId" value={data.artistId} />
-            <input type="hidden" name="locale" value={locale} />
-            <Btn variant="outline" type="submit">
-              {ti('portal_cta')}
-            </Btn>
-          </form>
+          portalAvailable ? (
+            <form action={startPortalAction}>
+              <input type="hidden" name="artistId" value={data.artistId} />
+              <input type="hidden" name="locale" value={locale} />
+              <Btn variant="outline" type="submit">
+                {ti('portal_cta')}
+              </Btn>
+            </form>
+          ) : undefined
         }
       />
 
@@ -197,13 +208,15 @@ export function PlanTab({ data, locale }: PlanTabProps) {
           </form>
         }
         cancelCta={
-          <form action={startPortalAction}>
-            <input type="hidden" name="artistId" value={data.artistId} />
-            <input type="hidden" name="locale" value={locale} />
-            <button type="submit" className={RED_BUTTON_CLASS}>
-              {td('cancel')}
-            </button>
-          </form>
+          portalAvailable ? (
+            <form action={startPortalAction}>
+              <input type="hidden" name="artistId" value={data.artistId} />
+              <input type="hidden" name="locale" value={locale} />
+              <button type="submit" className={RED_BUTTON_CLASS}>
+                {td('cancel')}
+              </button>
+            </form>
+          ) : null
         }
       />
     </div>
@@ -285,11 +298,7 @@ function UsagePanel({
         value={usage.activeLanguages.value}
         max={usage.activeLanguages.max}
       />
-      <UsageRow
-        label={labels.pages}
-        value={usage.artistPages.value}
-        max={usage.artistPages.max}
-      />
+      <UsageRow label={labels.pages} value={usage.artistPages.value} max={usage.artistPages.max} />
       <UsageRow
         label={labels.storage}
         value={usage.storageMb.value}

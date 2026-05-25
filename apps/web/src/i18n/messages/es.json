@@ -1632,7 +1632,9 @@
           "snapshots": "Snapshots automáticos cada 24h",
           "open": "Abrir en plataforma",
           "analytics": "Ver analíticas",
-          "disconnect": "Desconectar"
+          "disconnect": "Desconectar",
+          "disconnecting": "Desconectando…",
+          "disconnect_confirm": "¿Desconectar esta plataforma? Podés reconectar en cualquier momento re-validando la URL."
         },
         "actions": {
           "validate": "Validar",
@@ -1640,7 +1642,12 @@
           "validating": "Validando…",
           "syncing": "Sincronizando…",
           "validate_success": "Conexión validada.",
-          "validate_error": "No se pudo validar la conexión."
+          "validate_error": "No se pudo validar la conexión.",
+          "connect": "Conectar",
+          "saving": "Guardando…",
+          "sync": "Re-sincronizar ahora",
+          "save_error": "No se pudo guardar la conexión.",
+          "sync_error": "No se pudo sincronizar ahora."
         },
         "spotify": {
           "title": "Perfil de artista",

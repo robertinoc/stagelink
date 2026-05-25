@@ -1627,7 +1627,9 @@
           "snapshots": "Automatic snapshots every 24h",
           "open": "Open in platform",
           "analytics": "View analytics",
-          "disconnect": "Disconnect"
+          "disconnect": "Disconnect",
+          "disconnecting": "Disconnecting…",
+          "disconnect_confirm": "Disconnect this platform? You can reconnect any time by re-validating the URL."
         },
         "actions": {
           "validate": "Validate",
@@ -1635,7 +1637,12 @@
           "validating": "Validating…",
           "syncing": "Syncing…",
           "validate_success": "Connection validated.",
-          "validate_error": "Couldn't validate the connection."
+          "validate_error": "Couldn't validate the connection.",
+          "connect": "Connect",
+          "saving": "Saving…",
+          "sync": "Re-sync now",
+          "save_error": "Couldn't save the connection.",
+          "sync_error": "Couldn't sync right now."
         },
         "spotify": {
           "title": "Artist profile",
