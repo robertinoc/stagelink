@@ -38,6 +38,7 @@ interface EpkMediaTabProps {
   inherited: EpkInheritedArtistSnapshot;
   profileAndSmartLinks: { label: string; url: string }[];
   maxVisibleLinks: number;
+  billingHref?: string;
 }
 
 export function EpkMediaTab({
@@ -47,6 +48,7 @@ export function EpkMediaTab({
   inherited,
   profileAndSmartLinks,
   maxVisibleLinks,
+  billingHref,
 }: EpkMediaTabProps) {
   const t = useTranslations('dashboard.epk.editor');
   const { watch, setValue, getValues } = form;
@@ -268,7 +270,8 @@ export function EpkMediaTab({
             hint={t('mediaTab.linksHint')}
             right={
               <Chip>
-                {watchedFeaturedLinks.length}/{maxVisibleLinks}
+                {watchedFeaturedLinks.length}/
+                {Math.min(maxVisibleLinks, profileAndSmartLinks.length)}
               </Chip>
             }
           />
@@ -289,6 +292,20 @@ export function EpkMediaTab({
           >
             <span>⚠️</span>
             <span>{t('linkLimit.reached', { max: maxVisibleLinks })}</span>
+            {billingHref && (
+              <a
+                href={billingHref}
+                style={{
+                  color: '#E040FB',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                  marginLeft: 4,
+                }}
+              >
+                {t('linkLimit.upgrade')}
+              </a>
+            )}
           </div>
         )}
 

@@ -88,13 +88,8 @@ export function SettingsTabs({ initialTab, locale, data }: SettingsTabsProps) {
   ];
 
   return (
-    <div className="@container px-8">
-      <StickyTabs
-        items={items}
-        active={active}
-        onChange={onChange}
-        ariaLabel={t('aria_label')}
-      />
+    <div className="@container overflow-x-hidden px-8">
+      <StickyTabs items={items} active={active} onChange={onChange} ariaLabel={t('aria_label')} />
       <div className="space-y-6 pb-16 pt-6">
         <TabPanel id="plan" active={active}>
           <PlanTab data={data} locale={locale} />
