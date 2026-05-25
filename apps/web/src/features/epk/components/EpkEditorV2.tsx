@@ -199,8 +199,9 @@ export function EpkEditorV2({
   } = form;
 
   const isBusy = isSubmitting || saveStatus === 'saving';
-  const editorLocked = editorData.epk.isPublished;
-  const formDisabled = isBusy || editorLocked;
+  // EPK is always editable — saving auto-republishes when already published.
+  const editorLocked = false;
+  const formDisabled = isBusy;
 
   const watchedGallery = watch('galleryImageUrls');
   const watchedHeroImageUrl = watch('heroImageUrl');
@@ -560,6 +561,7 @@ export function EpkEditorV2({
             inherited={inherited}
             profileAndSmartLinks={profileAndSmartLinks}
             maxVisibleLinks={maxVisibleLinks}
+            billingHref={billingHref}
           />
         </>
       )}
