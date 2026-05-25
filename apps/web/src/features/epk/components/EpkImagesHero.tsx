@@ -81,6 +81,7 @@ export function EpkImagesHero({
   const t = useTranslations('dashboard.epk.editor');
   return (
     <div
+      className="epk-images-hero-card"
       style={{
         position: 'relative',
         borderRadius: 20,
@@ -91,6 +92,7 @@ export function EpkImagesHero({
     >
       {/* ── Cover band ────────────────────────────────────────────────────── */}
       <div
+        className="epk-images-hero-cover"
         style={{
           position: 'relative',
           height: 180,
@@ -206,6 +208,7 @@ export function EpkImagesHero({
 
       {/* ── Avatar overlap row ─────────────────────────────────────────────── */}
       <div
+        className="epk-images-hero-row"
         style={{
           display: 'grid',
           gridTemplateColumns: 'auto 1fr auto',
@@ -217,7 +220,7 @@ export function EpkImagesHero({
         }}
       >
         {/* Avatar circle (overlapping) */}
-        <div style={{ position: 'relative' }}>
+        <div className="epk-images-hero-avatar" style={{ position: 'relative' }}>
           <div
             style={{
               width: 110,
@@ -286,7 +289,7 @@ export function EpkImagesHero({
         </div>
 
         {/* Right — title block */}
-        <div style={{ paddingTop: 62, minWidth: 0 }}>
+        <div className="epk-images-hero-copy" style={{ paddingTop: 62, minWidth: 0 }}>
           <BentoLabel tint="#E040FB">{t('images.eyebrow')}</BentoLabel>
           <div
             style={{
@@ -316,6 +319,7 @@ export function EpkImagesHero({
         {/* Far right — small avatar profile button */}
         {!disabled && inheritedAvatarUrl && (
           <div
+            className="epk-images-hero-avatar-action"
             style={{
               paddingBottom: 4,
               paddingTop: 62,
@@ -335,6 +339,52 @@ export function EpkImagesHero({
           </div>
         )}
       </div>
+      <style jsx global>{`
+        @media (max-width: 640px) {
+          .epk-images-hero-card {
+            border-radius: 16px !important;
+          }
+
+          .epk-images-hero-cover {
+            height: 136px !important;
+            border-radius: 16px 16px 0 0 !important;
+          }
+
+          .epk-images-hero-row {
+            grid-template-columns: minmax(88px, 108px) minmax(0, 1fr) !important;
+            align-items: end !important;
+            gap: 16px !important;
+            margin-top: -48px !important;
+            padding: 0 16px 18px !important;
+          }
+
+          .epk-images-hero-avatar > div {
+            width: 96px !important;
+            height: 96px !important;
+          }
+
+          .epk-images-hero-copy {
+            padding-top: 52px !important;
+          }
+
+          .epk-images-hero-copy div {
+            max-width: 100% !important;
+            overflow-wrap: anywhere;
+          }
+
+          .epk-images-hero-avatar-action {
+            grid-column: 1 / -1;
+            justify-content: stretch !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+          }
+
+          .epk-images-hero-avatar-action button {
+            width: 100%;
+            min-height: 48px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

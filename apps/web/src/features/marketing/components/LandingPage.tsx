@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { SupportedLocale } from '@/lib/landing-translations';
 import { getLandingT } from '@/lib/landing-translations';
 import { LandingDemoProfileWrapper } from './LandingDemoProfileWrapper';
@@ -161,6 +161,18 @@ export function LandingPage({ locale }: LandingPageProps) {
     artistType: '',
     message: '',
   });
+
+  useEffect(() => {
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia('(display-mode: fullscreen)').matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const landingPaths = ['/', `/${resolvedLocale}`];
+
+    if (isStandalone && landingPaths.includes(window.location.pathname)) {
+      window.location.replace(`/${resolvedLocale}/dashboard`);
+    }
+  }, [resolvedLocale]);
 
   function handleFormChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
