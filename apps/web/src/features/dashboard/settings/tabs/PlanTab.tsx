@@ -24,10 +24,18 @@ interface PlanTabProps {
   locale: string;
 }
 
-const PRICE_BY_PLAN: Record<'free' | 'pro' | 'pro_plus', string> = {
+const PLAN_RANK: Record<'free' | 'pro' | 'pro_plus', number> = {
+  free: 0,
+  pro: 1,
+  pro_plus: 2,
+};
+
+// Fallback prices only used if the billing API doesn't return a plan's
+// priceDisplay. Real prices come from data.summary.availablePlans.
+const FALLBACK_PRICE: Record<'free' | 'pro' | 'pro_plus', string> = {
   free: '$0',
-  pro: '$5',
-  pro_plus: '$9',
+  pro: '$9',
+  pro_plus: '$19',
 };
 
 export function PlanTab({ data, locale }: PlanTabProps) {
@@ -37,34 +45,51 @@ export function PlanTab({ data, locale }: PlanTabProps) {
   const td = useTranslations('dashboard.settings.danger.plan');
   const ttiers = useTranslations('dashboard.settings.tiers');
 
-  const planLabel = resolvePlanLabel(data.summary.effectivePlan);
-  const nextBilling = formatNextBilling(data.summary.currentPeriodEnd, locale);
+  const summary = data.summary;
+  const planLabel = resolvePlanLabel(summary.effectivePlan);
+  const nextBilling = formatNextBilling(summary.currentPeriodEnd, locale);
   // The Stripe Customer Portal only exists once the artist has a Stripe
   // customer (i.e. has gone through checkout at least once). Gating the
   // portal buttons on this flag prevents the "no pudimos abrir el portal"
   // error for Free / never-subscribed artists — matching the old
   // PlansBillingSection behaviour.
-  const portalAvailable = data.summary.portalAvailable;
+  const portalAvailable = summary.portalAvailable;
+  const recommendedPlan = summary.upgradeOptions.recommendedPlan;
+
+  // Real prices come from Stripe via the billing summary — never hardcode,
+  // so plan prices can't drift from what the user is actually charged.
+  const priceByPlan: Record<string, string> = {};
+  for (const p of summary.availablePlans) {
+    if (p.priceDisplay) priceByPlan[p.planCode] = p.priceDisplay;
+  }
+  const priceFor = (id: 'free' | 'pro' | 'pro_plus') => priceByPlan[id] ?? FALLBACK_PRICE[id];
+
+  // Checkout is only valid for an UPGRADE (a higher-ranked plan). Downgrades
+  // and cancellations go through the Stripe portal — checking out a plan you
+  // already have / a lower tier makes Stripe reject the session, which was
+  // surfacing as ?error=checkout.
+  const canUpgradeTo = (id: 'free' | 'pro' | 'pro_plus') =>
+    summary.upgradeOptions.canUpgrade && PLAN_RANK[id] > PLAN_RANK[summary.billingPlan];
 
   const tiers: TierCardData[] = [
     {
       id: 'free',
       name: 'Free',
-      price: PRICE_BY_PLAN.free,
+      price: priceFor('free'),
       sub: ttiers('free.sub'),
       features: ttiers.raw('free.features') as string[],
     },
     {
       id: 'pro',
       name: 'Pro',
-      price: PRICE_BY_PLAN.pro,
+      price: priceFor('pro'),
       sub: ttiers('pro.sub'),
       features: ttiers.raw('pro.features') as string[],
     },
     {
       id: 'pro_plus',
       name: 'Pro+',
-      price: PRICE_BY_PLAN.pro_plus,
+      price: priceFor('pro_plus'),
       sub: ttiers('pro_plus.sub'),
       features: ttiers.raw('pro_plus.features') as string[],
       popular: true,
@@ -82,7 +107,7 @@ export function PlanTab({ data, locale }: PlanTabProps) {
             <h2 className="m-0 mt-2.5 flex flex-wrap items-baseline gap-3.5 font-[family-name:var(--font-heading)] text-[clamp(36px,5cqw,52px)] font-bold leading-none tracking-[-0.025em]">
               <span className="text-sl-grad">{planLabel}</span>
               <span className="text-[17px] font-normal leading-[1.4] text-white/50">
-                {t('hero.price', { price: PRICE_BY_PLAN[data.summary.effectivePlan] })}
+                {t('hero.price', { price: priceFor(summary.effectivePlan) })}
               </span>
             </h2>
             <p className="mt-4 max-w-[640px] text-[14px] leading-[1.55] text-white/70">
@@ -94,14 +119,29 @@ export function PlanTab({ data, locale }: PlanTabProps) {
                 : t('hero.next_billing_unknown')}
             </p>
             <div className="mt-[18px] flex flex-wrap items-center gap-2.5">
-              <form action={startCheckoutAction}>
-                <input type="hidden" name="artistId" value={data.artistId} />
-                <input type="hidden" name="plan" value="pro_plus" />
-                <input type="hidden" name="locale" value={locale} />
-                <Btn variant="primary" type="submit">
-                  {t('hero.cta_change_plan')}
-                </Btn>
-              </form>
+              {recommendedPlan ? (
+                // There's a higher tier to move up to → checkout to it.
+                <form action={startCheckoutAction}>
+                  <input type="hidden" name="artistId" value={data.artistId} />
+                  <input type="hidden" name="plan" value={recommendedPlan} />
+                  <input type="hidden" name="locale" value={locale} />
+                  <Btn variant="primary" type="submit">
+                    {t('hero.cta_upgrade_to', { plan: resolvePlanLabel(recommendedPlan) })}
+                  </Btn>
+                </form>
+              ) : (
+                // Already on the top tier (or upgrades disabled) → manage via
+                // portal instead of a checkout that Stripe would reject.
+                portalAvailable && (
+                  <form action={startPortalAction}>
+                    <input type="hidden" name="artistId" value={data.artistId} />
+                    <input type="hidden" name="locale" value={locale} />
+                    <Btn variant="primary" type="submit">
+                      {t('hero.cta_manage')}
+                    </Btn>
+                  </form>
+                )
+              )}
               {portalAvailable && (
                 <>
                   <form action={startPortalAction}>
@@ -151,17 +191,17 @@ export function PlanTab({ data, locale }: PlanTabProps) {
               currentLabel={t('tiers.current')}
               popularLabel={t('tiers.popular')}
               ctaLabel={t(`tiers.cta.${tier.id}`)}
-              ctaAction={
-                tier.id === data.summary.effectivePlan
-                  ? undefined
-                  : tierCtaAction({
-                      tier,
-                      artistId: data.artistId,
-                      locale,
-                      isPopular: Boolean(tier.popular),
-                      label: t(`tiers.cta.${tier.id}`),
-                    })
-              }
+              ctaAction={tierCtaAction({
+                tier,
+                artistId: data.artistId,
+                locale,
+                isCurrent: tier.id === summary.effectivePlan,
+                canUpgrade: canUpgradeTo(tier.id),
+                isPopular: Boolean(tier.popular),
+                upgradeLabel: t('tiers.cta_upgrade', { plan: tier.name }),
+                managedLabel: t(`tiers.cta.${tier.id}`),
+                currentLabel: t('tiers.current'),
+              })}
             />
           ))}
         </div>
@@ -198,14 +238,17 @@ export function PlanTab({ data, locale }: PlanTabProps) {
         title={td('title')}
         body={td('body')}
         downgradeCta={
-          <form action={startCheckoutAction}>
-            <input type="hidden" name="artistId" value={data.artistId} />
-            <input type="hidden" name="plan" value="pro" />
-            <input type="hidden" name="locale" value={locale} />
-            <Btn variant="ghost" type="submit">
-              {td('downgrade')}
-            </Btn>
-          </form>
+          // Downgrades go through the Stripe portal (a checkout to a lower
+          // tier is rejected). Only meaningful once a Stripe customer exists.
+          portalAvailable ? (
+            <form action={startPortalAction}>
+              <input type="hidden" name="artistId" value={data.artistId} />
+              <input type="hidden" name="locale" value={locale} />
+              <Btn variant="ghost" type="submit">
+                {td('downgrade')}
+              </Btn>
+            </form>
+          ) : null
         }
         cancelCta={
           portalAvailable ? (
@@ -227,35 +270,48 @@ function tierCtaAction({
   tier,
   artistId,
   locale,
+  isCurrent,
+  canUpgrade,
   isPopular,
-  label,
+  upgradeLabel,
+  managedLabel,
+  currentLabel,
 }: {
   tier: TierCardData;
   artistId: string;
   locale: string;
+  isCurrent: boolean;
+  canUpgrade: boolean;
   isPopular: boolean;
-  label: string;
-}) {
-  if (tier.id === 'free') {
+  upgradeLabel: string;
+  managedLabel: string;
+  currentLabel: string;
+}): React.ReactNode {
+  // Current plan: let TierCard render its built-in disabled "Plan actual".
+  if (isCurrent) return undefined;
+
+  // Upgrade path: the only case where Stripe checkout is valid. Sends the
+  // real plan code (not a hardcoded one), so a Pro+ user never tries to
+  // check out Pro+ again (the cause of ?error=checkout).
+  if (canUpgrade) {
     return (
-      <form action={startPortalAction}>
+      <form action={startCheckoutAction}>
         <input type="hidden" name="artistId" value={artistId} />
+        <input type="hidden" name="plan" value={tier.id} />
         <input type="hidden" name="locale" value={locale} />
-        <Btn variant="ghost" full type="submit">
-          {label}
+        <Btn variant={isPopular ? 'primary' : 'ghost'} full type="submit">
+          {upgradeLabel}
         </Btn>
       </form>
     );
   }
+
+  // Lower tier than the current plan (or upgrades disabled): no checkout —
+  // downgrades happen through the portal. Render a disabled, informative CTA.
   return (
-    <form action={startCheckoutAction}>
-      <input type="hidden" name="artistId" value={artistId} />
-      <input type="hidden" name="plan" value={tier.id} />
-      <input type="hidden" name="locale" value={locale} />
-      <Btn variant={isPopular ? 'primary' : 'ghost'} full type="submit">
-        {label}
-      </Btn>
-    </form>
+    <Btn variant="ghost" full disabled style={{ cursor: 'default' }} aria-disabled>
+      {managedLabel || currentLabel}
+    </Btn>
   );
 }
 

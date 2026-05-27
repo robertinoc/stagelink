@@ -1530,7 +1530,9 @@
           "next_billing_unknown": "Plan changes apply after checkout.",
           "cta_change_plan": "Change plan",
           "cta_portal": "Open billing portal",
-          "cta_invoices": "View invoices"
+          "cta_invoices": "View invoices",
+          "cta_upgrade_to": "Upgrade to {plan}",
+          "cta_manage": "Manage billing"
         },
         "compare": {
           "title": "Compare plans",
@@ -1589,7 +1591,8 @@
             "StageLink Insights",
             "Priority support"
           ]
-        }
+        },
+        "cta_upgrade": "Upgrade to {plan}"
       },
       "danger": {
         "plan": {
