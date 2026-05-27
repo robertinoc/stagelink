@@ -9,6 +9,7 @@ import { getArtistEpk } from '@/lib/api/epk';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import { getSmartLinksForArtist } from '@/lib/api/smart-links-server';
 import { getSession } from '@/lib/auth';
+import { ConnectionErrorState } from '@/components/shared/ConnectionErrorState';
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -26,6 +27,10 @@ export default async function DashboardEpkPage({
   if (!session) redirect(`/${locale}/login`);
 
   const me = await getAuthMe(session.accessToken);
+  if (me === null) {
+    return <ConnectionErrorState href={`/${locale}/dashboard/epk`} />;
+  }
+
   const artistId = getCurrentArtistId(me);
   if (!artistId) redirect(`/${locale}/onboarding`);
 

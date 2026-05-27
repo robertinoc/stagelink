@@ -13,6 +13,7 @@ type BentoTone = 'panel' | 'accent' | 'pink' | 'blue' | 'green';
 interface BentoProps {
   children: React.ReactNode;
   tone?: BentoTone;
+  id?: string;
   /** Padding in px — defaults to 24 */
   pad?: number;
   /** Glow shadow on the card */
@@ -36,9 +37,10 @@ const BORDER: Record<BentoTone, string> = {
   green: 'border-[rgba(74,222,128,0.25)]',
 };
 
-export function Bento({ children, tone = 'panel', pad, glow = false, className }: BentoProps) {
+export function Bento({ children, tone = 'panel', id, pad, glow = false, className }: BentoProps) {
   return (
     <div
+      id={id}
       className={cn(
         'relative overflow-hidden rounded-[20px] border',
         BG[tone],

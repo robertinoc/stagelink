@@ -38,7 +38,7 @@ export function StepUsername({ initialValue, onNext, onBack }: StepUsernameProps
         <p className="text-muted-foreground">
           Your public URL:{' '}
           <span className="font-medium">
-            stagelink.io/<span className="text-foreground">{normalizedValue || 'yourname'}</span>
+            stagelink.art/<span className="text-foreground">{normalizedValue || 'yourname'}</span>
           </span>
         </p>
       </div>

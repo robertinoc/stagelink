@@ -19,6 +19,8 @@ import { getArtist } from '@/lib/api/artists';
 import { getBillingSummary, type BillingSummaryResponse } from '@/lib/api/billing';
 import { getAuthMe } from '@/lib/api/me';
 import { getSession } from '@/lib/auth';
+import { ConnectionErrorState } from '@/components/shared/ConnectionErrorState';
+import { SUPPORT_URL } from '@/lib/constants';
 import { refreshBillingStatusAction, startCheckoutAction, startPortalAction } from './actions';
 
 interface DashboardBillingPageProps {
@@ -365,6 +367,10 @@ export default async function DashboardBillingPage({
   }
 
   const me = await getAuthMe(session.accessToken);
+  if (me === null) {
+    return <ConnectionErrorState href={`/${locale}/dashboard/billing`} />;
+  }
+
   const artistId = me?.artistIds[0];
 
   if (!artistId) {
@@ -620,7 +626,7 @@ export default async function DashboardBillingPage({
 
                   {isEnterprise ? (
                     <Button asChild variant="outline">
-                      <a href="mailto:hello@stagelink.io">{billingT('actions.contact_sales')}</a>
+                      <a href={SUPPORT_URL}>{billingT('actions.contact_sales')}</a>
                     </Button>
                   ) : null}
 

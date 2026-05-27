@@ -16,6 +16,7 @@ import {
   type AnalyticsRange,
 } from '@/lib/api/analytics';
 import { AnalyticsPage } from '@/features/analytics/components/redesign/AnalyticsPage';
+import { ConnectionErrorState } from '@/components/shared/ConnectionErrorState';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('dashboard.analytics');
@@ -59,11 +60,15 @@ export default async function DashboardAnalyticsPage({ params, searchParams }: P
   const range = parseRange(rawRange);
 
   const session = await getSession();
-  if (!session) return null;
+  if (!session) redirect(`/${locale}/login`);
 
   const me = await getAuthMe(session.accessToken);
+  if (me === null) {
+    return <ConnectionErrorState href={`/${locale}/dashboard/analytics`} />;
+  }
+
   const artistId = getCurrentArtistId(me);
-  if (!artistId) return null;
+  if (!artistId) redirect(`/${locale}/onboarding`);
 
   const [entitlements, artist, insightsResult, overviewResult, trendsResult, fanInsightsResult] =
     await Promise.all([

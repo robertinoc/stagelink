@@ -8,6 +8,7 @@ import { getBillingSummary } from '@/lib/api/billing';
 import { getArtistEpk } from '@/lib/api/epk';
 import { getAuthMe } from '@/lib/api/me';
 import { getArtistPages } from '@/lib/api/pages';
+import { ConnectionErrorState } from '@/components/shared/ConnectionErrorState';
 import { BlockManager } from '@/features/blocks/components/BlockManager';
 import { ThemeSelector } from '@/features/blocks/components/ThemeSelector';
 import { PhonePreviewFrame } from '@/features/blocks/components/PhonePreviewFrame';
@@ -41,6 +42,10 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
   if (!session) redirect(`/${locale}/login`);
 
   const me = await getAuthMe(session.accessToken);
+  if (me === null) {
+    return <ConnectionErrorState href={`/${locale}/dashboard/page`} />;
+  }
+
   const artistId = me?.artistIds[0];
   if (!artistId) redirect(`/${locale}/onboarding`);
 
