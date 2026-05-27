@@ -21,6 +21,7 @@
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-separator": "^1.1.2",
     "@radix-ui/react-slot": "^1.2.3",
+    "@sentry/nextjs": "^10.54.0",
     "@stagelink/types": "workspace:*",
     "@stagelink/ui": "workspace:*",
     "@upstash/redis": "^1.38.0",

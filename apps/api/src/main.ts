@@ -1,3 +1,6 @@
+// Must be the very first import so Sentry can instrument the runtime before
+// any other module loads. No-op when SENTRY_DSN is unset.
+import './instrument';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
