@@ -36,6 +36,12 @@ export function ConnectionsTab({ data, locale }: ConnectionsTabProps) {
     validate_error: t('actions.validate_error'),
     save_error: t('actions.save_error'),
     sync_error: t('actions.sync_error'),
+    validated_prefix: t('actions.validated_prefix'),
+    stat_followers: t('stats.followers'),
+    stat_popularity: t('stats.popularity'),
+    stat_subscribers: t('stats.subscribers'),
+    stat_views: t('stats.views'),
+    stat_videos: t('stats.videos'),
   };
 
   const dashboard = resolveDashboard(data);
