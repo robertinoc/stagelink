@@ -5,6 +5,7 @@ const optionalString = Joi.string().optional().allow('');
 
 export const validationSchema = Joi.object({
   NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+  APP_ENV: Joi.string().valid('development', 'staging', 'production').default('development'),
   PORT: Joi.number().default(4001),
   APP_URL: Joi.string().default('http://localhost:4001'),
   FRONTEND_URL: Joi.string().default('http://localhost:4000'),

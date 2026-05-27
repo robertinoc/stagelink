@@ -47,5 +47,6 @@ ENV NODE_ENV=production
 EXPOSE 4001
 
 # Direct node invocation — no shell wrapper, node is PID 1.
-# Start command (migrations + start) is defined in railway.toml.
+# Railway overrides CMD with `pnpm start`, which runs migrations and then
+# starts the compiled API. CMD remains the direct fallback for non-Railway runs.
 CMD ["node", "dist/main"]

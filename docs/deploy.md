@@ -56,15 +56,24 @@
 
 Configurar en Vercel Dashboard → Settings → Environment Variables:
 
-| Variable                   | Production                                                                               | Preview                  | Development             |
-| -------------------------- | ---------------------------------------------------------------------------------------- | ------------------------ | ----------------------- |
-| `NEXT_PUBLIC_APP_URL`      | `https://stagelink.art`                                                                  | URL de staging           | `http://localhost:4000` |
-| `NEXT_PUBLIC_API_URL`      | `https://stagelink-production-18c8.up.railway.app` o futuro `https://api.stagelink.link` | API de staging           | `http://localhost:4001` |
-| `NEXT_PUBLIC_POSTHOG_KEY`  | tu key                                                                                   | —                        | —                       |
-| `NEXT_PUBLIC_POSTHOG_HOST` | `https://app.posthog.com`                                                                | —                        | —                       |
-| `WORKOS_CLIENT_ID`         | tu client ID                                                                             | —                        | —                       |
-| `WORKOS_API_KEY`           | tu API key                                                                               | —                        | —                       |
-| `WORKOS_REDIRECT_URI`      | `https://stagelink.art/api/auth/callback`                                                | mismo origen que staging | —                       |
+| Variable                      | Production                                                                               | Preview                  | Development             |
+| ----------------------------- | ---------------------------------------------------------------------------------------- | ------------------------ | ----------------------- |
+| `NEXT_PUBLIC_APP_URL`         | `https://stagelink.art`                                                                  | URL de staging           | `http://localhost:4000` |
+| `NEXT_PUBLIC_API_URL`         | `https://stagelink-production-18c8.up.railway.app` o futuro `https://api.stagelink.link` | API de staging           | `http://localhost:4001` |
+| `API_URL`                     | Igual que API prod o URL interna privada si existe                                       | API de staging           | `http://localhost:4001` |
+| `NEXT_PUBLIC_APP_ENV`         | `production`                                                                             | `staging`                | `development`           |
+| `NEXT_PUBLIC_POSTHOG_KEY`     | tu key                                                                                   | —                        | —                       |
+| `NEXT_PUBLIC_POSTHOG_HOST`    | `https://app.posthog.com`                                                                | —                        | —                       |
+| `NEXT_PUBLIC_IMAGES_HOSTNAME` | hostname de `AWS_S3_PUBLIC_BASE_URL`                                                     | storage staging          | —                       |
+| `WORKOS_CLIENT_ID`            | tu client ID                                                                             | —                        | —                       |
+| `WORKOS_API_KEY`              | tu API key                                                                               | —                        | —                       |
+| `WORKOS_REDIRECT_URI`         | `https://stagelink.art/api/auth/callback`                                                | mismo origen que staging | —                       |
+| `WORKOS_COOKIE_PASSWORD`      | secreto >= 32 chars                                                                      | secreto staging          | secreto local           |
+| `WORKOS_COOKIE_DOMAIN`        | `.stagelink.art` si Behind usa subdominio compartido                                     | ver nota WorkOS          | —                       |
+| `RESEND_API_KEY`              | key de Resend para `/api/contact`                                                        | key staging              | opcional                |
+| `CONTACT_FORM_TO`             | inbox de soporte                                                                         | inbox staging            | opcional                |
+| `CONTACT_FORM_FROM`           | remitente verificado o sandbox                                                           | remitente staging        | opcional                |
+| `NEXT_PUBLIC_EMAILJS_*`       | solo si el bloque Contact Form publico queda activo                                      | opcional                 | opcional                |
 
 ### Preview deployments automáticos
 
@@ -112,6 +121,7 @@ Configurar en Railway Dashboard → Variables:
 
 ```bash
 NODE_ENV=production
+APP_ENV=production
 APP_URL=https://stagelink-production-18c8.up.railway.app
 FRONTEND_URL=https://stagelink.art
 CORS_ALLOWED_ORIGINS=https://stagelink.link,https://www.stagelink.link,https://stagelink.art,https://www.stagelink.art,https://staging.stagelink.link
@@ -128,16 +138,23 @@ SECRETS_ENCRYPTION_KEY=replace-with-32-plus-char-secret
 # Stripe (T5)
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
+STRIPE_PRICE_PRO_ID=
+STRIPE_PRICE_PRO_PLUS_ID=
 
 # PostHog (opcional)
 POSTHOG_KEY=
 POSTHOG_HOST=https://app.posthog.com
+
+# Email transaccional / lifecycle
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=StageLink <noreply@stagelink.art>
 
 # AWS S3
 AWS_S3_BUCKET=stagelink-assets
 AWS_S3_REGION=us-east-1
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
+AWS_S3_PUBLIC_BASE_URL=https://...
 ```
 
 ### Flujo de deploy en Railway
@@ -152,7 +169,7 @@ Railway detecta el push y usa `railway.json`
 build Dockerfile: apps/api/Dockerfile
        │
        ▼
-startCommand: pnpm start                       ← node dist/main
+startCommand: pnpm start                       ← prisma migrate deploy && node dist/main
        │
        ▼
 Healthcheck: GET /api/health → 200 OK
@@ -163,25 +180,27 @@ Tráfico enrutado al nuevo deploy
 
 ### Migraciones en Railway
 
-Las migraciones Prisma no se ejecutan en cada arranque del contenedor.
+El runtime actual ejecuta `prisma migrate deploy` al inicio del servicio:
 
-Motivo:
+- `railway.json` define `startCommand: pnpm start`
+- `apps/api/package.json` define `start: prisma migrate deploy && node dist/main`
+- `DIRECT_URL` es obligatorio en producción para que Prisma use una conexión
+  directa estable, incluso si `DATABASE_URL` apunta a un pooler
+- Railway tiene `healthcheckTimeout: 300` para dar tiempo a migraciones antes
+  de enrutar tráfico
 
-- el servicio no debe quedar caído solo porque `DIRECT_URL` esté temporalmente inaccesible
-- `prisma migrate deploy` depende de conexión directa estable a la base
-- no conviene duplicar migraciones en `preDeployCommand` y `startCommand`
-
-Flujo recomendado:
-
-1. deploy del servicio con `pnpm start`
-2. correr migraciones aparte cuando haga falta
+Este flujo evita olvidar migraciones en deploys de `main`, pero tiene una
+condición operativa clara: si `DIRECT_URL` o la conectividad directa fallan, el
+nuevo deploy no debe quedar saludable. Para cambios de DB riesgosos, validar
+primero en staging y revisar logs de Railway durante el rollout.
 
 En Railway:
 
 - `preDeployCommand`: vacío
 - `startCommand`: `pnpm start`
 
-Comando:
+Comando manual equivalente para revisar o ejecutar migraciones fuera del
+arranque:
 
 ```bash
 pnpm db:migrate:prod
@@ -263,7 +282,8 @@ Esto evita que Cloudflare cachee respuestas del API (importante para CORS y auth
 
 | Variable              | Local                   | Preview            | Production                                                                        |
 | --------------------- | ----------------------- | ------------------ | --------------------------------------------------------------------------------- |
-| `NODE_ENV`            | `development`           | `preview`          | `production`                                                                      |
+| `NODE_ENV`            | `development`           | `production`       | `production`                                                                      |
+| `APP_ENV`             | `development`           | `staging`          | `production`                                                                      |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:4001` | API de staging     | `https://stagelink-production-18c8.up.railway.app` o `https://api.stagelink.link` |
 | `DATABASE_URL`        | docker local            | Railway staging DB | Railway prod DB                                                                   |
 
