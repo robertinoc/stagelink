@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import * as Sentry from '@sentry/node';
 import { formatSecurityEvent, sanitizeLogPath, sanitizeLogValue } from '../utils/security-log';
 
 interface ErrorBody {
@@ -97,6 +98,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
         }),
         exception instanceof Error ? exception.stack : String(exception),
       );
+      // Report server errors to Sentry (no-op when SENTRY_DSN is unset).
+      // requestId + route are attached so an error can be traced back to its
+      // log line; client (4xx) errors are intentionally not reported.
+      Sentry.withScope((scope) => {
+        scope.setTag('requestId', requestId);
+        scope.setTag('http.method', request.method);
+        scope.setContext('request', { path, method: request.method, statusCode: status });
+        Sentry.captureException(exception);
+      });
     } else {
       const printableMessage = Array.isArray(message) ? message.join(', ') : message;
       this.logger.warn(
