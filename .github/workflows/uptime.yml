@@ -1,0 +1,45 @@
+name: Uptime
+
+# Lightweight external health check for production. A zero-cost baseline so a
+# prod outage (API down, web down, bad deploy) surfaces as a failed workflow
+# run — GitHub emails the repo owner on failure. For faster detection (sub-5m)
+# pair this with an external monitor (UptimeRobot / BetterStack).
+#
+# Scheduled-only + manual: never runs on push/PR.
+on:
+  schedule:
+    # Every 10 minutes (GitHub may delay scheduled runs under load).
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Probe production endpoints
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check API health
+        run: |
+          # 3 attempts with backoff so a transient network blip doesn't page us.
+          probe() {
+            local url="$1" expect="$2"
+            for attempt in 1 2 3; do
+              code=$(curl -sS -o /tmp/body -w '%{http_code}' --max-time 15 "$url" || echo "000")
+              if [ "$code" = "$expect" ]; then
+                echo "OK  $url -> $code"
+                return 0
+              fi
+              echo "attempt $attempt: $url -> $code (want $expect)"
+              sleep $((attempt * 5))
+            done
+            echo "::error::$url is unhealthy (last status $code, expected $expect)"
+            cat /tmp/body 2>/dev/null | head -c 300 || true
+            return 1
+          }
+          fail=0
+          probe "https://api.stagelink.art/api/health" 200 || fail=1
+          probe "https://stagelink.art/en" 200 || fail=1
+          exit $fail
