@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { StageLinkInsightsConnection } from '@stagelink/types';
+import type {
+  StageLinkInsightsConnection,
+  SpotifyInsightsConnectionValidationResult,
+  YouTubeInsightsConnectionValidationResult,
+} from '@stagelink/types';
 import { Bento } from '@/components/sl/Bento';
 import { Btn } from '@/components/sl/Btn';
 import { Pill } from '@/components/sl/SlPrimitives';
@@ -42,6 +46,21 @@ export interface ConnectionCardCopy {
   validate_error: string;
   save_error: string;
   sync_error: string;
+  validated_prefix: string;
+  stat_followers: string;
+  stat_popularity: string;
+  stat_subscribers: string;
+  stat_views: string;
+  stat_videos: string;
+}
+
+type ValidationResult =
+  | SpotifyInsightsConnectionValidationResult
+  | YouTubeInsightsConnectionValidationResult;
+
+interface ConnStat {
+  label: string;
+  value: string;
 }
 
 interface ConnectionCardProps {
@@ -72,7 +91,7 @@ interface ConnectionCardProps {
  * results both expose `.message`, normalised to `{ message }`.
  */
 interface ConnectionFns {
-  validate: (artistId: string, input: string) => Promise<{ message: string }>;
+  validate: (artistId: string, input: string) => Promise<ValidationResult>;
   save: (artistId: string, input: string) => Promise<unknown>;
   sync: (artistId: string) => Promise<{ message: string }>;
   disconnect: (artistId: string) => Promise<void>;
@@ -92,6 +111,27 @@ const PLATFORM_FNS: Record<ConnectionPlatform, ConnectionFns> = {
     disconnect: (id) => disconnectYouTubeInsightsConnection(id),
   },
 };
+
+/** Turns a validation result into the live numbers we surface on the card. */
+function buildStats(result: ValidationResult, copy: ConnectionCardCopy): ConnStat[] {
+  const fmt = (n: number | null) =>
+    typeof n === 'number' && Number.isFinite(n) ? new Intl.NumberFormat().format(n) : null;
+  const stats: ConnStat[] = [];
+  if (result.platform === 'spotify') {
+    const followers = fmt(result.followersTotal);
+    const popularity = fmt(result.popularity);
+    if (followers) stats.push({ label: copy.stat_followers, value: followers });
+    if (popularity) stats.push({ label: copy.stat_popularity, value: popularity });
+  } else {
+    const subs = fmt(result.subscriberCount);
+    const views = fmt(result.totalViews);
+    const videos = fmt(result.videoCount);
+    if (subs) stats.push({ label: copy.stat_subscribers, value: subs });
+    if (views) stats.push({ label: copy.stat_views, value: views });
+    if (videos) stats.push({ label: copy.stat_videos, value: videos });
+  }
+  return stats;
+}
 
 /**
  * Connection card for Spotify / YouTube. StageLink Insights uses a
@@ -132,6 +172,7 @@ export function ConnectionCard({
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [stats, setStats] = useState<ConnStat[]>([]);
 
   useEffect(() => {
     setArtistInput(seededInput);
@@ -145,10 +186,18 @@ export function ConnectionCard({
     setValidating(true);
     setStatus('idle');
     setStatusMessage(null);
+    setStats([]);
     try {
       const result = await fns.validate(artistId, artistInput);
       setStatus('ok');
-      setStatusMessage(result.message);
+      // Surface the live numbers (followers / popularity / subscribers …)
+      // so the user immediately sees the connection is pulling real data
+      // and can contrast it with Spotify for Artists / YouTube Analytics.
+      const built = buildStats(result, copy);
+      setStats(built);
+      setStatusMessage(
+        result.displayName ? `${copy.validated_prefix} ${result.displayName}` : result.message,
+      );
     } catch (e) {
       setStatus('error');
       setStatusMessage(e instanceof Error ? e.message : copy.validate_error);
@@ -163,6 +212,15 @@ export function ConnectionCard({
     setStatusMessage(null);
     try {
       await fns.save(artistId, artistInput);
+      // Trigger an initial sync right after connecting so the first
+      // snapshot exists immediately — otherwise the Analytics dashboard
+      // shows "—" until the 24h cron or a manual re-sync runs. Best-effort:
+      // the connection is already saved, so a sync failure shouldn't block.
+      try {
+        await fns.sync(artistId);
+      } catch {
+        // Snapshot will be captured by the next scheduled sync.
+      }
       setStatus('ok');
       router.refresh();
     } catch (e) {
@@ -284,6 +342,22 @@ export function ConnectionCard({
             }
           >
             {statusMessage}
+          </div>
+        )}
+
+        {status === 'ok' && stats.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {stats.map((s) => (
+              <span
+                key={s.label}
+                className="inline-flex items-baseline gap-1.5 rounded-[8px] border border-[rgba(74,222,128,0.25)] bg-[rgba(74,222,128,0.10)] px-3 py-1.5"
+              >
+                <span className="font-[family-name:var(--font-heading)] text-[14px] font-bold text-white">
+                  {s.value}
+                </span>
+                <span className="text-[11px] text-white/60">{s.label}</span>
+              </span>
+            ))}
           </div>
         )}
 

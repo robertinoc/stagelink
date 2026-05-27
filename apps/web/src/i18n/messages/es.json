@@ -1530,7 +1530,9 @@
           "next_billing_unknown": "Los cambios de plan se aplican después del checkout.",
           "cta_change_plan": "Cambiar de plan",
           "cta_portal": "Abrir portal de billing",
-          "cta_invoices": "Ver facturas"
+          "cta_invoices": "Ver facturas",
+          "cta_upgrade_to": "Mejorar a {plan}",
+          "cta_manage": "Gestionar billing"
         },
         "compare": {
           "title": "Comparar planes",
@@ -1594,7 +1596,8 @@
             "StageLink Insights",
             "Soporte prioritario"
           ]
-        }
+        },
+        "cta_upgrade": "Mejorar a {plan}"
       },
       "danger": {
         "plan": {
@@ -1647,7 +1650,8 @@
           "saving": "Guardando…",
           "sync": "Re-sincronizar ahora",
           "save_error": "No se pudo guardar la conexión.",
-          "sync_error": "No se pudo sincronizar ahora."
+          "sync_error": "No se pudo sincronizar ahora.",
+          "validated_prefix": "Conectado a"
         },
         "spotify": {
           "title": "Perfil de artista",
@@ -1669,6 +1673,13 @@
           "coming_soon": "Próximamente · v2",
           "body": "La integración completa con SoundCloud llega en la v2. Mientras tanto, mantené tu URL pública de SoundCloud en tu Perfil para que StageLink tenga la referencia lista.",
           "cta": "Ir al Perfil"
+        },
+        "stats": {
+          "followers": "seguidores",
+          "popularity": "popularidad",
+          "subscribers": "suscriptores",
+          "views": "vistas",
+          "videos": "videos"
         }
       },
       "stores": {
