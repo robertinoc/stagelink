@@ -455,6 +455,7 @@ export class BillingService {
 
   private getBillingEnvironment(): string {
     return (
+      this.configService.get<string>('app.appEnv') ??
       process.env['APP_ENV'] ??
       this.configService.get<string>('app.nodeEnv') ??
       process.env['NODE_ENV'] ??

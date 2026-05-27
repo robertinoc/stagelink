@@ -51,7 +51,10 @@ export class PostHogService implements OnModuleDestroy {
     const key = this.config.get<string>('POSTHOG_KEY');
     const host = this.config.get<string>('POSTHOG_HOST') ?? 'https://app.posthog.com';
     this.appEnv =
-      this.config.get<string>('APP_ENV') ?? this.config.get<string>('NODE_ENV') ?? 'development';
+      this.config.get<string>('app.appEnv') ??
+      this.config.get<string>('APP_ENV') ??
+      this.config.get<string>('NODE_ENV') ??
+      'development';
 
     if (key) {
       this.client = new PostHog(key, {

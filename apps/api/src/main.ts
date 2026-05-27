@@ -18,8 +18,9 @@ async function bootstrap(): Promise<void> {
   const port = configService.get<number>('app.port') ?? 4001;
   const frontendUrl = configService.get<string>('app.frontendUrl') ?? 'http://localhost:4000';
   const nodeEnv = configService.get<string>('app.nodeEnv') ?? 'development';
+  const appEnv = configService.get<string>('app.appEnv') ?? nodeEnv;
 
-  // CORS_ALLOWED_ORIGINS: optional comma-separated extra origins (e.g. app.stagelink.io,staging.stagelink.io)
+  // CORS_ALLOWED_ORIGINS: optional comma-separated extra origins (e.g. stagelink.art,staging.stagelink.link)
   const extraOrigins = (configService.get<string>('app.corsAllowedOrigins') ?? '')
     .split(',')
     .map((o) => o.trim())
@@ -70,6 +71,7 @@ async function bootstrap(): Promise<void> {
   await app.listen(port);
   logger.log(`🚀 StageLink API running on port ${port}`);
   logger.log(`📍 Environment: ${nodeEnv}`);
+  logger.log(`🎚️ Deployment tier: ${appEnv}`);
   if (extraOrigins.length) {
     logger.log(`🌐 Extra CORS origins: ${extraOrigins.join(', ')}`);
   }
