@@ -6,6 +6,7 @@ import { ArrowRight, MessageCircle, Mail, Users, Sparkles, Search } from 'lucide
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import { getSession } from '@/lib/auth';
 import { SUPPORT_URL } from '@/lib/constants';
+import { ConnectionErrorState } from '@/components/shared/ConnectionErrorState';
 import { Bento, BentoLabel } from '@/components/sl/Bento';
 import { Pill, Glow } from '@/components/sl/SlPrimitives';
 import { FaqItem } from '@/features/help/components/FaqItem';
@@ -14,9 +15,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: 'Help & FAQ' };
 }
 
-// ── Section meta — icons and article stubs (URLs pending real content)
-// NOTE: Article URLs are # placeholders. Real content URLs are a
-// "UX Optimization" pending task.
 const GUIDE_CATEGORIES = [
   {
     sectionKey: 'getting_started' as const,
@@ -91,6 +89,10 @@ export default async function DashboardHelpPage({
   if (!session) redirect(`/${locale}/login`);
 
   const me = await getAuthMe(session.accessToken);
+  if (me === null) {
+    return <ConnectionErrorState href={`/${locale}/dashboard/help`} />;
+  }
+
   const artistId = getCurrentArtistId(me);
   if (!artistId) redirect(`/${locale}/onboarding`);
 
@@ -132,13 +134,14 @@ export default async function DashboardHelpPage({
           </div>
           <div className="mt-3.5 flex flex-wrap items-center gap-1.5 text-[12px] text-white/50">
             <span>{r('common_label')}</span>
-            {(r.raw('common_searches') as string[]).map((q) => (
-              <button
+            {(r.raw('common_searches') as string[]).map((q, index) => (
+              <Link
                 key={q}
+                href={`#faq-${sectionKeys[index % sectionKeys.length]}`}
                 className="cursor-pointer rounded-full border border-white/8 bg-white/5 px-2.5 py-1 text-[11px] text-white/70 transition-colors hover:bg-white/10"
               >
                 {q}
-              </button>
+              </Link>
             ))}
           </div>
         </div>
@@ -164,14 +167,14 @@ export default async function DashboardHelpPage({
                 </div>
                 <div className="flex flex-col gap-2">
                   {cat.articles.map((article) => (
-                    <a
+                    <Link
                       key={article}
-                      href="#"
+                      href={`#faq-${cat.sectionKey}`}
                       className="inline-flex items-center gap-1.5 text-[13px] leading-relaxed text-white/70 transition-colors hover:text-white"
                     >
                       <span className="text-white/30">·</span>
                       {article}
-                    </a>
+                    </Link>
                   ))}
                 </div>
                 <div className="mt-3.5 flex items-center gap-1 border-t border-white/8 pt-3 text-[12px] font-semibold text-[#E040FB]">
@@ -191,7 +194,7 @@ export default async function DashboardHelpPage({
             answer: string;
           }>;
           return (
-            <Bento key={sectionKey} tone="panel" className="px-6 py-2">
+            <Bento key={sectionKey} id={`faq-${sectionKey}`} tone="panel" className="px-6 py-2">
               <h2 className="py-4 font-[family-name:var(--font-heading)] text-[10px] font-bold uppercase tracking-[2px] text-white/40">
                 {t(`sections.${sectionKey}.title`)}
               </h2>
@@ -226,7 +229,7 @@ export default async function DashboardHelpPage({
             desc={r('email_desc')}
             status={<span className="text-[12px] text-white/50">{r('email_status')}</span>}
             cta={r('email_cta')}
-            href="mailto:hola@stagelink.art"
+            href={SUPPORT_URL}
           />
           {/* Community */}
           <ContactCard
@@ -283,7 +286,7 @@ export default async function DashboardHelpPage({
             {r('feature_request_body')}
           </p>
           <a
-            href="mailto:stagelink.qa@gmail.com?subject=Feature request"
+            href={`${SUPPORT_URL}?subject=Feature%20request`}
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[rgba(0,212,255,0.4)] bg-transparent py-2.5 text-[13px] font-semibold text-[#00D4FF] transition-colors hover:bg-[rgba(0,212,255,0.08)]"
           >
             <Sparkles className="h-3.5 w-3.5" />

@@ -48,6 +48,13 @@ export interface DashboardSettingsData {
   badges: SettingsTabBadgeCounts;
 }
 
+export class DashboardSettingsUnavailableError extends Error {
+  constructor() {
+    super('Dashboard settings are temporarily unavailable');
+    this.name = 'DashboardSettingsUnavailableError';
+  }
+}
+
 export async function loadDashboardSettingsData(locale: string): Promise<DashboardSettingsData> {
   const session = await getSession();
 
@@ -56,6 +63,10 @@ export async function loadDashboardSettingsData(locale: string): Promise<Dashboa
   }
 
   const me = await getAuthMe(session.accessToken);
+  if (me === null) {
+    throw new DashboardSettingsUnavailableError();
+  }
+
   const artistId = getCurrentArtistId(me);
 
   if (!artistId) {

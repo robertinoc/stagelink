@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { DashboardWelcome } from '@/features/dashboard/components/DashboardWelcome';
+import { ConnectionErrorState } from '@/components/shared/ConnectionErrorState';
 import { getArtist } from '@/lib/api/artists';
 import { getBillingSummary } from '@/lib/api/billing';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
@@ -30,20 +31,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
   // NEVER redirect to onboarding in this case — existing users would lose their artist.
   // Show a recoverable error page instead so the user can simply refresh.
   if (me === null) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
-        <p className="text-lg font-semibold">Having trouble connecting…</p>
-        <p className="text-sm text-muted-foreground">
-          The server is temporarily unavailable. Please refresh the page in a few seconds.
-        </p>
-        <a
-          href={`/${locale}/dashboard`}
-          className="mt-2 rounded-full bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
-        >
-          Refresh
-        </a>
-      </div>
-    );
+    return <ConnectionErrorState href={`/${locale}/dashboard`} />;
   }
 
   const artistId = getCurrentArtistId(me);

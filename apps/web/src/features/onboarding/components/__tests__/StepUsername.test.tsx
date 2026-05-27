@@ -24,6 +24,7 @@ describe('StepUsername', () => {
 
     render(<StepUsername initialValue="Stage-Link" onNext={onNext} onBack={onBack} />);
 
+    expect(screen.getByText(/stagelink\.art\//)).toBeInTheDocument();
     expect(screen.getByText('✓ stage-link is available')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Continue' }));
     expect(onNext).toHaveBeenCalledWith('stage-link');

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { getAuthMe } from '@/lib/api/me';
 import { UmamiProvider } from '@/lib/analytics/UmamiProvider';
+import { ConnectionErrorState } from '@/components/shared/ConnectionErrorState';
 import { OnboardingWizard } from '@/features/onboarding/components/OnboardingWizard';
 import { completeOnboardingAction } from './actions';
 
@@ -34,6 +35,17 @@ export default async function OnboardingPage({ params }: OnboardingPageProps) {
 
   // If the user already has an artist, skip onboarding (e.g. back-navigation).
   const me = await getAuthMe(accessToken);
+
+  if (me === null) {
+    return (
+      <UmamiProvider>
+        <ConnectionErrorState
+          href={`/${locale}/onboarding`}
+          description="We could not confirm your account setup right now. Refresh before starting onboarding so your existing artist workspace is not overwritten."
+        />
+      </UmamiProvider>
+    );
+  }
 
   if (me?.isSuspended || me?.isDeleted) {
     redirect(`/${locale}/suspended`);

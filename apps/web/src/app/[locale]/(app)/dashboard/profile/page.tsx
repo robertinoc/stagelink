@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth';
 import { getArtist } from '@/lib/api/artists';
 import { getBillingEntitlements } from '@/lib/api/billing';
 import { getAuthMe } from '@/lib/api/me';
+import { ConnectionErrorState } from '@/components/shared/ConnectionErrorState';
 import { ProfileEditor } from '@/features/artist/components/ProfileEditor';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -39,6 +40,10 @@ export default async function DashboardProfilePage({ params }: DashboardProfileP
 
   // Resolve artist (deduped by Next.js — layout fetches the same data)
   const me = await getAuthMe(session.accessToken);
+  if (me === null) {
+    return <ConnectionErrorState href={`/${locale}/dashboard/profile`} />;
+  }
+
   const artistId = me?.artistIds[0];
   if (!artistId) redirect(`/${locale}/onboarding`);
 
