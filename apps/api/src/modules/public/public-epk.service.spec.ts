@@ -13,9 +13,17 @@ describe('PublicEpkService', () => {
       resolveByUsername: jest.fn(),
     };
 
-    const service = new PublicEpkService(prisma as never, tenantResolver as never);
+    const billingEntitlementsService = {
+      getArtistEntitlements: jest.fn().mockResolvedValue({ effectivePlan: 'pro' }),
+    };
 
-    return { service, prisma, tenantResolver };
+    const service = new PublicEpkService(
+      prisma as never,
+      tenantResolver as never,
+      billingEntitlementsService as never,
+    );
+
+    return { service, prisma, tenantResolver, billingEntitlementsService };
   }
 
   it('uses artist bio translations as effective short bio when epk short bio is empty', async () => {
@@ -96,5 +104,17 @@ describe('PublicEpkService', () => {
     await expect(service.getPublishedByUsername('unknown', 'en')).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('returns not found when the artist no longer has EPK builder access', async () => {
+    const { service, prisma, tenantResolver, billingEntitlementsService } = createService();
+
+    tenantResolver.resolveByUsername.mockResolvedValue({ artistId: 'artist_123' });
+    billingEntitlementsService.getArtistEntitlements.mockResolvedValue({ effectivePlan: 'free' });
+
+    await expect(service.getPublishedByUsername('robertinoc', 'en')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+    expect(prisma.epk.findUnique).not.toHaveBeenCalled();
   });
 });

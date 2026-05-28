@@ -121,12 +121,16 @@ export class BillingService {
     );
     const effectivePlan = access.effectiveAccess;
 
-    const availablePlans = this.buildPlanSummaries(products, subscription, effectivePlan);
-    const featureHighlights = this.buildFeatureHighlights(effectivePlan);
-    const recommendedPlan = availablePlans.find(
-      (plan) =>
-        plan.recommended && !plan.isCurrent && plan.planCode !== 'enterprise' && plan.available,
+    const isPaymentPastDue =
+      entitlements.subscriptionStatus === 'past_due' ||
+      entitlements.subscriptionStatus === 'unpaid';
+    const recommendedCheckoutPlan = this.resolveRecommendedCheckoutPlan(
+      products,
+      this.resolveCheckoutBasePlan(subscription),
+      isPaymentPastDue,
     );
+    const availablePlans = this.buildPlanSummaries(products, subscription, recommendedCheckoutPlan);
+    const featureHighlights = this.buildFeatureHighlights(effectivePlan);
 
     // Feature availability must reflect the (possibly elevated) effective
     // plan so the dashboard unlocks features under a manual grant.
@@ -147,10 +151,6 @@ export class BillingService {
       }
     }
 
-    const isPaymentPastDue =
-      entitlements.subscriptionStatus === 'past_due' ||
-      entitlements.subscriptionStatus === 'unpaid';
-
     return ok<BillingUiSummary>({
       artistId,
       effectivePlan,
@@ -166,18 +166,9 @@ export class BillingService {
       entitlements: elevatedEntitlements.features,
       featureHighlights,
       upgradeOptions: {
-        canUpgrade: availablePlans.some(
-          (plan) =>
-            plan.planCode !== 'enterprise' &&
-            plan.available &&
-            !plan.isCurrent &&
-            this.planRank(plan.planCode) > this.planRank(effectivePlan),
-        ),
+        canUpgrade: recommendedCheckoutPlan !== null,
         canManageBilling: Boolean(subscription.stripeCustomerId),
-        recommendedPlan:
-          recommendedPlan?.planCode && recommendedPlan.planCode !== 'enterprise'
-            ? recommendedPlan.planCode
-            : null,
+        recommendedPlan: recommendedCheckoutPlan,
       },
       notes: {
         isWebhookSyncPending: billingSyncPending,
@@ -203,14 +194,7 @@ export class BillingService {
       throw new BadRequestException('Checkout is only available for paid plans');
     }
 
-    const stripe = this.getStripeClientOrThrow();
     const returnUrl = this.validateReturnUrl(dto.returnUrl);
-    const priceId = getStripePriceIdForPlan(dto.plan, this.getPriceConfig());
-
-    if (!priceId) {
-      throw new ServiceUnavailableException(`Stripe price not configured for plan "${dto.plan}"`);
-    }
-
     const artist = await this.prisma.artist.findUnique({
       where: { id: artistId },
       include: {
@@ -225,6 +209,15 @@ export class BillingService {
 
     if (!artist) {
       throw new NotFoundException('Artist not found');
+    }
+
+    this.assertCheckoutTargetIsValid(artist.subscription, dto.plan);
+
+    const stripe = this.getStripeClientOrThrow();
+    const priceId = getStripePriceIdForPlan(dto.plan, this.getPriceConfig());
+
+    if (!priceId) {
+      throw new ServiceUnavailableException(`Stripe price not configured for plan "${dto.plan}"`);
     }
 
     if (this.shouldUpgradeExistingPaidSubscription(artist.subscription, dto.plan)) {
@@ -516,7 +509,7 @@ export class BillingService {
   private buildPlanSummaries(
     products: BillingPlanCatalogItem[],
     subscription: PrismaSubscription,
-    effectivePlan: PlanTier,
+    recommendedCheckoutPlan: PlanTier | null,
   ): BillingPlanSummary[] {
     return products.map((product) => ({
       planCode: product.plan,
@@ -524,9 +517,7 @@ export class BillingService {
       interval: product.interval,
       priceDisplay: this.formatPriceDisplay(product.amount, product.currency, product.contactSales),
       available: product.available,
-      recommended:
-        (product.plan === 'pro' && effectivePlan === 'free') ||
-        (product.plan === 'pro_plus' && effectivePlan === 'pro'),
+      recommended: product.plan === recommendedCheckoutPlan,
       contactSales: Boolean(product.contactSales),
       isCurrent: product.plan === subscription.plan,
       features:
@@ -567,6 +558,59 @@ export class BillingService {
         return 2;
       default:
         return 0;
+    }
+  }
+
+  private resolveCheckoutBasePlan(subscription: PrismaSubscription | null): PlanTier {
+    if (!subscription) return PlanTier.free;
+
+    if (
+      subscription.status === SubscriptionStatus.active ||
+      subscription.status === SubscriptionStatus.trialing ||
+      subscription.status === SubscriptionStatus.past_due ||
+      subscription.status === SubscriptionStatus.unpaid ||
+      subscription.status === SubscriptionStatus.incomplete
+    ) {
+      return subscription.plan;
+    }
+
+    return PlanTier.free;
+  }
+
+  private resolveRecommendedCheckoutPlan(
+    products: BillingPlanCatalogItem[],
+    checkoutBasePlan: PlanTier,
+    isPaymentPastDue: boolean,
+  ): PlanTier | null {
+    if (isPaymentPastDue) return null;
+
+    const next = products.find(
+      (product): product is BillingPlanCatalogItem & { plan: PlanTier } =>
+        product.plan !== 'enterprise' &&
+        product.plan !== PlanTier.free &&
+        product.available &&
+        this.planRank(product.plan) > this.planRank(checkoutBasePlan),
+    );
+
+    return next?.plan ?? null;
+  }
+
+  private assertCheckoutTargetIsValid(
+    subscription: PrismaSubscription | null,
+    targetPlan: PlanTier,
+  ) {
+    if (
+      subscription?.status === SubscriptionStatus.past_due ||
+      subscription?.status === SubscriptionStatus.unpaid
+    ) {
+      throw new BadRequestException(
+        'Resolve the existing payment issue in the billing portal before changing plans',
+      );
+    }
+
+    const checkoutBasePlan = this.resolveCheckoutBasePlan(subscription);
+    if (this.planRank(targetPlan) <= this.planRank(checkoutBasePlan)) {
+      throw new BadRequestException('Checkout is only available for plan upgrades');
     }
   }
 

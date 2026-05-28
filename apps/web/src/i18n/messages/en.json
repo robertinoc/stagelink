@@ -1507,7 +1507,7 @@
         "epk_builder": {
           "title": "EPK builder",
           "description": "Create and publish richer press-kit experiences.",
-          "note": "EPK builder is not implemented yet. The entitlement is reserved for Pro and above."
+          "note": "Press Kit editing and publishing are included on Pro and Pro+."
         },
         "analytics_pro": {
           "title": "Advanced analytics",
