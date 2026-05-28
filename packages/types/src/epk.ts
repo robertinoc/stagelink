@@ -244,6 +244,10 @@ export interface PublicEpkResponse {
   recordLabelsCount: number;
   locale?: SupportedLocale;
   contentLocale?: SupportedLocale;
+  /** Which visual template to render. Defaults to 'studio' when not set. */
+  templateId: EpkTemplateId;
+  /** Brand palette for the 'brutalist' template (Pro+ only). */
+  brand: EpkBrand | null;
 }
 
 // ---------------------------------------------------------------------------
