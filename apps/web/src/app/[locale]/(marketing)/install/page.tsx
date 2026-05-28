@@ -2,9 +2,11 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Chrome, Share, Smartphone } from 'lucide-react';
 import { getLandingT } from '@/lib/landing-translations';
+import { buildLocalizedAlternates } from '@/lib/seo-localization';
+import type { SupportedLocale } from '@stagelink/types';
 
 interface InstallPageProps {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: SupportedLocale }>;
 }
 
 export async function generateMetadata({ params }: InstallPageProps): Promise<Metadata> {
@@ -16,10 +18,7 @@ export async function generateMetadata({ params }: InstallPageProps): Promise<Me
     description: t.install.description,
     alternates: {
       canonical: `/${locale}/install`,
-      languages: {
-        en: '/en/install',
-        es: '/es/install',
-      },
+      languages: buildLocalizedAlternates('/install'),
     },
   };
 }

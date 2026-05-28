@@ -26,6 +26,19 @@
     "pricing": {
       "title": "Simple pricing",
       "subtitle": "Start free. Upgrade when you need more.",
+      "popular_badge": "Popular",
+      "features": {
+        "artist_page_one": "1 artist page",
+        "artist_pages_three": "3 artist pages",
+        "link_blocks_five": "5 link blocks",
+        "basic_analytics": "Basic analytics",
+        "stagelink_subdomain": "StageLink subdomain",
+        "unlimited_blocks": "Unlimited blocks",
+        "advanced_analytics": "Advanced analytics",
+        "custom_domain": "Custom domain",
+        "email_capture": "Email capture",
+        "priority_support": "Priority support"
+      },
       "free": {
         "name": "Free",
         "price": "$0",

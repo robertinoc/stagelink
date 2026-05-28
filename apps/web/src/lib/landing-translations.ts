@@ -21,6 +21,12 @@ interface Feature {
   description: string;
 }
 
+interface PlaceholderItem {
+  icon: string;
+  label: string;
+  description: string;
+}
+
 export interface LandingTranslation {
   seo: {
     title: string;
@@ -182,6 +188,7 @@ export interface LandingTranslation {
     description: string;
     comingSoon: string;
     backLabel: string;
+    items: PlaceholderItem[];
   };
   blog: {
     eyebrow: string;
@@ -189,6 +196,7 @@ export interface LandingTranslation {
     description: string;
     comingSoon: string;
     backLabel: string;
+    items: PlaceholderItem[];
   };
 }
 
@@ -507,6 +515,38 @@ const en: LandingTranslation = {
       'Step-by-step guides, feature references, and setup docs for artists using StageLink. Coming soon.',
     comingSoon: 'Coming soon',
     backLabel: 'Back to StageLink',
+    items: [
+      {
+        icon: '🚀',
+        label: 'Quick start',
+        description: 'Set up your artist profile and go live in minutes.',
+      },
+      {
+        icon: '🎨',
+        label: 'Artist page',
+        description: 'Customize your page, blocks, and media sections.',
+      },
+      {
+        icon: '📋',
+        label: 'Press Kit (EPK)',
+        description: 'Build and share a professional press kit.',
+      },
+      {
+        icon: '🔗',
+        label: 'Links & blocks',
+        description: 'Manage link blocks, ordering, and visibility.',
+      },
+      {
+        icon: '📊',
+        label: 'Analytics',
+        description: 'Track views, clicks, and audience growth.',
+      },
+      {
+        icon: '⚙️',
+        label: 'Account & billing',
+        description: 'Plans, billing, and account settings.',
+      },
+    ],
   },
   blog: {
     eyebrow: 'Blog',
@@ -515,6 +555,38 @@ const en: LandingTranslation = {
       'Guides, case studies, and ideas for independent artists building their presence. Coming soon.',
     comingSoon: 'Coming soon',
     backLabel: 'Back to StageLink',
+    items: [
+      {
+        icon: '🎵',
+        label: 'Artist presence',
+        description: 'How to build a profile that actually represents who you are.',
+      },
+      {
+        icon: '📣',
+        label: 'Promotion tips',
+        description: 'Getting your music in front of the right people.',
+      },
+      {
+        icon: '📁',
+        label: 'Press Kit guide',
+        description: 'Everything a booker or journalist needs in one place.',
+      },
+      {
+        icon: '🤝',
+        label: 'Bookings & gigs',
+        description: 'Turning your page into a booking-ready asset.',
+      },
+      {
+        icon: '📈',
+        label: 'Grow your audience',
+        description: 'Small moves that compound over time.',
+      },
+      {
+        icon: '🎤',
+        label: 'Artist stories',
+        description: 'Real artists, real pages, real results.',
+      },
+    ],
   },
 };
 
@@ -837,6 +909,38 @@ const es: LandingTranslation = {
       'Guías paso a paso, referencias de funciones y docs de configuración para artistas que usan StageLink. Próximamente.',
     comingSoon: 'Próximamente',
     backLabel: 'Volver a StageLink',
+    items: [
+      {
+        icon: '🚀',
+        label: 'Primeros pasos',
+        description: 'Configurá tu perfil de artista y publicalo en minutos.',
+      },
+      {
+        icon: '🎨',
+        label: 'Página de artista',
+        description: 'Personalizá tu página, bloques y secciones de media.',
+      },
+      {
+        icon: '📋',
+        label: 'Press Kit (EPK)',
+        description: 'Armá y compartí un press kit profesional.',
+      },
+      {
+        icon: '🔗',
+        label: 'Links y bloques',
+        description: 'Gestioná bloques, orden y visibilidad.',
+      },
+      {
+        icon: '📊',
+        label: 'Analytics',
+        description: 'Medí visitas, clics y crecimiento de audiencia.',
+      },
+      {
+        icon: '⚙️',
+        label: 'Cuenta y facturación',
+        description: 'Planes, billing y configuración de cuenta.',
+      },
+    ],
   },
   blog: {
     eyebrow: 'Blog',
@@ -845,6 +949,38 @@ const es: LandingTranslation = {
       'Guías, casos de uso e ideas para artistas independientes que están construyendo su presencia. Próximamente.',
     comingSoon: 'Próximamente',
     backLabel: 'Volver a StageLink',
+    items: [
+      {
+        icon: '🎵',
+        label: 'Presencia artística',
+        description: 'Cómo crear un perfil que realmente represente quién sos.',
+      },
+      {
+        icon: '📣',
+        label: 'Tips de promoción',
+        description: 'Llevá tu música a las personas correctas.',
+      },
+      {
+        icon: '📁',
+        label: 'Guía de Press Kit',
+        description: 'Todo lo que bookers o periodistas necesitan en un solo lugar.',
+      },
+      {
+        icon: '🤝',
+        label: 'Bookings y shows',
+        description: 'Convertí tu página en un activo listo para bookings.',
+      },
+      {
+        icon: '📈',
+        label: 'Crecer audiencia',
+        description: 'Movimientos chicos que se acumulan con el tiempo.',
+      },
+      {
+        icon: '🎤',
+        label: 'Historias de artistas',
+        description: 'Artistas reales, páginas reales, resultados reales.',
+      },
+    ],
   },
 };
 
