@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   DEFAULT_LOCALE,
   EPK_TEMPLATE_IDS,
-  hasFeature,
   type EpkBrand,
   type EpkFeaturedLinkItem,
   type EpkFeaturedMediaItem,
@@ -13,7 +12,6 @@ import {
 } from '@stagelink/types';
 import { PrismaService } from '../../lib/prisma.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
-import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import type { PublicEpkResponseDto } from './dto/public-epk-response.dto';
 import { buildFallbackFeaturedLinks, normalizeFeaturedLinks } from '../epk/epk.helpers';
 import {
@@ -27,7 +25,6 @@ export class PublicEpkService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenantResolver: TenantResolverService,
-    private readonly billingEntitlementsService: BillingEntitlementsService,
   ) {}
 
   async getPublishedByUsername(
@@ -36,13 +33,6 @@ export class PublicEpkService {
   ): Promise<PublicEpkResponseDto> {
     const tenant = await this.tenantResolver.resolveByUsername(username);
     if (!tenant) throw new NotFoundException('Artist not found');
-
-    const entitlements = await this.billingEntitlementsService.getArtistEntitlements(
-      tenant.artistId,
-    );
-    if (!hasFeature(entitlements.effectivePlan, 'epk_builder')) {
-      throw new NotFoundException('EPK not found');
-    }
 
     const epk = await this.prisma.epk.findUnique({
       where: { artistId: tenant.artistId },

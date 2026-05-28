@@ -1,11 +1,6 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import {
-  EPK_VISIBLE_LINKS_LIMITS,
-  getMinimumPlanForFeature,
-  type PlanCode,
-} from '@stagelink/types';
-import { FeatureLockCta } from '@/components/billing/FeatureLockCta';
+import { EPK_VISIBLE_LINKS_LIMITS, type PlanCode } from '@stagelink/types';
 import { EpkEditorV2 } from '@/features/epk/components/EpkEditorV2';
 import { getArtist } from '@/lib/api/artists';
 import { getArtistAssets } from '@/lib/api/assets';
@@ -56,23 +51,6 @@ export default async function DashboardEpkPage({
   ]);
 
   if (!artist) redirect(`/${locale}/onboarding`);
-
-  if (!billingSummary.entitlements.epk_builder) {
-    const requiredPlan = getMinimumPlanForFeature('epk_builder');
-
-    return (
-      <FeatureLockCta
-        title="Unlock Press Kit"
-        description="Press Kit editing and publishing are included on Pro and Pro+."
-        currentPlanLabel={`Current plan: ${resolvePlanLabel(billingSummary.effectivePlan)}`}
-        requiredPlanLabel={`Required: ${resolvePlanLabel(requiredPlan)}`}
-        href={`/${locale}/dashboard/billing`}
-        ctaLabel={`Upgrade to ${resolvePlanLabel(requiredPlan)}`}
-        secondaryHref={`/${locale}/dashboard/profile`}
-        secondaryLabel="Back to Profile"
-      />
-    );
-  }
 
   const [epkData, smartLinks, assets] = await Promise.all([
     getArtistEpk(artistId, session.accessToken),

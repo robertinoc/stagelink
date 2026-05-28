@@ -429,7 +429,6 @@ Return JSON with keys: headline, shortBio, fullBio, pressQuote`;
     ipAddress?: string,
   ): Promise<EpkEditorResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'write');
-    await this.assertEpkBuilderAccess(artistId);
 
     const entitlements = await this.billingEntitlementsService.getArtistEntitlements(artistId);
     if (!canAccessEpkTemplate(entitlements.effectivePlan, dto.templateId)) {
@@ -464,7 +463,6 @@ Return JSON with keys: headline, shortBio, fullBio, pressQuote`;
     ipAddress?: string,
   ): Promise<EpkEditorResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'write');
-    await this.assertEpkBuilderAccess(artistId);
 
     // Brand customization is a Pro+ exclusive feature
     if (dto.brand != null) {
