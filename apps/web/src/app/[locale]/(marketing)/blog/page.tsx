@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { getLandingT } from '@/lib/landing-translations';
 import { ComingSoonPage } from '@/features/marketing/components/ComingSoonPage';
+import { buildLocalizedAlternates } from '@/lib/seo-localization';
+import type { SupportedLocale } from '@stagelink/types';
 
 /**
  * /blog — Blog listing (placeholder)
@@ -18,7 +20,7 @@ import { ComingSoonPage } from '@/features/marketing/components/ComingSoonPage';
  */
 
 interface PageProps {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: SupportedLocale }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -29,10 +31,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: t.blog.description,
     alternates: {
       canonical: `/${locale}/blog`,
-      languages: {
-        en: '/en/blog',
-        es: '/es/blog',
-      },
+      languages: buildLocalizedAlternates('/blog'),
     },
   };
 }
@@ -41,39 +40,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
  * Placeholder topics — replace with real post cards when content is ready.
  * Shown at 40% opacity so the page signals structure without implying live content.
  */
-const PLACEHOLDER_TOPICS = [
-  {
-    icon: '🎵',
-    label: 'Artist presence',
-    description: 'How to build a profile that actually represents who you are.',
-  },
-  {
-    icon: '📣',
-    label: 'Promotion tips',
-    description: 'Getting your music in front of the right people.',
-  },
-  {
-    icon: '📁',
-    label: 'Press Kit guide',
-    description: 'Everything a booker or journalist needs — in one place.',
-  },
-  {
-    icon: '🤝',
-    label: 'Bookings & gigs',
-    description: 'Turning your page into a booking-ready asset.',
-  },
-  {
-    icon: '📈',
-    label: 'Grow your audience',
-    description: 'Small moves that compound over time.',
-  },
-  {
-    icon: '🎤',
-    label: 'Artist stories',
-    description: 'Real artists, real pages, real results.',
-  },
-];
-
 export default async function BlogPage({ params }: PageProps) {
   const { locale } = await params;
   const t = getLandingT(locale);
@@ -86,7 +52,7 @@ export default async function BlogPage({ params }: PageProps) {
       comingSoon={t.blog.comingSoon}
       backLabel={t.blog.backLabel}
       backHref={`/${locale}`}
-      items={PLACEHOLDER_TOPICS}
+      items={t.blog.items}
     />
   );
 }

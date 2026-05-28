@@ -264,6 +264,66 @@ describe('BillingService', () => {
     expect(result.data.url).toBe('http://localhost:4000/en/dashboard/billing?refresh=done');
   });
 
+  it('rejects checkout attempts that are not upgrades from the current paid plan', async () => {
+    const { service, prisma, stripe } = createService();
+
+    prisma.artist.findUnique.mockResolvedValue({
+      id: 'artist_123',
+      username: 'robertinoc',
+      displayName: 'Robertino',
+      contactEmail: 'artist@example.com',
+      user: { email: 'owner@example.com' },
+      subscription: {
+        artistId: 'artist_123',
+        plan: PlanTier.pro_plus,
+        status: SubscriptionStatus.active,
+        stripeCustomerId: 'cus_123',
+        stripeSubscriptionId: 'sub_pro_plus_123',
+      },
+    });
+
+    await expect(
+      service.createCheckoutSession(
+        'artist_123',
+        { plan: 'pro', returnUrl: 'http://localhost:4000/en/dashboard/billing' },
+        { id: 'user_123', email: 'owner@example.com' } as never,
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(stripe.checkout.sessions.create).not.toHaveBeenCalled();
+    expect(stripe.subscriptions.update).not.toHaveBeenCalled();
+  });
+
+  it('requires billing portal recovery before checkout when payment is past due', async () => {
+    const { service, prisma, stripe } = createService();
+
+    prisma.artist.findUnique.mockResolvedValue({
+      id: 'artist_123',
+      username: 'robertinoc',
+      displayName: 'Robertino',
+      contactEmail: 'artist@example.com',
+      user: { email: 'owner@example.com' },
+      subscription: {
+        artistId: 'artist_123',
+        plan: PlanTier.pro,
+        status: SubscriptionStatus.past_due,
+        stripeCustomerId: 'cus_123',
+        stripeSubscriptionId: 'sub_pro_123',
+      },
+    });
+
+    await expect(
+      service.createCheckoutSession(
+        'artist_123',
+        { plan: 'pro_plus', returnUrl: 'http://localhost:4000/en/dashboard/billing' },
+        { id: 'user_123', email: 'owner@example.com' } as never,
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(stripe.checkout.sessions.create).not.toHaveBeenCalled();
+    expect(stripe.subscriptions.update).not.toHaveBeenCalled();
+  });
+
   it('syncs subscription data from Stripe webhook events', async () => {
     const { service, prisma, stripe } = createService();
     const rawBody = Buffer.from('{}');
@@ -517,6 +577,28 @@ describe('BillingService', () => {
     expect(result.data.effectivePlan).toBe('pro');
     expect(result.data.billingState).toBe('active');
     expect(result.data.upgradeOptions.recommendedPlan).toBe('pro_plus');
+  });
+
+  it('does not recommend checkout while billing needs payment recovery', async () => {
+    const { service, prisma } = createService();
+
+    (prisma.subscription.upsert as jest.Mock).mockResolvedValue({
+      artistId: 'artist_123',
+      plan: PlanTier.pro,
+      status: SubscriptionStatus.past_due,
+      currentPeriodEnd: null,
+      cancelAtPeriodEnd: false,
+      stripeCustomerId: 'cus_123',
+    });
+
+    const result = await service.getBillingSummary('artist_123');
+
+    expect(result.data.billingPlan).toBe('pro');
+    expect(result.data.effectivePlan).toBe('free');
+    expect(result.data.isPaymentPastDue).toBe(true);
+    expect(result.data.upgradeOptions.canUpgrade).toBe(false);
+    expect(result.data.upgradeOptions.recommendedPlan).toBeNull();
+    expect(result.data.availablePlans.some((plan) => plan.recommended)).toBe(false);
   });
 
   it('refreshes the subscription state directly from Stripe', async () => {

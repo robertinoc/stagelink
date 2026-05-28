@@ -161,6 +161,7 @@ export function PageTab({ overview, proTrends, fanInsights, locale }: PageTabPro
           />
           <KpiTile
             label={t('kpi.ctr')}
+            hint={t('kpi.ctrHint')}
             value={ctr}
             prev={clicksHalf.prev > 0 ? (clicksHalf.prev / Math.max(1, visitsHalf.prev)) * 100 : 0}
             unit="%"
@@ -172,6 +173,7 @@ export function PageTab({ overview, proTrends, fanInsights, locale }: PageTabPro
           />
           <KpiTile
             label={t('kpi.smartResolutions')}
+            hint={t('kpi.smartResolutionsHint')}
             value={smartRes}
             prev={smartHalf.prev}
             icon={<Share2 size={14} />}
@@ -181,6 +183,7 @@ export function PageTab({ overview, proTrends, fanInsights, locale }: PageTabPro
           />
           <KpiTile
             label={t('kpi.captures')}
+            hint={t('kpi.capturesHint')}
             value={captureCount}
             prev={capturesHalf.prev}
             icon={<Heart size={14} />}

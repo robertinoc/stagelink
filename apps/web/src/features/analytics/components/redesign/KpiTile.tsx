@@ -56,13 +56,23 @@ export function KpiTile({
         </span>
         <span className="text-[11.5px] font-medium text-white/70">{label}</span>
         {hint && (
-          <span
-            role="img"
-            aria-label={hint}
-            title={hint}
-            className="inline-flex h-[14px] w-[14px] cursor-help items-center justify-center rounded-full border border-white/15 text-[9px] font-bold text-white/40"
-          >
-            ?
+          // CSS-only tooltip: instant on hover/focus, no native HTML title delay.
+          // The `?` is a focusable button so keyboard users can trigger it too.
+          <span className="group relative inline-flex">
+            <button
+              type="button"
+              aria-label={hint}
+              tabIndex={0}
+              className="inline-flex h-[14px] w-[14px] cursor-help items-center justify-center rounded-full border border-white/15 bg-transparent text-[9px] font-bold text-white/40 transition-colors hover:border-white/40 hover:text-white/80 focus:outline-none focus:ring-1 focus:ring-white/40"
+            >
+              ?
+            </button>
+            <span
+              role="tooltip"
+              className="pointer-events-none absolute left-1/2 top-full z-50 mt-1.5 w-[240px] -translate-x-1/2 rounded-lg border border-white/15 bg-[#0D0A1A]/95 px-3 py-2 text-[11px] font-normal leading-relaxed text-white/85 opacity-0 shadow-[0_8px_24px_rgba(0,0,0,0.6)] backdrop-blur-md transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
+            >
+              {hint}
+            </span>
           </span>
         )}
       </div>

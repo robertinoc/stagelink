@@ -26,6 +26,19 @@
     "pricing": {
       "title": "Simple pricing",
       "subtitle": "Start free. Upgrade when you need more.",
+      "popular_badge": "Popular",
+      "features": {
+        "artist_page_one": "1 artist page",
+        "artist_pages_three": "3 artist pages",
+        "link_blocks_five": "5 link blocks",
+        "basic_analytics": "Basic analytics",
+        "stagelink_subdomain": "StageLink subdomain",
+        "unlimited_blocks": "Unlimited blocks",
+        "advanced_analytics": "Advanced analytics",
+        "custom_domain": "Custom domain",
+        "email_capture": "Email capture",
+        "priority_support": "Priority support"
+      },
       "free": {
         "name": "Free",
         "price": "$0",
@@ -1507,7 +1520,7 @@
         "epk_builder": {
           "title": "EPK builder",
           "description": "Create and publish richer press-kit experiences.",
-          "note": "EPK builder is not implemented yet. The entitlement is reserved for Pro and above."
+          "note": "Press Kit editing and publishing are included on Pro and Pro+."
         },
         "analytics_pro": {
           "title": "Advanced analytics",
@@ -2566,8 +2579,11 @@
         "linkClicks": "All clicks",
         "linkClicksHint": "Sum of social media and block link clicks",
         "ctr": "CTR",
+        "ctrHint": "Click-through rate — % of page visits that clicked a link",
         "smartResolutions": "Smart link resolutions",
-        "captures": "Fan captures"
+        "smartResolutionsHint": "How many times a smart link redirected to its destination",
+        "captures": "Fan captures",
+        "capturesHint": "Email or contact submissions from your fan-capture forms"
       },
       "series": {
         "visits": "visits",

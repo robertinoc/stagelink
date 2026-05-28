@@ -53,6 +53,47 @@ function buildQualityHeaders(): Record<string, string> {
   return headers;
 }
 
+// ─── Diagnostic mode ────────────────────────────────────────────────────────
+//
+// Opt-in click-tracking debugger. Enable by visiting any public page with
+// ?sl_debug=1 in the URL — sets a session cookie so subsequent clicks log.
+// Outputs to the browser console:
+//   - Whether analytics consent is granted (gate that drops events silently)
+//   - The exact fetch payload sent to the backend
+//   - The HTTP response status (so you can see if the backend rejected it)
+//
+// Use case: diagnose why a click "doesn't move the counter". Open devtools,
+// click a tracked element, paste the [sl_debug] logs into the bug report.
+//
+// Disable: clear the `sl_debug` cookie or visit any page with ?sl_debug=0.
+function isClickDebugEnabled(): boolean {
+  if (typeof document === 'undefined') return false;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const flag = params.get('sl_debug');
+    if (flag === '1') {
+      document.cookie = 'sl_debug=1; path=/; max-age=3600; samesite=lax';
+      return true;
+    }
+    if (flag === '0') {
+      document.cookie = 'sl_debug=; path=/; max-age=0; samesite=lax';
+      return false;
+    }
+  } catch {
+    // window/URLSearchParams unavailable — fall through to cookie check.
+  }
+  return document.cookie
+    .split(';')
+    .map((c) => c.trim())
+    .some((c) => c === 'sl_debug=1');
+}
+
+function debugLog(label: string, payload: unknown): void {
+  if (!isClickDebugEnabled()) return;
+  // eslint-disable-next-line no-console
+  console.log(`%c[sl_debug] ${label}`, 'color:#E040FB;font-weight:bold', payload);
+}
+
 // ─── Public page events (client-side) ─────────────────────────────────────────
 
 /**
@@ -74,7 +115,20 @@ export function trackPublicLinkClick(
     label?: string;
   },
 ): void {
-  if (!isAnalyticsAllowed()) return;
+  const allowed = isAnalyticsAllowed();
+  debugLog('trackPublicLinkClick invoked', {
+    consentAllowed: allowed,
+    block_type: props.block_type,
+    link_item_id: props.link_item_id,
+    label: props.label,
+    artist_id: props.artist_id,
+  });
+  if (!allowed) {
+    debugLog('SKIPPED — analytics consent not granted', {
+      hint: 'Accept analytics cookies on the public page to track clicks.',
+    });
+    return;
+  }
 
   // 1. PostHog — only after explicit analytics consent.
   const ph = getPostHog();
@@ -102,23 +156,36 @@ export function trackPublicLinkClick(
   // 2. Backend DB — only after explicit analytics consent.
   // X-SL-AC / X-SL-QA headers let the API persist consent state per event.
   const apiUrl = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4001';
-  void fetch(`${apiUrl}/api/public/events/link-click`, {
+  const url = `${apiUrl}/api/public/events/link-click`;
+  const body = {
+    artistId: props.artist_id,
+    blockId: props.blockId,
+    linkItemId: props.link_item_id,
+    label: props.label,
+    isSmartLink: props.is_smart_link,
+    smartLinkId: props.smart_link_id ?? null,
+  };
+  const headers = {
+    'Content-Type': 'application/json',
+    ...buildQualityHeaders(),
+  };
+  debugLog('POST → backend', { url, headers, body });
+
+  const fetchPromise = fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...buildQualityHeaders(),
-    },
-    body: JSON.stringify({
-      artistId: props.artist_id,
-      blockId: props.blockId,
-      linkItemId: props.link_item_id,
-      label: props.label,
-      isSmartLink: props.is_smart_link,
-      smartLinkId: props.smart_link_id ?? null,
-    }),
+    headers,
+    body: JSON.stringify(body),
     // keepalive ensures the request completes even if the page navigates away.
     keepalive: true,
-  }).catch(() => {
-    // Recording failure must never surface to the visitor.
   });
+
+  if (isClickDebugEnabled()) {
+    fetchPromise
+      .then((res) => debugLog(`backend response ${res.status}`, { ok: res.ok, status: res.status }))
+      .catch((err) => debugLog('backend fetch threw', { error: String(err) }));
+  } else {
+    fetchPromise.catch(() => {
+      // Recording failure must never surface to the visitor.
+    });
+  }
 }

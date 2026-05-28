@@ -17,6 +17,17 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+function resolvePlanLabel(plan: PlanCode) {
+  switch (plan) {
+    case 'pro_plus':
+      return 'Pro+';
+    case 'pro':
+      return 'Pro';
+    default:
+      return 'Free';
+  }
+}
+
 export default async function DashboardEpkPage({
   params,
 }: {

@@ -66,7 +66,9 @@ Rules:
 - no subscription row -> `free`
 - `plan = free` -> `free`
 - `status = active` or `trialing` with paid plan -> keep `pro` or `pro_plus`
-- `status = inactive`, `past_due`, `canceled`, `incomplete` -> fallback to `free`
+- `status = past_due` with a future `currentPeriodEnd` -> keep paid access until that period ends
+- `status = past_due` without a future `currentPeriodEnd` -> fallback to `free`
+- `status = unpaid`, `inactive`, `canceled`, `incomplete` -> fallback to `free`
 - `cancel_at_period_end = true` does not downgrade access by itself while Stripe still reports `active` or `trialing`
 
 This means feature gating does not trust the raw plan column in isolation.
@@ -115,11 +117,15 @@ Semantic lock error:
 - `code = FEATURE_NOT_INCLUDED_IN_PLAN`
 - includes `feature`, `currentPlan`, and `requiredPlan`
 
-Current real enforcement in T5-2:
+Current real enforcement:
 
-- `analytics_pro` is required for the `365d` analytics range on `GET /api/analytics/:artistId/overview`
-
-This is the first production pattern for premium authorization in the backend.
+- `analytics_pro` is required for premium analytics ranges and advanced analytics endpoints
+- `advanced_fan_insights` is required for fan insight endpoints
+- `stage_link_insights` is required for connected platform insight APIs
+- `shopify_integration` is required for Shopify connection APIs and Shopify public blocks
+- `smart_merch` is required for merch provider APIs and Smart Merch blocks
+- `multi_language_pages` is required before saving non-base localized profile or EPK content
+- `epk_builder` is required for EPK editing, publishing, templates, AI bio generation, and public EPK rendering
 
 ## Frontend Reflection
 
@@ -170,16 +176,12 @@ If a user returns from Stripe before webhook sync finishes, entitlements remain 
 
 ## Current Limitations
 
-- only `analytics_pro` has live backend enforcement today because the other premium modules are not implemented yet
-- locked roadmap features are reflected in UI and documented, but not enforced until their modules exist
 - no dynamic runtime entitlement config exists yet
 - no quota or usage-limit logic exists yet
 
 ## Recommended Next Steps
 
 - enforce `custom_domain` when the domain module is implemented
-- enforce `epk_builder` when EPK CRUD/publish flows ship
-- enforce `shopify_integration` when commerce connection endpoints exist
-- enforce `smart_merch` for Printful/Printify-backed merch blocks
-- add premium analytics breakdown endpoints behind `analytics_pro`
+- add any new premium module behind `BillingEntitlementsService.assertFeatureAccess(...)` before UI release
+- add quota/usage-limit primitives when plan limits move from display copy to enforcement
 - consider a shared web helper or provider if more dashboard areas need entitlements frequently

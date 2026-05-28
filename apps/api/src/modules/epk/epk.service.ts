@@ -143,6 +143,7 @@ export class EpkService {
 
   async getEditorData(artistId: string, userId: string): Promise<EpkEditorResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'read');
+    await this.assertEpkBuilderAccess(artistId);
 
     const artist = await this.prisma.artist.findUnique({ where: { id: artistId } });
     if (!artist) throw new NotFoundException('Artist not found');
@@ -162,6 +163,8 @@ export class EpkService {
     ipAddress?: string,
   ): Promise<EpkEditorResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'write');
+    await this.assertEpkBuilderAccess(artistId);
+
     const translations = sanitizeEpkTranslations(dto.translations);
     if (hasAdditionalLocaleContent(translations)) {
       await this.billingEntitlementsService.assertFeatureAccess(artistId, 'multi_language_pages');
@@ -235,6 +238,7 @@ export class EpkService {
 
   async publish(artistId: string, userId: string, ipAddress?: string): Promise<EpkEditorResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'write');
+    await this.assertEpkBuilderAccess(artistId);
 
     const artist = await this.prisma.artist.findUnique({ where: { id: artistId } });
     if (!artist) throw new NotFoundException('Artist not found');
@@ -353,6 +357,7 @@ export class EpkService {
     userId: string,
   ): Promise<EpkGenerateBioResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'read');
+    await this.assertEpkBuilderAccess(artistId);
 
     const artist = await this.prisma.artist.findUnique({
       where: { id: artistId },
@@ -496,6 +501,10 @@ Return JSON with keys: headline, shortBio, fullBio, pressQuote`;
       update: {},
       create: { artistId },
     });
+  }
+
+  private async assertEpkBuilderAccess(artistId: string): Promise<void> {
+    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'epk_builder');
   }
 
   private buildUpdatePayload(dto: UpdateEpkDto): Prisma.EpkUpdateInput {
