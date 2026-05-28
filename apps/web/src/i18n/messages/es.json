@@ -895,6 +895,8 @@
           "publishCta": "✓ Publicar Press Kit"
         },
         "tabs": {
+          "templateLabel": "Plantilla",
+          "templateHint": "Diseño visual",
           "identityLabel": "Identidad & contacto",
           "identityHint": "Hero, bio, contactos",
           "mediaLabel": "Media & galería",
@@ -904,6 +906,34 @@
           "localesLabel": "Idiomas",
           "localesHint": "Traducción del EPK",
           "lockedTitle": "Disponible en Pro+"
+        },
+        "templateTab": {
+          "sectionLabel": "Plantilla visual",
+          "sectionHint": "Elegí el look de tu Press Kit público. La plantilla afecta el layout y la tipografía — el contenido se mantiene igual.",
+          "studioName": "Studio",
+          "studioDesc": "Layout editorial limpio. Funciona para todos los géneros.",
+          "cinematicName": "Cinematic",
+          "cinematicDesc": "Hero oscuro a full. Ideal para electrónica y actos en vivo.",
+          "brutalistName": "Press Bureau",
+          "brutalistDesc": "Audaz, crudo, editorial. Control total de paleta.",
+          "upgradeNote": "Cinematic y Press Bureau están disponibles en Pro y Pro+.",
+          "upgradeCta": "Mejorar plan",
+          "brandSectionTitle": "Paleta de colores",
+          "brandSectionDefaultActive": "Usando la paleta por defecto",
+          "brandSectionCustomActive": "Usando la paleta {name}",
+          "brandCustomizeCta": "Personalizar paleta",
+          "brandTitle": "Personalizar paleta",
+          "brandSubtitle": "Elegí un preset o definí tus propios colores",
+          "brandPresetsLabel": "Presets",
+          "brandCustomLabel": "Colores personalizados",
+          "brandColorPrimary": "Primario",
+          "brandColorSecondary": "Secundario",
+          "brandColorBg": "Fondo",
+          "brandColorInk": "Tinta (texto)",
+          "brandApply": "Aplicar colores",
+          "brandApplying": "Aplicando…",
+          "brandReset": "Restablecer por defecto",
+          "saving": "Guardando…"
         },
         "locked": {
           "notice": "Este Press Kit está publicado. Pulsá <strong>Unpublish y editar</strong> arriba para volver a draft y modificar los campos."

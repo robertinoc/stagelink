@@ -22,13 +22,22 @@ import { useTranslations } from 'next-intl';
 import { getEpkPublishReadiness } from '@stagelink/types';
 import type {
   AssetDto,
+  EpkBrand,
   EpkEditorResponse,
   EpkFeaturedLinkItem,
   EpkFeaturedMediaItem,
+  EpkTemplateId,
+  PlanCode,
   SmartLink,
   UpdateEpkPayload,
 } from '@stagelink/types';
-import { publishArtistEpk, unpublishArtistEpk, updateArtistEpk } from '@/lib/api/epk';
+import {
+  publishArtistEpk,
+  unpublishArtistEpk,
+  updateArtistEpk,
+  updateEpkBrand,
+  updateEpkTemplate,
+} from '@/lib/api/epk';
 import { SectionHeader } from '@/components/sl/SlPrimitives';
 import { Btn } from '@/components/sl/Btn';
 import { Icon } from '@/components/sl/Icon';
@@ -41,6 +50,7 @@ import { EpkIdentityTab } from './tabs/EpkIdentityTab';
 import { EpkMediaTab } from './tabs/EpkMediaTab';
 import { EpkBookingTab } from './tabs/EpkBookingTab';
 import { EpkLocalesTab } from './tabs/EpkLocalesTab';
+import { EpkTemplateTab } from './tabs/EpkTemplateTab';
 
 interface EpkEditorV2Props {
   artistId: string;
@@ -52,6 +62,7 @@ interface EpkEditorV2Props {
   hasMultiLanguageAccess: boolean;
   billingHref: string;
   maxVisibleLinks: number;
+  userPlan: PlanCode;
 }
 
 // ── Helpers (same as EpkEditor.tsx) ──────────────────────────────────────────
@@ -136,6 +147,7 @@ export function EpkEditorV2({
   hasMultiLanguageAccess,
   billingHref,
   maxVisibleLinks,
+  userPlan,
 }: EpkEditorV2Props) {
   void _assets;
 
@@ -145,6 +157,13 @@ export function EpkEditorV2({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [publishBusy, setPublishBusy] = useState<'publish' | 'unpublish' | null>(null);
   const [activeTab, setActiveTab] = useState<EpkTab>('identity');
+
+  // Template + brand state — managed separately from react-hook-form (immediate PATCH endpoints)
+  const [templateId, setTemplateId] = useState<EpkTemplateId>(
+    editorData.epk.templateId ?? 'studio',
+  );
+  const [brand, setBrand] = useState<EpkBrand | null>(editorData.epk.brand ?? null);
+  const [templateSaving, setTemplateSaving] = useState(false);
 
   const form = useForm<EpkFormValues>({
     resolver: zodResolver(epkFormSchema),
@@ -307,6 +326,50 @@ export function EpkEditorV2({
       document.removeEventListener('click', handleClick, true);
     };
   }, [isDirty, editorLocked]);
+
+  // ── Template & brand handlers ─────────────────────────────────────────────
+
+  async function handleSelectTemplate(id: EpkTemplateId) {
+    if (id === templateId || templateSaving) return;
+    setTemplateId(id); // optimistic
+    setTemplateSaving(true);
+    try {
+      const updated = await updateEpkTemplate(artistId, id);
+      setEditorData(updated);
+      setTemplateId(updated.epk.templateId ?? 'studio');
+      setBrand(updated.epk.brand ?? null);
+    } catch {
+      setTemplateId(templateId); // revert on error
+    } finally {
+      setTemplateSaving(false);
+    }
+  }
+
+  async function handleApplyBrand(newBrand: EpkBrand) {
+    setTemplateSaving(true);
+    try {
+      const updated = await updateEpkBrand(artistId, newBrand);
+      setEditorData(updated);
+      setBrand(updated.epk.brand ?? null);
+    } catch {
+      // keep current brand on error
+    } finally {
+      setTemplateSaving(false);
+    }
+  }
+
+  async function handleResetBrand() {
+    setTemplateSaving(true);
+    try {
+      const updated = await updateEpkBrand(artistId, null);
+      setEditorData(updated);
+      setBrand(null);
+    } catch {
+      // keep current brand on error
+    } finally {
+      setTemplateSaving(false);
+    }
+  }
 
   // ── Image handlers ────────────────────────────────────────────────────────
 
@@ -534,6 +597,19 @@ export function EpkEditorV2({
       />
 
       {/* ── Tab content ── */}
+      {activeTab === 'template' && (
+        <EpkTemplateTab
+          userPlan={userPlan}
+          templateId={templateId}
+          brand={brand}
+          isSaving={templateSaving}
+          billingHref={billingHref}
+          onSelectTemplate={handleSelectTemplate}
+          onApplyBrand={handleApplyBrand}
+          onResetBrand={handleResetBrand}
+        />
+      )}
+
       {activeTab === 'identity' && (
         <>
           {editorLocked && <EpkLockedBanner />}

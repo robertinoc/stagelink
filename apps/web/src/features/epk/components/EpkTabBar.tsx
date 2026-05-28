@@ -6,7 +6,7 @@
 
 import { useTranslations } from 'next-intl';
 
-export type EpkTab = 'identity' | 'media' | 'booking' | 'locales';
+export type EpkTab = 'template' | 'identity' | 'media' | 'booking' | 'locales';
 
 interface TabDef {
   id: EpkTab;
@@ -15,6 +15,7 @@ interface TabDef {
 }
 
 const TABS: TabDef[] = [
+  { id: 'template', labelKey: 'tabs.templateLabel', hintKey: 'tabs.templateHint' },
   { id: 'identity', labelKey: 'tabs.identityLabel', hintKey: 'tabs.identityHint' },
   { id: 'media', labelKey: 'tabs.mediaLabel', hintKey: 'tabs.mediaHint' },
   { id: 'booking', labelKey: 'tabs.bookingLabel', hintKey: 'tabs.bookingHint' },

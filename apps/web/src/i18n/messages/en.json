@@ -895,6 +895,8 @@
           "publishCta": "✓ Publish Press Kit"
         },
         "tabs": {
+          "templateLabel": "Template",
+          "templateHint": "Visual design",
           "identityLabel": "Identity & contact",
           "identityHint": "Hero, bio, contacts",
           "mediaLabel": "Media & gallery",
@@ -904,6 +906,34 @@
           "localesLabel": "Languages",
           "localesHint": "EPK translation",
           "lockedTitle": "Available on Pro+"
+        },
+        "templateTab": {
+          "sectionLabel": "Visual template",
+          "sectionHint": "Choose the look and feel of your public Press Kit. The template affects layout and typography — your content stays the same.",
+          "studioName": "Studio",
+          "studioDesc": "Clean editorial layout. Works for all genres.",
+          "cinematicName": "Cinematic",
+          "cinematicDesc": "Full-bleed dark hero. Ideal for electronic and live acts.",
+          "brutalistName": "Press Bureau",
+          "brutalistDesc": "Bold, raw, editorial. Full palette control.",
+          "upgradeNote": "Cinematic and Press Bureau are available on Pro and Pro+.",
+          "upgradeCta": "Upgrade plan",
+          "brandSectionTitle": "Color palette",
+          "brandSectionDefaultActive": "Using the default palette",
+          "brandSectionCustomActive": "Using {name} palette",
+          "brandCustomizeCta": "Customize palette",
+          "brandTitle": "Customize palette",
+          "brandSubtitle": "Choose a preset or set your own colors",
+          "brandPresetsLabel": "Presets",
+          "brandCustomLabel": "Custom colors",
+          "brandColorPrimary": "Primary",
+          "brandColorSecondary": "Secondary",
+          "brandColorBg": "Background",
+          "brandColorInk": "Ink (text)",
+          "brandApply": "Apply colors",
+          "brandApplying": "Applying…",
+          "brandReset": "Reset to default",
+          "saving": "Saving…"
         },
         "locked": {
           "notice": "This Press Kit is published. Hit <strong>Unpublish & edit</strong> above to return to draft and modify the fields."

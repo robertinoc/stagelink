@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { EPK_VISIBLE_LINKS_LIMITS } from '@stagelink/types';
+import { EPK_VISIBLE_LINKS_LIMITS, type PlanCode } from '@stagelink/types';
 import { EpkEditorV2 } from '@/features/epk/components/EpkEditorV2';
 import { getArtist } from '@/lib/api/artists';
 import { getArtistAssets } from '@/lib/api/assets';
@@ -60,6 +60,7 @@ export default async function DashboardEpkPage({
       hasMultiLanguageAccess={billingSummary.entitlements.multi_language_pages}
       billingHref={`/${locale}/dashboard/billing`}
       maxVisibleLinks={maxVisibleLinks}
+      userPlan={billingSummary.effectivePlan as PlanCode}
     />
   );
 }

@@ -216,6 +216,8 @@ model Epk {
   availabilityNotes  String?  @map("availability_notes")
   baseLocale         String   @default("en") @map("base_locale")
   translations       Json     @default("{}")
+  templateId         String   @default("studio") @map("template_id")
+  brand              Json?
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
