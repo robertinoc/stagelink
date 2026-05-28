@@ -2419,7 +2419,10 @@
       "artist_requirements": "Artist requirements",
       "technical_rider": "Technical rider",
       "rider_section_heading": "Booking info & rider",
-      "stats": "Releases"
+      "stats": "Releases",
+      "music": "Music",
+      "photos": "Photos",
+      "press_quote": "Press quote"
     },
     "contact": {
       "booking": "Booking",
@@ -2437,7 +2440,17 @@
       "not_found": "EPK not found — StageLink",
       "print_not_found": "EPK print view not found — StageLink",
       "fallback_description": "{name} press kit on StageLink."
-    }
+    },
+    "hire_cta": "Hire",
+    "rider_toggle_show": "Show rider details",
+    "rider_toggle_hide": "Hide rider details",
+    "lightbox_close": "Close",
+    "lightbox_prev": "Previous",
+    "lightbox_next": "Next",
+    "theme_toggle_dark": "Dark mode",
+    "theme_toggle_light": "Light mode",
+    "powered_by": "Powered by StageLink",
+    "press_kit": "Press Kit"
   },
   "common": {
     "loading": "Loading...",

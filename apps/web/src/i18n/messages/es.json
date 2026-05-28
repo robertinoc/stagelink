@@ -2424,7 +2424,10 @@
       "artist_requirements": "Requerimientos del artista",
       "technical_rider": "Rider técnico",
       "rider_section_heading": "Info de booking & rider",
-      "stats": "Lanzamientos"
+      "stats": "Lanzamientos",
+      "music": "Música",
+      "photos": "Fotos",
+      "press_quote": "Cita de prensa"
     },
     "contact": {
       "booking": "Bookings",
@@ -2442,7 +2445,17 @@
       "not_found": "EPK no encontrado — StageLink",
       "print_not_found": "Versión imprimible del EPK no encontrada — StageLink",
       "fallback_description": "Press kit de {name} en StageLink."
-    }
+    },
+    "hire_cta": "Contratar",
+    "rider_toggle_show": "Ver detalles del rider",
+    "rider_toggle_hide": "Ocultar rider",
+    "lightbox_close": "Cerrar",
+    "lightbox_prev": "Anterior",
+    "lightbox_next": "Siguiente",
+    "theme_toggle_dark": "Modo oscuro",
+    "theme_toggle_light": "Modo claro",
+    "powered_by": "Powered by StageLink",
+    "press_kit": "Press Kit"
   },
   "common": {
     "loading": "Cargando...",

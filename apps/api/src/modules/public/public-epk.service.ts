@@ -1,8 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   DEFAULT_LOCALE,
+  EPK_TEMPLATE_IDS,
+  type EpkBrand,
   type EpkFeaturedLinkItem,
   type EpkFeaturedMediaItem,
+  type EpkTemplateId,
   type EpkTranslations,
   type RecordLabel,
   type SupportedLocale,
@@ -54,6 +57,8 @@ export class PublicEpkService {
         techRequirements: true,
         location: true,
         availabilityNotes: true,
+        templateId: true,
+        brand: true,
         artist: {
           select: {
             id: true,
@@ -239,6 +244,10 @@ export class PublicEpkService {
       recordLabelsCount: ((artist.recordLabels as unknown as RecordLabel[]) ?? []).length,
       locale,
       contentLocale,
+      templateId: (EPK_TEMPLATE_IDS as readonly string[]).includes(epk.templateId)
+        ? (epk.templateId as EpkTemplateId)
+        : 'studio',
+      brand: (epk.brand as EpkBrand | null) ?? null,
     };
   }
 }
