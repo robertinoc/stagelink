@@ -15,6 +15,7 @@ import { type Artist } from '@/lib/api/artists';
 import { profileSchema, type ProfileFormValues } from '../schemas/profile.schema';
 import { computeCompletion } from '../utils/profileCompletion';
 import { useProfileAutosave } from '../hooks/useProfileAutosave';
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { ProfileTabs, type ProfileTabId } from './ProfileTabs';
 import { CompletionRing } from './CompletionRing';
 import { SaveBar } from './SaveBar';
@@ -110,6 +111,11 @@ export function ProfileEditor({
 
   const isDirty = form.formState.isDirty;
   const isSaving = saveStatus === 'saving';
+
+  useUnsavedChangesGuard({
+    enabled: isDirty && !isSaving,
+    message: 'Tenés cambios sin guardar en tu perfil. ¿Salir de todas formas?',
+  });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>

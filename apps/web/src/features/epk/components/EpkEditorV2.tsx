@@ -41,6 +41,7 @@ import {
 import { SectionHeader } from '@/components/sl/SlPrimitives';
 import { Btn } from '@/components/sl/Btn';
 import { Icon } from '@/components/sl/Icon';
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
 import { epkFormSchema, type EpkFormValues } from '../schemas/epk.schema';
 import { PublishBanner } from './PublishBanner';
 import { EpkTabBar, type EpkTab } from './EpkTabBar';
@@ -273,59 +274,13 @@ export function EpkEditorV2({
     }
   }, [getValues, normalizedFeaturedLinks, setValue]);
 
-  // ── Unsaved-changes guard ────────────────────────────────────────────────
-  // Two layers:
-  //   1. `beforeunload` — covers tab close, hard refresh, browser back, typing
-  //      a new URL in the address bar. Native browser confirmation.
-  //   2. Document-level capture-phase click interceptor for internal <a>
-  //      navigation (sidebar links, top nav). Next App Router has no built-in
-  //      router event for this; intercepting the anchor click is the standard
-  //      workaround. Triggers a synchronous confirm() before letting the click
-  //      proceed.
-  //
-  // Both guards short-circuit when the form isn't dirty or when the editor is
-  // locked (read-only published state — nothing to lose).
-  useEffect(() => {
-    if (!isDirty || editorLocked) return;
-
-    function handleBeforeUnload(e: BeforeUnloadEvent) {
-      e.preventDefault();
-      // Modern browsers ignore the message and show their own copy, but the
-      // `returnValue` assignment is still required for the prompt to appear.
-      e.returnValue = '';
-    }
-
-    function handleClick(e: MouseEvent) {
-      // Only care about plain left-clicks on real anchors without modifier keys
-      // (let cmd/ctrl/middle-click open new tabs without nagging).
-      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      const target = e.target as HTMLElement | null;
-      const anchor = target?.closest('a');
-      if (!anchor) return;
-      const href = anchor.getAttribute('href');
-      if (!href) return;
-      // Ignore in-page anchors and download links.
-      if (href.startsWith('#') || anchor.hasAttribute('download')) return;
-      // External links → let the browser's beforeunload handle them.
-      if (anchor.target === '_blank') return;
-      // Confirm. Spanish copy matches the dashboard locale; if the user is in
-      // an English locale this will still read correctly enough — short copy.
-      const ok = window.confirm(
-        'Tenés cambios sin guardar en el Press Kit. ¿Salir de todas formas?',
-      );
-      if (!ok) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('click', handleClick, true);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('click', handleClick, true);
-    };
-  }, [isDirty, editorLocked]);
+  useUnsavedChangesGuard({
+    enabled: isDirty && !editorLocked,
+    message:
+      locale === 'es'
+        ? 'Tenés cambios sin guardar en el Press Kit. ¿Salir de todas formas?'
+        : 'You have unsaved changes in your Press Kit. Leave anyway?',
+  });
 
   // ── Template & brand handlers ─────────────────────────────────────────────
 

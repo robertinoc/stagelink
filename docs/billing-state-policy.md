@@ -21,12 +21,14 @@ The backend remains authoritative for feature access.
 
 ## Effective access policy
 
-Current policy is intentionally conservative:
+Current policy is intentionally conservative, while still honoring paid access for a subscription
+period that Stripe reports as not yet ended:
 
 - `free` plan -> effective access `free`
 - paid plan + `active` -> keep paid access
 - paid plan + `trialing` -> keep paid access
-- paid plan + `past_due` -> downgrade effective access to `free`
+- paid plan + `past_due` + future `currentPeriodEnd` -> keep paid access until that period ends
+- paid plan + `past_due` without a future `currentPeriodEnd` -> downgrade effective access to `free`
 - paid plan + `canceled` -> downgrade effective access to `free`
 - paid plan + `inactive` / `incomplete` -> downgrade effective access to `free`
 
@@ -71,18 +73,21 @@ Current policy:
 
 - billed plan remains visible
 - billing UI shows a payment issue state
-- effective product access falls back to `free`
+- effective product access remains paid only when Stripe still reports a future `currentPeriodEnd`
+- once the paid period is missing or elapsed, effective product access falls back to `free`
 
 Why:
 
-- this is the safest policy for the current product stage
-- it avoids implicit grace periods that have not been designed or tested yet
+- this avoids cutting off users before the paid period Stripe reports as active is over
+- it avoids any custom grace period beyond the subscription period StageLink receives from Stripe
 
 ## Grace period policy
 
-There is **no grace period** implemented yet.
+There is **no custom grace period** implemented yet.
 
-That is an explicit product decision for now, not an omission.
+`past_due` can still keep access until `currentPeriodEnd` when Stripe provides a future paid
+period. After that date, StageLink downgrades effective access to `free` unless Stripe recovers
+the subscription.
 
 If StageLink introduces grace periods later, it should happen with:
 
