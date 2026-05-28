@@ -13,8 +13,10 @@ import {
 import { Transform, Type } from 'class-transformer';
 import {
   EPK_AI_TONES,
+  EPK_TEMPLATE_IDS,
   SUPPORTED_LOCALES,
   type EpkAiTone,
+  type EpkTemplateId,
   type SupportedLocale,
 } from '@stagelink/types';
 
@@ -160,6 +162,47 @@ export class UpdateEpkDto {
   @IsString()
   @MaxLength(500)
   availabilityNotes?: string | null;
+}
+
+export class UpdateEpkTemplateDto {
+  @IsIn(EPK_TEMPLATE_IDS)
+  templateId!: EpkTemplateId;
+}
+
+/** Validates a single CSS color string (hex, rgb, hsl, or CSS var). */
+class EpkBrandColorSlotDto {
+  @IsString()
+  @MaxLength(40)
+  primary!: string;
+
+  @IsString()
+  @MaxLength(40)
+  secondary!: string;
+
+  @IsString()
+  @MaxLength(40)
+  bg!: string;
+
+  @IsString()
+  @MaxLength(40)
+  ink!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  id?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  name?: string;
+}
+
+export class UpdateEpkBrandDto {
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => EpkBrandColorSlotDto)
+  brand?: EpkBrandColorSlotDto | null;
 }
 
 export class GenerateBioDto {

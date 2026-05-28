@@ -2,9 +2,11 @@ import { unstable_cache } from 'next/cache';
 import { apiFetch } from '@/lib/auth';
 import {
   DEFAULT_LOCALE,
+  type EpkBrand,
   type EpkEditorResponse,
   type EpkGenerateBioRequest,
   type EpkGenerateBioResponse,
+  type EpkTemplateId,
   type PublicEpkResponse,
   type SupportedLocale,
   type UpdateEpkPayload,
@@ -112,6 +114,50 @@ export async function generateEpkBio(
   }
 
   return res.json() as Promise<EpkGenerateBioResponse>;
+}
+
+export async function updateEpkTemplate(
+  artistId: string,
+  templateId: EpkTemplateId,
+): Promise<EpkEditorResponse> {
+  const res = await fetch(`/api/artists/${artistId}/epk/template`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ templateId }),
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { message?: string | string[] };
+    const message = Array.isArray(err.message)
+      ? err.message.join(', ')
+      : (err.message ?? `Failed to update template (${res.status})`);
+    throw new Error(message);
+  }
+
+  return res.json() as Promise<EpkEditorResponse>;
+}
+
+export async function updateEpkBrand(
+  artistId: string,
+  brand: EpkBrand | null,
+): Promise<EpkEditorResponse> {
+  const res = await fetch(`/api/artists/${artistId}/epk/brand`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ brand }),
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { message?: string | string[] };
+    const message = Array.isArray(err.message)
+      ? err.message.join(', ')
+      : (err.message ?? `Failed to update brand (${res.status})`);
+    throw new Error(message);
+  }
+
+  return res.json() as Promise<EpkEditorResponse>;
 }
 
 export async function fetchPublicEpk(

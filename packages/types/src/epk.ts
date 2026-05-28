@@ -1,5 +1,43 @@
 import type { LocalizedTextMap, SupportedLocale } from './i18n';
 
+// ---------------------------------------------------------------------------
+// Template & Brand
+// ---------------------------------------------------------------------------
+
+export const EPK_TEMPLATE_IDS = ['studio', 'cinematic', 'brutalist'] as const;
+export type EpkTemplateId = (typeof EPK_TEMPLATE_IDS)[number];
+
+/** Per-plan template access gate. */
+export const EPK_TEMPLATE_ACCESS: Record<string, readonly EpkTemplateId[]> = {
+  free: ['studio'],
+  pro: ['studio', 'cinematic'],
+  pro_plus: ['studio', 'cinematic', 'brutalist'],
+};
+
+/** Returns true when userPlan can access the given template. */
+export function canAccessEpkTemplate(userPlan: string, templateId: EpkTemplateId): boolean {
+  const allowed = EPK_TEMPLATE_ACCESS[userPlan] ?? EPK_TEMPLATE_ACCESS['free'];
+  return (allowed as readonly string[]).includes(templateId);
+}
+
+/** Minimum plan required to unlock a template. */
+export const EPK_TEMPLATE_MIN_PLAN: Record<EpkTemplateId, string> = {
+  studio: 'free',
+  cinematic: 'pro',
+  brutalist: 'pro_plus',
+};
+
+export interface EpkBrand {
+  /** Preset id ('default' | 'blood' | 'neon' | 'glacial' | 'inverted' | 'rust' | 'custom') */
+  id?: string;
+  /** Human label shown in the badge */
+  name?: string;
+  primary: string;
+  secondary: string;
+  bg: string;
+  ink: string;
+}
+
 export interface RecordLabel {
   id: string;
   name: string;
@@ -85,6 +123,8 @@ export interface Epk {
   location: string | null;
   availabilityNotes: string | null;
   translations: EpkTranslations;
+  templateId: EpkTemplateId;
+  brand: EpkBrand | null;
   createdAt: string;
   updatedAt: string;
 }

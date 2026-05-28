@@ -1,12 +1,21 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, type Artist } from '@prisma/client';
 import {
   DEFAULT_LOCALE,
+  EPK_TEMPLATE_IDS,
   EPK_VISIBLE_LINKS_LIMITS,
+  canAccessEpkTemplate,
+  type EpkBrand,
   type EpkEditorResponse,
   type EpkFeaturedLinkItem,
   type EpkFeaturedMediaItem,
   type EpkGenerateBioResponse,
+  type EpkTemplateId,
   type EpkTranslations,
   type RecordLabel,
   type SupportedLocale,
@@ -17,7 +26,7 @@ import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { AiService } from '../../lib/ai.service';
-import { GenerateBioDto, UpdateEpkDto } from './dto';
+import { GenerateBioDto, UpdateEpkBrandDto, UpdateEpkDto, UpdateEpkTemplateDto } from './dto';
 import {
   buildPublishedEpkSnapshot,
   getEpkPublishValidation,
@@ -113,6 +122,10 @@ function mapEpk(epk: EpkRecord) {
     techRequirements: epk.techRequirements,
     location: epk.location,
     availabilityNotes: epk.availabilityNotes,
+    templateId: (EPK_TEMPLATE_IDS as readonly string[]).includes(epk.templateId)
+      ? (epk.templateId as EpkTemplateId)
+      : 'studio',
+    brand: (epk.brand as EpkBrand | null) ?? null,
     createdAt: epk.createdAt.toISOString(),
     updatedAt: epk.updatedAt.toISOString(),
   };
@@ -402,6 +415,79 @@ Return JSON with keys: headline, shortBio, fullBio, pressQuote`;
       fullBio: (parsed.fullBio ?? '').slice(0, 5000),
       pressQuote: (parsed.pressQuote ?? '').slice(0, 280),
     };
+  }
+
+  async updateTemplate(
+    artistId: string,
+    dto: UpdateEpkTemplateDto,
+    userId: string,
+    ipAddress?: string,
+  ): Promise<EpkEditorResponse> {
+    await this.membershipService.validateAccess(userId, artistId, 'write');
+
+    const entitlements = await this.billingEntitlementsService.getArtistEntitlements(artistId);
+    if (!canAccessEpkTemplate(entitlements.effectivePlan, dto.templateId)) {
+      throw new ForbiddenException(`Your plan does not include the "${dto.templateId}" template.`);
+    }
+
+    const artist = await this.prisma.artist.findUnique({ where: { id: artistId } });
+    if (!artist) throw new NotFoundException('Artist not found');
+
+    const epk = await this.ensureEpkRecord(artistId);
+    const updated = await this.prisma.epk.update({
+      where: { id: epk.id },
+      data: { templateId: dto.templateId },
+    });
+
+    this.auditService.log({
+      actorId: userId,
+      action: 'epk.updateTemplate',
+      entityType: 'epk',
+      entityId: updated.id,
+      metadata: { templateId: dto.templateId },
+      ipAddress,
+    });
+
+    return { epk: mapEpk(updated), inherited: mapInheritedArtist(artist) };
+  }
+
+  async updateBrand(
+    artistId: string,
+    dto: UpdateEpkBrandDto,
+    userId: string,
+    ipAddress?: string,
+  ): Promise<EpkEditorResponse> {
+    await this.membershipService.validateAccess(userId, artistId, 'write');
+
+    // Brand customization is a Pro+ exclusive feature
+    if (dto.brand != null) {
+      const entitlements = await this.billingEntitlementsService.getArtistEntitlements(artistId);
+      if (entitlements.effectivePlan !== 'pro_plus') {
+        throw new ForbiddenException('Brand customization requires a Pro Plus plan.');
+      }
+    }
+
+    const artist = await this.prisma.artist.findUnique({ where: { id: artistId } });
+    if (!artist) throw new NotFoundException('Artist not found');
+
+    const epk = await this.ensureEpkRecord(artistId);
+    const updated = await this.prisma.epk.update({
+      where: { id: epk.id },
+      data: {
+        brand: dto.brand != null ? (dto.brand as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
+      },
+    });
+
+    this.auditService.log({
+      actorId: userId,
+      action: 'epk.updateBrand',
+      entityType: 'epk',
+      entityId: updated.id,
+      metadata: { hasBrand: dto.brand != null },
+      ipAddress,
+    });
+
+    return { epk: mapEpk(updated), inherited: mapInheritedArtist(artist) };
   }
 
   private async ensureEpkRecord(artistId: string): Promise<EpkRecord> {
