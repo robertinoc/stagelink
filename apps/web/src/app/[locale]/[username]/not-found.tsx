@@ -1,12 +1,19 @@
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 
-interface LocalizedArtistNotFoundProps {
-  params: Promise<{ locale: string }>;
-}
-
-export default async function LocalizedArtistNotFound({ params }: LocalizedArtistNotFoundProps) {
-  const { locale } = await params;
+/**
+ * Renders when an artist isn't found at /[locale]/[username].
+ *
+ * Next.js's special files (not-found, error, loading) do NOT receive
+ * `params` as a prop — only `layout` and `page` do. Read the locale via
+ * `getLocale()` from next-intl/server, which pulls it from the request
+ * context set up by the next-intl middleware. Previously this file
+ * destructured `params.locale` and crashed every render with
+ * "TypeError: Cannot destructure property 'locale' of '(intermediate value)'
+ * as it is undefined", surfaced to users + crawlers as a 500.
+ */
+export default async function LocalizedArtistNotFound() {
+  const locale = await getLocale();
   const t = await getTranslations({ locale, namespace: 'public_page' });
 
   return (
