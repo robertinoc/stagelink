@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { getLandingT } from '@/lib/landing-translations';
 import { ComingSoonPage } from '@/features/marketing/components/ComingSoonPage';
+import { buildLocalizedAlternates } from '@/lib/seo-localization';
+import type { SupportedLocale } from '@stagelink/types';
 
 /**
  * /docs — Documentation hub (placeholder)
@@ -18,7 +20,7 @@ import { ComingSoonPage } from '@/features/marketing/components/ComingSoonPage';
  */
 
 interface PageProps {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: SupportedLocale }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -29,10 +31,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: t.docs.description,
     alternates: {
       canonical: `/${locale}/docs`,
-      languages: {
-        en: '/en/docs',
-        es: '/es/docs',
-      },
+      languages: buildLocalizedAlternates('/docs'),
     },
   };
 }
@@ -41,39 +40,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
  * Placeholder sections — replace with real categories when docs are ready.
  * Shown at 40% opacity so the page signals structure without implying live content.
  */
-const PLACEHOLDER_SECTIONS = [
-  {
-    icon: '🚀',
-    label: 'Quick start',
-    description: 'Set up your artist profile and go live in minutes.',
-  },
-  {
-    icon: '🎨',
-    label: 'Artist page',
-    description: 'Customize your page, blocks, and media sections.',
-  },
-  {
-    icon: '📋',
-    label: 'Press Kit (EPK)',
-    description: 'Build and share a professional press kit.',
-  },
-  {
-    icon: '🔗',
-    label: 'Links & blocks',
-    description: 'Manage link blocks, ordering, and visibility.',
-  },
-  {
-    icon: '📊',
-    label: 'Analytics',
-    description: 'Track views, clicks, and audience growth.',
-  },
-  {
-    icon: '⚙️',
-    label: 'Account & billing',
-    description: 'Plans, billing, and account settings.',
-  },
-];
-
 export default async function DocsPage({ params }: PageProps) {
   const { locale } = await params;
   const t = getLandingT(locale);
@@ -86,7 +52,7 @@ export default async function DocsPage({ params }: PageProps) {
       comingSoon={t.docs.comingSoon}
       backLabel={t.docs.backLabel}
       backHref={`/${locale}`}
-      items={PLACEHOLDER_SECTIONS}
+      items={t.docs.items}
     />
   );
 }

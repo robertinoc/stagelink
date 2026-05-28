@@ -13,9 +13,11 @@ import {
 } from '@/components/ui/card';
 import { Check } from 'lucide-react';
 import { PageContainer } from '@/components/layout/PageContainer';
+import { buildLocalizedAlternates } from '@/lib/seo-localization';
+import type { SupportedLocale } from '@stagelink/types';
 
 interface PricingPageProps {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: SupportedLocale }>;
 }
 
 export async function generateMetadata({ params }: PricingPageProps): Promise<Metadata> {
@@ -23,12 +25,10 @@ export async function generateMetadata({ params }: PricingPageProps): Promise<Me
   const t = await getTranslations({ locale, namespace: 'marketing.pricing' });
   return {
     title: t('title'),
+    description: t('subtitle'),
     alternates: {
       canonical: `/${locale}/pricing`,
-      languages: {
-        en: '/en/pricing',
-        es: '/es/pricing',
-      },
+      languages: buildLocalizedAlternates('/pricing'),
     },
   };
 }
@@ -36,29 +36,29 @@ export async function generateMetadata({ params }: PricingPageProps): Promise<Me
 const plans = [
   {
     key: 'free' as const,
-    features: ['1 artist page', '5 link blocks', 'Basic analytics', 'StageLink subdomain'],
+    features: ['artist_page_one', 'link_blocks_five', 'basic_analytics', 'stagelink_subdomain'],
     popular: false,
   },
   {
     key: 'pro' as const,
     features: [
-      '1 artist page',
-      'Unlimited blocks',
-      'Advanced analytics',
-      'Custom domain',
-      'Email capture',
+      'artist_page_one',
+      'unlimited_blocks',
+      'advanced_analytics',
+      'custom_domain',
+      'email_capture',
     ],
     popular: true,
   },
   {
     key: 'pro_plus' as const,
     features: [
-      '3 artist pages',
-      'Unlimited blocks',
-      'Advanced analytics',
-      'Custom domain',
-      'Email capture',
-      'Priority support',
+      'artist_pages_three',
+      'unlimited_blocks',
+      'advanced_analytics',
+      'custom_domain',
+      'email_capture',
+      'priority_support',
     ],
     popular: false,
   },
@@ -81,7 +81,7 @@ export default function PricingPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">{t(`${plan.key}.name`)}</CardTitle>
-                  {plan.popular && <Badge variant="default">Popular</Badge>}
+                  {plan.popular && <Badge variant="default">{t('popular_badge')}</Badge>}
                 </div>
                 <div className="text-3xl font-bold">{t(`${plan.key}.price`)}</div>
                 <CardDescription>{t(`${plan.key}.description`)}</CardDescription>
@@ -91,7 +91,7 @@ export default function PricingPage() {
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-green-500 shrink-0" />
-                      {feature}
+                      {t(`features.${feature}`)}
                     </li>
                   ))}
                 </ul>

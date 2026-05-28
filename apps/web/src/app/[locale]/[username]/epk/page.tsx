@@ -4,6 +4,11 @@ import { getTranslations } from 'next-intl/server';
 import type { SupportedLocale } from '@stagelink/types';
 import { PublicEpkView } from '@/features/epk/components/PublicEpkView';
 import { fetchPublicEpk } from '@/lib/api/epk';
+import {
+  buildLocalizedAlternates,
+  getAlternateOpenGraphLocales,
+  getOpenGraphLocale,
+} from '@/lib/seo-localization';
 
 interface LocalizedPublicEpkPageProps {
   params: Promise<{ locale: SupportedLocale; username: string }>;
@@ -38,10 +43,7 @@ export async function generateMetadata({ params }: LocalizedPublicEpkPageProps):
     ...(canonical && {
       alternates: {
         canonical,
-        languages: {
-          en: `${appUrl}/en/${epk.artist.username}/epk`,
-          es: `${appUrl}/es/${epk.artist.username}/epk`,
-        },
+        languages: buildLocalizedAlternates(`/${epk.artist.username}/epk`, appUrl),
       },
     }),
     openGraph: {
@@ -50,7 +52,8 @@ export async function generateMetadata({ params }: LocalizedPublicEpkPageProps):
       ...(canonical && { url: canonical }),
       images: epk.heroImageUrl ? [{ url: epk.heroImageUrl, alt: epk.artist.displayName }] : [],
       type: 'article',
-      locale,
+      locale: getOpenGraphLocale(locale),
+      alternateLocale: getAlternateOpenGraphLocales(locale),
     },
     twitter: {
       card: epk.heroImageUrl ? 'summary_large_image' : 'summary',

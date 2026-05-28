@@ -1,9 +1,15 @@
 import type { Metadata } from 'next';
 import { LandingPage } from '@/features/marketing/components/LandingPage';
 import { getLandingT } from '@/lib/landing-translations';
+import {
+  buildLocalizedAlternates,
+  getAlternateOpenGraphLocales,
+  getOpenGraphLocale,
+} from '@/lib/seo-localization';
+import type { SupportedLocale } from '@stagelink/types';
 
 interface HomePageProps {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: SupportedLocale }>;
 }
 
 export async function generateMetadata({ params }: HomePageProps): Promise<Metadata> {
@@ -15,17 +21,15 @@ export async function generateMetadata({ params }: HomePageProps): Promise<Metad
     description: t.seo.description,
     alternates: {
       canonical: `/${locale}`,
-      languages: {
-        en: '/en',
-        es: '/es',
-      },
+      languages: buildLocalizedAlternates('/'),
     },
     openGraph: {
       title: t.seo.ogTitle,
       description: t.seo.ogDescription,
       url: `/${locale}`,
       type: 'website',
-      locale: locale === 'es' ? 'es_AR' : 'en_US',
+      locale: getOpenGraphLocale(locale),
+      alternateLocale: getAlternateOpenGraphLocales(locale),
     },
     twitter: {
       card: 'summary_large_image',

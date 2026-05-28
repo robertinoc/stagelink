@@ -8,6 +8,11 @@ import { fetchPublicPage } from '@/lib/public-api';
 import { ArtistPageView } from '@/features/public-page/components/ArtistPageView';
 import { QaModeInitializer } from '@/features/public-page/components/QaModeInitializer';
 import { serializeJsonLd } from '@/lib/json-ld';
+import {
+  buildLocalizedAlternates,
+  getAlternateOpenGraphLocales,
+  getOpenGraphLocale,
+} from '@/lib/seo-localization';
 
 function buildJsonLd(
   artist: NonNullable<Awaited<ReturnType<typeof fetchPublicPage>>>['artist'],
@@ -67,10 +72,7 @@ export async function buildPublicArtistMetadata(
     ...(canonical && {
       alternates: {
         canonical,
-        languages: {
-          en: `${appUrl}/en/${artist.username}`,
-          es: `${appUrl}/es/${artist.username}`,
-        },
+        languages: buildLocalizedAlternates(`/${artist.username}`, appUrl),
       },
     }),
     robots: {
@@ -87,7 +89,8 @@ export async function buildPublicArtistMetadata(
           ? [{ url: artist.avatarUrl, width: 400, height: 400, alt: artist.displayName }]
           : [],
       type: 'profile',
-      locale,
+      locale: getOpenGraphLocale(locale),
+      alternateLocale: getAlternateOpenGraphLocales(locale),
     },
     twitter: {
       card: artist.coverUrl ? 'summary_large_image' : 'summary',

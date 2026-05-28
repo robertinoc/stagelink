@@ -26,6 +26,19 @@
     "pricing": {
       "title": "Precios simples",
       "subtitle": "Empieza gratis. Sube de plan cuando lo necesites.",
+      "popular_badge": "Popular",
+      "features": {
+        "artist_page_one": "1 página de artista",
+        "artist_pages_three": "3 páginas de artista",
+        "link_blocks_five": "5 bloques de links",
+        "basic_analytics": "Analytics básicos",
+        "stagelink_subdomain": "Subdominio de StageLink",
+        "unlimited_blocks": "Bloques ilimitados",
+        "advanced_analytics": "Analytics avanzados",
+        "custom_domain": "Dominio personalizado",
+        "email_capture": "Captura de emails",
+        "priority_support": "Soporte prioritario"
+      },
       "free": {
         "name": "Gratis",
         "price": "$0",
