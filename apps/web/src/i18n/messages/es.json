@@ -2584,8 +2584,11 @@
         "linkClicks": "Todos los clicks",
         "linkClicksHint": "Suma de clicks en redes sociales y links de bloques",
         "ctr": "CTR",
+        "ctrHint": "Click-through rate — % de visitas que clickearon un link",
         "smartResolutions": "Resoluciones smart link",
-        "captures": "Capturas de fan"
+        "smartResolutionsHint": "Cuántas veces un smart link redirigió a su destino",
+        "captures": "Capturas de fan",
+        "capturesHint": "Submissions de email/contacto desde tus formularios de captura"
       },
       "series": {
         "visits": "visitas",

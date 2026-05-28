@@ -2579,8 +2579,11 @@
         "linkClicks": "All clicks",
         "linkClicksHint": "Sum of social media and block link clicks",
         "ctr": "CTR",
+        "ctrHint": "Click-through rate — % of page visits that clicked a link",
         "smartResolutions": "Smart link resolutions",
-        "captures": "Fan captures"
+        "smartResolutionsHint": "How many times a smart link redirected to its destination",
+        "captures": "Fan captures",
+        "capturesHint": "Email or contact submissions from your fan-capture forms"
       },
       "series": {
         "visits": "visits",
