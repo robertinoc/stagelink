@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { StickyTabs, type StickyTabItem } from '@/components/sl/StickyTabs';
@@ -8,7 +8,7 @@ import type {
   DashboardSettingsData,
   SettingsTabId,
 } from '@/features/dashboard/settings/settings-data';
-import { resolvePlanLabel, SETTINGS_TAB_IDS } from '@/features/dashboard/settings/settings-data';
+import { resolvePlanLabel, resolveTabId } from '@/features/dashboard/settings/settings-data';
 import { PlanTab } from './PlanTab';
 import { ConnectionsTab } from './ConnectionsTab';
 import { StoresTab } from './StoresTab';
@@ -30,19 +30,10 @@ export function SettingsTabs({ initialTab, locale, data }: SettingsTabsProps) {
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
-  const [active, setActive] = useState<SettingsTabId>(initialTab);
-
-  useEffect(() => {
-    const raw = search.get('tab');
-    if (!raw) return;
-    if ((SETTINGS_TAB_IDS as readonly string[]).includes(raw) && raw !== active) {
-      setActive(raw as SettingsTabId);
-    }
-  }, [search, active]);
+  const active = resolveTabId(search.get('tab') ?? initialTab);
 
   const onChange = useCallback(
     (id: SettingsTabId) => {
-      setActive(id);
       const params = new URLSearchParams(search.toString());
       params.set('tab', id);
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
@@ -88,7 +79,7 @@ export function SettingsTabs({ initialTab, locale, data }: SettingsTabsProps) {
   ];
 
   return (
-    <div className="@container overflow-x-hidden px-8">
+    <div className="@container overflow-x-hidden px-0 sm:px-8">
       <StickyTabs items={items} active={active} onChange={onChange} ariaLabel={t('aria_label')} />
       <div className="space-y-6 pb-16 pt-6">
         <TabPanel id="plan" active={active}>
