@@ -478,11 +478,11 @@ GET /api/public/pages/by-domain (Host header)
 
 ## Planes
 
-| Plan | Precio | Límites                                                                    |
-| ---- | ------ | -------------------------------------------------------------------------- |
-| Free | $0     | Hasta 10 bloques, analytics básico, branding "Powered by StageLink"        |
-| Pro  | $5/mes | Links ilimitados, sin branding, analytics completo, custom domain, Shopify |
-| Pro+ | $9/mes | EPK builder, fan email capture, multi-language, features prioritarias      |
+| Plan | Features                                                                                                                                                                                      |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Free | 1 página de artista · 5 links de redes sociales · 5 bloques de links · Analytics básicos · EPK básico · `stagelink.art/@user`                                                                |
+| Pro  | 1 página de artista · 8 links de redes sociales · 10 bloques de links · Analytics avanzados · EPK avanzado · EPK templates · `stagelink.art/@user`                                           |
+| Pro+ | 1 página de artista · 13 links de redes sociales · Bloques de links ilimitados · Analytics avanzados · Analytics de Spotify · Analytics de YouTube · Múltiples EPK templates · EPK templates personalizados · `stagelink.art/@user` · Soporte prioritario |
 
 ### Feature Gating
 
