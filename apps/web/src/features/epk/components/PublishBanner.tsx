@@ -1,11 +1,18 @@
 'use client';
 
 // PublishBanner — sticky prominent publish status card shown above the EPK tab bar.
-// Matches the design handoff prototype: 44×44 status icon square, title + PRO+ pill,
+// Shows 44×44 status icon square, title + plan pill (Free/Pro/Pro+),
 // descriptive subtitle that changes per state, "Copiar URL" + "Publish/Unpublish".
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import type { PlanCode } from '@stagelink/types';
+
+const PLAN_LABEL: Record<PlanCode, string> = {
+  free: 'Free',
+  pro: 'Pro',
+  pro_plus: 'Pro+',
+};
 
 interface PublishBannerProps {
   isPublished: boolean;
@@ -13,6 +20,7 @@ interface PublishBannerProps {
   publishReadiness: { ready: boolean; missing: string[] };
   sharePath: string;
   publicUrl: string;
+  userPlan: PlanCode;
   onToggle: () => void;
 }
 
@@ -22,6 +30,7 @@ export function PublishBanner({
   publishReadiness,
   sharePath,
   publicUrl,
+  userPlan,
   onToggle,
 }: PublishBannerProps) {
   const t = useTranslations('dashboard.epk.editor');
@@ -104,7 +113,7 @@ export function PublishBanner({
                 border: '1px solid rgba(224,64,251,0.3)',
               }}
             >
-              PRO+
+              {PLAN_LABEL[userPlan] ?? 'Free'}
             </span>
           </div>
           <div
