@@ -72,7 +72,7 @@ function resolvePlanLabel(plan: PlanCode | null) {
     case 'pro_plus':
       return 'Pro+';
     default:
-      return null; // Free plan: no badge
+      return 'Free';
   }
 }
 
