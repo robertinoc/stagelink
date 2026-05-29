@@ -1,8 +1,11 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useFormStatus } from 'react-dom';
+import type { ReactNode } from 'react';
 import { Bento, BentoLabel } from '@/components/sl/Bento';
 import { Btn } from '@/components/sl/Btn';
+import { SubmitBtn } from '@/components/sl/SubmitBtn';
 import { Glow } from '@/components/sl/SlPrimitives';
 import { SubHead } from '@/components/sl/SubHead';
 import {
@@ -125,9 +128,9 @@ export function PlanTab({ data, locale }: PlanTabProps) {
                   <input type="hidden" name="artistId" value={data.artistId} />
                   <input type="hidden" name="plan" value={recommendedPlan} />
                   <input type="hidden" name="locale" value={locale} />
-                  <Btn variant="primary" type="submit">
+                  <SubmitBtn variant="primary">
                     {t('hero.cta_upgrade_to', { plan: resolvePlanLabel(recommendedPlan) })}
-                  </Btn>
+                  </SubmitBtn>
                 </form>
               ) : (
                 // Already on the top tier (or upgrades disabled) → manage via
@@ -136,9 +139,7 @@ export function PlanTab({ data, locale }: PlanTabProps) {
                   <form action={startPortalAction}>
                     <input type="hidden" name="artistId" value={data.artistId} />
                     <input type="hidden" name="locale" value={locale} />
-                    <Btn variant="primary" type="submit">
-                      {t('hero.cta_manage')}
-                    </Btn>
+                    <SubmitBtn variant="primary">{t('hero.cta_manage')}</SubmitBtn>
                   </form>
                 )
               )}
@@ -147,16 +148,12 @@ export function PlanTab({ data, locale }: PlanTabProps) {
                   <form action={startPortalAction}>
                     <input type="hidden" name="artistId" value={data.artistId} />
                     <input type="hidden" name="locale" value={locale} />
-                    <Btn variant="ghost" type="submit">
-                      {t('hero.cta_portal')}
-                    </Btn>
+                    <SubmitBtn variant="ghost">{t('hero.cta_portal')}</SubmitBtn>
                   </form>
                   <form action={startPortalAction}>
                     <input type="hidden" name="artistId" value={data.artistId} />
                     <input type="hidden" name="locale" value={locale} />
-                    <Btn variant="ghost" type="submit">
-                      {t('hero.cta_invoices')}
-                    </Btn>
+                    <SubmitBtn variant="ghost">{t('hero.cta_invoices')}</SubmitBtn>
                   </form>
                 </>
               )}
@@ -225,9 +222,7 @@ export function PlanTab({ data, locale }: PlanTabProps) {
             <form action={startPortalAction}>
               <input type="hidden" name="artistId" value={data.artistId} />
               <input type="hidden" name="locale" value={locale} />
-              <Btn variant="outline" type="submit">
-                {ti('portal_cta')}
-              </Btn>
+              <SubmitBtn variant="outline">{ti('portal_cta')}</SubmitBtn>
             </form>
           ) : undefined
         }
@@ -244,9 +239,7 @@ export function PlanTab({ data, locale }: PlanTabProps) {
             <form action={startPortalAction}>
               <input type="hidden" name="artistId" value={data.artistId} />
               <input type="hidden" name="locale" value={locale} />
-              <Btn variant="ghost" type="submit">
-                {td('downgrade')}
-              </Btn>
+              <SubmitBtn variant="ghost">{td('downgrade')}</SubmitBtn>
             </form>
           ) : null
         }
@@ -255,14 +248,32 @@ export function PlanTab({ data, locale }: PlanTabProps) {
             <form action={startPortalAction}>
               <input type="hidden" name="artistId" value={data.artistId} />
               <input type="hidden" name="locale" value={locale} />
-              <button type="submit" className={RED_BUTTON_CLASS}>
-                {td('cancel')}
-              </button>
+              <CancelPortalButton className={RED_BUTTON_CLASS}>{td('cancel')}</CancelPortalButton>
             </form>
           ) : null
         }
       />
     </div>
+  );
+}
+
+/**
+ * Submit button for the danger-zone cancel form. Uses RED_BUTTON_CLASS
+ * styling instead of the Btn primitive, so we need a tiny standalone
+ * wrapper rather than the generic SubmitBtn.
+ */
+function CancelPortalButton({
+  className,
+  children,
+}: {
+  className: string;
+  children: ReactNode;
+}): React.ReactNode {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" className={className} disabled={pending} aria-busy={pending || undefined}>
+      {children}
+    </button>
   );
 }
 
@@ -299,9 +310,9 @@ function tierCtaAction({
         <input type="hidden" name="artistId" value={artistId} />
         <input type="hidden" name="plan" value={tier.id} />
         <input type="hidden" name="locale" value={locale} />
-        <Btn variant={isPopular ? 'primary' : 'ghost'} full type="submit">
+        <SubmitBtn variant={isPopular ? 'primary' : 'ghost'} full>
           {upgradeLabel}
-        </Btn>
+        </SubmitBtn>
       </form>
     );
   }

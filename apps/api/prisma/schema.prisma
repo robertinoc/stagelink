@@ -243,6 +243,7 @@ model ArtistMembership {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([artistId, userId])
+  @@index([userId])
   @@map("artist_memberships")
 }
 
