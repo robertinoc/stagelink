@@ -204,28 +204,45 @@ export function EpkBrutalistTemplate({
           borderBottom: `2px solid ${printMode ? primary : hexAlpha(brand.ink, 0.2)}`,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 16 }}>
-          <span
-            style={{
-              fontSize: printMode ? 22 : 26,
-              fontWeight: 900,
-              letterSpacing: '-0.02em',
-              textTransform: 'uppercase',
-            }}
-          >
-            {artist.displayName}
-          </span>
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase',
-              color: primary,
-            }}
-          >
-            {t.pressKit}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          {artist.avatarUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={artist.avatarUrl}
+              alt={artist.displayName}
+              style={{
+                width: printMode ? 36 : 48,
+                height: printMode ? 36 : 48,
+                objectFit: 'cover',
+                flexShrink: 0,
+                border: `2px solid ${primary}`,
+                filter: printMode ? 'grayscale(100%)' : 'none',
+              }}
+            />
+          )}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+            <span
+              style={{
+                fontSize: printMode ? 22 : 26,
+                fontWeight: 900,
+                letterSpacing: '-0.02em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {artist.displayName}
+            </span>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+                color: primary,
+              }}
+            >
+              {t.pressKit}
+            </span>
+          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <span
