@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getSession } from '@/lib/auth';
 import { resolveApiBaseUrl } from '@/lib/server/api-base-url';
 
@@ -31,6 +32,11 @@ export async function POST(_request: Request, context: RouteContext) {
     });
 
     const responseBody = await response.text();
+
+    if (response.ok) {
+      revalidateTag(`epk:${artistId}`, {});
+    }
+
     return new NextResponse(responseBody, {
       status: response.status,
       headers: {

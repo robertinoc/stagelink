@@ -346,12 +346,9 @@ export function EpkEditorV2({
   // ── Save ──────────────────────────────────────────────────────────────────
 
   async function onSubmit(values: EpkFormValues) {
-    const readiness = getEpkPublishReadiness(values);
-    if (!readiness.ready) {
-      setSaveError(`Add the required EPK content before saving: ${readiness.missing.join(', ')}.`);
-      setSaveStatus('error');
-      return;
-    }
+    // NOTE: Readiness gate removed — drafts must be saveable at any stage.
+    // The readiness check remains in togglePublish() and the disabled state
+    // of the Publish button in PublishBanner.
 
     setSaveStatus('saving');
     setSaveError(null);
