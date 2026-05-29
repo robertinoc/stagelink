@@ -1627,19 +1627,39 @@
       "tiers": {
         "free": {
           "sub": "When you're ready, upgrade to unlock more of StageLink.",
-          "features": ["Public page with branding", "3 Smart Links", "Basic analytics"]
+          "features": [
+            "1 artist page",
+            "5 social media links",
+            "5 link blocks",
+            "Basic analytics",
+            "Basic EPK",
+            "stagelink.art/@user"
+          ]
         },
         "pro": {
           "sub": "For artists ready to start unlocking features.",
-          "features": ["Remove branding", "Custom domain", "EPK builder", "Unlimited Smart Links"]
+          "features": [
+            "1 artist page",
+            "8 social media links",
+            "10 link blocks",
+            "Advanced analytics",
+            "Advanced EPK",
+            "EPK templates",
+            "stagelink.art/@user"
+          ]
         },
         "pro_plus": {
           "sub": "This is the plan currently linked to your billing.",
           "features": [
-            "Everything in Pro",
-            "Multiple languages (EPK)",
+            "1 artist page",
+            "13 social media links",
+            "Unlimited link blocks",
             "Advanced analytics",
-            "StageLink Insights",
+            "Spotify analytics integration",
+            "YouTube analytics integration",
+            "Multiple EPK templates",
+            "Custom EPK templates",
+            "stagelink.art/@user",
             "Priority support"
           ]
         },
