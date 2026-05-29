@@ -45,7 +45,7 @@ export function ShopifyCard({
     setValidating(true);
     setStatusMessage(null);
     try {
-      const res = await fetch(`/api/shopify/${artistId}/validate`, {
+      const res = await fetch(`/api/artists/${artistId}/shopify/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain, token: token || undefined }),
@@ -63,8 +63,8 @@ export function ShopifyCard({
     setSaving(true);
     setStatusMessage(null);
     try {
-      const res = await fetch(`/api/shopify/${artistId}/connect`, {
-        method: 'POST',
+      const res = await fetch(`/api/artists/${artistId}/shopify`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           domain,
@@ -80,6 +80,16 @@ export function ShopifyCard({
       setStatusMessage(t('feedback.save_error'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const onDisconnect = async () => {
+    try {
+      const res = await fetch(`/api/artists/${artistId}/shopify`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      window.location.reload();
+    } catch {
+      setStatusMessage(t('feedback.save_error'));
     }
   };
 
@@ -149,11 +159,9 @@ export function ShopifyCard({
             {saving ? t('feedback.saving') : t('actions.save')}
           </Btn>
           {connected && (
-            <form action={`/api/shopify/${artistId}/disconnect`} method="POST">
-              <button type="submit" className={RED_BUTTON_CLASS}>
-                {t('actions.disconnect')}
-              </button>
-            </form>
+            <button type="button" onClick={onDisconnect} className={RED_BUTTON_CLASS}>
+              {t('actions.disconnect')}
+            </button>
           )}
         </div>
 
@@ -169,9 +177,7 @@ export function ShopifyCard({
               <BentoLabel>{t('preview.label')}</BentoLabel>
               <p className="mt-1 text-[12px] text-white/50">{t('preview.sub')}</p>
             </div>
-            <Pill tone="green">
-              {t('preview.collection_pill', { handle })}
-            </Pill>
+            <Pill tone="green">{t('preview.collection_pill', { handle })}</Pill>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <ProductThumb name="Unisex Sweatshirt" price="ARS 28,032.50" index={0} />

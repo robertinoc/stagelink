@@ -541,6 +541,7 @@ export function EpkEditorV2({
         publishReadiness={publishReadiness}
         sharePath={sharePath}
         publicUrl={publicUrl}
+        userPlan={userPlan}
         onToggle={() => togglePublish(!editorData.epk.isPublished)}
       />
 
