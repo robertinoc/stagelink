@@ -138,12 +138,26 @@ export function PublishBanner({
                 </span>
               </>
             ) : !publishReadiness.ready ? (
-              <>
-                {t('publish.missingPrefix')}{' '}
-                <span style={{ color: 'white', fontWeight: 600 }}>
-                  {publishReadiness.missing.join(', ')}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  marginTop: 2,
+                  padding: '5px 10px',
+                  borderRadius: 8,
+                  background: 'rgba(251,191,36,0.10)',
+                  border: '1px solid rgba(251,191,36,0.25)',
+                }}
+              >
+                <span style={{ fontSize: 13, flexShrink: 0 }}>⚠</span>
+                <span>
+                  {t('publish.missingPrefix')}{' '}
+                  <span style={{ color: 'white', fontWeight: 600 }}>
+                    {publishReadiness.missing.join(', ')}
+                  </span>
                 </span>
-              </>
+              </div>
             ) : (
               t('publish.draftSubtitle')
             )}

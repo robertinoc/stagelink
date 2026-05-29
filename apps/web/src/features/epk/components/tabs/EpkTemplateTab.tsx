@@ -89,169 +89,209 @@ export function EpkTemplateTab({
       </div>
 
       {/* Template cards grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-          gap: 16,
-        }}
-      >
-        {TEMPLATES.map((tpl) => {
-          const accessible = canAccessEpkTemplate(userPlan, tpl.id);
-          const selected = templateId === tpl.id;
-          const minPlan = EPK_TEMPLATE_MIN_PLAN[tpl.id];
+      <div style={{ position: 'relative' }}>
+        {/* Loading overlay while applying template or brand */}
+        {isSaving && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 10,
+              background: 'rgba(0,0,0,0.45)',
+              borderRadius: 12,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              backdropFilter: 'blur(2px)',
+            }}
+          >
+            <div
+              style={{
+                width: 18,
+                height: 18,
+                border: '2px solid rgba(224,64,251,0.3)',
+                borderTopColor: '#E040FB',
+                borderRadius: '50%',
+                animation: 'spin 0.8s linear infinite',
+              }}
+            />
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: 'rgba(255,255,255,0.85)',
+                fontFamily: 'var(--font-heading)',
+              }}
+            >
+              {t('saving')}
+            </span>
+          </div>
+        )}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+            gap: 16,
+          }}
+        >
+          {TEMPLATES.map((tpl) => {
+            const accessible = canAccessEpkTemplate(userPlan, tpl.id);
+            const selected = templateId === tpl.id;
+            const minPlan = EPK_TEMPLATE_MIN_PLAN[tpl.id];
 
-          return (
-            <div key={tpl.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <button
-                type="button"
-                onClick={() => accessible && !isSaving && onSelectTemplate(tpl.id)}
-                disabled={!accessible || isSaving}
-                style={{
-                  position: 'relative',
-                  background: 'transparent',
-                  border: `2px solid ${selected ? '#E040FB' : 'rgba(255,255,255,0.12)'}`,
-                  borderRadius: 12,
-                  overflow: 'hidden',
-                  padding: 0,
-                  cursor: !accessible || isSaving ? 'not-allowed' : 'pointer',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  boxShadow: selected ? '0 0 0 3px rgba(224,64,251,0.25)' : 'none',
-                  opacity: !accessible ? 0.55 : 1,
-                  aspectRatio: '16/10',
-                }}
-                aria-pressed={selected}
-                aria-label={t(tpl.nameKey)}
-              >
-                {/* Thumbnail */}
-                <tpl.Thumb
-                  primary={tpl.id === 'brutalist' ? (brand?.primary ?? undefined) : undefined}
-                  bg={tpl.id === 'brutalist' ? (brand?.bg ?? undefined) : undefined}
-                  ink={tpl.id === 'brutalist' ? (brand?.ink ?? undefined) : undefined}
-                />
+            return (
+              <div key={tpl.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => accessible && !isSaving && onSelectTemplate(tpl.id)}
+                  disabled={!accessible || isSaving}
+                  style={{
+                    position: 'relative',
+                    background: 'transparent',
+                    border: `2px solid ${selected ? '#E040FB' : 'rgba(255,255,255,0.12)'}`,
+                    borderRadius: 12,
+                    overflow: 'hidden',
+                    padding: 0,
+                    cursor: !accessible ? 'not-allowed' : isSaving ? 'wait' : 'pointer',
+                    transition: 'border-color 0.15s, box-shadow 0.15s',
+                    boxShadow: selected ? '0 0 0 3px rgba(224,64,251,0.25)' : 'none',
+                    opacity: !accessible ? 0.55 : 1,
+                    aspectRatio: '16/10',
+                  }}
+                  aria-pressed={selected}
+                  aria-label={t(tpl.nameKey)}
+                >
+                  {/* Thumbnail */}
+                  <tpl.Thumb
+                    primary={tpl.id === 'brutalist' ? (brand?.primary ?? undefined) : undefined}
+                    bg={tpl.id === 'brutalist' ? (brand?.bg ?? undefined) : undefined}
+                    ink={tpl.id === 'brutalist' ? (brand?.ink ?? undefined) : undefined}
+                  />
 
-                {/* Selected checkmark */}
-                {selected && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      width: 22,
-                      height: 22,
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg,#E040FB 0%,#9B30D0 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                      <path
-                        d="M1 4.5L4 7.5L10 1"
-                        stroke="white"
-                        strokeWidth="1.8"
+                  {/* Selected checkmark */}
+                  {selected && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        width: 22,
+                        height: 22,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg,#E040FB 0%,#9B30D0 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                        <path
+                          d="M1 4.5L4 7.5L10 1"
+                          stroke="white"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Lock overlay for inaccessible templates */}
+                  {!accessible && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'rgba(0,0,0,0.4)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="rgba(255,255,255,0.8)"
+                        strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                )}
+                      >
+                        <rect x="3" y="11" width="18" height="11" rx="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          background: 'rgba(224,64,251,0.25)',
+                          border: '1px solid rgba(224,64,251,0.45)',
+                          color: '#E040FB',
+                          letterSpacing: '0.05em',
+                        }}
+                      >
+                        {PLAN_BADGE[minPlan] ?? minPlan}
+                      </span>
+                    </div>
+                  )}
+                </button>
 
-                {/* Lock overlay for inaccessible templates */}
-                {!accessible && (
-                  <div
+                {/* Card footer: name + plan badge */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingLeft: 2,
+                  }}
+                >
+                  <span
                     style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'rgba(0,0,0,0.4)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 6,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: selected ? 'white' : 'rgba(255,255,255,0.65)',
+                      fontFamily: 'var(--font-heading)',
                     }}
                   >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="rgba(255,255,255,0.8)"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <rect x="3" y="11" width="18" height="11" rx="2" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
+                    {t(tpl.nameKey)}
+                  </span>
+                  {minPlan !== 'free' && (
                     <span
                       style={{
                         fontSize: 10,
                         fontWeight: 700,
-                        padding: '2px 8px',
+                        padding: '2px 6px',
                         borderRadius: 4,
-                        background: 'rgba(224,64,251,0.25)',
-                        border: '1px solid rgba(224,64,251,0.45)',
-                        color: '#E040FB',
-                        letterSpacing: '0.05em',
+                        background: accessible ? 'rgba(255,255,255,0.08)' : 'rgba(224,64,251,0.12)',
+                        color: accessible ? 'rgba(255,255,255,0.5)' : '#E040FB',
+                        border: `1px solid ${accessible ? 'rgba(255,255,255,0.12)' : 'rgba(224,64,251,0.3)'}`,
+                        letterSpacing: '0.04em',
                       }}
                     >
                       {PLAN_BADGE[minPlan] ?? minPlan}
                     </span>
-                  </div>
-                )}
-              </button>
-
-              {/* Card footer: name + plan badge */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingLeft: 2,
-                }}
-              >
-                <span
+                  )}
+                </div>
+                <div
                   style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: selected ? 'white' : 'rgba(255,255,255,0.65)',
-                    fontFamily: 'var(--font-heading)',
+                    fontSize: 11,
+                    color: 'rgba(255,255,255,0.4)',
+                    lineHeight: 1.4,
+                    paddingLeft: 2,
                   }}
                 >
-                  {t(tpl.nameKey)}
-                </span>
-                {minPlan !== 'free' && (
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      padding: '2px 6px',
-                      borderRadius: 4,
-                      background: accessible ? 'rgba(255,255,255,0.08)' : 'rgba(224,64,251,0.12)',
-                      color: accessible ? 'rgba(255,255,255,0.5)' : '#E040FB',
-                      border: `1px solid ${accessible ? 'rgba(255,255,255,0.12)' : 'rgba(224,64,251,0.3)'}`,
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    {PLAN_BADGE[minPlan] ?? minPlan}
-                  </span>
-                )}
+                  {t(tpl.descKey)}
+                </div>
               </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: 'rgba(255,255,255,0.4)',
-                  lineHeight: 1.4,
-                  paddingLeft: 2,
-                }}
-              >
-                {t(tpl.descKey)}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Upgrade note for inaccessible templates */}
@@ -355,19 +395,8 @@ export function EpkTemplateTab({
         </div>
       )}
 
-      {/* Saving indicator */}
-      {isSaving && (
-        <div
-          style={{
-            textAlign: 'center',
-            fontSize: 12,
-            color: 'rgba(255,255,255,0.4)',
-            paddingTop: 4,
-          }}
-        >
-          {t('saving')}
-        </div>
-      )}
+      {/* Spinner keyframes for the template loading overlay */}
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
 
       {/* Brand drawer */}
       {showBrandDrawer && (
