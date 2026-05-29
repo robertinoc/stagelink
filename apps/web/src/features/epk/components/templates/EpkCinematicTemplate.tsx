@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import type { PublicEpkResponse, SupportedLocale } from '@stagelink/types';
 import { EpkLightbox } from '../EpkLightbox';
+import { EpkLocaleSwitcher } from '../EpkLocaleSwitcher';
 
 interface EpkCinematicTemplateProps {
   epk: PublicEpkResponse;
@@ -58,7 +59,7 @@ export function EpkCinematicTemplate({
   // Labels
   const L = {
     en: {
-      hire: 'Hire',
+      hire: 'Book this artist',
       bio: 'About',
       highlights: 'Highlights',
       gallery: 'Gallery',
@@ -81,7 +82,7 @@ export function EpkCinematicTemplate({
       pressQuote: 'Press quote',
     },
     es: {
-      hire: 'Contratar',
+      hire: 'Contactar Artista',
       bio: 'Bio',
       highlights: 'Destacados',
       gallery: 'Galería',
@@ -176,24 +177,27 @@ export function EpkCinematicTemplate({
               {artist.displayName}
             </span>
           </div>
-          {epk.bookingEmail && (
-            <a
-              href={`mailto:${epk.bookingEmail}`}
-              style={{
-                background: `linear-gradient(135deg,${C.accent} 0%,#9B30D0 100%)`,
-                color: 'white',
-                borderRadius: 24,
-                padding: '7px 20px',
-                fontSize: 13,
-                fontWeight: 700,
-                textDecoration: 'none',
-                letterSpacing: '0.04em',
-                boxShadow: `0 0 20px rgba(224,64,251,0.3)`,
-              }}
-            >
-              {t.hire}
-            </a>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <EpkLocaleSwitcher currentLocale={locale} username={artist.username} theme="dark" />
+            {epk.bookingEmail && (
+              <a
+                href={`mailto:${epk.bookingEmail}`}
+                style={{
+                  background: `linear-gradient(135deg,${C.accent} 0%,#9B30D0 100%)`,
+                  color: 'white',
+                  borderRadius: 24,
+                  padding: '7px 20px',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  letterSpacing: '0.04em',
+                  boxShadow: `0 0 20px rgba(224,64,251,0.3)`,
+                }}
+              >
+                {t.hire}
+              </a>
+            )}
+          </div>
         </header>
       )}
 

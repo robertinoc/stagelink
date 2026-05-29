@@ -170,7 +170,10 @@ export async function fetchPublicEpk(
   const apiBaseUrl = trimmedUrl.endsWith('/api') ? trimmedUrl.slice(0, -4) : trimmedUrl;
   const url = new URL(`${apiBaseUrl}/api/public/epk/by-username/${encodeURIComponent(username)}`);
   url.searchParams.set('locale', locale);
-  const res = await fetch(url, { cache: 'no-store' });
+  const res = await fetch(url, {
+    cache: 'no-store',
+    headers: { 'Cache-Control': 'no-cache' },
+  });
 
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Failed to load public EPK (${res.status})`);

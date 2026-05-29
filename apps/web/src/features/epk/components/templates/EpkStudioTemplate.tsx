@@ -9,6 +9,7 @@
 import { useState, useEffect } from 'react';
 import type { PublicEpkResponse, SupportedLocale } from '@stagelink/types';
 import { EpkLightbox } from '../EpkLightbox';
+import { EpkLocaleSwitcher } from '../EpkLocaleSwitcher';
 
 interface EpkStudioTemplateProps {
   epk: PublicEpkResponse;
@@ -82,7 +83,7 @@ export function EpkStudioTemplate({ epk, locale, printMode = false }: EpkStudioT
   const L = {
     en: {
       pressKit: 'Press Kit',
-      hire: 'Hire',
+      hire: 'Book this artist',
       bio: 'Bio',
       highlights: 'Highlights',
       gallery: 'Gallery',
@@ -106,7 +107,7 @@ export function EpkStudioTemplate({ epk, locale, printMode = false }: EpkStudioT
     },
     es: {
       pressKit: 'Press Kit',
-      hire: 'Contratar',
+      hire: 'Contactar Artista',
       bio: 'Bio',
       highlights: 'Destacados',
       gallery: 'Galería',
@@ -185,6 +186,12 @@ export function EpkStudioTemplate({ epk, locale, printMode = false }: EpkStudioT
             >
               {d ? '☀' : '☾'}
             </button>
+            {/* Language toggle */}
+            <EpkLocaleSwitcher
+              currentLocale={locale}
+              username={artist.username}
+              theme={d ? 'dark' : 'light'}
+            />
             {/* Book CTA */}
             {epk.bookingEmail && (
               <a

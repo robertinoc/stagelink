@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import type { EpkBrand, PublicEpkResponse, SupportedLocale } from '@stagelink/types';
 import { EpkLightbox } from '../EpkLightbox';
+import { EpkLocaleSwitcher } from '../EpkLocaleSwitcher';
 
 interface EpkBrutalistTemplateProps {
   epk: PublicEpkResponse;
@@ -127,7 +128,7 @@ export function EpkBrutalistTemplate({
   // Labels
   const L = {
     en: {
-      hire: 'Hire',
+      hire: 'Book this artist',
       pressKit: 'Press Kit',
       bio: 'Bio',
       highlights: 'Highlights',
@@ -150,7 +151,7 @@ export function EpkBrutalistTemplate({
       poweredBy: 'POWERED BY STAGELINK.ART',
     },
     es: {
-      hire: 'Contratar',
+      hire: 'Contactar Artista',
       pressKit: 'Press Kit',
       bio: 'Bio',
       highlights: 'Destacados',
@@ -256,23 +257,28 @@ export function EpkBrutalistTemplate({
           >
             {new Date().getFullYear()}
           </span>
-          {epk.bookingEmail && !printMode && (
-            <a
-              href={`mailto:${epk.bookingEmail}`}
-              style={{
-                background: primary,
-                color: bg,
-                padding: '7px 18px',
-                fontSize: 12,
-                fontWeight: 900,
-                textDecoration: 'none',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {t.hire}
-            </a>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {!printMode && (
+              <EpkLocaleSwitcher currentLocale={locale} username={artist.username} theme="brand" />
+            )}
+            {epk.bookingEmail && !printMode && (
+              <a
+                href={`mailto:${epk.bookingEmail}`}
+                style={{
+                  background: primary,
+                  color: bg,
+                  padding: '7px 18px',
+                  fontSize: 12,
+                  fontWeight: 900,
+                  textDecoration: 'none',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {t.hire}
+              </a>
+            )}
+          </div>
         </div>
       </div>
 

@@ -498,7 +498,9 @@ export function EpkEditorV2({
                 variant="ghost"
                 type="button"
                 icon={<Icon.Eye size={14} />}
-                onClick={() => window.open(sharePath, '_blank', 'noopener,noreferrer')}
+                onClick={() =>
+                  window.open(`${sharePath}?_t=${Date.now()}`, '_blank', 'noopener,noreferrer')
+                }
               >
                 {t('header.viewPublic')}
               </Btn>
