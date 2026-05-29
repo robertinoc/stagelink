@@ -53,7 +53,7 @@ export function EpkLocaleSwitcher({
   function handleSwitch(newLocale: string) {
     if (newLocale === currentLocale) return;
     // Full reload — the public EPK is server-rendered
-    window.location.href = `/${newLocale}/${username}/epk`;
+    window.location.assign(`/${newLocale}/${username}/epk`);
   }
 
   return (
