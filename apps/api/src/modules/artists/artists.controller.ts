@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Req,
+  Header,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import type { User } from '@prisma/client';
 import { ArtistsService } from './artists.service';
@@ -21,6 +32,7 @@ export class ArtistsController {
   @Get(':id')
   @CheckOwnership('artist', 'id', 'read')
   @UseGuards(OwnershipGuard)
+  @Header('Cache-Control', 'private, max-age=30, stale-while-revalidate=120')
   findOne(@Param('id') id: string, @CurrentUser() user: User) {
     return this.artistsService.findOne(id, user.id);
   }

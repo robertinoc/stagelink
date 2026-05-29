@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Header } from '@nestjs/common';
 import type { User } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators';
 import { AuthService } from './auth.service';
@@ -26,6 +26,7 @@ export class AuthController {
    * @returns AuthenticatedUser (nunca expone workosId ni tokens)
    */
   @Get('me')
+  @Header('Cache-Control', 'private, max-age=30, stale-while-revalidate=120')
   getMe(@CurrentUser() user: User): Promise<AuthenticatedUser> {
     return this.authService.buildMeResponse(user);
   }

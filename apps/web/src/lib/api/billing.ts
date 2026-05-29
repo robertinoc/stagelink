@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import { apiFetch } from '@/lib/auth';
 import type {
   BillingUiSummary,
@@ -78,34 +79,46 @@ export async function getBillingSubscription(
   return json.data;
 }
 
+/**
+ * Cached for 60 s, keyed by artistId. Access token is captured via closure
+ * and never enters the cache key, matching the `getArtist()` pattern in
+ * `artists.ts`. Invalidated on-demand via `revalidateTag(\`billing:\${id}\`)`
+ * from billing Server Actions (checkout return, portal return, refresh).
+ */
 export async function getBillingEntitlements(
   artistId: string,
   accessToken: string,
 ): Promise<BillingEntitlementsResponse> {
-  const res = await apiFetch(`/api/billing/${artistId}/entitlements`, {
-    accessToken,
-    cache: 'no-store',
-  });
-  const json = await readJsonOrThrow<WrappedResponse<BillingEntitlementsResponse>>(
-    res,
-    'Failed to load billing entitlements',
-  );
-  return json.data;
+  return unstable_cache(
+    async () => {
+      const res = await apiFetch(`/api/billing/${artistId}/entitlements`, { accessToken });
+      const json = await readJsonOrThrow<WrappedResponse<BillingEntitlementsResponse>>(
+        res,
+        'Failed to load billing entitlements',
+      );
+      return json.data;
+    },
+    ['billing:entitlements', artistId],
+    { tags: [`billing:${artistId}`], revalidate: 60 },
+  )();
 }
 
 export async function getBillingSummary(
   artistId: string,
   accessToken: string,
 ): Promise<BillingSummaryResponse> {
-  const res = await apiFetch(`/api/billing/${artistId}/summary`, {
-    accessToken,
-    cache: 'no-store',
-  });
-  const json = await readJsonOrThrow<WrappedResponse<BillingSummaryResponse>>(
-    res,
-    'Failed to load billing summary',
-  );
-  return json.data;
+  return unstable_cache(
+    async () => {
+      const res = await apiFetch(`/api/billing/${artistId}/summary`, { accessToken });
+      const json = await readJsonOrThrow<WrappedResponse<BillingSummaryResponse>>(
+        res,
+        'Failed to load billing summary',
+      );
+      return json.data;
+    },
+    ['billing:summary', artistId],
+    { tags: [`billing:${artistId}`], revalidate: 60 },
+  )();
 }
 
 export async function createBillingCheckoutSession(

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Header, Param, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import type { User } from '@prisma/client';
 import { BillingEntitlementsService } from './billing-entitlements.service';
@@ -30,6 +30,7 @@ export class BillingController {
   @Get(':artistId/summary')
   @CheckOwnership('artist', 'artistId', 'read')
   @UseGuards(OwnershipGuard)
+  @Header('Cache-Control', 'private, max-age=30, stale-while-revalidate=120')
   getSummary(@Param('artistId') artistId: string) {
     return this.billingService.getBillingSummary(artistId);
   }
@@ -37,6 +38,7 @@ export class BillingController {
   @Get(':artistId/entitlements')
   @CheckOwnership('artist', 'artistId', 'read')
   @UseGuards(OwnershipGuard)
+  @Header('Cache-Control', 'private, max-age=30, stale-while-revalidate=120')
   async getEntitlements(@Param('artistId') artistId: string) {
     const entitlements = await this.billingEntitlementsService.getArtistEntitlements(artistId);
     return ok(entitlements);

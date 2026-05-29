@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
@@ -240,10 +241,17 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
       {/* ── Artist profile card ── */}
       <div className="mx-4 mb-5 flex items-center gap-2.5 rounded-xl border border-white/8 bg-white/[0.025] px-[10px] py-3">
         {artist?.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={artist.avatarUrl}
             alt={artist.displayName}
+            width={38}
+            height={38}
+            sizes="40px"
+            // Vercel image optimisation only runs when an explicit
+            // remotePatterns entry matches (gated by NEXT_PUBLIC_IMAGES_HOSTNAME
+            // in next.config.ts). Fall back to a passthrough so deploys without
+            // that env still render the avatar instead of crashing on a 400.
+            unoptimized={!process.env.NEXT_PUBLIC_IMAGES_HOSTNAME}
             className="h-[38px] w-[38px] flex-shrink-0 rounded-full object-cover"
           />
         ) : (

@@ -1,6 +1,7 @@
 'use server';
 
 import { headers } from 'next/headers';
+import { revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import {
@@ -93,6 +94,9 @@ export async function refreshBillingStatusAction(formData: FormData) {
   } catch {
     redirect(buildErrorUrl(returnUrl, 'refresh'));
   }
+
+  // User explicitly asked for fresh billing state — drop the cache.
+  revalidateTag(`billing:${artistId}`, {});
 
   redirect(new URL(`?refresh=done`, returnUrl).toString());
 }

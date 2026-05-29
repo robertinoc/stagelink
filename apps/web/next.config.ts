@@ -39,6 +39,15 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: imagesHostname ? [{ protocol: 'https', hostname: imagesHostname }] : [],
   },
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-separator',
+      '@radix-ui/react-slot',
+      'recharts',
+    ],
+  },
 
   /**
    * Security + SEO response headers.

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
@@ -52,10 +53,13 @@ export function AppTopbar({ artist, onMenuOpen }: AppTopbarProps) {
       <div className="flex items-center gap-3">
         {/* Artist avatar with initials fallback */}
         {artist?.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={artist.avatarUrl}
             alt={artist.displayName}
+            width={32}
+            height={32}
+            sizes="32px"
+            unoptimized={!process.env.NEXT_PUBLIC_IMAGES_HOSTNAME}
             className="h-8 w-8 rounded-full object-cover ring-2 ring-white/10"
           />
         ) : (
