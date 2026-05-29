@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 
 interface ReleaseCoverImageProps {
@@ -7,7 +8,8 @@ interface ReleaseCoverImageProps {
   coverUrl: string | null;
   /** Release title — used for alt text and the fallback's accessibility label. */
   alt: string;
-  /** Tailwind classes for sizing/border/etc. Forwarded to both the `<img>` and the fallback. */
+  /** Tailwind classes for sizing/border/etc. Forwarded to the wrapper, so the
+   *  caller still controls aspect ratio and width. */
   className?: string;
 }
 
@@ -19,6 +21,11 @@ interface ReleaseCoverImageProps {
  * server-component-vs-onError reasoning). `ReleasesSection` is server-rendered,
  * so we can't put `<img onError>` directly there; this tiny client component
  * owns the failure state.
+ *
+ * Uses `next/image` with `fill` inside a positioned wrapper. The wrapper
+ * inherits the caller's `className` (which already sets `aspect-square w-full`
+ * etc.) plus `relative overflow-hidden` so the absolutely positioned image is
+ * clipped to the rounded corners.
  */
 export function ReleaseCoverImage({ coverUrl, alt, className }: ReleaseCoverImageProps) {
   const [failed, setFailed] = useState(false);
@@ -35,6 +42,17 @@ export function ReleaseCoverImage({ coverUrl, alt, className }: ReleaseCoverImag
     );
   }
 
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={coverUrl} alt={alt} className={className} onError={() => setFailed(true)} />;
+  return (
+    <div className={`${className ?? ''} relative overflow-hidden`}>
+      <Image
+        src={coverUrl}
+        alt={alt}
+        fill
+        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px"
+        unoptimized={!process.env.NEXT_PUBLIC_IMAGES_HOSTNAME}
+        className="object-cover"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
 }

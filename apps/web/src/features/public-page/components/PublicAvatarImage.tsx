@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 
 interface PublicAvatarImageProps {
@@ -7,6 +8,16 @@ interface PublicAvatarImageProps {
   alt: string;
 }
 
+/**
+ * Public-page artist avatar.
+ *
+ * Rendered inside a fixed-size, positioned wrapper in `ArtistPageView`
+ * (`absolute h-28 w-28 sm:h-32 sm:w-32`), which qualifies as `next/image`'s
+ * `fill` containing block. We pass `unoptimized` whenever
+ * `NEXT_PUBLIC_IMAGES_HOSTNAME` isn't set so deploys without the env var
+ * still render via passthrough instead of crashing on a missing
+ * `remotePatterns` entry.
+ */
 export function PublicAvatarImage({ src, alt }: PublicAvatarImageProps) {
   const [failed, setFailed] = useState(false);
 
@@ -19,12 +30,14 @@ export function PublicAvatarImage({ src, alt }: PublicAvatarImageProps) {
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <Image
       src={src}
       alt={alt}
+      fill
+      sizes="(max-width: 640px) 112px, 128px"
+      unoptimized={!process.env.NEXT_PUBLIC_IMAGES_HOSTNAME}
       // Conservative default until assets support focal-point metadata.
-      className="block h-full w-full object-cover object-center"
+      className="block object-cover object-center"
       onError={() => setFailed(true)}
     />
   );
