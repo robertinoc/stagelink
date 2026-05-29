@@ -33,7 +33,7 @@ export function PrintfulCard({ artistId, connected, storeName, storeId }: Printf
     setValidating(true);
     setStatusMessage(null);
     try {
-      const res = await fetch(`/api/merch/${artistId}/validate`, {
+      const res = await fetch(`/api/artists/${artistId}/merch/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: token || undefined }),
@@ -51,8 +51,8 @@ export function PrintfulCard({ artistId, connected, storeName, storeId }: Printf
     setSaving(true);
     setStatusMessage(null);
     try {
-      const res = await fetch(`/api/merch/${artistId}/connect`, {
-        method: 'POST',
+      const res = await fetch(`/api/artists/${artistId}/merch`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: 'printful', ...(token ? { token } : {}) }),
       });
@@ -63,6 +63,16 @@ export function PrintfulCard({ artistId, connected, storeName, storeId }: Printf
       setStatusMessage(t('feedback.save_error'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const onDisconnect = async () => {
+    try {
+      const res = await fetch(`/api/artists/${artistId}/merch`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      window.location.reload();
+    } catch {
+      setStatusMessage(t('feedback.save_error'));
     }
   };
 
@@ -106,7 +116,9 @@ export function PrintfulCard({ artistId, connected, storeName, storeId }: Printf
             />
             <div>
               <div className="text-[13px] font-semibold text-white">
-                {storeName ? t('connected.title_with_name', { name: storeName }) : t('connected.title_generic')}
+                {storeName
+                  ? t('connected.title_with_name', { name: storeName })
+                  : t('connected.title_generic')}
               </div>
               {storeId && (
                 <div className="font-mono text-[11.5px] text-white/50">
@@ -125,11 +137,9 @@ export function PrintfulCard({ artistId, connected, storeName, storeId }: Printf
             {saving ? t('feedback.saving') : t('actions.save')}
           </Btn>
           {connected && (
-            <form action={`/api/merch/${artistId}/disconnect`} method="POST">
-              <button type="submit" className={RED_BUTTON_CLASS}>
-                {t('actions.disconnect')}
-              </button>
-            </form>
+            <button type="button" onClick={onDisconnect} className={RED_BUTTON_CLASS}>
+              {t('actions.disconnect')}
+            </button>
           )}
         </div>
 

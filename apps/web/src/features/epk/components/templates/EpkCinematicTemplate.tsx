@@ -148,17 +148,34 @@ export function EpkCinematicTemplate({
             height: 56,
           }}
         >
-          <span
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              color: C.muted,
-            }}
-          >
-            {artist.displayName}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {artist.avatarUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={artist.avatarUrl}
+                alt={artist.displayName}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  flexShrink: 0,
+                  border: `1px solid rgba(224,64,251,0.4)`,
+                }}
+              />
+            )}
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: C.muted,
+              }}
+            >
+              {artist.displayName}
+            </span>
+          </div>
           {epk.bookingEmail && (
             <a
               href={`mailto:${epk.bookingEmail}`}
@@ -281,22 +298,42 @@ export function EpkCinematicTemplate({
               padding: '24px 0 20px',
               borderBottom: `2px solid ${accent}`,
               marginBottom: 28,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 16,
             }}
           >
-            <h1
-              style={{
-                margin: 0,
-                fontSize: 32,
-                fontWeight: 900,
-                letterSpacing: '-0.02em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {artist.displayName}
-            </h1>
-            {epk.headline && (
-              <p style={{ margin: '6px 0 0', fontSize: 15, color: muted }}>{epk.headline}</p>
+            {artist.avatarUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={artist.avatarUrl}
+                alt={artist.displayName}
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  flexShrink: 0,
+                  border: `2px solid ${accent}`,
+                }}
+              />
             )}
+            <div>
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: 32,
+                  fontWeight: 900,
+                  letterSpacing: '-0.02em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {artist.displayName}
+              </h1>
+              {epk.headline && (
+                <p style={{ margin: '6px 0 0', fontSize: 15, color: muted }}>{epk.headline}</p>
+              )}
+            </div>
           </div>
         )}
 
