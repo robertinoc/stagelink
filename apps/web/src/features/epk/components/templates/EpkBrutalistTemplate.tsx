@@ -211,8 +211,8 @@ export function EpkBrutalistTemplate({
               src={artist.avatarUrl}
               alt={artist.displayName}
               style={{
-                width: printMode ? 36 : 48,
-                height: printMode ? 36 : 48,
+                width: printMode ? 36 : 72,
+                height: printMode ? 36 : 72,
                 objectFit: 'cover',
                 flexShrink: 0,
                 border: `2px solid ${primary}`,

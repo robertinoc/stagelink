@@ -243,17 +243,18 @@ export function EpkStudioTemplate({ epk, locale, printMode = false }: EpkStudioT
         >
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-              {artist.avatarUrl && !epk.heroImageUrl && (
+              {artist.avatarUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={artist.avatarUrl}
                   alt={artist.displayName}
                   style={{
-                    width: 72,
-                    height: 72,
+                    width: printMode ? 64 : 96,
+                    height: printMode ? 64 : 96,
                     borderRadius: '50%',
                     objectFit: 'cover',
                     border: `2px solid ${border}`,
+                    flexShrink: 0,
                   }}
                 />
               )}

@@ -346,6 +346,26 @@ export function EpkCinematicTemplate({
             }}
           >
             {!printMode && <SectionLabel label={t.bio} />}
+
+            {/* Artist avatar — always visible when available */}
+            {artist.avatarUrl && !printMode && (
+              <div style={{ marginBottom: 24 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={artist.avatarUrl}
+                  alt={artist.displayName}
+                  style={{
+                    width: 100,
+                    height: 100,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: `2px solid ${accent}`,
+                    boxShadow: `0 0 24px rgba(224,64,251,0.3)`,
+                  }}
+                />
+              </div>
+            )}
+
             {epk.shortBio && (
               <p
                 style={{
