@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { StickyTabs, type StickyTabItem } from '@/components/sl/StickyTabs';
@@ -9,10 +10,33 @@ import type {
   SettingsTabId,
 } from '@/features/dashboard/settings/settings-data';
 import { resolvePlanLabel, resolveTabId } from '@/features/dashboard/settings/settings-data';
-import { PlanTab } from './PlanTab';
-import { ConnectionsTab } from './ConnectionsTab';
-import { StoresTab } from './StoresTab';
-import { PrivacyTab } from './PrivacyTab';
+
+// Each tab is its own code-split chunk. The user only downloads the tab
+// they open (~80–150 kB each pre-gzip), instead of paying for all four on
+// every settings page load. `ssr: false` is safe here because the
+// `SettingsTabs` component is already client-only, and the inactive tabs
+// are never rendered (see `TabPanel` below) so they never reach the
+// server anyway.
+const TAB_LOADING: React.ReactNode = (
+  <div className="h-[480px] animate-pulse rounded-3xl border border-white/8 bg-white/[0.025]" />
+);
+
+const PlanTab = dynamic(() => import('./PlanTab').then((m) => m.PlanTab), {
+  ssr: false,
+  loading: () => TAB_LOADING,
+});
+const ConnectionsTab = dynamic(() => import('./ConnectionsTab').then((m) => m.ConnectionsTab), {
+  ssr: false,
+  loading: () => TAB_LOADING,
+});
+const StoresTab = dynamic(() => import('./StoresTab').then((m) => m.StoresTab), {
+  ssr: false,
+  loading: () => TAB_LOADING,
+});
+const PrivacyTab = dynamic(() => import('./PrivacyTab').then((m) => m.PrivacyTab), {
+  ssr: false,
+  loading: () => TAB_LOADING,
+});
 
 interface SettingsTabsProps {
   initialTab: SettingsTabId;
