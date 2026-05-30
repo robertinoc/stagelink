@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { EPK_VISIBLE_LINKS_LIMITS, type PlanCode } from '@stagelink/types';
-import { EpkEditorV2 } from '@/features/epk/components/EpkEditorV2';
+import { EpkEditorV2Lazy } from '@/features/epk/components/EpkEditorV2Lazy';
 import { getArtist } from '@/lib/api/artists';
 import { getArtistAssets } from '@/lib/api/assets';
 import { getBillingSummary } from '@/lib/api/billing';
@@ -50,7 +50,7 @@ export default async function DashboardEpkPage({
   const maxVisibleLinks = EPK_VISIBLE_LINKS_LIMITS[billingSummary.effectivePlan] ?? 3;
 
   return (
-    <EpkEditorV2
+    <EpkEditorV2Lazy
       artistId={artistId}
       username={artist.username}
       locale={locale}
