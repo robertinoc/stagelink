@@ -26,7 +26,11 @@ export function PostHogProvider({ children }: PostHogProviderProps) {
   useEffect(() => {
     function syncAnalyticsConsent() {
       if (isAnalyticsAllowed()) {
-        initPostHog();
+        // initPostHog is async because it dynamically imports the SDK chunk.
+        // Fire-and-forget: tracking calls before init resolves return null
+        // from getPostHog() and are silently dropped, which is the correct
+        // semantic for consent-pending traffic.
+        void initPostHog();
       } else {
         disablePostHog();
       }
