@@ -64,6 +64,23 @@ interface StripeRequest extends Request {
 export class BillingService {
   private readonly logger = new Logger(BillingService.name);
 
+  /**
+   * In-process memoization for `getProductsCatalog()`. Static (per-process)
+   * because the catalog reflects Stripe product/price metadata that's the
+   * same for every artist. A 5-min TTL keeps the dashboard fresh enough
+   * for human-visible price updates while collapsing the per-request
+   * Stripe API hop on every `getBillingSummary` call into one fetch per
+   * 5-minute window per process.
+   *
+   * Vercel function instances are short-lived, so cold starts naturally
+   * re-fetch. No external invalidation needed.
+   */
+  private static readonly PRODUCTS_CATALOG_TTL_MS = 5 * 60 * 1000;
+  private static productsCatalogCache: {
+    value: BillingPlanCatalogItem[];
+    expiresAt: number;
+  } | null = null;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
@@ -489,7 +506,20 @@ export class BillingService {
   }
 
   private async getProductsCatalog(): Promise<BillingPlanCatalogItem[]> {
-    return Promise.all([
+    const now = Date.now();
+    if (
+      BillingService.productsCatalogCache &&
+      BillingService.productsCatalogCache.expiresAt > now
+    ) {
+      return BillingService.productsCatalogCache.value;
+    }
+
+    // Build the four plan items (free + 2 paid Stripe-backed + enterprise
+    // stub). The paid items hit the Stripe API for product/price metadata.
+    // Stagelink prices change rarely, so a short in-process memoization
+    // collapses the per-request Stripe calls without making the dashboard
+    // visibly stale.
+    const fresh = await Promise.all([
       this.buildFreePlanCatalogItem(),
       this.buildPaidPlanCatalogItem(PlanTier.pro),
       this.buildPaidPlanCatalogItem(PlanTier.pro_plus),
@@ -504,6 +534,12 @@ export class BillingService {
         productDescription: 'Manual onboarding for custom needs.',
       }),
     ]);
+
+    BillingService.productsCatalogCache = {
+      value: fresh,
+      expiresAt: now + BillingService.PRODUCTS_CATALOG_TTL_MS,
+    };
+    return fresh;
   }
 
   private buildPlanSummaries(
@@ -615,6 +651,15 @@ export class BillingService {
   }
 
   private async ensureSubscriptionRecord(artistId: string): Promise<PrismaSubscription> {
+    // Fast path — happens on every call once the row exists. A plain
+    // `findUnique` is read-only, so it doesn't write to WAL like an
+    // `upsert` with empty `update: {}` did (Postgres treats an empty
+    // update as a no-op row write).
+    const existing = await this.prisma.subscription.findUnique({ where: { artistId } });
+    if (existing) return existing;
+
+    // Cold path — first time, or row was deleted. `upsert` here handles
+    // the race between two concurrent first-time requests cleanly.
     return this.prisma.subscription.upsert({
       where: { artistId },
       update: {},
