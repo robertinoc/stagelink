@@ -33,6 +33,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: `/${locale}/blog`,
       languages: buildLocalizedAlternates('/blog'),
     },
+    robots: {
+      index: false,
+      follow: true,
+    },
   };
 }
 

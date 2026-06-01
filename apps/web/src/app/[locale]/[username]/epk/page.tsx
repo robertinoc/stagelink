@@ -9,6 +9,7 @@ import {
   getAlternateOpenGraphLocales,
   getOpenGraphLocale,
 } from '@/lib/seo-localization';
+import { getCanonicalAppUrl } from '@/lib/site-url';
 
 interface LocalizedPublicEpkPageProps {
   params: Promise<{ locale: SupportedLocale; username: string }>;
@@ -28,8 +29,8 @@ export async function generateMetadata({ params }: LocalizedPublicEpkPageProps):
     };
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  const canonical = appUrl ? `${appUrl}/${locale}/${epk.artist.username}/epk` : undefined;
+  const appUrl = getCanonicalAppUrl();
+  const canonical = `${appUrl}/${locale}/${epk.artist.username}/epk`;
   const title = `${epk.artist.displayName} EPK — StageLink`;
   const description =
     epk.headline ??
@@ -40,16 +41,14 @@ export async function generateMetadata({ params }: LocalizedPublicEpkPageProps):
   return {
     title,
     description,
-    ...(canonical && {
-      alternates: {
-        canonical,
-        languages: buildLocalizedAlternates(`/${epk.artist.username}/epk`, appUrl),
-      },
-    }),
+    alternates: {
+      canonical,
+      languages: buildLocalizedAlternates(`/${epk.artist.username}/epk`, appUrl),
+    },
     openGraph: {
       title,
       description,
-      ...(canonical && { url: canonical }),
+      url: canonical,
       images: epk.heroImageUrl ? [{ url: epk.heroImageUrl, alt: epk.artist.displayName }] : [],
       type: 'article',
       locale: getOpenGraphLocale(locale),

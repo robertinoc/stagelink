@@ -13,6 +13,7 @@ import {
   getAlternateOpenGraphLocales,
   getOpenGraphLocale,
 } from '@/lib/seo-localization';
+import { getCanonicalAppUrl } from '@/lib/site-url';
 
 function buildJsonLd(
   artist: NonNullable<Awaited<ReturnType<typeof fetchPublicPage>>>['artist'],
@@ -54,8 +55,8 @@ export async function buildPublicArtistMetadata(
 
   const { artist } = page;
   const t = await getTranslations({ locale, namespace: 'public_page' });
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  const canonical = appUrl ? `${appUrl}/${locale}/${artist.username}` : undefined;
+  const appUrl = getCanonicalAppUrl();
+  const canonical = `${appUrl}/${locale}/${artist.username}`;
 
   const title = artist.seoTitle
     ? `${artist.seoTitle} — StageLink`
@@ -69,14 +70,12 @@ export async function buildPublicArtistMetadata(
   return {
     title,
     description,
-    ...(canonical && {
-      alternates: {
-        canonical,
-        languages: buildLocalizedAlternates(`/${artist.username}`, appUrl),
-      },
-    }),
+    alternates: {
+      canonical,
+      languages: buildLocalizedAlternates(`/${artist.username}`, appUrl),
+    },
     robots: {
-      index: !!canonical,
+      index: true,
       follow: true,
     },
     openGraph: {
@@ -116,8 +115,8 @@ export async function PublicArtistPageDocument({
     notFound();
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  const canonical = appUrl ? `${appUrl}/${locale}/${page.artist.username}` : undefined;
+  const appUrl = getCanonicalAppUrl();
+  const canonical = `${appUrl}/${locale}/${page.artist.username}`;
   const jsonLd = buildJsonLd(page.artist, canonical);
 
   const headersList = await headers();
