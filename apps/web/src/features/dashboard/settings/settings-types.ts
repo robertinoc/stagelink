@@ -35,36 +35,68 @@ export function resolveTabId(input: string | string[] | undefined): SettingsTabI
   return 'plan';
 }
 
-export interface SettingsUsage {
-  smartLinkResolutions: { value: number; max: number | null };
-  activeLanguages: { value: number; max: number | null };
-  artistPages: { value: number; max: number | null };
-  storageMb: { value: number; max: number | null };
+/**
+ * Usage panel rows. Only metrics we can populate from REAL artist data are
+ * included — no hardcoded placeholders. `max: null` renders as unlimited.
+ */
+export type UsageRowKey = 'languages' | 'photos';
+
+export interface UsageRowData {
+  key: UsageRowKey;
+  value: number;
+  max: number | null;
 }
 
-export function defaultUsageForPlan(plan: PlanCode): SettingsUsage {
-  if (plan === 'pro_plus') {
-    return {
-      smartLinkResolutions: { value: 0, max: null },
-      activeLanguages: { value: 1, max: null },
-      artistPages: { value: 1, max: 3 },
-      storageMb: { value: 0, max: 2048 },
-    };
+export interface SettingsUsage {
+  rows: UsageRowData[];
+}
+
+/** Minimal structural shape of the artist fields the usage panel reads. */
+interface UsageArtistInput {
+  baseLocale?: string | null;
+  galleryImageUrls?: string[] | null;
+  // Typed as unknown because ArtistTranslations has no string index signature;
+  // we structurally walk it below.
+  translations?: unknown;
+}
+
+/**
+ * Builds usage rows from real artist data:
+ * - languages: distinct locales = baseLocale ∪ locales present in any
+ *   translation field (multi-language is a Pro+ feature → max 1 below Pro+).
+ * - photos: count of gallery images the artist has uploaded.
+ *
+ * Smart Links resolutions and page counts are intentionally omitted until
+ * backed by real backend data — better no row than a misleading placeholder.
+ */
+export function buildUsage(plan: PlanCode, artist: UsageArtistInput | null): SettingsUsage {
+  const rows: UsageRowData[] = [];
+
+  const locales = new Set<string>();
+  if (artist?.baseLocale) locales.add(artist.baseLocale);
+  const translations = artist?.translations;
+  if (translations && typeof translations === 'object') {
+    for (const field of Object.values(translations as Record<string, unknown>)) {
+      if (field && typeof field === 'object') {
+        for (const [loc, val] of Object.entries(field as Record<string, unknown>)) {
+          if (typeof val === 'string' && val.trim().length > 0) locales.add(loc);
+        }
+      }
+    }
   }
-  if (plan === 'pro') {
-    return {
-      smartLinkResolutions: { value: 0, max: null },
-      activeLanguages: { value: 1, max: 1 },
-      artistPages: { value: 1, max: 3 },
-      storageMb: { value: 0, max: 1024 },
-    };
-  }
-  return {
-    smartLinkResolutions: { value: 0, max: 50 },
-    activeLanguages: { value: 1, max: 1 },
-    artistPages: { value: 1, max: 1 },
-    storageMb: { value: 0, max: 256 },
-  };
+  rows.push({
+    key: 'languages',
+    value: Math.max(locales.size, 1),
+    max: plan === 'pro_plus' ? null : 1,
+  });
+
+  rows.push({
+    key: 'photos',
+    value: artist?.galleryImageUrls?.length ?? 0,
+    max: null,
+  });
+
+  return { rows };
 }
 
 export interface SettingsInvoice {

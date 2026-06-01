@@ -166,16 +166,8 @@ export function PlanTab({ data, locale }: PlanTabProps) {
 
           <UsagePanel
             usage={data.usage}
-            labels={{
-              heading: tu('heading'),
-              reset: tu('reset'),
-              smart_links: tu('smart_links'),
-              languages: tu('languages'),
-              pages: tu('pages'),
-              storage: tu('storage'),
-              mb: tu('mb'),
-              gb: tu('gb'),
-            }}
+            heading={tu('heading')}
+            rowLabels={{ languages: tu('languages'), photos: tu('photos') }}
           />
         </div>
       </Bento>
@@ -314,51 +306,21 @@ function tierCtaAction({
 
 function UsagePanel({
   usage,
-  labels,
+  heading,
+  rowLabels,
 }: {
   usage: SettingsUsage;
-  labels: {
-    heading: string;
-    reset: string;
-    smart_links: string;
-    languages: string;
-    pages: string;
-    storage: string;
-    mb: string;
-    gb: string;
-  };
+  heading: string;
+  rowLabels: Record<'languages' | 'photos', string>;
 }) {
-  const storageMaxLabel =
-    usage.storageMb.max !== null
-      ? usage.storageMb.max >= 1024
-        ? `${(usage.storageMb.max / 1024).toFixed(0)} ${labels.gb}`
-        : `${usage.storageMb.max} ${labels.mb}`
-      : undefined;
-
   return (
     <div className="flex flex-col gap-3.5 rounded-[14px] border border-white/10 bg-black/30 p-4 sm:p-[18px]">
       <div className="flex items-center justify-between">
-        <BentoLabel>{labels.heading}</BentoLabel>
-        <span className="text-[10px] tracking-[0.5px] text-white/30">{labels.reset}</span>
+        <BentoLabel>{heading}</BentoLabel>
       </div>
-      <UsageRow
-        label={labels.smart_links}
-        value={usage.smartLinkResolutions.value}
-        max={usage.smartLinkResolutions.max}
-      />
-      <UsageRow
-        label={labels.languages}
-        value={usage.activeLanguages.value}
-        max={usage.activeLanguages.max}
-      />
-      <UsageRow label={labels.pages} value={usage.artistPages.value} max={usage.artistPages.max} />
-      <UsageRow
-        label={labels.storage}
-        value={usage.storageMb.value}
-        max={usage.storageMb.max}
-        unit={labels.mb}
-        maxLabel={storageMaxLabel}
-      />
+      {usage.rows.map((row) => (
+        <UsageRow key={row.key} label={rowLabels[row.key]} value={row.value} max={row.max} />
+      ))}
     </div>
   );
 }
