@@ -71,6 +71,7 @@ export default async function middleware(request: NextRequest) {
     pathname.startsWith('/api/pages/') ||
     pathname.startsWith('/api/blocks/') ||
     pathname.startsWith('/api/privacy/') ||
+    pathname.startsWith('/api/billing/') ||
     pathname.startsWith('/api/admin/')
   ) {
     const { headers: authkitHeaders } = await authkit(request);
@@ -188,6 +189,7 @@ export const config = {
     '/api/pages/:path*',
     '/api/blocks/:path*',
     '/api/privacy/:path*',
+    '/api/billing/:path*',
     '/api/admin/:path*',
     '/((?!api|_next|_vercel|.*\\..*).*)',
   ],
