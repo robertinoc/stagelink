@@ -19,10 +19,7 @@ import type { DashboardSettingsData } from '@/features/dashboard/settings/settin
 import { TrustCard } from './privacy/TrustCard';
 import { CookieCard } from './privacy/CookieCard';
 import { DataUseCard, type DataUseTone } from './privacy/DataUseCard';
-import {
-  IntegrationCard,
-  type IntegrationPurposeTone,
-} from './privacy/IntegrationCard';
+import { IntegrationCard, type IntegrationPurposeTone } from './privacy/IntegrationCard';
 import { DeleteAccountDialog } from './privacy/DeleteAccountDialog';
 import { RED_BUTTON_CLASS } from './plan/PlanDangerZone';
 
@@ -56,6 +53,7 @@ export function PrivacyTab({ data, locale: _locale }: PrivacyTabProps) {
   const [lastName, setLastName] = useState(data.me?.lastName ?? '');
   const [savingPersonal, setSavingPersonal] = useState(false);
   const [personalStatus, setPersonalStatus] = useState<string | null>(null);
+  const [personalTone, setPersonalTone] = useState<'ok' | 'error'>('ok');
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -81,8 +79,12 @@ export function PrivacyTab({ data, locale: _locale }: PrivacyTabProps) {
     setPersonalStatus(null);
     try {
       await updatePersonalData({ firstName, lastName });
+      setPersonalTone('ok');
       setPersonalStatus(t('personal.saved'));
+      // Auto-clear the green confirmation after a few seconds.
+      window.setTimeout(() => setPersonalStatus(null), 5000);
     } catch (e) {
+      setPersonalTone('error');
       setPersonalStatus(e instanceof Error ? e.message : t('personal.error'));
     } finally {
       setSavingPersonal(false);
@@ -99,11 +101,7 @@ export function PrivacyTab({ data, locale: _locale }: PrivacyTabProps) {
 
   return (
     <div className="space-y-5">
-      <TrustCard
-        label={t('trust.label')}
-        headline={t('trust.headline')}
-        body={t('trust.body')}
-      />
+      <TrustCard label={t('trust.label')} headline={t('trust.headline')} body={t('trust.body')} />
 
       {/* COOKIES */}
       <Bento pad={22}>
@@ -216,7 +214,15 @@ export function PrivacyTab({ data, locale: _locale }: PrivacyTabProps) {
           </Btn>
         </div>
         {personalStatus && (
-          <p role="status" className="mt-2 text-[12px] text-white/70">
+          <p
+            role="status"
+            className={
+              personalTone === 'ok'
+                ? 'mt-2 inline-flex items-center gap-1.5 rounded-[8px] border border-[rgba(74,222,128,0.25)] bg-[rgba(74,222,128,0.10)] px-3 py-1.5 text-[12px] text-[#4ADE80]'
+                : 'mt-2 text-[12px] text-[#ff6b6b]'
+            }
+          >
+            {personalTone === 'ok' && <span aria-hidden="true">✓</span>}
             {personalStatus}
           </p>
         )}
@@ -226,12 +232,7 @@ export function PrivacyTab({ data, locale: _locale }: PrivacyTabProps) {
       <Bento pad={22}>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <SubHead title={t('download.title')} hint={t('download.hint')} />
-          <Btn
-            variant="ghost"
-            type="button"
-            onClick={onDownloadExport}
-            icon={<DownloadIcon />}
-          >
+          <Btn variant="ghost" type="button" onClick={onDownloadExport} icon={<DownloadIcon />}>
             {t('download.cta')}
           </Btn>
         </div>
@@ -243,10 +244,7 @@ export function PrivacyTab({ data, locale: _locale }: PrivacyTabProps) {
       </Bento>
 
       {/* DELETE ACCOUNT */}
-      <Bento
-        pad={22}
-        className="border-[rgba(255,107,107,0.18)] bg-[rgba(255,107,107,0.04)]"
-      >
+      <Bento pad={22} className="border-[rgba(255,107,107,0.18)] bg-[rgba(255,107,107,0.04)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex min-w-0 max-w-[640px] gap-3">
             <div
@@ -275,18 +273,24 @@ export function PrivacyTab({ data, locale: _locale }: PrivacyTabProps) {
         </div>
       </Bento>
 
-      <DeleteAccountDialog
-        open={deleteOpen}
-        onClose={() => setDeleteOpen(false)}
-        email={email}
-      />
+      <DeleteAccountDialog open={deleteOpen} onClose={() => setDeleteOpen(false)} email={email} />
     </div>
   );
 }
 
 function DownloadIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="7 10 12 15 17 10" />
       <line x1="12" y1="15" x2="12" y2="3" />
@@ -296,7 +300,17 @@ function DownloadIcon() {
 
 function TrashIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <polyline points="3 6 5 6 21 6" />
       <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
       <path d="M10 11v6" />

@@ -6,6 +6,7 @@ import type { DashboardSettingsData } from '@/features/dashboard/settings/settin
 import { ConnectionCard, type ConnectionCardCopy } from './connections/ConnectionCard';
 import { SoundCloudCard } from './connections/SoundCloudCard';
 import { HelpBanner } from './connections/HelpBanner';
+import { SettingsUpgradeGate } from './shared/SettingsUpgradeGate';
 
 interface ConnectionsTabProps {
   data: DashboardSettingsData;
@@ -14,6 +15,19 @@ interface ConnectionsTabProps {
 
 export function ConnectionsTab({ data, locale }: ConnectionsTabProps) {
   const t = useTranslations('dashboard.settings.connections');
+
+  // Insights (Spotify/YouTube) is a paid feature. Free plans see an upgrade
+  // gate instead of the functional cards. entitlements travels in summary.
+  if (!data.summary.entitlements.stage_link_insights) {
+    return (
+      <SettingsUpgradeGate
+        data={data}
+        locale={locale}
+        titleKey="connections.title"
+        descriptionKey="connections.description"
+      />
+    );
+  }
 
   const copy: ConnectionCardCopy = {
     status_connected: t('status.connected'),

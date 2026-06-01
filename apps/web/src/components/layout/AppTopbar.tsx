@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
@@ -18,11 +18,17 @@ export function AppTopbar({ artist, onMenuOpen }: AppTopbarProps) {
   const t = useTranslations('nav');
   const locale = useLocale();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const initials = artist?.displayName ? artist.displayName.charAt(0).toUpperCase() : '?';
 
   const otherLocale = locale === 'en' ? 'es' : 'en';
-  // Replace leading /{locale} segment with the other locale
-  const otherLocalePath = `/${otherLocale}${pathname.replace(/^\/[a-z]{2}/, '')}`;
+  // Replace leading /{locale} segment with the other locale, and preserve the
+  // current query string (e.g. Settings' ?tab=connections) so switching
+  // language doesn't bounce the user back to the default tab/state.
+  const query = searchParams.toString();
+  const otherLocalePath = `/${otherLocale}${pathname.replace(/^\/[a-z]{2}/, '')}${
+    query ? `?${query}` : ''
+  }`;
 
   return (
     <header className="flex h-14 items-center border-b border-white/10 bg-sidebar px-4 lg:px-6">

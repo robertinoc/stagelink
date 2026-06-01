@@ -5,14 +5,29 @@ import type { DashboardSettingsData } from '@/features/dashboard/settings/settin
 import { HelpBanner } from './connections/HelpBanner';
 import { ShopifyCard } from './stores/ShopifyCard';
 import { PrintfulCard } from './stores/PrintfulCard';
+import { SettingsUpgradeGate } from './shared/SettingsUpgradeGate';
 
 interface StoresTabProps {
   data: DashboardSettingsData;
   locale: string;
 }
 
-export function StoresTab({ data }: StoresTabProps) {
+export function StoresTab({ data, locale }: StoresTabProps) {
   const t = useTranslations('dashboard.settings.stores');
+
+  // Stores (Shopify storefront + Printful smart merch) are paid features.
+  // Free plans see an upgrade gate instead of the connect forms.
+  const ent = data.summary.entitlements;
+  if (!ent.shopify_integration && !ent.smart_merch) {
+    return (
+      <SettingsUpgradeGate
+        data={data}
+        locale={locale}
+        titleKey="stores.title"
+        descriptionKey="stores.description"
+      />
+    );
+  }
 
   const shopify = extractShopify(data);
   const merch = extractMerch(data);
@@ -58,9 +73,13 @@ function extractShopify(data: DashboardSettingsData) {
   }
   const domain = pickString(conn, 'storeDomain') ?? pickString(conn, 'domain') ?? '';
   const handle = pickString(conn, 'collectionHandle') ?? '';
-  const mode = pickString(conn, 'mode') === 'products' ? ('products' as const) : ('collection' as const);
+  // Real field is `selectionMode` (ShopifyConnection); fall back to `mode`.
+  const rawMode = pickString(conn, 'selectionMode') ?? pickString(conn, 'mode');
+  const mode = rawMode === 'products' ? ('products' as const) : ('collection' as const);
+  const isConnected =
+    typeof conn['isConnected'] === 'boolean' ? (conn['isConnected'] as boolean) : true;
   return {
-    connected: true,
+    connected: isConnected,
     domain,
     mode,
     collectionHandle: handle,
