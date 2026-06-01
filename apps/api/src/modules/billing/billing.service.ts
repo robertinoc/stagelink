@@ -319,10 +319,35 @@ export class BillingService {
       throw new BadRequestException('No Stripe customer exists for this artist yet');
     }
 
-    const session = await stripe.billingPortal.sessions.create({
-      customer: subscription.stripeCustomerId,
-      return_url: returnUrl,
-    });
+    let session: Awaited<ReturnType<typeof stripe.billingPortal.sessions.create>>;
+    try {
+      session = await stripe.billingPortal.sessions.create({
+        customer: subscription.stripeCustomerId,
+        return_url: returnUrl,
+      });
+    } catch (err) {
+      // Stripe returns a StripeInvalidRequestError with code 'resource_missing'
+      // when the customer ID stored in our DB no longer exists in Stripe — most
+      // commonly because the app was running in test mode, the customer was
+      // deleted from the Stripe dashboard, or the Stripe account was changed.
+      // We clear the stale ID so the next checkout flow can create a fresh
+      // customer, then surface a user-friendly error instead of a 500.
+      const stripeErr = err as { type?: string; code?: string; message?: string };
+      if (stripeErr.type === 'StripeInvalidRequestError' && stripeErr.code === 'resource_missing') {
+        this.logger.warn(
+          `[billing] Stale stripeCustomerId detected for artist ${artistId} — clearing. ` +
+            `Stripe message: ${stripeErr.message ?? 'unknown'}`,
+        );
+        await this.prisma.subscription.update({
+          where: { artistId },
+          data: { stripeCustomerId: null },
+        });
+        throw new BadRequestException(
+          'Your billing profile needs to be re-created. Please start a new subscription.',
+        );
+      }
+      throw err;
+    }
 
     return ok({ url: session.url });
   }

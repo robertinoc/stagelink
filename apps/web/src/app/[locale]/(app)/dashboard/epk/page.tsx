@@ -42,10 +42,16 @@ export default async function DashboardEpkPage({
   if (!artist) redirect(`/${locale}/onboarding`);
 
   const [epkData, smartLinks, assets] = await Promise.all([
-    getArtistEpk(artistId, session.accessToken),
+    getArtistEpk(artistId, session.accessToken).catch(() => null),
     getSmartLinksForArtist(artistId, session.accessToken).catch(() => []),
     getArtistAssets(artistId, session.accessToken).catch(() => []),
   ]);
+
+  // EPK fetch failed (API down, timeout, auth error, etc.).
+  // Show a retry-able error state instead of crashing the Server Component.
+  if (!epkData) {
+    return <ConnectionErrorState href={`/${locale}/dashboard/epk`} />;
+  }
 
   const maxVisibleLinks = EPK_VISIBLE_LINKS_LIMITS[billingSummary.effectivePlan] ?? 3;
 
