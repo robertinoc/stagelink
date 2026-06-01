@@ -92,6 +92,39 @@ export function Footer({ locale }: { locale: string }) {
                 </Link>
               </nav>
             </div>
+
+            {/* Community */}
+            <div className="flex flex-col gap-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/60">
+                {t.footer.community.heading}
+              </p>
+              <nav className="flex flex-col gap-2 text-[1.02rem]">
+                <a
+                  href="https://www.instagram.com/stagelink.art/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-white/72 transition-colors hover:text-white"
+                >
+                  {t.footer.community.instagram}
+                </a>
+                <a
+                  href="https://www.linkedin.com/company/stagelink-art/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-white/72 transition-colors hover:text-white"
+                >
+                  {t.footer.community.linkedin}
+                </a>
+                <a
+                  href="https://discord.gg/76dFVydHH"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-white/72 transition-colors hover:text-white"
+                >
+                  {t.footer.community.discord}
+                </a>
+              </nav>
+            </div>
           </div>
         </div>
 
