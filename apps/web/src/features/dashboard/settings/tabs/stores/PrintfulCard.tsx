@@ -6,8 +6,14 @@ import { Bento, BentoLabel } from '@/components/sl/Bento';
 import { Btn } from '@/components/sl/Btn';
 import { Pill } from '@/components/sl/SlPrimitives';
 import { FieldInput } from '@/components/sl/FieldInput';
+import {
+  disconnectMerchConnection,
+  saveMerchConnection,
+  validateMerchConnection,
+} from '@/lib/api/merch';
 import { StoreCardHeader } from './StoreCardHeader';
 import { ProductThumb } from './ProductThumb';
+import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { RED_BUTTON_CLASS } from '../plan/PlanDangerZone';
 
 interface PrintfulCardProps {
@@ -18,30 +24,44 @@ interface PrintfulCardProps {
 }
 
 /**
- * Smart Merch (Printful) connection card. Uses the existing `/api/merch/*`
- * proxy routes — `storeName`/`storeId` should come from the merch
- * connection payload when available (else falls back to a generic label).
+ * Smart Merch (Printful) connection card. Wires to the real client functions
+ * in `@/lib/api/merch` with the correct payload field names
+ * ({ provider: 'printful', apiToken }). A prior version sent { token } which
+ * the backend DTO rejected → "Could not validate the Printful token".
  */
-export function PrintfulCard({ artistId, connected, storeName, storeId }: PrintfulCardProps) {
+export function PrintfulCard({
+  artistId,
+  connected: initialConnected,
+  storeName: initialStoreName,
+  storeId: initialStoreId,
+}: PrintfulCardProps) {
   const t = useTranslations('dashboard.settings.stores.printful');
   const [token, setToken] = useState('');
+  const [connected, setConnected] = useState(initialConnected);
+  const [storeName, setStoreName] = useState(initialStoreName);
+  const [storeId, setStoreId] = useState(initialStoreId);
   const [saving, setSaving] = useState(false);
   const [validating, setValidating] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [statusTone, setStatusTone] = useState<'ok' | 'error'>('ok');
 
   const onValidate = async () => {
     setValidating(true);
     setStatusMessage(null);
     try {
-      const res = await fetch(`/api/artists/${artistId}/merch/validate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: token || undefined }),
+      const result = await validateMerchConnection(artistId, {
+        provider: 'printful',
+        apiToken: token,
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setStatusMessage(t('feedback.validate_ok'));
-    } catch {
-      setStatusMessage(t('feedback.validate_error'));
+      if (result.storeName) setStoreName(result.storeName);
+      if (result.storeId) setStoreId(result.storeId);
+      setStatusTone(result.ok ? 'ok' : 'error');
+      setStatusMessage(result.message || t('feedback.validate_ok'));
+    } catch (e) {
+      setStatusTone('error');
+      setStatusMessage(e instanceof Error ? e.message : t('feedback.validate_error'));
     } finally {
       setValidating(false);
     }
@@ -51,28 +71,37 @@ export function PrintfulCard({ artistId, connected, storeName, storeId }: Printf
     setSaving(true);
     setStatusMessage(null);
     try {
-      const res = await fetch(`/api/artists/${artistId}/merch`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider: 'printful', ...(token ? { token } : {}) }),
+      await saveMerchConnection(artistId, {
+        provider: 'printful',
+        ...(token ? { apiToken: token } : {}),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setConnected(true);
+      setStatusTone('ok');
       setStatusMessage(t('feedback.save_ok'));
       setToken('');
-    } catch {
-      setStatusMessage(t('feedback.save_error'));
+    } catch (e) {
+      setStatusTone('error');
+      setStatusMessage(e instanceof Error ? e.message : t('feedback.save_error'));
     } finally {
       setSaving(false);
     }
   };
 
-  const onDisconnect = async () => {
+  const onConfirmDisconnect = async () => {
+    setDisconnecting(true);
     try {
-      const res = await fetch(`/api/artists/${artistId}/merch`, { method: 'DELETE' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      window.location.reload();
-    } catch {
-      setStatusMessage(t('feedback.save_error'));
+      await disconnectMerchConnection(artistId);
+      setConnected(false);
+      setStoreName(null);
+      setStoreId(null);
+      setConfirmOpen(false);
+      setStatusTone('ok');
+      setStatusMessage(t('feedback.disconnected'));
+    } catch (e) {
+      setStatusTone('error');
+      setStatusMessage(e instanceof Error ? e.message : t('feedback.disconnect_error'));
+    } finally {
+      setDisconnecting(false);
     }
   };
 
@@ -137,14 +166,19 @@ export function PrintfulCard({ artistId, connected, storeName, storeId }: Printf
             {saving ? t('feedback.saving') : t('actions.save')}
           </Btn>
           {connected && (
-            <button type="button" onClick={onDisconnect} className={RED_BUTTON_CLASS}>
+            <button type="button" onClick={() => setConfirmOpen(true)} className={RED_BUTTON_CLASS}>
               {t('actions.disconnect')}
             </button>
           )}
         </div>
 
         {statusMessage && (
-          <div role="status" className="text-[12px] text-white/70">
+          <div
+            role="status"
+            className={
+              statusTone === 'ok' ? 'text-[12px] text-[#4ADE80]' : 'text-[12px] text-[#ff6b6b]'
+            }
+          >
             {statusMessage}
           </div>
         )}
@@ -158,6 +192,18 @@ export function PrintfulCard({ artistId, connected, storeName, storeId }: Printf
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={t('disconnect_confirm.title')}
+        body={t('disconnect_confirm.body')}
+        confirmLabel={t('actions.disconnect')}
+        cancelLabel={t('disconnect_confirm.cancel')}
+        pendingLabel={t('feedback.disconnecting')}
+        pending={disconnecting}
+        onConfirm={onConfirmDisconnect}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </Bento>
   );
 }

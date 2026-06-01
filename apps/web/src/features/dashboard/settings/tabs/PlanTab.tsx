@@ -1,17 +1,12 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useFormStatus } from 'react-dom';
-import type { ReactNode } from 'react';
 import { Bento, BentoLabel } from '@/components/sl/Bento';
 import { Btn } from '@/components/sl/Btn';
 import { SubmitBtn } from '@/components/sl/SubmitBtn';
 import { Glow } from '@/components/sl/SlPrimitives';
 import { SubHead } from '@/components/sl/SubHead';
-import {
-  startCheckoutAction,
-  startPortalAction,
-} from '@/app/[locale]/(app)/dashboard/billing/actions';
+import { startCheckoutAction } from '@/app/[locale]/(app)/dashboard/billing/actions';
 import type {
   DashboardSettingsData,
   SettingsUsage,
@@ -21,6 +16,7 @@ import { TierCard, type TierCardData } from './plan/TierCard';
 import { UsageRow } from './plan/UsageRow';
 import { InvoicesTable } from './plan/InvoicesTable';
 import { PlanDangerZone, RED_BUTTON_CLASS } from './plan/PlanDangerZone';
+import { OpenPortalButton } from './plan/OpenPortalButton';
 
 interface PlanTabProps {
   data: DashboardSettingsData;
@@ -58,6 +54,11 @@ export function PlanTab({ data, locale }: PlanTabProps) {
   // PlansBillingSection behaviour.
   const portalAvailable = summary.portalAvailable;
   const recommendedPlan = summary.upgradeOptions.recommendedPlan;
+  // Manual/admin grant: the artist has elevated access without a real Stripe
+  // subscription (no customer → no portal). Showing the "Upgrade" checkout
+  // button here just produces ?error=checkout, so we surface a neutral note
+  // instead.
+  const isManualGrant = Boolean(summary.manualAccess?.isActive);
 
   // Real prices come from Stripe via the billing summary — never hardcode,
   // so plan prices can't drift from what the user is actually charged.
@@ -122,7 +123,12 @@ export function PlanTab({ data, locale }: PlanTabProps) {
                 : t('hero.next_billing_unknown')}
             </p>
             <div className="mt-[18px] flex flex-wrap items-center gap-2.5">
-              {recommendedPlan ? (
+              {isManualGrant ? (
+                // Comp/admin grant — no Stripe customer, no checkout that works.
+                <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-[12px] text-white/60">
+                  {t('hero.manual_grant')}
+                </span>
+              ) : recommendedPlan ? (
                 // There's a higher tier to move up to → checkout to it.
                 <form action={startCheckoutAction}>
                   <input type="hidden" name="artistId" value={data.artistId} />
@@ -134,27 +140,25 @@ export function PlanTab({ data, locale }: PlanTabProps) {
                 </form>
               ) : (
                 // Already on the top tier (or upgrades disabled) → manage via
-                // portal instead of a checkout that Stripe would reject.
+                // portal (new tab) instead of a checkout that Stripe rejects.
                 portalAvailable && (
-                  <form action={startPortalAction}>
-                    <input type="hidden" name="artistId" value={data.artistId} />
-                    <input type="hidden" name="locale" value={locale} />
-                    <SubmitBtn variant="primary">{t('hero.cta_manage')}</SubmitBtn>
-                  </form>
+                  <OpenPortalButton
+                    artistId={data.artistId}
+                    variant="primary"
+                    errorLabel={t('hero.portal_error')}
+                  >
+                    {t('hero.cta_manage')}
+                  </OpenPortalButton>
                 )
               )}
-              {portalAvailable && (
+              {!isManualGrant && portalAvailable && (
                 <>
-                  <form action={startPortalAction}>
-                    <input type="hidden" name="artistId" value={data.artistId} />
-                    <input type="hidden" name="locale" value={locale} />
-                    <SubmitBtn variant="ghost">{t('hero.cta_portal')}</SubmitBtn>
-                  </form>
-                  <form action={startPortalAction}>
-                    <input type="hidden" name="artistId" value={data.artistId} />
-                    <input type="hidden" name="locale" value={locale} />
-                    <SubmitBtn variant="ghost">{t('hero.cta_invoices')}</SubmitBtn>
-                  </form>
+                  <OpenPortalButton artistId={data.artistId} errorLabel={t('hero.portal_error')}>
+                    {t('hero.cta_portal')}
+                  </OpenPortalButton>
+                  <OpenPortalButton artistId={data.artistId} errorLabel={t('hero.portal_error')}>
+                    {t('hero.cta_invoices')}
+                  </OpenPortalButton>
                 </>
               )}
             </div>
@@ -219,11 +223,13 @@ export function PlanTab({ data, locale }: PlanTabProps) {
         pdfAriaLabel={ti('pdf_aria')}
         portalAction={
           portalAvailable ? (
-            <form action={startPortalAction}>
-              <input type="hidden" name="artistId" value={data.artistId} />
-              <input type="hidden" name="locale" value={locale} />
-              <SubmitBtn variant="outline">{ti('portal_cta')}</SubmitBtn>
-            </form>
+            <OpenPortalButton
+              artistId={data.artistId}
+              variant="outline"
+              errorLabel={t('hero.portal_error')}
+            >
+              {ti('portal_cta')}
+            </OpenPortalButton>
           ) : undefined
         }
       />
@@ -236,44 +242,24 @@ export function PlanTab({ data, locale }: PlanTabProps) {
           // Downgrades go through the Stripe portal (a checkout to a lower
           // tier is rejected). Only meaningful once a Stripe customer exists.
           portalAvailable ? (
-            <form action={startPortalAction}>
-              <input type="hidden" name="artistId" value={data.artistId} />
-              <input type="hidden" name="locale" value={locale} />
-              <SubmitBtn variant="ghost">{td('downgrade')}</SubmitBtn>
-            </form>
+            <OpenPortalButton artistId={data.artistId} errorLabel={t('hero.portal_error')}>
+              {td('downgrade')}
+            </OpenPortalButton>
           ) : null
         }
         cancelCta={
           portalAvailable ? (
-            <form action={startPortalAction}>
-              <input type="hidden" name="artistId" value={data.artistId} />
-              <input type="hidden" name="locale" value={locale} />
-              <CancelPortalButton className={RED_BUTTON_CLASS}>{td('cancel')}</CancelPortalButton>
-            </form>
+            <OpenPortalButton
+              artistId={data.artistId}
+              rawClassName={RED_BUTTON_CLASS}
+              errorLabel={t('hero.portal_error')}
+            >
+              {td('cancel')}
+            </OpenPortalButton>
           ) : null
         }
       />
     </div>
-  );
-}
-
-/**
- * Submit button for the danger-zone cancel form. Uses RED_BUTTON_CLASS
- * styling instead of the Btn primitive, so we need a tiny standalone
- * wrapper rather than the generic SubmitBtn.
- */
-function CancelPortalButton({
-  className,
-  children,
-}: {
-  className: string;
-  children: ReactNode;
-}): React.ReactNode {
-  const { pending } = useFormStatus();
-  return (
-    <button type="submit" className={className} disabled={pending} aria-busy={pending || undefined}>
-      {children}
-    </button>
   );
 }
 

@@ -2,58 +2,75 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import type { ShopifySelectionMode } from '@stagelink/types';
 import { Bento, BentoLabel } from '@/components/sl/Bento';
 import { Btn } from '@/components/sl/Btn';
 import { Pill } from '@/components/sl/SlPrimitives';
 import { FieldInput } from '@/components/sl/FieldInput';
+import {
+  disconnectShopifyConnection,
+  saveShopifyConnection,
+  validateShopifyConnection,
+} from '@/lib/api/shopify';
 import { StoreCardHeader } from './StoreCardHeader';
 import { ProductThumb } from './ProductThumb';
 import { SegmentedPill } from './SegmentedPill';
+import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { RED_BUTTON_CLASS } from '../plan/PlanDangerZone';
+
+type Mode = 'collection' | 'products';
 
 interface ShopifyCardProps {
   artistId: string;
   initialDomain: string;
-  initialMode: 'collection' | 'products';
+  initialMode: Mode;
   initialCollectionHandle: string;
   connected: boolean;
 }
 
 /**
- * Shopify storefront connection card. Fields are owned by client state so
- * the user can edit before pressing Guardar. Backend wiring uses the
- * existing `/api/shopify/*` proxy routes; the optional `?dry=true` flag
- * for cache-skipping validation is a follow-up.
+ * Shopify storefront connection card. Wires to the real client functions in
+ * `@/lib/api/shopify` (PATCH/DELETE `/api/artists/{id}/shopify`, POST
+ * `/shopify/validate`) with the correct payload field names
+ * (storeDomain / storefrontToken / selectionMode). A prior version sent
+ * { domain, token, mode } which the backend DTO rejected → "Could not save".
  */
 export function ShopifyCard({
   artistId,
   initialDomain,
   initialMode,
   initialCollectionHandle,
-  connected,
+  connected: initialConnected,
 }: ShopifyCardProps) {
   const t = useTranslations('dashboard.settings.stores.shopify');
-  const [mode, setMode] = useState<'collection' | 'products'>(initialMode);
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [domain, setDomain] = useState(initialDomain);
   const [token, setToken] = useState('');
   const [handle, setHandle] = useState(initialCollectionHandle);
+  const [connected, setConnected] = useState(initialConnected);
   const [saving, setSaving] = useState(false);
   const [validating, setValidating] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [statusTone, setStatusTone] = useState<'ok' | 'error'>('ok');
+
+  const toSelectionMode = (m: Mode): ShopifySelectionMode =>
+    (m === 'products' ? 'products' : 'collection') as ShopifySelectionMode;
 
   const onValidate = async () => {
     setValidating(true);
     setStatusMessage(null);
     try {
-      const res = await fetch(`/api/artists/${artistId}/shopify/validate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ domain, token: token || undefined }),
+      const result = await validateShopifyConnection(artistId, {
+        storeDomain: domain,
+        storefrontToken: token,
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setStatusMessage(t('feedback.validate_ok'));
-    } catch {
-      setStatusMessage(t('feedback.validate_error'));
+      setStatusTone(result.ok ? 'ok' : 'error');
+      setStatusMessage(result.message || t('feedback.validate_ok'));
+    } catch (e) {
+      setStatusTone('error');
+      setStatusMessage(e instanceof Error ? e.message : t('feedback.validate_error'));
     } finally {
       setValidating(false);
     }
@@ -63,33 +80,37 @@ export function ShopifyCard({
     setSaving(true);
     setStatusMessage(null);
     try {
-      const res = await fetch(`/api/artists/${artistId}/shopify`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          domain,
-          ...(token ? { token } : {}),
-          mode,
-          collectionHandle: handle,
-        }),
+      await saveShopifyConnection(artistId, {
+        storeDomain: domain,
+        ...(token ? { storefrontToken: token } : {}),
+        selectionMode: toSelectionMode(mode),
+        collectionHandle: handle || null,
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setConnected(true);
+      setStatusTone('ok');
       setStatusMessage(t('feedback.save_ok'));
       setToken('');
-    } catch {
-      setStatusMessage(t('feedback.save_error'));
+    } catch (e) {
+      setStatusTone('error');
+      setStatusMessage(e instanceof Error ? e.message : t('feedback.save_error'));
     } finally {
       setSaving(false);
     }
   };
 
-  const onDisconnect = async () => {
+  const onConfirmDisconnect = async () => {
+    setDisconnecting(true);
     try {
-      const res = await fetch(`/api/artists/${artistId}/shopify`, { method: 'DELETE' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      window.location.reload();
-    } catch {
-      setStatusMessage(t('feedback.save_error'));
+      await disconnectShopifyConnection(artistId);
+      setConnected(false);
+      setConfirmOpen(false);
+      setStatusTone('ok');
+      setStatusMessage(t('feedback.disconnected'));
+    } catch (e) {
+      setStatusTone('error');
+      setStatusMessage(e instanceof Error ? e.message : t('feedback.disconnect_error'));
+    } finally {
+      setDisconnecting(false);
     }
   };
 
@@ -159,14 +180,19 @@ export function ShopifyCard({
             {saving ? t('feedback.saving') : t('actions.save')}
           </Btn>
           {connected && (
-            <button type="button" onClick={onDisconnect} className={RED_BUTTON_CLASS}>
+            <button type="button" onClick={() => setConfirmOpen(true)} className={RED_BUTTON_CLASS}>
               {t('actions.disconnect')}
             </button>
           )}
         </div>
 
         {statusMessage && (
-          <div role="status" className="text-[12px] text-white/70">
+          <div
+            role="status"
+            className={
+              statusTone === 'ok' ? 'text-[12px] text-[#4ADE80]' : 'text-[12px] text-[#ff6b6b]'
+            }
+          >
             {statusMessage}
           </div>
         )}
@@ -194,6 +220,18 @@ export function ShopifyCard({
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={t('disconnect_confirm.title')}
+        body={t('disconnect_confirm.body')}
+        confirmLabel={t('actions.disconnect')}
+        cancelLabel={t('disconnect_confirm.cancel')}
+        pendingLabel={t('feedback.disconnecting')}
+        pending={disconnecting}
+        onConfirm={onConfirmDisconnect}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </Bento>
   );
 }

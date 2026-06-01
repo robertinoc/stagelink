@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { StickyTabs, type StickyTabItem } from '@/components/sl/StickyTabs';
 import type {
@@ -51,18 +51,33 @@ interface SettingsTabsProps {
  */
 export function SettingsTabs({ initialTab, locale, data }: SettingsTabsProps) {
   const t = useTranslations('dashboard.settings.tabs');
-  const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
-  const active = resolveTabId(search.get('tab') ?? initialTab);
+
+  // Active tab is local state for INSTANT switching. Previously `active` was
+  // derived from the URL and onChange did `router.replace`, which re-ran the
+  // server component (page.tsx) and refetched billing+shopify+merch+insights
+  // on every click — the "frozen" feeling the user reported. Now the panel
+  // swaps immediately (all four are already mounted with `hidden`) and the URL
+  // is synced via window.history.replaceState, which Next integrates with the
+  // router (useSearchParams stays correct, e.g. for the language switcher)
+  // WITHOUT triggering a server round-trip.
+  const [active, setActive] = useState<SettingsTabId>(initialTab);
+
+  // Keep in sync with the URL for deep links, the legacy-route redirects, and
+  // browser back/forward.
+  useEffect(() => {
+    setActive(resolveTabId(search.get('tab') ?? initialTab));
+  }, [search, initialTab]);
 
   const onChange = useCallback(
     (id: SettingsTabId) => {
+      setActive(id);
       const params = new URLSearchParams(search.toString());
       params.set('tab', id);
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      window.history.replaceState(null, '', `${pathname}?${params.toString()}`);
     },
-    [pathname, router, search],
+    [pathname, search],
   );
 
   const items: ReadonlyArray<StickyTabItem<SettingsTabId>> = [

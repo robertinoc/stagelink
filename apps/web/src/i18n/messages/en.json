@@ -1583,7 +1583,9 @@
           "cta_portal": "Open billing portal",
           "cta_invoices": "View invoices",
           "cta_upgrade_to": "Upgrade to {plan}",
-          "cta_manage": "Manage billing"
+          "cta_manage": "Manage billing",
+          "manual_grant": "Plan granted manually",
+          "portal_error": "Couldn't open the billing portal."
         },
         "compare": {
           "title": "Compare plans",
@@ -1789,12 +1791,20 @@
             "validate_ok": "Connection valid.",
             "validate_error": "Could not validate this storefront.",
             "save_ok": "Storefront saved.",
-            "save_error": "Could not save the storefront."
+            "save_error": "Could not save the storefront.",
+            "disconnecting": "Disconnecting…",
+            "disconnected": "Store disconnected.",
+            "disconnect_error": "Couldn't disconnect the store."
           },
           "preview": {
             "label": "Product preview",
             "sub": "What your visitors will see when you add the Merch block.",
             "collection_pill": "Collection · {handle}"
+          },
+          "disconnect_confirm": {
+            "title": "Disconnect Shopify?",
+            "body": "Your products will stop showing on your page. You can reconnect any time.",
+            "cancel": "Cancel"
           }
         },
         "printful": {
@@ -1830,11 +1840,19 @@
             "validate_ok": "Token valid.",
             "validate_error": "Could not validate the Printful token.",
             "save_ok": "Token saved.",
-            "save_error": "Could not save the Printful token."
+            "save_error": "Could not save the Printful token.",
+            "disconnecting": "Disconnecting…",
+            "disconnected": "Printful disconnected.",
+            "disconnect_error": "Couldn't disconnect Printful."
           },
           "preview": {
             "label": "Product preview",
             "sub": "These products are available inside the Smart Merch block."
+          },
+          "disconnect_confirm": {
+            "title": "Disconnect Printful?",
+            "body": "Your Smart Merch products will stop being available. You can reconnect any time.",
+            "cancel": "Cancel"
           }
         }
       },
@@ -1948,6 +1966,19 @@
           "title": "Delete my account",
           "body": "Request deletion. StageLink removes public visibility, deletes workspaces where you're the sole owner and anonymises the account. <strong>It is irreversible.</strong> Billing, infra and security logs may retain legally required records for limited periods.",
           "cta": "Delete account"
+        }
+      },
+      "upgrade_gate": {
+        "current_plan": "Your plan: {plan}",
+        "required_plan": "Pro / Pro+",
+        "cta": "Upgrade plan",
+        "connections": {
+          "title": "Connections are a Pro feature",
+          "description": "Connect Spotify and YouTube to pull your audience numbers. Available on Pro and Pro+."
+        },
+        "stores": {
+          "title": "Stores are a Pro feature",
+          "description": "Sell from your page with Shopify or Printful. Available on Pro and Pro+."
         }
       }
     },
