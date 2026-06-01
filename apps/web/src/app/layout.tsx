@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from 'next';
+import { getCanonicalAppUrl } from '@/lib/site-url';
 import './globals.css';
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://stagelink.art';
+const appUrl = getCanonicalAppUrl();
 
 export const metadata: Metadata = {
   applicationName: 'StageLink',

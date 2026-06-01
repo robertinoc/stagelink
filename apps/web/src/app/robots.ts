@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { getCanonicalAppUrl } from '@/lib/site-url';
 
 /**
  * robots.txt for StageLink.
@@ -10,7 +11,7 @@ import type { MetadataRoute } from 'next';
  * Authenticated app routes (/en/dashboard, /es/dashboard, etc.) must not be indexed.
  */
 export default function robots(): MetadataRoute.Robots {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://stagelink.art';
+  const appUrl = getCanonicalAppUrl();
 
   return {
     rules: [
