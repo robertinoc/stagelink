@@ -180,6 +180,12 @@ export interface LandingTranslation {
       docs: string;
       install: string;
     };
+    community: {
+      heading: string;
+      instagram: string;
+      linkedin: string;
+      discord: string;
+    };
     copyright: string;
   };
   docs: {
@@ -505,6 +511,12 @@ const en: LandingTranslation = {
       blog: 'Blog',
       docs: 'Docs',
       install: 'Install for mobile',
+    },
+    community: {
+      heading: 'Community',
+      instagram: 'Instagram',
+      linkedin: 'LinkedIn',
+      discord: 'Discord',
     },
     copyright: '© {year} StageLink. All rights reserved.',
   },
@@ -899,6 +911,12 @@ const es: LandingTranslation = {
       blog: 'Blog',
       docs: 'Docs',
       install: 'Instalar en mobile',
+    },
+    community: {
+      heading: 'Comunidad',
+      instagram: 'Instagram',
+      linkedin: 'LinkedIn',
+      discord: 'Discord',
     },
     copyright: '© {year} StageLink. Todos los derechos reservados.',
   },
