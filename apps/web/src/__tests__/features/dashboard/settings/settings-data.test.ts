@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  defaultUsageForPlan,
+  buildUsage,
   resolvePlanLabel,
   resolveTabId,
   SETTINGS_TAB_IDS,
@@ -34,26 +34,43 @@ describe('resolvePlanLabel', () => {
   });
 });
 
-describe('defaultUsageForPlan', () => {
-  it('returns unlimited Smart Links + unlimited languages on pro_plus', () => {
-    const usage = defaultUsageForPlan('pro_plus');
-    expect(usage.smartLinkResolutions.max).toBeNull();
-    expect(usage.activeLanguages.max).toBeNull();
-    expect(usage.artistPages.max).toBe(3);
-    expect(usage.storageMb.max).toBe(2048);
+describe('buildUsage', () => {
+  const find = (usage: ReturnType<typeof buildUsage>, key: 'languages' | 'photos') =>
+    usage.rows.find((r) => r.key === key);
+
+  it('counts real photos from galleryImageUrls', () => {
+    const usage = buildUsage('pro_plus', {
+      baseLocale: 'en',
+      galleryImageUrls: ['a.jpg', 'b.jpg', 'c.jpg'],
+      translations: null,
+    });
+    expect(find(usage, 'photos')?.value).toBe(3);
   });
 
-  it('returns unlimited Smart Links + capped languages on pro', () => {
-    const usage = defaultUsageForPlan('pro');
-    expect(usage.smartLinkResolutions.max).toBeNull();
-    expect(usage.activeLanguages.max).toBe(1);
-    expect(usage.artistPages.max).toBe(3);
+  it('counts distinct languages from baseLocale + translation locales', () => {
+    const usage = buildUsage('pro_plus', {
+      baseLocale: 'en',
+      galleryImageUrls: [],
+      translations: { bio: { en: 'hi', es: 'hola' }, displayName: { es: 'Nombre' } },
+    });
+    // en (base) + es (from translations) = 2
+    expect(find(usage, 'languages')?.value).toBe(2);
   });
 
-  it('returns bounded everything on free', () => {
-    const usage = defaultUsageForPlan('free');
-    expect(usage.smartLinkResolutions.max).toBe(50);
-    expect(usage.artistPages.max).toBe(1);
-    expect(usage.storageMb.max).toBe(256);
+  it('languages max is 1 below Pro+ and unlimited on Pro+', () => {
+    const free = buildUsage('free', { baseLocale: 'en', galleryImageUrls: [], translations: null });
+    const proPlus = buildUsage('pro_plus', {
+      baseLocale: 'en',
+      galleryImageUrls: [],
+      translations: null,
+    });
+    expect(find(free, 'languages')?.max).toBe(1);
+    expect(find(proPlus, 'languages')?.max).toBeNull();
+  });
+
+  it('defaults to at least 1 language and 0 photos when artist is null', () => {
+    const usage = buildUsage('free', null);
+    expect(find(usage, 'languages')?.value).toBe(1);
+    expect(find(usage, 'photos')?.value).toBe(0);
   });
 });

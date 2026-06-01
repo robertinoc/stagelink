@@ -8,7 +8,7 @@ import { getShopifyConnection } from '@/lib/api/shopify';
 import { getSession } from '@/lib/auth';
 import type { BillingUiSummary } from '@stagelink/types';
 import {
-  defaultUsageForPlan,
+  buildUsage,
   type SettingsInvoice,
   type SettingsTabBadgeCounts,
   type SettingsUsage,
@@ -24,7 +24,7 @@ export {
   canUpgradeToPlan,
   resolveTabId,
   SETTINGS_TAB_IDS,
-  defaultUsageForPlan,
+  buildUsage,
 } from './settings-types';
 export type {
   PlanCode,
@@ -115,7 +115,7 @@ export async function loadDashboardSettingsData(locale: string): Promise<Dashboa
     shopifyConnection,
     merchConnection,
     insightsResult,
-    usage: defaultUsageForPlan(summary.effectivePlan),
+    usage: buildUsage(summary.effectivePlan, artist),
     invoices: [],
     badges: {
       connections: connectionsBadge,

@@ -1609,7 +1609,8 @@
         "pages": "Pages (artist pages)",
         "storage": "Storage (photos)",
         "mb": "MB",
-        "gb": "GB"
+        "gb": "GB",
+        "photos": "Photos"
       },
       "invoices": {
         "title": "Invoices",
