@@ -56,6 +56,7 @@ export function ConnectionsTab({ data, locale }: ConnectionsTabProps) {
     stat_subscribers: t('stats.subscribers'),
     stat_views: t('stats.views'),
     stat_videos: t('stats.videos'),
+    metrics_restricted: t('actions.metrics_restricted'),
   };
 
   const dashboard = resolveDashboard(data);

@@ -1720,7 +1720,8 @@
           "sync": "Re-sincronizar ahora",
           "save_error": "No se pudo guardar la conexión.",
           "sync_error": "No se pudo sincronizar ahora.",
-          "validated_prefix": "Conectado a"
+          "validated_prefix": "Conectado a",
+          "metrics_restricted": "La conexión es válida. Esta plataforma restringe algunas métricas (ej. Spotify limita seguidores/popularidad para conexiones públicas) — mostramos lo que su API permite, como perfil y top tracks."
         },
         "spotify": {
           "title": "Perfil de artista",

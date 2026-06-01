@@ -52,6 +52,7 @@ export interface ConnectionCardCopy {
   stat_subscribers: string;
   stat_views: string;
   stat_videos: string;
+  metrics_restricted: string;
 }
 
 type ValidationResult =
@@ -358,6 +359,17 @@ export function ConnectionCard({
                 <span className="text-[11px] text-white/60">{s.label}</span>
               </span>
             ))}
+          </div>
+        )}
+
+        {/* Validate succeeded but the platform returned no metric numbers
+            (e.g. Spotify restricts followers/popularity for public
+            client-credentials apps). Show an honest note so it doesn't look
+            like a silent failure — the connection itself is valid. */}
+        {status === 'ok' && stats.length === 0 && (
+          <div className="flex gap-2 rounded-[8px] border border-[rgba(251,191,36,0.25)] bg-[rgba(251,191,36,0.08)] px-3.5 py-2.5 text-[11.5px] leading-[1.5] text-white/70">
+            <span aria-hidden="true">ⓘ</span>
+            <span>{copy.metrics_restricted}</span>
           </div>
         )}
 
