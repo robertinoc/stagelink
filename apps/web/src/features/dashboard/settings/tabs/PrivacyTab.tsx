@@ -91,10 +91,27 @@ export function PrivacyTab({ data, locale: _locale }: PrivacyTabProps) {
     }
   };
 
-  const onDownloadExport = () => {
+  const onDownloadExport = async () => {
     setExportStatus(t('download.toast'));
-    // The export endpoint streams an attachment; navigating triggers the download.
-    window.location.href = '/api/privacy/export';
+    try {
+      // Fetch as blob so the page doesn't navigate away (which would unmount
+      // the component and hide the toast before the user sees it).
+      const res = await fetch('/api/privacy/export');
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'stagelink-data-export.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      // Auto-clear the toast after 5 s.
+      window.setTimeout(() => setExportStatus(null), 5000);
+    } catch {
+      setExportStatus(t('download.error'));
+    }
   };
 
   const email = data.me?.email ?? '';
