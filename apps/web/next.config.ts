@@ -34,20 +34,21 @@ const BEHIND_HOST = 'behind\\.stagelink\\.art';
 const VERCEL_DEPLOYMENT_HOST = 'stagelink-omega\\.vercel\\.app';
 
 /**
- * Allowed external image hosts for `next/image`. PR #432 migrated the
- * release cover renderer to `<Image>` but the `remotePatterns` list at
- * the time only had the R2 hostname — so covers pointing at Spotify /
- * Beatport / Google search thumbnails got 400 INVALID_IMAGE_OPTIMIZE
- * from Vercel and fell through to the 💿 emoji fallback. This list
- * restores those covers and lets them benefit from WebP/AVIF transcoding
- * at the same time.
+ * Allowed external image hosts for `next/image`. Public pages render release
+ * covers and merch thumbnails from provider CDNs; keeping the host allow-list
+ * explicit lets those assets use Next/Vercel image transcoding without opening
+ * optimization to arbitrary third-party URLs.
  *
- * Add a new host here when adding a new release-link platform.
+ * Add a new host here when adding a new release-link or merch provider.
  */
 const EXTERNAL_IMAGE_HOSTS = [
   'i.scdn.co', // Spotify CDN — album covers from Spotify track URLs
   'geo-media.beatport.com', // Beatport CDN — release artwork
   'encrypted-tbn0.gstatic.com', // Google Image Search thumbnails (Bandcamp / Soundcloud fallback covers)
+  'cdn.shopify.com', // Shopify Storefront product images for merch blocks
+  'files.cdn.printful.com', // Printful product thumbnails for Smart Merch blocks
+  'static.cdn.printful.com', // Printful mockups / fallback product assets
+  'images-api.printify.com', // Printify product thumbnails when that provider is enabled
 ] as const;
 
 const nextConfig: NextConfig = {
