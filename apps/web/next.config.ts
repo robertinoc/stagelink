@@ -160,7 +160,11 @@ const nextConfig: NextConfig = {
           destination: '/behind',
         },
         {
-          source: '/:path((?!behind|api|_next|_vercel).+)',
+          // Excludes behind/api/_next/_vercel AND any path containing a dot
+          // (static assets like icon-192.png, apple-icon.png, favicon.ico) so
+          // the subdomain serves them from /public instead of rewriting them
+          // to a non-existent /behind/icon-192.png (which 404s → no favicon).
+          source: '/:path((?!behind|api|_next|_vercel|.*\\.).+)',
           has: [{ type: 'host', value: BEHIND_HOST }],
           destination: '/behind/:path',
         },
