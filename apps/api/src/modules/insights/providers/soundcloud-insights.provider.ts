@@ -13,6 +13,7 @@ import type {
   PlatformInsightsConnectionContext,
   PlatformInsightsProvider,
 } from './insights-provider.interface';
+import { fetchWithTimeout, isExternalRequestTimeout } from '../../../common/utils/external-fetch';
 import {
   buildSoundCloudProfileUrl,
   normalizeSoundCloudProfileInput,
@@ -77,6 +78,8 @@ const SOUNDCLOUD_BROWSER_HEADERS: Record<string, string> = {
   'User-Agent':
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 };
+
+const SOUNDCLOUD_REQUEST_TIMEOUT_MS = 5_000;
 
 @Injectable()
 export class SoundCloudInsightsProvider implements PlatformInsightsProvider {
@@ -185,11 +188,22 @@ export class SoundCloudInsightsProvider implements PlatformInsightsProvider {
   private async scFetch(url: string): Promise<unknown> {
     let response: Response;
     try {
-      response = await fetch(url, {
-        method: 'GET',
-        headers: SOUNDCLOUD_BROWSER_HEADERS,
-      });
+      response = await fetchWithTimeout(
+        url,
+        {
+          method: 'GET',
+          headers: SOUNDCLOUD_BROWSER_HEADERS,
+        },
+        {
+          timeoutMs: SOUNDCLOUD_REQUEST_TIMEOUT_MS,
+          timeoutMessage: 'SoundCloud timed out',
+        },
+      );
     } catch (err) {
+      if (isExternalRequestTimeout(err)) {
+        throw new ServiceUnavailableException(err.message);
+      }
+
       this.logger.error(`SoundCloud fetch network error: ${String(err)}`);
       throw new ServiceUnavailableException('Could not reach SoundCloud right now');
     }

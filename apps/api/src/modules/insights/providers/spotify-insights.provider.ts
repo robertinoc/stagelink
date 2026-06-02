@@ -8,6 +8,7 @@ import type {
   PlatformInsightsConnectionContext,
   PlatformInsightsProvider,
 } from './insights-provider.interface';
+import { fetchWithTimeout, isExternalRequestTimeout } from '../../../common/utils/external-fetch';
 import {
   normalizeSpotifyArtistId,
   resolveSpotifyInsightsMarket,
@@ -64,6 +65,8 @@ interface SpotifyConnectionSummary {
   popularity: number | null;
   genres: string[];
 }
+
+const SPOTIFY_REQUEST_TIMEOUT_MS = 5_000;
 
 @Injectable()
 export class SpotifyInsightsProvider implements PlatformInsightsProvider {
@@ -199,14 +202,24 @@ export class SpotifyInsightsProvider implements PlatformInsightsProvider {
 
     let response: Response;
     try {
-      response = await fetch(`https://api.spotify.com/v1${path}`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${accessToken}`,
+      response = await fetchWithTimeout(
+        `https://api.spotify.com/v1${path}`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
         },
-      });
-    } catch {
+        {
+          timeoutMs: SPOTIFY_REQUEST_TIMEOUT_MS,
+          timeoutMessage: 'Spotify timed out',
+        },
+      );
+    } catch (error) {
+      if (isExternalRequestTimeout(error)) {
+        throw new ServiceUnavailableException(error.message);
+      }
       throw new ServiceUnavailableException('Could not reach Spotify right now');
     }
 
@@ -249,15 +262,25 @@ export class SpotifyInsightsProvider implements PlatformInsightsProvider {
       const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
       let response: Response;
       try {
-        response = await fetch('https://accounts.spotify.com/api/token', {
-          method: 'POST',
-          headers: {
-            Authorization: `Basic ${basicAuth}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
+        response = await fetchWithTimeout(
+          'https://accounts.spotify.com/api/token',
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Basic ${basicAuth}`,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({ grant_type: 'client_credentials' }).toString(),
           },
-          body: new URLSearchParams({ grant_type: 'client_credentials' }).toString(),
-        });
-      } catch {
+          {
+            timeoutMs: SPOTIFY_REQUEST_TIMEOUT_MS,
+            timeoutMessage: 'Spotify auth timed out',
+          },
+        );
+      } catch (error) {
+        if (isExternalRequestTimeout(error)) {
+          throw new ServiceUnavailableException(error.message);
+        }
         throw new ServiceUnavailableException('Could not reach Spotify auth right now');
       }
 
