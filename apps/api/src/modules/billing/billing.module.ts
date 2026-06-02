@@ -4,6 +4,7 @@ import Stripe from 'stripe';
 import { EmailModule } from '../email/email.module';
 import { BillingEntitlementsService } from './billing-entitlements.service';
 import { BillingController } from './billing.controller';
+import { BillingScheduler } from './billing.scheduler';
 import { BillingService } from './billing.service';
 import { STRIPE_CLIENT } from './billing.service';
 
@@ -13,6 +14,7 @@ import { STRIPE_CLIENT } from './billing.service';
   providers: [
     BillingService,
     BillingEntitlementsService,
+    BillingScheduler,
     {
       provide: STRIPE_CLIENT,
       inject: [ConfigService],

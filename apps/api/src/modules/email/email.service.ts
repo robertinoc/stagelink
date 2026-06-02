@@ -181,6 +181,178 @@ export class EmailService {
     );
   }
 
+  /**
+   * Rich branded email sent 7 days before a signup trial expires.
+   * Includes a 3-plan comparison table and upgrade CTAs.
+   */
+  async sendTrialExpiringSoon(
+    to: string,
+    firstName: string | null,
+    expiresAt: Date,
+  ): Promise<void> {
+    const frontendUrl = process.env['FRONTEND_URL'] ?? 'https://stagelink.art';
+    const billingUrl = `${frontendUrl}/es/dashboard/settings?tab=plan`;
+    const greeting = firstName ? `Hey <strong style="color:#fff;">${firstName}</strong>` : 'Hey';
+    const expiryFormatted = this.formatDate(expiresAt);
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#0D0A1A;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0"
+  style="background:#0D0A1A;padding:32px 16px;">
+  <tr><td align="center">
+  <table width="600" cellpadding="0" cellspacing="0" border="0"
+    style="max-width:600px;width:100%;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);">
+
+    <!-- HEADER -->
+    <tr>
+      <td style="background:linear-gradient(135deg,#E040FB 0%,#9B30D0 45%,#4A1A8C 100%);padding:24px 32px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td><span style="color:#fff;font-size:20px;font-weight:700;letter-spacing:-0.02em;">Stage<span style="font-weight:400;">Link</span></span></td>
+          <td align="right"><span style="color:rgba(255,255,255,0.7);font-size:12px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase;">Plan Pro+</span></td>
+        </tr></table>
+      </td>
+    </tr>
+
+    <!-- HERO -->
+    <tr>
+      <td style="background:#0D0A1A;padding:36px 32px 24px;">
+        <p style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#E040FB;">Tu período de prueba</p>
+        <h1 style="margin:0 0 16px;font-size:26px;font-weight:700;line-height:1.2;color:#fff;letter-spacing:-0.02em;">
+          Tu prueba Pro+ vence<br>en <span style="color:#E040FB;">7 días</span> &#x23F3;
+        </h1>
+        <p style="margin:0 0 8px;font-size:15px;line-height:1.6;color:rgba(255,255,255,0.7);">${greeting}, gracias por ser parte de StageLink desde el principio.</p>
+        <p style="margin:0;font-size:15px;line-height:1.6;color:rgba(255,255,255,0.7);">
+          Tu acceso gratuito a <strong style="color:#fff;">Pro+</strong> vence el <strong style="color:#fff;">${expiryFormatted}</strong>.
+          Después de esa fecha tu cuenta vuelve automáticamente al plan <strong style="color:#fff;">Gratis</strong>, salvo que elijas continuar con un plan pago.
+        </p>
+      </td>
+    </tr>
+
+    <!-- DIVIDER -->
+    <tr><td style="padding:0 32px;"><div style="height:1px;background:rgba(255,255,255,0.08);"></div></td></tr>
+
+    <!-- PLAN LABEL -->
+    <tr>
+      <td style="background:#0D0A1A;padding:28px 32px 16px;">
+        <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.4);">Elegí el plan que mejor se adapte a vos</p>
+      </td>
+    </tr>
+
+    <!-- PLANS TABLE -->
+    <tr>
+      <td style="background:#0D0A1A;padding:0 32px 28px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr valign="top">
+
+            <!-- FREE -->
+            <td width="31%" style="padding-right:8px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+                <tr><td style="padding:16px 14px;">
+                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:0.08em;text-transform:uppercase;">Gratis</p>
+                  <p style="margin:0 0 12px;font-size:22px;font-weight:700;color:#fff;">$0<span style="font-size:12px;font-weight:400;color:rgba(255,255,255,0.4);">/mes</span></p>
+                  <div style="height:1px;background:rgba(255,255,255,0.08);margin-bottom:12px;"></div>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.55);line-height:1.5;">&#10003; 1 página de artista</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.55);line-height:1.5;">&#10003; 5 social links</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.55);line-height:1.5;">&#10003; 5 bloques de links</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.55);line-height:1.5;">&#10003; EPK básico</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.55);line-height:1.5;">&#10003; Analytics básicos</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.55);line-height:1.5;">&#10003; stagelink.art/@usuario</p>
+                </td></tr>
+              </table>
+            </td>
+
+            <!-- PRO -->
+            <td width="31%" style="padding-right:8px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                style="background:rgba(224,64,251,0.08);border:1.5px solid rgba(224,64,251,0.5);border-radius:12px;">
+                <tr><td style="padding:16px 14px;">
+                  <p style="margin:0 0 6px;"><span style="display:inline-block;background:linear-gradient(135deg,#E040FB,#9B30D0);color:#fff;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 8px;border-radius:99px;">Popular</span></p>
+                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:#E040FB;letter-spacing:0.08em;text-transform:uppercase;">Pro</p>
+                  <p style="margin:0 0 12px;font-size:22px;font-weight:700;color:#fff;">$9<span style="font-size:12px;font-weight:400;color:rgba(255,255,255,0.4);">/mes</span></p>
+                  <div style="height:1px;background:rgba(224,64,251,0.2);margin-bottom:12px;"></div>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.8);line-height:1.5;">&#10003; 1 página de artista</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.8);line-height:1.5;">&#10003; 8 social links</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.8);line-height:1.5;">&#10003; 10 bloques de links</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.8);line-height:1.5;">&#10003; EPK avanzado</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.8);line-height:1.5;">&#10003; Templates de EPK</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.8);line-height:1.5;">&#10003; Analytics avanzados</p>
+                  <p style="margin:0 0 16px;font-size:12px;color:rgba(255,255,255,0.8);line-height:1.5;">&#10003; stagelink.art/@usuario</p>
+                  <a href="${billingUrl}" style="display:block;text-align:center;background:linear-gradient(135deg,#E040FB,#9B30D0);color:#fff;text-decoration:none;padding:10px 12px;border-radius:8px;font-size:12px;font-weight:700;">Elegir Pro — $9/mes</a>
+                </td></tr>
+              </table>
+            </td>
+
+            <!-- PRO+ -->
+            <td width="31%">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.15);border-radius:12px;">
+                <tr><td style="padding:16px 14px;">
+                  <p style="margin:0 0 4px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:0.08em;text-transform:uppercase;">Pro+</p>
+                  <p style="margin:0 0 12px;font-size:22px;font-weight:700;color:#fff;">$19<span style="font-size:12px;font-weight:400;color:rgba(255,255,255,0.4);">/mes</span></p>
+                  <div style="height:1px;background:rgba(255,255,255,0.08);margin-bottom:12px;"></div>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.5;">&#10003; Todo lo de Pro</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.5;">&#10003; 13 social links</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.5;">&#10003; Links ilimitados</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.5;">&#10003; Insights Spotify/YT</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.5;">&#10003; Multi-idioma</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.5;">&#10003; Shopify + Printful</p>
+                  <p style="margin:0 0 5px;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.5;">&#10003; Soporte prioritario</p>
+                  <p style="margin:0 0 16px;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.5;">&#10003; stagelink.art/@usuario</p>
+                  <a href="${billingUrl}" style="display:block;text-align:center;background:rgba(255,255,255,0.08);color:#fff;text-decoration:none;padding:10px 12px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,0.15);">Continuar Pro+ — $19</a>
+                </td></tr>
+              </table>
+            </td>
+
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- INFO NOTE -->
+    <tr>
+      <td style="background:#0D0A1A;padding:0 32px 28px;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%"
+          style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
+          <tr><td style="padding:14px 16px;">
+            <p style="margin:0;font-size:13px;line-height:1.6;color:rgba(255,255,255,0.5);">
+              &#128161; <strong style="color:rgba(255,255,255,0.7);">Si preferís quedarte en el plan Gratis</strong>, no tenés que hacer nada — el cambio es automático al vencer el período.
+            </p>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- DIVIDER -->
+    <tr><td style="padding:0 32px;"><div style="height:1px;background:rgba(255,255,255,0.08);"></div></td></tr>
+
+    <!-- FOOTER -->
+    <tr>
+      <td style="background:#0D0A1A;padding:20px 32px 28px;">
+        <p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:rgba(255,255,255,0.4);">
+          Recibís este email porque tenés una cuenta en StageLink.<br>
+          &#x2753; Tenés dudas? Escribinos a <a href="mailto:stagelink.qa@gmail.com" style="color:rgba(255,255,255,0.6);text-decoration:underline;">stagelink.qa@gmail.com</a>
+        </p>
+        <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.25);">
+          &copy; 2026 StageLink &middot; <a href="https://stagelink.art" style="color:rgba(255,255,255,0.25);text-decoration:underline;">stagelink.art</a>
+        </p>
+      </td>
+    </tr>
+
+  </table>
+  </td></tr>
+</table>
+</body>
+</html>`;
+
+    await this.send(to, 'Tu prueba Pro+ de StageLink vence en 7 días', html);
+  }
+
   async sendManualAccessExpired(to: string, plan: string): Promise<void> {
     const planName = this.planLabel(plan);
 
