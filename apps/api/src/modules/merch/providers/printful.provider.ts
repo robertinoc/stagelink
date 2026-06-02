@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import type { SmartMerchProduct } from '@stagelink/types';
+import { fetchWithTimeout, isExternalRequestTimeout } from '../../../common/utils/external-fetch';
 import {
   normalizeMerchPreviewLimit,
   normalizePriceAmount,
@@ -181,22 +182,24 @@ export class PrintfulProviderService implements MerchProviderAdapter {
     }
 
     let response: Response;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), PRINTFUL_REQUEST_TIMEOUT_MS);
     try {
-      response = await fetch(`${PRINTFUL_API_BASE_URL}${path}`, {
-        method: 'GET',
-        headers,
-        signal: controller.signal,
-      });
+      response = await fetchWithTimeout(
+        `${PRINTFUL_API_BASE_URL}${path}`,
+        {
+          method: 'GET',
+          headers,
+        },
+        {
+          timeoutMs: PRINTFUL_REQUEST_TIMEOUT_MS,
+          timeoutMessage: 'Printful timed out',
+        },
+      );
     } catch (error) {
-      if (controller.signal.aborted) {
-        throw new ServiceUnavailableException('Printful timed out');
+      if (isExternalRequestTimeout(error)) {
+        throw new ServiceUnavailableException(error.message);
       }
       console.error('[merch/printful] Provider request failed', error);
       throw new ServiceUnavailableException('Could not reach Printful right now');
-    } finally {
-      clearTimeout(timeout);
     }
 
     let payload: PrintfulResponse<T> | null = null;

@@ -8,6 +8,7 @@ import type {
   PlatformInsightsConnectionContext,
   PlatformInsightsProvider,
 } from './insights-provider.interface';
+import { fetchWithTimeout, isExternalRequestTimeout } from '../../../common/utils/external-fetch';
 import {
   buildYouTubeChannelUrl,
   normalizeYouTubeChannelReference,
@@ -111,6 +112,8 @@ export interface YouTubePlaylistSummary {
   thumbnailUrl: string | null;
   itemCount: number | null;
 }
+
+const YOUTUBE_REQUEST_TIMEOUT_MS = 5_000;
 
 @Injectable()
 export class YouTubeInsightsProvider implements PlatformInsightsProvider {
@@ -343,13 +346,24 @@ export class YouTubeInsightsProvider implements PlatformInsightsProvider {
 
     let response: Response;
     try {
-      response = await fetch(`https://www.googleapis.com/youtube/v3${path}?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
+      response = await fetchWithTimeout(
+        `https://www.googleapis.com/youtube/v3${path}?${params.toString()}`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+          },
         },
-      });
-    } catch {
+        {
+          timeoutMs: YOUTUBE_REQUEST_TIMEOUT_MS,
+          timeoutMessage: 'YouTube timed out',
+        },
+      );
+    } catch (error) {
+      if (isExternalRequestTimeout(error)) {
+        throw new ServiceUnavailableException(error.message);
+      }
+
       throw new ServiceUnavailableException('Could not reach YouTube right now');
     }
 

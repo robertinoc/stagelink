@@ -12,6 +12,7 @@ import type {
   ShopifyStoreProduct,
 } from '@stagelink/types';
 import { PrismaService } from '../../lib/prisma.service';
+import { fetchWithTimeout, isExternalRequestTimeout } from '../../common/utils/external-fetch';
 import { decryptSecretOrLegacy, encryptSecret } from '../../common/utils/secret-encryption';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
@@ -55,6 +56,7 @@ interface CachedShopifySelectionPreview {
 }
 
 const SHOPIFY_SELECTION_CACHE_TTL_MS = 60_000;
+const SHOPIFY_REQUEST_TIMEOUT_MS = 5_000;
 
 @Injectable()
 export class ShopifyService {
@@ -542,16 +544,26 @@ export class ShopifyService {
 
     let response: Response;
     try {
-      response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          'X-Shopify-Storefront-Access-Token': storefrontToken,
+      response = await fetchWithTimeout(
+        endpoint,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-Shopify-Storefront-Access-Token': storefrontToken,
+          },
+          body: JSON.stringify({ query, variables }),
         },
-        body: JSON.stringify({ query, variables }),
-      });
+        {
+          timeoutMs: SHOPIFY_REQUEST_TIMEOUT_MS,
+          timeoutMessage: 'Shopify timed out',
+        },
+      );
     } catch (error) {
+      if (isExternalRequestTimeout(error)) {
+        throw new ServiceUnavailableException(error.message);
+      }
       console.error('[shopify] Storefront API request failed', error);
       throw new ServiceUnavailableException('Could not reach Shopify right now');
     }
