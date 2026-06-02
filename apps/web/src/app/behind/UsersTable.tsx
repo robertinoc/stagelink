@@ -3,15 +3,26 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { BehindRole, RolesMap } from '@/lib/behind-redis';
+import { trackUmamiEvent } from '@/lib/analytics/umami';
 
 // ─── Design tokens ──────────────────────────────────────────────────────────────
 const GRADIENT = 'linear-gradient(135deg, #E040FB 0%, #9B30D0 45%, #4A1A8C 100%)';
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
-interface TemporaryAccess {
-  plan: 'pro' | 'pro+';
-  until: string;
+interface ArtistSubscription {
+  plan: string; // commercial plan
+  status: string;
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: string | null;
+  manualAccessPlan: string | null;
+  manualAccessStartsAt: string | null;
+  manualAccessExpiresAt: string | null; // ISO string
+  manualAccessReason: string | null;
+  manualAccessGrantedBy: string | null;
+  isManualGrantActive: boolean;
+  effectiveAccess: string;
+  accessSource: string;
 }
 
 interface AdminUser {
@@ -23,8 +34,8 @@ interface AdminUser {
   artistUsernames: string[];
   isSuspended: boolean;
   createdAt: string;
-  plan?: 'free' | 'pro' | 'pro+';
-  temporaryAccess?: TemporaryAccess | null;
+  /** First artist's subscription/access summary. null if no artist/subscription. */
+  subscription: ArtistSubscription | null;
 }
 
 type FetchState =
@@ -32,7 +43,7 @@ type FetchState =
   | { status: 'error'; message: string }
   | { status: 'ok'; users: AdminUser[] };
 
-type PlanFilter = 'all' | 'free' | 'pro' | 'pro+';
+type PlanFilter = 'all' | 'free' | 'pro' | 'pro_plus';
 type RoleFilter = 'all' | 'owner' | 'admin' | 'user';
 type StatusFilter = 'all' | 'active' | 'suspended';
 
@@ -41,6 +52,7 @@ type ActiveModal =
   | { type: 'edit'; user: AdminUser }
   | { type: 'delete'; user: AdminUser }
   | { type: 'role'; user: AdminUser; newRole: BehindRole | 'none' }
+  | { type: 'access'; user: AdminUser }
   | null;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
@@ -53,8 +65,22 @@ function formatDate(iso: string): string {
   }).format(new Date(iso));
 }
 
+/** The plan the user effectively has right now (commercial plan or active admin grant). */
 function effectivePlan(user: AdminUser): string {
-  return user.temporaryAccess?.plan ?? user.plan ?? 'free';
+  return user.subscription?.effectiveAccess ?? 'free';
+}
+
+function planLabel(plan: string): string {
+  if (plan === 'pro_plus') return 'PRO+';
+  if (plan === 'pro') return 'PRO';
+  return 'Free';
+}
+
+/** YYYY-MM-DD value (for <input type="date">) `days` from now. */
+function dateInputValue(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
 }
 
 function matchesSearch(user: AdminUser, query: string): boolean {
@@ -111,7 +137,7 @@ function SearchIcon() {
 // ─── Plan badge ──────────────────────────────────────────────────────────────────
 
 function PlanBadge({ plan }: { plan: string }) {
-  if (plan === 'pro+') {
+  if (plan === 'pro_plus') {
     return (
       <span
         style={{
@@ -252,6 +278,40 @@ function StatusBadge({ suspended }: { suspended: boolean }) {
       />
       {suspended ? 'suspended' : 'active'}
     </span>
+  );
+}
+
+// ─── Access cell (Plan column) ────────────────────────────────────────────────────
+
+function AccessCell({ sub }: { sub: ArtistSubscription | null }) {
+  if (!sub) {
+    return <span style={{ color: 'rgba(255,255,255,0.22)' }}>—</span>;
+  }
+
+  const grantActive = sub.isManualGrantActive && sub.manualAccessPlan;
+  const elevated = sub.accessSource === 'manual_admin_grant' && grantActive;
+  const expires = sub.manualAccessExpiresAt ? formatDate(sub.manualAccessExpiresAt) : 'no expiry';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+      <PlanBadge plan={sub.plan} />
+      {grantActive && (
+        <span
+          style={{ fontSize: 10.5, fontWeight: 600, color: '#E040FB', lineHeight: 1.35 }}
+          title={
+            (sub.manualAccessReason ? `Reason: ${sub.manualAccessReason}\n` : '') +
+            `Granted access: ${planLabel(sub.manualAccessPlan!)} until ${expires}`
+          }
+        >
+          ⚡ {planLabel(sub.manualAccessPlan!)} until {expires}
+        </span>
+      )}
+      {elevated && sub.effectiveAccess !== sub.plan && (
+        <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.35)' }}>
+          effective: {planLabel(sub.effectiveAccess)}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -469,6 +529,7 @@ function UserRow({
   onEdit,
   onDelete,
   onRoleChange,
+  onManageAccess,
 }: {
   user: AdminUser;
   role: BehindRole | null;
@@ -481,13 +542,13 @@ function UserRow({
   onEdit: (user: AdminUser) => void;
   onDelete: (user: AdminUser) => void;
   onRoleChange: (user: AdminUser, newRole: BehindRole | 'none') => void;
+  onManageAccess: (user: AdminUser) => void;
 }) {
   const handle = user.artistUsernames[0] ?? null;
   const initials = (handle?.[0] ?? user.email[0] ?? '?').toUpperCase();
   const [suspending, setSuspending] = useState(false);
   const canManageRoles = currentUserRole === 'owner' && !isCurrentUser && !locked;
   const menuOpen = menuOpenId === user.id;
-  const plan = effectivePlan(user);
 
   async function toggleSuspend() {
     setSuspending(true);
@@ -626,16 +687,7 @@ function UserRow({
       </div>
 
       {/* Plan */}
-      <div>
-        <PlanBadge plan={plan} />
-        {user.temporaryAccess && (
-          <div style={{ marginTop: 4 }}>
-            <div style={{ fontSize: 10.5, fontWeight: 600, color: '#E040FB', lineHeight: 1.3 }}>
-              ⚡ {user.temporaryAccess.plan.toUpperCase()} until {user.temporaryAccess.until}
-            </div>
-          </div>
-        )}
-      </div>
+      <AccessCell sub={user.subscription} />
 
       {/* Role */}
       <div>
@@ -703,11 +755,12 @@ function UserRow({
             />
             <MenuItem
               icon="⚡"
-              label="Grant temp access"
+              label={user.subscription?.manualAccessPlan ? 'Manage access' : 'Grant temp access'}
               accent="#E040FB"
+              disabled={!user.subscription}
               onClick={() => {
                 onMenuToggle(null);
-                alert('Temporary access grants — coming soon.');
+                onManageAccess(user);
               }}
             />
 
@@ -1256,6 +1309,384 @@ function RoleChangeModal({
 
 type InviteState = 'idle' | 'sending' | 'sent' | 'error';
 
+// ─── Manage access modal (grant / extend / revoke temporary access) ───────────────
+
+function InfoLine({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}
+    >
+      <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>{label}</span>
+      <span style={{ fontSize: 13, color: 'var(--foreground)' }}>{value}</span>
+    </div>
+  );
+}
+
+function ManageAccessModal({
+  user,
+  onClose,
+  onUpdated,
+}: {
+  user: AdminUser;
+  onClose: () => void;
+  onUpdated: (userId: string, sub: ArtistSubscription) => void;
+}) {
+  const sub = user.subscription;
+  const hasGrant = Boolean(sub?.manualAccessPlan);
+
+  const [mode, setMode] = useState<'view' | 'grant' | 'extend'>('view');
+  const [plan, setPlan] = useState<'pro' | 'pro_plus'>(
+    (sub?.manualAccessPlan as 'pro' | 'pro_plus') ?? 'pro',
+  );
+  const [expiresAt, setExpiresAt] = useState<string>(
+    sub?.manualAccessExpiresAt ? sub.manualAccessExpiresAt.slice(0, 10) : dateInputValue(30),
+  );
+  const [reason, setReason] = useState(sub?.manualAccessReason ?? '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [confirmRevoke, setConfirmRevoke] = useState(false);
+
+  async function submitGrant(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/access`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan,
+          expiresAt: new Date(`${expiresAt}T23:59:59`).toISOString(),
+          reason: reason.trim() || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { message?: string | string[] };
+        setError(
+          Array.isArray(body.message)
+            ? body.message.join(', ')
+            : (body.message ?? 'Could not grant access.'),
+        );
+        return;
+      }
+      const { subscription } = (await res.json()) as { subscription: ArtistSubscription };
+      onUpdated(user.id, subscription);
+      trackUmamiEvent('behind_access_granted', { plan });
+      onClose();
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitExtend(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/access`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          expiresAt: new Date(`${expiresAt}T23:59:59`).toISOString(),
+          reason: reason.trim() || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { message?: string | string[] };
+        setError(
+          Array.isArray(body.message)
+            ? body.message.join(', ')
+            : (body.message ?? 'Could not extend access.'),
+        );
+        return;
+      }
+      const { subscription } = (await res.json()) as { subscription: ArtistSubscription };
+      onUpdated(user.id, subscription);
+      trackUmamiEvent('behind_access_extended', { plan: sub?.manualAccessPlan ?? 'unknown' });
+      onClose();
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function doRevoke() {
+    setBusy(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/access`, { method: 'DELETE' });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { message?: string };
+        setError(body.message ?? 'Could not revoke access.');
+        return;
+      }
+      const { subscription } = (await res.json()) as { subscription: ArtistSubscription };
+      onUpdated(user.id, subscription);
+      trackUmamiEvent('behind_access_revoked');
+      onClose();
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <ModalBackdrop onClose={onClose}>
+      <div
+        className="w-full max-w-md rounded-xl p-6"
+        style={{ backgroundColor: '#1a1030', border: '1px solid rgba(255,255,255,0.12)' }}
+      >
+        <h3 className="mb-1 text-base font-semibold" style={{ color: 'var(--foreground)' }}>
+          Manage access
+        </h3>
+        <p className="mb-4 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          {user.name ?? user.email}
+        </p>
+
+        {error && (
+          <p className="mb-3 text-xs" style={{ color: 'rgba(255,80,80,0.9)' }}>
+            {error}
+          </p>
+        )}
+
+        {mode === 'view' && (
+          <>
+            <div
+              className="mb-4 space-y-2 rounded-lg p-3"
+              style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
+            >
+              <InfoLine label="Commercial plan" value={<PlanBadge plan={sub?.plan ?? 'free'} />} />
+              <InfoLine label="Subscription status" value={sub?.status ?? 'inactive'} />
+              <InfoLine
+                label="Effective access"
+                value={<PlanBadge plan={sub?.effectiveAccess ?? 'free'} />}
+              />
+              <InfoLine
+                label="Access source"
+                value={
+                  sub?.accessSource === 'manual_admin_grant' ? 'Admin grant ⚡' : 'Commercial plan'
+                }
+              />
+              {hasGrant && (
+                <>
+                  <div className="my-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }} />
+                  <InfoLine
+                    label="Granted plan"
+                    value={<PlanBadge plan={sub!.manualAccessPlan!} />}
+                  />
+                  <InfoLine
+                    label="Expires"
+                    value={
+                      sub!.manualAccessExpiresAt
+                        ? formatDate(sub!.manualAccessExpiresAt)
+                        : 'no expiry'
+                    }
+                  />
+                  <InfoLine
+                    label="Active now"
+                    value={sub!.isManualGrantActive ? 'Yes' : 'No (expired)'}
+                  />
+                  {sub!.manualAccessReason && (
+                    <InfoLine label="Reason" value={sub!.manualAccessReason} />
+                  )}
+                </>
+              )}
+            </div>
+
+            {confirmRevoke ? (
+              <div className="space-y-2">
+                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                  Revoke this grant? The tenant falls back to their commercial plan immediately.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex-1"
+                    onClick={() => setConfirmRevoke(false)}
+                    disabled={busy}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                    onClick={doRevoke}
+                    disabled={busy}
+                  >
+                    {busy ? 'Revoking…' : 'Revoke'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {!hasGrant && (
+                  <Button type="button" className="flex-1" onClick={() => setMode('grant')}>
+                    Grant temporary access
+                  </Button>
+                )}
+                {hasGrant && (
+                  <>
+                    <Button type="button" className="flex-1" onClick={() => setMode('extend')}>
+                      Extend
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="flex-1 text-red-400 hover:text-red-300"
+                      onClick={() => setConfirmRevoke(true)}
+                    >
+                      Revoke
+                    </Button>
+                  </>
+                )}
+                <Button type="button" variant="ghost" className="w-full" onClick={onClose}>
+                  Close
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+
+        {mode === 'grant' && (
+          <form onSubmit={submitGrant} className="space-y-4">
+            <div>
+              <label
+                className="mb-1.5 block text-xs font-medium"
+                style={{ color: 'rgba(255,255,255,0.6)' }}
+              >
+                Plan
+              </label>
+              <div className="flex gap-2">
+                {(['pro', 'pro_plus'] as const).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPlan(p)}
+                    className="flex-1 rounded-md px-3 py-2 text-sm"
+                    style={{
+                      backgroundColor:
+                        plan === p ? 'rgba(232,121,249,0.18)' : 'rgba(255,255,255,0.05)',
+                      border: `1px solid ${plan === p ? 'rgba(232,121,249,0.5)' : 'rgba(255,255,255,0.12)'}`,
+                      color: plan === p ? 'rgb(240,171,252)' : 'rgba(255,255,255,0.6)',
+                    }}
+                  >
+                    {planLabel(p)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label
+                htmlFor="grant-expiry"
+                className="mb-1.5 block text-xs font-medium"
+                style={{ color: 'rgba(255,255,255,0.6)' }}
+              >
+                Expires on
+              </label>
+              <input
+                id="grant-expiry"
+                type="date"
+                required
+                min={dateInputValue(1)}
+                max={dateInputValue(365)}
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+                className="w-full rounded-md px-3 py-2 text-sm outline-none focus:ring-2"
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  color: 'var(--foreground)',
+                  colorScheme: 'dark',
+                }}
+              />
+            </div>
+            <ModalField
+              id="grant-reason"
+              label="Reason (optional)"
+              value={reason}
+              onChange={setReason}
+              placeholder="e.g. partnership trial"
+            />
+            <div className="flex gap-2 pt-1">
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setMode('view')}
+                disabled={busy}
+              >
+                Back
+              </Button>
+              <Button type="submit" className="flex-1" disabled={busy}>
+                {busy ? 'Granting…' : 'Grant access'}
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {mode === 'extend' && (
+          <form onSubmit={submitExtend} className="space-y-4">
+            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
+              Extending {planLabel(sub?.manualAccessPlan ?? 'pro')} grant.
+            </p>
+            <div>
+              <label
+                htmlFor="extend-expiry"
+                className="mb-1.5 block text-xs font-medium"
+                style={{ color: 'rgba(255,255,255,0.6)' }}
+              >
+                New expiry
+              </label>
+              <input
+                id="extend-expiry"
+                type="date"
+                required
+                min={dateInputValue(1)}
+                max={dateInputValue(365)}
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+                className="w-full rounded-md px-3 py-2 text-sm outline-none focus:ring-2"
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  color: 'var(--foreground)',
+                  colorScheme: 'dark',
+                }}
+              />
+            </div>
+            <ModalField
+              id="extend-reason"
+              label="Reason (optional)"
+              value={reason}
+              onChange={setReason}
+              placeholder="Update reason"
+            />
+            <div className="flex gap-2 pt-1">
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setMode('view')}
+                disabled={busy}
+              >
+                Back
+              </Button>
+              <Button type="submit" className="flex-1" disabled={busy}>
+                {busy ? 'Saving…' : 'Update expiry'}
+              </Button>
+            </div>
+          </form>
+        )}
+      </div>
+    </ModalBackdrop>
+  );
+}
+
 function InviteModal({ onClose }: { onClose: () => void }) {
   const [email, setEmail] = useState('');
   const [inviteState, setInviteState] = useState<InviteState>('idle');
@@ -1462,6 +1893,16 @@ export function UsersTable({
     });
   }
 
+  function handleSubscriptionUpdated(userId: string, subscription: ArtistSubscription) {
+    setFetchState((prev) => {
+      if (prev.status !== 'ok') return prev;
+      return {
+        ...prev,
+        users: prev.users.map((u) => (u.id === userId ? { ...u, subscription } : u)),
+      };
+    });
+  }
+
   const handleRolesUpdated = useCallback((newRoles: RolesMap, newLocked: string[]) => {
     setRoles(newRoles);
     setLockedEmails(new Set(newLocked.map((e) => e.toLowerCase())));
@@ -1472,7 +1913,7 @@ export function UsersTable({
   // KPI counts (computed from full user list, not filtered)
   const kpiTotal = allUsers.length;
   const kpiActive = allUsers.filter((u) => !u.isSuspended).length;
-  const kpiProPlus = allUsers.filter((u) => effectivePlan(u) === 'pro+').length;
+  const kpiProPlus = allUsers.filter((u) => effectivePlan(u) === 'pro_plus').length;
   const kpiNew30d = allUsers.filter((u) => isWithin30Days(u.createdAt)).length;
 
   // Apply filters
@@ -1518,6 +1959,13 @@ export function UsersTable({
           newRole={modal.newRole}
           onClose={() => setModal(null)}
           onConfirmed={handleRolesUpdated}
+        />
+      )}
+      {modal?.type === 'access' && (
+        <ManageAccessModal
+          user={modal.user}
+          onClose={() => setModal(null)}
+          onUpdated={handleSubscriptionUpdated}
         />
       )}
 
@@ -1757,7 +2205,7 @@ export function UsersTable({
                 { value: 'all', label: 'All' },
                 { value: 'free', label: 'Free' },
                 { value: 'pro', label: 'PRO' },
-                { value: 'pro+', label: 'PRO+' },
+                { value: 'pro_plus', label: 'PRO+' },
               ]}
             />
             <FilterGroup
@@ -1823,6 +2271,7 @@ export function UsersTable({
                     onEdit={(user) => setModal({ type: 'edit', user })}
                     onDelete={(user) => setModal({ type: 'delete', user })}
                     onRoleChange={(user, newRole) => setModal({ type: 'role', user, newRole })}
+                    onManageAccess={(user) => setModal({ type: 'access', user })}
                   />
                 );
               })}
