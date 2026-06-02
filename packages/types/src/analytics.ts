@@ -27,6 +27,14 @@ export const ANALYTICS_EVENTS = {
   FAN_CAPTURE_SUBMITTED: 'fan_capture_submitted',
 
   // ── Product / dashboard ───────────────────────────────────
+  /** A visitor clicked the login CTA and was sent toward hosted auth. */
+  AUTH_LOGIN_STARTED: 'auth_login_started',
+  /** A visitor clicked the signup CTA and was sent toward hosted auth. */
+  AUTH_SIGNUP_STARTED: 'auth_signup_started',
+  /** A visitor moved from the login screen to signup. */
+  AUTH_LOGIN_SIGNUP_CLICKED: 'auth_login_signup_clicked',
+  /** A visitor moved from the signup screen to login. */
+  AUTH_SIGNUP_LOGIN_CLICKED: 'auth_signup_login_clicked',
   /** An artist completed the onboarding wizard. */
   ONBOARDING_COMPLETED: 'onboarding_completed',
   /** An artist updated their profile (bio, avatar, social links, SEO). */
@@ -61,6 +69,15 @@ interface BaseDashboardProps {
   actor_user_id: string;
   /** Internal artist ID the action is scoped to. */
   artist_id: string;
+  /** App environment. */
+  environment: string;
+}
+
+export interface AuthFunnelProps {
+  /** Locale route where the intent happened. */
+  locale: string;
+  /** Source surface for the intent. */
+  surface: 'login' | 'signup';
   /** App environment. */
   environment: string;
 }

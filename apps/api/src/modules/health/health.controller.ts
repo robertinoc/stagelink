@@ -9,6 +9,10 @@ interface HealthResponse {
   nodeEnv: string;
   version: string;
   uptime: number;
+  observability: {
+    sentryConfigured: boolean;
+    posthogConfigured: boolean;
+  };
 }
 
 @Public()
@@ -28,6 +32,10 @@ export class HealthController {
       nodeEnv: this.configService.get<string>('app.nodeEnv') ?? 'development',
       version: process.env['npm_package_version'] ?? '0.1.0',
       uptime: Math.floor(process.uptime()),
+      observability: {
+        sentryConfigured: Boolean(this.configService.get<string>('SENTRY_DSN')),
+        posthogConfigured: Boolean(this.configService.get<string>('POSTHOG_KEY')),
+      },
     };
   }
 }
