@@ -88,6 +88,37 @@ export class BillingService {
     private readonly emailService: EmailService,
   ) {}
 
+  /**
+   * Automatically grants a 30-day Pro+ trial to every new artist at signup.
+   * Called fire-and-forget from ArtistsService.create() — never throws outward.
+   */
+  async grantSignupTrial(artistId: string): Promise<void> {
+    const now = new Date();
+    const expiresAt = new Date(now);
+    expiresAt.setDate(expiresAt.getDate() + 30);
+
+    await this.prisma.subscription.upsert({
+      where: { artistId },
+      create: {
+        artistId,
+        plan: PlanTier.free,
+        status: SubscriptionStatus.inactive,
+        manualAccessPlan: PlanTier.pro_plus,
+        manualAccessStartsAt: now,
+        manualAccessExpiresAt: expiresAt,
+        manualAccessReason: 'signup_trial',
+        manualAccessGrantedBy: 'system',
+      },
+      update: {
+        manualAccessPlan: PlanTier.pro_plus,
+        manualAccessStartsAt: now,
+        manualAccessExpiresAt: expiresAt,
+        manualAccessReason: 'signup_trial',
+        manualAccessGrantedBy: 'system',
+      },
+    });
+  }
+
   async getProducts() {
     const plans = await this.getProductsCatalog();
 
