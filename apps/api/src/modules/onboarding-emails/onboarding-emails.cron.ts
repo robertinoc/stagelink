@@ -26,27 +26,35 @@ export class OnboardingEmailsCron {
   async checkAbandonedDrafts(): Promise<void> {
     const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
 
+    type Candidate = { id: string; page: { _count: { blocks: number } } | null };
+
     // Find eligible artists via a join on onboarding_state and page.
     // We need: artist.createdAt < cutoff, page.isPublished=false,
     // onboardingState.welcomeEmailSentAt IS NOT NULL, onboardingState.reengagementEmailSentAt IS NULL.
-    const candidates = await this.prisma.artist.findMany({
-      where: {
-        createdAt: { lt: cutoff },
-        page: { isPublished: false },
-        onboardingState: {
-          welcomeEmailSentAt: { not: null },
-          reengagementEmailSentAt: null,
-        },
-      },
-      select: {
-        id: true,
-        page: {
-          select: {
-            _count: { select: { blocks: true } },
+    let candidates: Candidate[];
+    try {
+      candidates = await this.prisma.artist.findMany({
+        where: {
+          createdAt: { lt: cutoff },
+          page: { isPublished: false },
+          onboardingState: {
+            welcomeEmailSentAt: { not: null },
+            reengagementEmailSentAt: null,
           },
         },
-      },
-    });
+        select: {
+          id: true,
+          page: {
+            select: {
+              _count: { select: { blocks: true } },
+            },
+          },
+        },
+      });
+    } catch (err) {
+      this.logger.error(`Re-engagement cron: failed to load candidates — ${String(err)}`);
+      return;
+    }
 
     if (candidates.length === 0) return;
 
