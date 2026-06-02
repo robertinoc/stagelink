@@ -49,12 +49,13 @@ test.describe('A11y — Dashboard (authenticated)', () => {
     await expect(badge.first()).toBeVisible();
   });
 
-  test('settings submenu items have aria-current when active', async ({ page }) => {
-    await page.goto('/en/dashboard/settings/plans-billing');
+  test('settings link has aria-current when active', async ({ page }) => {
+    // The old sub-routes (/settings/plans-billing etc.) were replaced with a
+    // single tabbed page at /dashboard/settings in the Settings redesign (PR #392).
+    // The sidebar now shows one "Settings" link pointing to /dashboard/settings.
+    await page.goto('/en/dashboard/settings');
 
-    const activeChild = page.locator(
-      'aside a[href$="/dashboard/settings/plans-billing"][aria-current="page"]',
-    );
+    const activeChild = page.locator('aside a[href$="/dashboard/settings"][aria-current="page"]');
     await expect(activeChild).toHaveCount(1);
   });
 
