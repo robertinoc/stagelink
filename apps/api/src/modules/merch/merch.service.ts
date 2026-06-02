@@ -45,7 +45,8 @@ export class MerchService {
 
   async getConnection(artistId: string, userId: string): Promise<MerchProviderConnection> {
     await this.membershipService.validateAccess(userId, artistId, 'read');
-    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'smart_merch');
+    // Option-B grace: reading existing connection status is always allowed
+    // so the Settings UI can show the connection state after a downgrade.
 
     const connection = await this.prisma.merchProviderConnection.findUnique({
       where: { artistId },
@@ -144,7 +145,8 @@ export class MerchService {
     ipAddress?: string,
   ): Promise<MerchProviderConnection> {
     await this.membershipService.validateAccess(userId, artistId, 'write');
-    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'smart_merch');
+    // Option-B grace: disconnecting is a destructive action the user should
+    // always be allowed to perform regardless of plan.
 
     const existing = await this.prisma.merchProviderConnection.findUnique({
       where: { artistId },
@@ -203,7 +205,11 @@ export class MerchService {
     providerKey: SmartMerchProvider,
     selections: SmartMerchProductSelection[],
   ): Promise<void> {
-    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'smart_merch');
+    // Billing gate intentionally omitted here (Option-B grace): this method
+    // validates that selected product IDs actually exist in the provider — it
+    // is a data-integrity check, not a "new feature" guard. The billing gate
+    // lives on updateConnection / validateConnection (writing new credentials),
+    // not on product-selection validation for existing connections.
 
     if (selections.length === 0) {
       return;
