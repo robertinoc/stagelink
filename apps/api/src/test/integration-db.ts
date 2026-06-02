@@ -6,6 +6,7 @@ export const RESET_TABLES = [
   'analytics_events',
   'artist_platform_insights_snapshots',
   'audit_logs',
+  'onboarding_states',
   'dsar_requests',
   'stripe_webhook_events',
   'subscribers',

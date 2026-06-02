@@ -1,5 +1,6 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { ConfigModule } from '@nestjs/config';
 import { JwtAuthGuard } from './common/guards';
@@ -18,6 +19,7 @@ import { HealthModule } from './modules/health/health.module';
 import { MembershipModule } from './modules/membership/membership.module';
 import { MerchModule } from './modules/merch/merch.module';
 import { InsightsModule } from './modules/insights/insights.module';
+import { OnboardingEmailsModule } from './modules/onboarding-emails/onboarding-emails.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { PagesModule } from './modules/pages/pages.module';
 import { PublicModule } from './modules/public/public.module';
@@ -40,6 +42,7 @@ import { PrivacyModule } from './modules/privacy/privacy.module';
         allowUnknown: true,
       },
     }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     S3Module,
     MembershipModule,
@@ -55,6 +58,7 @@ import { PrivacyModule } from './modules/privacy/privacy.module';
     InsightsModule,
     BillingModule,
     AssetsModule,
+    OnboardingEmailsModule,
     OnboardingModule,
     MerchModule,
     SmartLinksModule,

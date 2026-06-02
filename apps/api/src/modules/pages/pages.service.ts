@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
 import { AuditService } from '../audit/audit.service';
+import { OnboardingEmailsService } from '../onboarding-emails/onboarding-emails.service';
 
 export interface UpdatePageDto {
   title?: string;
@@ -16,6 +17,7 @@ export class PagesService {
     private readonly prisma: PrismaService,
     private readonly membershipService: MembershipService,
     private readonly auditService: AuditService,
+    private readonly onboardingEmails: OnboardingEmailsService,
   ) {}
 
   async findByArtist(artistId: string, userId: string) {
@@ -31,6 +33,16 @@ export class PagesService {
     if (!artistId) throw new NotFoundException('Page not found');
 
     await this.membershipService.validateAccess(userId, artistId, 'write');
+
+    // Detect first-time publish before applying the update.
+    let wasUnpublished = false;
+    if (dto.isPublished === true) {
+      const current = await this.prisma.page.findUnique({
+        where: { id: pageId },
+        select: { isPublished: true },
+      });
+      wasUnpublished = current?.isPublished === false;
+    }
 
     const { theme, ...rest } = dto;
     const data: Prisma.PageUpdateInput = {
@@ -51,6 +63,12 @@ export class PagesService {
       metadata: { changes: dto },
       ipAddress,
     });
+
+    // Fire activation email on first-time publish — fire-and-forget.
+    // OnboardingEmailsService is idempotent: it skips if already sent.
+    if (wasUnpublished) {
+      this.onboardingEmails.sendActivationEmail(artistId).catch(() => {});
+    }
 
     return page;
   }
