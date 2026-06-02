@@ -24,8 +24,13 @@
       "cta_secondary": "Ver un ejemplo"
     },
     "pricing": {
-      "title": "Precios simples",
-      "subtitle": "Empieza gratis. Sube de plan cuando lo necesites.",
+      "title": "Precios según tu workflow artístico",
+      "subtitle": "Empezá con una página pública gratis. Subí de plan cuando necesites más control de EPK, analytics, localización o integraciones de merch.",
+      "note": "Los precios están expresados en USD por mes. Checkout, facturas, cambios de plan y cancelación se gestionan de forma segura con Stripe después del signup.",
+      "scope_note": "Los platform insights conectados usan datos públicos y seguros en esta fase. Reportes privados de Spotify for Artists o YouTube Analytics no están incluidos.",
+      "positioning_title": "Más que link-in-bio, más liviano que una web a medida",
+      "positioning_body": "StageLink está posicionado para artistas independientes que necesitan un workspace mantenible para página pública, Press Kit, merch, fan capture y señal de performance.",
+      "scope_title": "Alcance del plan",
       "popular_badge": "Popular",
       "features": {
         "artist_page_one": "1 página de artista",
@@ -37,8 +42,12 @@
         "unlimited_blocks": "Bloques de links ilimitados",
         "basic_analytics": "Analytics básicos",
         "advanced_analytics": "Analytics avanzados",
-        "spotify_analytics": "Analytics de Spotify integrado",
-        "youtube_analytics": "Analytics de YouTube integrado",
+        "spotify_analytics": "Señales públicas de artista en Spotify",
+        "youtube_analytics": "Señales públicas de canal en YouTube",
+        "soundcloud_analytics": "Señales públicas de perfil en SoundCloud",
+        "multi_language_pages": "Páginas públicas multi-idioma",
+        "shopify_merch": "Bloques de merch con Shopify",
+        "smart_merch": "Smart Merch con Printful",
         "basic_epk": "EPK básico",
         "advanced_epk": "EPK avanzado",
         "epk_templates": "Templates de EPK",
@@ -50,19 +59,22 @@
       "free": {
         "name": "Gratis",
         "price": "$0",
-        "description": "Perfecto para empezar",
+        "description": "Publicá tu primer hogar artístico",
+        "best_for": "Ideal para artistas que necesitan una página pública clara antes de sumar profundidad de workflow.",
         "cta": "Empezar gratis"
       },
       "pro": {
         "name": "Pro",
         "price": "$9/mes",
-        "description": "Para artistas en crecimiento",
+        "description": "Mandá mejores materiales a bookers y prensa",
+        "best_for": "Ideal para artistas que ya están pitchando fechas, sellos, prensa o colaboraciones.",
         "cta": "Subir a Pro"
       },
       "pro_plus": {
         "name": "Pro+",
         "price": "$19/mes",
-        "description": "Para profesionales serios",
+        "description": "Sumá crecimiento, localización y merch",
+        "best_for": "Ideal para artistas que miden tráfico, conectan plataformas y venden o muestran merch.",
         "cta": "Subir a Pro+"
       }
     }

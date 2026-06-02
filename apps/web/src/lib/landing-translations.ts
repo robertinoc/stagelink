@@ -208,12 +208,12 @@ export interface LandingTranslation {
 
 const en: LandingTranslation = {
   seo: {
-    title: 'StageLink | A better home for your music',
+    title: 'StageLink | Artist pages, EPKs, merch and insights',
     description:
-      'StageLink helps artists share their music, grow their audience, and open the door to more bookings, collaborations, and support.',
-    ogTitle: 'StageLink | Share your music in one place',
+      'StageLink gives independent artists a booking-ready home for music, EPKs, merch, links, fan capture, and audience insights.',
+    ogTitle: 'StageLink | Your booking-ready artist hub',
     ogDescription:
-      'Bring your music, videos, Press Kit, merch, and artist story together in one place that feels like you.',
+      'Bring your artist page, Press Kit, merch, music links, fan capture, and insights together in one place that feels like you.',
   },
   nav: {
     product: 'Product',
@@ -228,12 +228,13 @@ const en: LandingTranslation = {
   },
   badge: 'Made by an artist, for artists',
   hero: {
-    headline: 'Your music. Your story. One link.',
+    headline: 'Your artist page, Press Kit, merch and insights in one link.',
     subheadline:
-      'For DJs, producers, singers, musicians and performers. Bring your music, links, EPK, and updates into one place so people can discover you fast and reach out for gigs, bookings, or collaborations.',
+      'For DJs, producers, singers, musicians and performers who need more than a link-in-bio. StageLink brings your public artist page, booking-ready EPK, smart links, merch, fan capture, and analytics into one workspace.',
     supportingText:
-      'StageLink is more than a link page. It gives your sound, style, and story one place that feels like you.',
-    socialProof: '1,000+ independent artists are building their presence with StageLink',
+      'Start with a free artist page. Upgrade when you need deeper EPK controls, localization, connected platform insights, or merch integrations.',
+    socialProof:
+      'Built for independent artists who need one public home for fans, bookers, press, and collaborators.',
     ctaPrimary: 'Create my artist profile',
     ctaSecondary: 'See how it looks',
     ctaNote: 'Free. No credit card required.',
@@ -264,56 +265,68 @@ const en: LandingTranslation = {
     mockLinks: ['Listen on Spotify', 'Watch the latest video', 'Shop merch', 'Join the fan list'],
   },
   strip: {
-    label: 'A growing home for artists building a real presence',
+    label: 'A product workspace, not just a link list',
     socialProof:
-      'Your music, sets, links, social profiles, and content can live together without looking like just another link tool.',
-    items: ['Music', 'Sets', 'Links', 'Social profiles', 'Content'],
+      'Your page, EPK, links, merch, fan capture, and analytics can live together without making your audience jump between disconnected tools.',
+    items: ['Artist page', 'Press Kit', 'Smart Links', 'Fan capture', 'Merch', 'Insights'],
     platformsLabel: 'Works with the platforms your audience already uses',
     platformsDescription:
-      'Your music already lives across different platforms. StageLink brings it together in one artist presence that still feels personal.',
-    platforms: ['Spotify', 'SoundCloud', 'YouTube', 'Shopify', 'TikTok', 'Instagram'],
+      'StageLink connects the surfaces your audience already knows, then gives them one artist presence that is easier to share, measure, and maintain.',
+    platforms: ['Spotify', 'SoundCloud', 'YouTube', 'Shopify', 'Printful', 'Instagram'],
   },
   problem: {
     eyebrow: 'Why this matters',
-    headline: 'People can hear one track and still miss who you are',
+    headline: 'People can hear one track and still miss the next step',
     intro:
-      'Your music is on one platform. Your sets, visuals, links, and socials live somewhere else. When everything is scattered, discovery gets harder and opportunities are easier to miss.',
+      'Your music is on one platform. Your EPK, merch, visuals, links, audience capture, and analytics live somewhere else. When everything is scattered, discovery gets harder and opportunities are easier to miss.',
     painLabel: 'What that feels like',
     painPoints: [
       'People find one part of what you do, but miss the rest of your music and identity',
-      'Your story gets split into pieces across too many platforms',
-      'Bookings, gigs, and collaborations are easier to miss when nothing feels connected',
+      'Bookers and press need a clean EPK, but your materials are split across files and profiles',
+      'You cannot easily see which links, platforms, and content are actually moving people forward',
     ],
     solutionLabel: 'What StageLink gives you',
     solutionPoints: [
-      'One place that shows your full sound, style, visuals, and story',
-      'A clearer path for people to hear your music and keep following what you do',
-      'Something strong to send when a booking, collaboration, or press moment shows up',
+      'One public artist page for your sound, style, links, visuals, merch, and fan capture',
+      'A Press Kit you can share when a booking, collaboration, label, or press moment shows up',
+      'Analytics and connected platform insights that help you understand what people actually use',
     ],
   },
   features: {
     eyebrow: 'What it helps you do',
-    headline: 'Help more people hear your music and stay close',
+    headline: 'Run your public artist presence from one workspace',
     intro:
-      'Make it easier to discover your music, follow your world, and know where to go when they want more.',
+      'Make it easier to publish, share, measure, and upgrade the parts of your artist presence that usually live in separate tools.',
     items: [
       {
-        title: 'Help people find your music',
+        title: 'Publish a real artist page',
         description:
-          'Give listeners one place to hear your music, open your sets, and keep exploring.',
+          'Give listeners one place to open your music, videos, socials, smart links, and next call to action.',
       },
       {
-        title: 'Grow your audience',
+        title: 'Build a booking-ready EPK',
         description:
-          'Make it simple for new listeners to follow your links, socials, and next release.',
+          'Turn your profile into a Press Kit with bio, contacts, highlights, media, gallery, rider, and templates.',
       },
       {
-        title: 'Get more opportunities',
-        description: 'Help people reach out for gigs.',
+        title: 'Understand what people click',
+        description:
+          'Track page views, link clicks, smart link activity, and richer trends as your plan grows.',
       },
       {
-        title: 'Show a stronger identity',
-        description: 'Show your music, visuals, content, and story in a way that feels like you.',
+        title: 'Connect platform signals',
+        description:
+          'Bring public Spotify, YouTube, and SoundCloud signals into StageLink Insights as your audience grows.',
+      },
+      {
+        title: 'Show merch without a custom shop',
+        description:
+          'Surface Shopify or Printful products from your page and send fans to the right purchase path.',
+      },
+      {
+        title: 'Localize for more audiences',
+        description:
+          'Keep English and Spanish public pages consistent with locale-aware copy, fallbacks, and SEO.',
       },
     ],
   },
@@ -326,17 +339,17 @@ const en: LandingTranslation = {
       {
         step: '01',
         title: 'Add your artist profile',
-        text: 'Bring in your name, visuals, links, and the parts of your story you want people to see.',
+        text: 'Bring in your name, visuals, music links, social profiles, contact details, and the story you want people to see.',
       },
       {
         step: '02',
-        title: 'Shape your page',
-        text: 'Set up your page, your Press Kit, your merch, and the links that matter most right now.',
+        title: 'Shape your public presence',
+        text: 'Set up your page blocks, Press Kit, smart links, merch, localized copy, and the actions that matter most right now.',
       },
       {
         step: '03',
-        title: 'Share it everywhere',
-        text: 'Use the same home across socials, releases, outreach, and new opportunities.',
+        title: 'Share, measure, and refine',
+        text: 'Use the same home across socials, releases, outreach, and bookings while analytics show what people actually use.',
       },
     ],
   },
@@ -379,29 +392,29 @@ const en: LandingTranslation = {
   },
   monetization: {
     eyebrow: 'Why StageLink',
-    headline: 'Built by a DJ and producer',
-    body: 'StageLink was made for music artists who need more than a list of links. It helps you show your music, sets, visuals, and story in one artist presence.',
+    headline: 'Built for the work around the music',
+    body: 'StageLink was made for music artists who need more than a list of links. It combines the public page, Press Kit, merch surfaces, fan capture, and insights that usually get spread across too many tools.',
     pillars: [
       {
-        title: 'It starts with the artist',
+        title: 'Not a generic profile',
         description:
-          'The page is there to support your music, your story, and the people finding you.',
+          'The public page is built around music, visuals, releases, links, merch, and the next action you want people to take.',
       },
       {
-        title: 'It feels like your identity',
+        title: 'Ready when opportunity appears',
         description:
-          'Your music, links, socials, and content live together in a page that still feels like you.',
+          'Your EPK, contacts, media, and booking information stay close to the same profile you already maintain.',
       },
       {
-        title: 'It helps opportunities feel closer',
+        title: 'Measurable as it grows',
         description:
-          'When a booking, a gig, a collaboration, or a press moment shows up, you already have something strong to send.',
+          'Analytics, smart link performance, and connected platform signals help you decide what to update next.',
       },
     ],
     points: [
-      'Your music, sets, merch, and Press Kit can live side by side.',
-      'People get a clearer sense of who you are and what your sound is about in seconds.',
-      'You can keep growing without rebuilding your whole presence every few months.',
+      'Free is enough to publish a useful artist page and start collecting signal.',
+      'Pro adds stronger EPK controls for artists sending material to bookers, labels, and press.',
+      'Pro+ adds the heavier growth layer: platform insights, localization, Smart Merch, and advanced analytics.',
     ],
     founderSupport: 'This is how I organize my music, my sets, and everything I do as a DJ',
     founderQuote:
@@ -410,9 +423,9 @@ const en: LandingTranslation = {
   },
   cta: {
     eyebrow: 'When you are ready',
-    headline: 'Give your music a home people remember',
-    body: 'Create one artist profile for your music, sets, links, social profiles, and content so the right people know where to go.',
-    primary: 'Show my music',
+    headline: 'Give fans, bookers, and press one place to go',
+    body: 'Create one artist profile for your music, links, EPK, merch, fan capture, and insights so the right people know what to do next.',
+    primary: 'Create my StageLink',
     secondary: 'See how it works',
     install: 'Install StageLink',
     note: 'Free. No credit card required.',
@@ -604,12 +617,12 @@ const en: LandingTranslation = {
 
 const es: LandingTranslation = {
   seo: {
-    title: 'StageLink | Un mejor hogar para tu música',
+    title: 'StageLink | Página de artista, EPK, merch e insights',
     description:
-      'StageLink ayuda a los artistas a mostrar su música, llegar a más gente y abrir la puerta a más bookings, colaboraciones y apoyo.',
-    ogTitle: 'StageLink | Compartí tu arte en un solo lugar',
+      'StageLink les da a artistas independientes un hogar listo para bookings con música, EPK, merch, links, fan capture e insights.',
+    ogTitle: 'StageLink | Tu hub artístico listo para bookings',
     ogDescription:
-      'Uní tu música, tus videos, tu Press Kit, tu merch y tu historia en un lugar que se sienta tuyo.',
+      'Uní tu página de artista, Press Kit, merch, links de música, fan capture e insights en un lugar que se sienta tuyo.',
   },
   nav: {
     product: 'Producto',
@@ -624,13 +637,13 @@ const es: LandingTranslation = {
   },
   badge: 'Hecho por un artista, para artistas',
   hero: {
-    headline: 'Tu música. Tu historia. Un solo link.',
+    headline: 'Tu página de artista, Press Kit, merch e insights en un solo link.',
     subheadline:
-      'Para DJs, productores, cantantes, músicos y performers. Uní tu música, tus links, tu EPK y tus novedades en un solo lugar para que te descubran rápido y te contacten para fechas, bookings o colaboraciones.',
+      'Para DJs, productores, cantantes, músicos y performers que necesitan más que un link-in-bio. StageLink reúne tu página pública, EPK listo para bookings, smart links, merch, fan capture y analytics en un workspace.',
     supportingText:
-      'StageLink es más que una página de links. Le da a tu sonido, tu estilo y tu historia un lugar que se siente tuyo.',
+      'Empezá con una página de artista gratis. Subí de plan cuando necesites más control de EPK, localización, platform insights conectados o integraciones de merch.',
     socialProof:
-      'Más de 1.000 artistas independientes están construyendo su presencia con StageLink',
+      'Hecho para artistas independientes que necesitan un hogar público para fans, bookers, prensa y colaboradores.',
     ctaPrimary: 'Crear mi perfil artístico',
     ctaSecondary: 'Ver cómo se ve',
     ctaNote: 'Gratis. Sin tarjeta.',
@@ -666,57 +679,68 @@ const es: LandingTranslation = {
     ],
   },
   strip: {
-    label: 'Un hogar para artistas que están construyendo una presencia real',
+    label: 'Un workspace de producto, no solo una lista de links',
     socialProof:
-      'Tu música, tus sets, tus links, tus perfiles sociales y tu contenido pueden convivir sin verse como otra herramienta más.',
-    items: ['Música', 'Sets', 'Links', 'Perfiles sociales', 'Contenido'],
-    platformsLabel: 'Se integra con las plataformas que tu audiencia ya usa',
+      'Tu página, EPK, links, merch, fan capture y analytics pueden convivir sin hacer saltar a tu audiencia entre herramientas desconectadas.',
+    items: ['Página de artista', 'Press Kit', 'Smart Links', 'Fan capture', 'Merch', 'Insights'],
+    platformsLabel: 'Trabaja con las plataformas que tu audiencia ya usa',
     platformsDescription:
-      'Tu música ya vive en distintas plataformas. StageLink la reúne en una presencia artística que sigue sintiéndose personal.',
-    platforms: ['Spotify', 'SoundCloud', 'YouTube', 'Shopify', 'TikTok', 'Instagram'],
+      'StageLink conecta las superficies que tu audiencia ya conoce y las reúne en una presencia artística más fácil de compartir, medir y mantener.',
+    platforms: ['Spotify', 'SoundCloud', 'YouTube', 'Shopify', 'Printful', 'Instagram'],
   },
   problem: {
     eyebrow: 'Por qué importa',
-    headline: 'Pueden escuchar un track tuyo y aun así no entender quién sos',
+    headline: 'Pueden escuchar un track tuyo y aun así perderse el próximo paso',
     intro:
-      'Tu música está en una plataforma. Tus sets, visuales, links y redes viven en otras. Cuando todo queda disperso, descubrirte se vuelve más difícil y las oportunidades pasan más fácil de largo.',
+      'Tu música está en una plataforma. Tu EPK, merch, visuales, links, fan capture y analytics viven en otras. Cuando todo queda disperso, descubrirte se vuelve más difícil y las oportunidades pasan más fácil de largo.',
     painLabel: 'Lo que eso genera',
     painPoints: [
       'La gente encuentra una parte de tu música, pero se pierde todo lo demás',
-      'Tu historia queda partida en pedazos entre demasiadas plataformas',
-      'Bookings, gigs y colaboraciones pueden pasar de largo cuando todo se ve desconectado',
+      'Bookers y prensa necesitan un EPK claro, pero tus materiales quedan repartidos entre archivos y perfiles',
+      'No siempre podés ver qué links, plataformas y contenido están moviendo a la gente hacia adelante',
     ],
     solutionLabel: 'Lo que te da StageLink',
     solutionPoints: [
-      'Un lugar para mostrar tu sonido, tu estilo, tus visuales y tu historia completos',
-      'Una forma más clara de que la gente escuche tu música y siga de cerca lo que hacés',
-      'Algo fuerte para mandar cuando aparece un booking, una colaboración o prensa',
+      'Una página pública de artista para tu sonido, estilo, links, visuales, merch y fan capture',
+      'Un Press Kit para compartir cuando aparece un booking, una colaboración, un sello o prensa',
+      'Analytics y platform insights conectados para entender qué usa realmente la gente',
     ],
   },
   features: {
     eyebrow: 'Cómo te ayuda',
-    headline: 'Hacé que más personas escuchen tu música y se queden cerca',
+    headline: 'Gestioná tu presencia artística pública desde un workspace',
     intro:
-      'Hacé más fácil que te descubran, entren en tu mundo y sepan dónde encontrarte cuando quieren más.',
+      'Hacé más fácil publicar, compartir, medir y mejorar las partes de tu presencia artística que suelen vivir en herramientas separadas.',
     items: [
       {
-        title: 'Hacer que te encuentren más fácil',
+        title: 'Publicar una página real de artista',
         description:
-          'Darles a las personas un lugar para escuchar tu música, abrir tus sets y seguir descubriendo lo que hacés.',
+          'Dale a la gente un lugar para abrir tu música, videos, redes, smart links y el próximo llamado a la acción.',
       },
       {
-        title: 'Hacer crecer tu audiencia',
+        title: 'Armar un EPK listo para bookings',
         description:
-          'Facilitar que nuevos oyentes sigan tus links, tus redes y tu próximo lanzamiento.',
+          'Convertí tu perfil en un Press Kit con bio, contactos, highlights, media, galería, rider y templates.',
       },
       {
-        title: 'Abrir más oportunidades',
-        description: 'Facilitá que te contacten para tocar.',
+        title: 'Entender qué clickea la gente',
+        description:
+          'Medí visitas, clicks, actividad de smart links y tendencias más ricas a medida que crece tu plan.',
       },
       {
-        title: 'Construir una identidad más clara',
+        title: 'Conectar señales de plataformas',
         description:
-          'Mostrar tu música, tus visuales, tu contenido y tu historia de una forma que se sienta tuya.',
+          'Traé señales públicas de Spotify, YouTube y SoundCloud a StageLink Insights cuando tu audiencia crece.',
+      },
+      {
+        title: 'Mostrar merch sin tienda propia',
+        description:
+          'Mostrá productos de Shopify o Printful desde tu página y mandá fans al camino correcto de compra.',
+      },
+      {
+        title: 'Localizar para más audiencias',
+        description:
+          'Mantené páginas públicas en inglés y español con copy por idioma, fallbacks y SEO consistentes.',
       },
     ],
   },
@@ -728,17 +752,17 @@ const es: LandingTranslation = {
       {
         step: '01',
         title: 'Cargá tu perfil',
-        text: 'Sumá tu nombre, tus visuales, tus links y las partes de tu historia que querés mostrar.',
+        text: 'Sumá tu nombre, visuales, links de música, redes, datos de contacto y la historia que querés mostrar.',
       },
       {
         step: '02',
-        title: 'Armá tu página',
-        text: 'Configurá tu página, tu Press Kit, tu merch y los links que hoy más te importa compartir.',
+        title: 'Armá tu presencia pública',
+        text: 'Configurá bloques de página, Press Kit, smart links, merch, copy localizado y las acciones que hoy más importan.',
       },
       {
         step: '03',
-        title: 'Compartilo en todos lados',
-        text: 'Usá el mismo hogar para redes, lanzamientos, outreach y nuevas oportunidades.',
+        title: 'Compartí, medí y ajustá',
+        text: 'Usá el mismo hogar para redes, lanzamientos, outreach y bookings mientras analytics muestra qué usa realmente la gente.',
       },
     ],
   },
@@ -779,29 +803,29 @@ const es: LandingTranslation = {
   },
   monetization: {
     eyebrow: 'Por qué StageLink',
-    headline: 'Hecho por un DJ y productor',
-    body: 'StageLink nació para artistas de música que necesitan más que una lista de links. Te ayuda a mostrar tu música, tus sets, tus visuales y tu historia en una sola presencia artística.',
+    headline: 'Hecho para el trabajo alrededor de la música',
+    body: 'StageLink nació para artistas de música que necesitan más que una lista de links. Reúne página pública, Press Kit, merch, fan capture e insights que suelen quedar repartidos entre demasiadas herramientas.',
     pillars: [
       {
-        title: 'Todo empieza en el artista',
+        title: 'No es un perfil genérico',
         description:
-          'La página está para acompañar tu música, tu historia y la gente que te va encontrando.',
+          'La página pública está pensada alrededor de música, visuales, lanzamientos, links, merch y la próxima acción que querés que tomen.',
       },
       {
-        title: 'Se siente como tu identidad',
+        title: 'Listo cuando aparece una oportunidad',
         description:
-          'Tu música, tus links, tus redes y tu contenido conviven en una página que sigue sintiéndose tuya.',
+          'Tu EPK, contactos, media y datos de booking viven cerca del mismo perfil que ya mantenés.',
       },
       {
-        title: 'Acerca más oportunidades',
+        title: 'Medible cuando crece',
         description:
-          'Cuando aparece un booking, un gig, una colaboración o prensa, ya tenés algo fuerte para mandar.',
+          'Analytics, rendimiento de smart links y señales de plataformas conectadas te ayudan a decidir qué actualizar después.',
       },
     ],
     points: [
-      'Tu música, tus sets, tu merch y tu Press Kit pueden convivir lado a lado.',
-      'La gente entiende mejor quién sos y cómo suena lo que hacés en segundos.',
-      'Podés seguir creciendo sin rehacer todo cada pocos meses.',
+      'Free alcanza para publicar una página útil de artista y empezar a captar señal.',
+      'Pro suma controles de EPK para artistas que mandan material a bookers, sellos y prensa.',
+      'Pro+ agrega la capa más pesada de crecimiento: platform insights, localización, Smart Merch y analytics avanzados.',
     ],
     founderSupport: 'Así organizo mi música, mis sets y todo lo que hago como DJ',
     founderQuote:
@@ -810,9 +834,9 @@ const es: LandingTranslation = {
   },
   cta: {
     eyebrow: 'Cuando quieras',
-    headline: 'Dale a tu música un lugar que la gente recuerde',
-    body: 'Creá un perfil artístico para tu música, tus sets, tus links, tus perfiles sociales y tu contenido para que la gente indicada sepa adónde ir.',
-    primary: 'Mostrar mi música',
+    headline: 'Dale a fans, bookers y prensa un solo lugar adonde ir',
+    body: 'Creá un perfil artístico para tu música, links, EPK, merch, fan capture e insights para que la gente indicada sepa qué hacer después.',
+    primary: 'Crear mi StageLink',
     secondary: 'Ver cómo funciona',
     install: 'Instalar StageLink',
     note: 'Gratis. Sin tarjeta.',
