@@ -1,8 +1,9 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
 
+import Image from 'next/image';
 import { ShoppingBag } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 import type { ShopifyStoreBlockConfig } from '@stagelink/types';
 
 interface ShopifyStoreRendererProps {
@@ -17,6 +18,31 @@ function formatPrice(amount: string, currencyCode: string): string {
   }
 
   return `${currencyCode} ${numericAmount.toFixed(2)}`;
+}
+
+function ShopifyProductImage({ src, alt }: { src: string | null; alt: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (!src || failed) {
+    return (
+      <div className="flex h-48 items-center justify-center bg-white/5 text-zinc-500">
+        <ShoppingBag className="h-8 w-8" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative h-48 w-full overflow-hidden">
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 320px"
+        className="object-cover"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
 }
 
 export function ShopifyStoreRenderer({ title, config }: ShopifyStoreRendererProps) {
@@ -58,18 +84,7 @@ export function ShopifyStoreRenderer({ title, config }: ShopifyStoreRendererProp
             key={product.id}
             className="overflow-hidden rounded-2xl border border-white/10 bg-black/20"
           >
-            {product.imageUrl ? (
-              <img
-                src={product.imageUrl}
-                alt={product.title}
-                className="h-48 w-full object-cover"
-                loading="lazy"
-              />
-            ) : (
-              <div className="flex h-48 items-center justify-center bg-white/5 text-zinc-500">
-                <ShoppingBag className="h-8 w-8" />
-              </div>
-            )}
+            <ShopifyProductImage src={product.imageUrl} alt={product.title} />
 
             <div className="space-y-3 p-4">
               <div className="space-y-1">

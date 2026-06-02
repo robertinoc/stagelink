@@ -1,8 +1,9 @@
 'use client';
-/* eslint-disable @next/next/no-img-element */
 
+import Image from 'next/image';
 import { ExternalLink, Shirt } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 import type { SmartMerchBlockConfig } from '@stagelink/types';
 
 interface SmartMerchRendererProps {
@@ -19,6 +20,46 @@ function formatPrice(amount: string | null, currencyCode: string | null): string
   }
 
   return `${currencyCode} ${numericAmount.toFixed(2)}`;
+}
+
+function SmartMerchProductImage({
+  src,
+  alt,
+  isList,
+}: {
+  src: string | null;
+  alt: string;
+  isList: boolean;
+}) {
+  const [failed, setFailed] = useState(false);
+  const wrapperClassName = isList
+    ? 'relative h-28 w-full overflow-hidden rounded-xl sm:w-36'
+    : 'relative h-48 w-full overflow-hidden';
+
+  if (!src || failed) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-white/5 text-zinc-500 ${
+          isList ? 'h-28 w-full rounded-xl sm:w-36' : 'h-48 w-full'
+        }`}
+      >
+        <Shirt className="h-8 w-8" />
+      </div>
+    );
+  }
+
+  return (
+    <div className={wrapperClassName}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes={isList ? '144px' : '(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 320px'}
+        className="object-cover"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
 }
 
 export function SmartMerchRenderer({ title, config }: SmartMerchRendererProps) {
@@ -66,26 +107,7 @@ export function SmartMerchRenderer({ title, config }: SmartMerchRendererProps) {
                 isList ? 'flex flex-col gap-4 p-4 sm:flex-row sm:items-center' : ''
               }`}
             >
-              {product.imageUrl ? (
-                <img
-                  src={product.imageUrl}
-                  alt={product.title}
-                  className={
-                    isList
-                      ? 'h-28 w-full rounded-xl object-cover sm:w-36'
-                      : 'h-48 w-full object-cover'
-                  }
-                  loading="lazy"
-                />
-              ) : (
-                <div
-                  className={`flex items-center justify-center bg-white/5 text-zinc-500 ${
-                    isList ? 'h-28 w-full rounded-xl sm:w-36' : 'h-48 w-full'
-                  }`}
-                >
-                  <Shirt className="h-8 w-8" />
-                </div>
-              )}
+              <SmartMerchProductImage src={product.imageUrl} alt={product.title} isList={isList} />
 
               <div className={`space-y-3 ${isList ? 'flex-1' : 'p-4'}`}>
                 <div className="space-y-1">
