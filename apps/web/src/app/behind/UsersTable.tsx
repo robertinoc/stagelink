@@ -1,27 +1,17 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { BehindRole, RolesMap } from '@/lib/behind-redis';
-import { trackUmamiEvent } from '@/lib/analytics/umami';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Design tokens ──────────────────────────────────────────────────────────────
+const GRADIENT = 'linear-gradient(135deg, #E040FB 0%, #9B30D0 45%, #4A1A8C 100%)';
 
-interface ArtistSubscription {
-  plan: string; // commercial plan
-  status: string;
-  cancelAtPeriodEnd: boolean;
-  currentPeriodEnd: string | null;
-  manualAccessPlan: string | null;
-  manualAccessStartsAt: string | null;
-  manualAccessExpiresAt: string | null; // ISO string
-  manualAccessReason: string | null;
-  manualAccessGrantedBy: string | null;
-  isManualGrantActive: boolean;
-  effectiveAccess: string;
-  accessSource: string;
+// ─── Types ──────────────────────────────────────────────────────────────────────
+
+interface TemporaryAccess {
+  plan: 'pro' | 'pro+';
+  until: string;
 }
 
 interface AdminUser {
@@ -33,72 +23,8 @@ interface AdminUser {
   artistUsernames: string[];
   isSuspended: boolean;
   createdAt: string;
-  /** First artist's subscription/access summary. null if no artist/subscription. */
-  subscription: ArtistSubscription | null;
-}
-
-// Shared dark modal panel surface — fixes the near-invisible var(--card) bug.
-const MODAL_PANEL_STYLE = {
-  backgroundColor: '#1a1030',
-  border: '1px solid rgba(255,255,255,0.12)',
-} as const;
-
-// ─── Sorting / Filtering types ────────────────────────────────────────────────
-
-type SortField = 'handle' | 'name' | 'email' | 'joined' | 'plan' | 'role' | 'status';
-type SortDir = 'asc' | 'desc';
-type FilterPlan = 'all' | 'free' | 'pro' | 'pro_plus';
-type FilterRole = 'all' | 'owner' | 'admin' | 'user';
-type FilterStatus = 'all' | 'active' | 'suspended';
-
-interface ColDef {
-  key: SortField | 'actions';
-  label: string;
-  sortable: boolean;
-}
-
-const COLS: ColDef[] = [
-  { key: 'handle', label: 'Handle', sortable: true },
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'email', label: 'Email', sortable: true },
-  { key: 'joined', label: 'Joined', sortable: true },
-  { key: 'plan', label: 'Plan', sortable: true },
-  { key: 'role', label: 'Role', sortable: true },
-  { key: 'status', label: 'Status', sortable: true },
-  { key: 'actions', label: 'Actions', sortable: false },
-];
-
-const PLAN_RANK: Record<string, number> = { free: 0, pro: 1, pro_plus: 2 };
-const ROLE_RANK: Record<string, number> = { owner: 2, admin: 1 };
-const INVITATION_UMAMI_CONTEXT = {
-  surface: 'users_table',
-  channel: 'workos_email',
-  source: 'behind_users',
-  medium: 'email_invite',
-} as const;
-
-// ─── Plan helpers ─────────────────────────────────────────────────────────────
-
-function planLabel(plan: string): string {
-  if (plan === 'pro_plus') return 'PRO+';
-  if (plan === 'pro') return 'PRO';
-  return 'Free';
-}
-
-function PlanBadge({ plan }: { plan: string }) {
-  const isPlus = plan === 'pro_plus';
-  const isPro = plan === 'pro';
-  // Free → amber so it has visual weight without suggesting a paid state
-  const cls = isPlus
-    ? 'border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-300'
-    : isPro
-      ? 'border-purple-500/40 bg-purple-500/10 text-purple-300'
-      : 'border-amber-500/40 bg-amber-500/10 text-amber-300';
-  return (
-    <Badge variant="outline" className={`${cls} text-xs`}>
-      {planLabel(plan)}
-    </Badge>
-  );
+  plan?: 'free' | 'pro' | 'pro+';
+  temporaryAccess?: TemporaryAccess | null;
 }
 
 type FetchState =
@@ -106,7 +32,18 @@ type FetchState =
   | { status: 'error'; message: string }
   | { status: 'ok'; users: AdminUser[] };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+type PlanFilter = 'all' | 'free' | 'pro' | 'pro+';
+type RoleFilter = 'all' | 'owner' | 'admin' | 'user';
+type StatusFilter = 'all' | 'active' | 'suspended';
+
+type ActiveModal =
+  | { type: 'invite' }
+  | { type: 'edit'; user: AdminUser }
+  | { type: 'delete'; user: AdminUser }
+  | { type: 'role'; user: AdminUser; newRole: BehindRole | 'none' }
+  | null;
+
+// ─── Helpers ────────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string): string {
   return new Intl.DateTimeFormat('en-GB', {
@@ -114,6 +51,10 @@ function formatDate(iso: string): string {
     month: 'short',
     year: 'numeric',
   }).format(new Date(iso));
+}
+
+function effectivePlan(user: AdminUser): string {
+  return user.temporaryAccess?.plan ?? user.plan ?? 'free';
 }
 
 function matchesSearch(user: AdminUser, query: string): boolean {
@@ -128,90 +69,128 @@ function matchesSearch(user: AdminUser, query: string): boolean {
   );
 }
 
-function applyFilters(
-  users: AdminUser[],
-  search: string,
-  filterPlan: FilterPlan,
-  filterRole: FilterRole,
-  filterStatus: FilterStatus,
-  roles: RolesMap,
-): AdminUser[] {
-  return users.filter((u) => {
-    if (!matchesSearch(u, search)) return false;
-    if (filterPlan !== 'all' && (u.subscription?.plan ?? 'free') !== filterPlan) return false;
-    if (filterRole !== 'all') {
-      const role = roles[u.email.toLowerCase()] ?? null;
-      if (filterRole === 'owner' && role !== 'owner') return false;
-      if (filterRole === 'admin' && role !== 'admin') return false;
-      if (filterRole === 'user' && role !== null) return false;
-    }
-    if (filterStatus === 'active' && u.isSuspended) return false;
-    if (filterStatus === 'suspended' && !u.isSuspended) return false;
-    return true;
-  });
+function isWithin30Days(iso: string): boolean {
+  return Date.now() - new Date(iso).getTime() < 30 * 24 * 60 * 60 * 1000;
 }
 
-function applySort(
-  users: AdminUser[],
-  field: SortField,
-  dir: SortDir,
-  roles: RolesMap,
-): AdminUser[] {
-  return [...users].sort((a, b) => {
-    let cmp = 0;
-    switch (field) {
-      case 'handle':
-        cmp = (a.artistUsernames[0] ?? '').localeCompare(b.artistUsernames[0] ?? '');
-        break;
-      case 'name':
-        cmp = (a.name ?? a.email).localeCompare(b.name ?? b.email);
-        break;
-      case 'email':
-        cmp = a.email.localeCompare(b.email);
-        break;
-      case 'joined':
-        cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        break;
-      case 'plan':
-        cmp =
-          (PLAN_RANK[a.subscription?.plan ?? 'free'] ?? 0) -
-          (PLAN_RANK[b.subscription?.plan ?? 'free'] ?? 0);
-        break;
-      case 'role': {
-        const ra = ROLE_RANK[roles[a.email.toLowerCase()] ?? ''] ?? 0;
-        const rb = ROLE_RANK[roles[b.email.toLowerCase()] ?? ''] ?? 0;
-        cmp = ra - rb;
-        break;
-      }
-      case 'status':
-        cmp = Number(a.isSuspended) - Number(b.isSuspended);
-        break;
-    }
-    return dir === 'asc' ? cmp : -cmp;
-  });
+function avatarGradient(seed: string): string {
+  const h = (seed.split('').reduce((a, c) => a + c.charCodeAt(0), 0) * 37) % 360;
+  return `linear-gradient(135deg, hsl(${h},65%,35%), hsl(${(h + 60) % 360},75%,55%))`;
 }
 
-// ─── Shared ───────────────────────────────────────────────────────────────────
+// ─── Inline icons ────────────────────────────────────────────────────────────────
 
-function Dash() {
-  return <span style={{ color: 'rgba(255,255,255,0.25)' }}>—</span>;
+function DotsIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+      <circle cx="12" cy="5" r="2" />
+      <circle cx="12" cy="12" r="2" />
+      <circle cx="12" cy="19" r="2" />
+    </svg>
+  );
 }
+
+function SearchIcon() {
+  return (
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
+
+// ─── Plan badge ──────────────────────────────────────────────────────────────────
+
+function PlanBadge({ plan }: { plan: string }) {
+  if (plan === 'pro+') {
+    return (
+      <span
+        style={{
+          padding: '3px 9px',
+          borderRadius: 8,
+          fontSize: 11,
+          fontWeight: 700,
+          background: GRADIENT,
+          color: '#fff',
+          boxShadow: '0 0 10px rgba(224,64,251,0.25)',
+          fontFamily: '"Space Grotesk", sans-serif',
+          display: 'inline-block',
+        }}
+      >
+        PRO+
+      </span>
+    );
+  }
+  if (plan === 'pro') {
+    return (
+      <span
+        style={{
+          padding: '3px 9px',
+          borderRadius: 8,
+          fontSize: 11,
+          fontWeight: 700,
+          backgroundColor: 'rgba(0,212,255,0.12)',
+          color: '#00D4FF',
+          border: '1px solid rgba(0,212,255,0.3)',
+          fontFamily: '"Space Grotesk", sans-serif',
+          display: 'inline-block',
+        }}
+      >
+        PRO
+      </span>
+    );
+  }
+  return (
+    <span
+      style={{
+        padding: '3px 9px',
+        borderRadius: 8,
+        fontSize: 11,
+        fontWeight: 700,
+        backgroundColor: 'rgba(251,191,36,0.12)',
+        color: '#FBBF24',
+        border: '1px solid rgba(251,191,36,0.28)',
+        fontFamily: '"Space Grotesk", sans-serif',
+        display: 'inline-block',
+      }}
+    >
+      Free
+    </span>
+  );
+}
+
+// ─── Role badge ──────────────────────────────────────────────────────────────────
 
 function RoleBadge({ role, locked }: { role: BehindRole; locked?: boolean }) {
   if (role === 'owner') {
     return (
-      <span className="inline-flex items-center gap-1">
-        <Badge
-          variant="outline"
-          className="border-purple-500/40 bg-purple-500/10 text-purple-300 text-xs"
-        >
-          owner
-        </Badge>
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
+          padding: '3px 9px',
+          borderRadius: 999,
+          fontSize: 11,
+          fontWeight: 700,
+          background: GRADIENT,
+          color: '#fff',
+          boxShadow: '0 0 10px rgba(224,64,251,0.2)',
+          fontFamily: '"Space Grotesk", sans-serif',
+        }}
+      >
+        👑 owner
         {locked && (
-          <span
-            title="Set via BEHIND_ADMIN_EMAILS env var"
-            style={{ color: 'rgba(255,255,255,0.3)', fontSize: '10px' }}
-          >
+          <span title="Set via BEHIND_ADMIN_EMAILS env var" style={{ opacity: 0.6 }}>
             🔒
           </span>
         )}
@@ -219,14 +198,682 @@ function RoleBadge({ role, locked }: { role: BehindRole; locked?: boolean }) {
     );
   }
   return (
-    <Badge
-      variant="outline"
-      className="border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-300 text-xs"
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '3px 9px',
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 700,
+        backgroundColor: 'rgba(0,212,255,0.12)',
+        color: '#00D4FF',
+        border: '1px solid rgba(0,212,255,0.28)',
+        fontFamily: '"Space Grotesk", sans-serif',
+      }}
     >
-      admin
-    </Badge>
+      🛡 admin
+    </span>
   );
 }
+
+// ─── Status badge ────────────────────────────────────────────────────────────────
+
+function StatusBadge({ suspended }: { suspended: boolean }) {
+  const color = suspended ? '#ff6b6b' : '#4ADE80';
+  const bg = suspended ? 'rgba(255,107,107,0.12)' : 'rgba(74,222,128,0.12)';
+  const border = suspended ? 'rgba(255,107,107,0.25)' : 'rgba(74,222,128,0.25)';
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        padding: '3px 10px',
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 600,
+        backgroundColor: bg,
+        color,
+        border: `1px solid ${border}`,
+      }}
+    >
+      <span
+        style={{
+          width: 5,
+          height: 5,
+          borderRadius: '50%',
+          backgroundColor: color,
+          boxShadow: `0 0 6px ${color}88`,
+          display: 'inline-block',
+          flexShrink: 0,
+        }}
+      />
+      {suspended ? 'suspended' : 'active'}
+    </span>
+  );
+}
+
+// ─── KPI tile ────────────────────────────────────────────────────────────────────
+
+function KpiTile({
+  label,
+  value,
+  accent,
+  caption,
+  icon,
+}: {
+  label: string;
+  value: number | string;
+  accent: string;
+  caption: string;
+  icon: string;
+}) {
+  return (
+    <div
+      style={{
+        padding: '20px 22px',
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.025)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 12,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.38)',
+            fontFamily: '"Space Grotesk", sans-serif',
+          }}
+        >
+          {label}
+        </span>
+        <span
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: 8,
+            backgroundColor: `${accent}18`,
+            border: `1px solid ${accent}28`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 13,
+          }}
+        >
+          {icon}
+        </span>
+      </div>
+      <div
+        style={{
+          fontSize: 38,
+          fontWeight: 700,
+          letterSpacing: '-0.02em',
+          fontFamily: '"Space Grotesk", sans-serif',
+          color: accent,
+          lineHeight: 1,
+          marginBottom: 6,
+        }}
+      >
+        {value}
+      </div>
+      <div
+        style={{
+          width: 28,
+          height: 2,
+          borderRadius: 1,
+          backgroundColor: accent,
+          opacity: 0.45,
+          marginBottom: 8,
+        }}
+      />
+      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{caption}</div>
+    </div>
+  );
+}
+
+// ─── Filter group ────────────────────────────────────────────────────────────────
+
+function FilterGroup<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+      <span
+        style={{
+          fontSize: 10.5,
+          fontWeight: 700,
+          letterSpacing: '1.5px',
+          textTransform: 'uppercase',
+          color: 'rgba(255,255,255,0.28)',
+          fontFamily: '"Space Grotesk", sans-serif',
+        }}
+      >
+        {label}
+      </span>
+      <div style={{ display: 'flex', gap: 4 }}>
+        {options.map((opt) => {
+          const active = opt.value === value;
+          return (
+            <button
+              key={opt.value}
+              onClick={() => onChange(opt.value)}
+              style={{
+                padding: '4px 12px',
+                borderRadius: 999,
+                border: active
+                  ? '1px solid rgba(224,64,251,0.3)'
+                  : '1px solid rgba(255,255,255,0.08)',
+                background: active ? GRADIENT : 'rgba(255,255,255,0.04)',
+                color: active ? '#fff' : 'rgba(255,255,255,0.45)',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: active ? '0 0 14px rgba(224,64,251,0.3)' : 'none',
+                transition: 'all 0.15s',
+                fontFamily: '"Space Grotesk", sans-serif',
+              }}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Action menu item ────────────────────────────────────────────────────────────
+
+function MenuItem({
+  icon,
+  label,
+  onClick,
+  danger,
+  accent,
+  disabled,
+}: {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+  accent?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 9,
+        padding: '9px 14px',
+        border: 'none',
+        backgroundColor: 'transparent',
+        color: danger ? '#ff6b6b' : (accent ?? 'rgba(255,255,255,0.8)'),
+        fontSize: 13,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        textAlign: 'left',
+        opacity: disabled ? 0.4 : 1,
+        transition: 'background-color 0.1s',
+        fontFamily: '"Inter", sans-serif',
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'transparent';
+      }}
+    >
+      <span style={{ width: 16, textAlign: 'center', fontSize: 12, flexShrink: 0 }}>{icon}</span>
+      {label}
+    </button>
+  );
+}
+
+// ─── User row ────────────────────────────────────────────────────────────────────
+
+const ROW_GRID = '1.4fr 1.3fr 1.9fr 0.9fr 1.3fr 0.9fr 1fr 48px';
+
+function UserRow({
+  user,
+  role,
+  locked,
+  isCurrentUser,
+  currentUserRole,
+  menuOpenId,
+  onMenuToggle,
+  onStatusChange,
+  onEdit,
+  onDelete,
+  onRoleChange,
+}: {
+  user: AdminUser;
+  role: BehindRole | null;
+  locked: boolean;
+  isCurrentUser: boolean;
+  currentUserRole: BehindRole | null;
+  menuOpenId: string | null;
+  onMenuToggle: (id: string | null) => void;
+  onStatusChange: (id: string, isSuspended: boolean) => void;
+  onEdit: (user: AdminUser) => void;
+  onDelete: (user: AdminUser) => void;
+  onRoleChange: (user: AdminUser, newRole: BehindRole | 'none') => void;
+}) {
+  const handle = user.artistUsernames[0] ?? null;
+  const initials = (handle?.[0] ?? user.email[0] ?? '?').toUpperCase();
+  const [suspending, setSuspending] = useState(false);
+  const canManageRoles = currentUserRole === 'owner' && !isCurrentUser && !locked;
+  const menuOpen = menuOpenId === user.id;
+  const plan = effectivePlan(user);
+
+  async function toggleSuspend() {
+    setSuspending(true);
+    onMenuToggle(null);
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isSuspended: !user.isSuspended }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { message?: string };
+        alert(body.message ?? 'Could not update user status.');
+        return;
+      }
+      const { user: updated } = (await res.json()) as { user: AdminUser };
+      onStatusChange(user.id, updated.isSuspended);
+    } catch {
+      alert('Network error. Please try again.');
+    } finally {
+      setSuspending(false);
+    }
+  }
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: ROW_GRID,
+        gap: 14,
+        padding: '17px 24px',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        alignItems: 'center',
+        position: 'relative',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.028)')}
+      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '')}
+    >
+      {/* Handle + avatar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
+        <div
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: 8,
+            background: avatarGradient(user.email),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 12,
+            fontWeight: 700,
+            color: '#fff',
+            fontFamily: '"Space Grotesk", sans-serif',
+            flexShrink: 0,
+          }}
+        >
+          {initials}
+        </div>
+        {handle ? (
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#fff',
+              fontFamily: '"Space Grotesk", sans-serif',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            @{handle}
+          </span>
+        ) : (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ color: 'rgba(255,255,255,0.22)' }}>—</span>
+            <span
+              title="No handle set"
+              style={{ color: 'rgba(234,179,8,0.85)', fontSize: 7, lineHeight: 1 }}
+            >
+              ●
+            </span>
+          </span>
+        )}
+      </div>
+
+      {/* Name */}
+      <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.68)', minWidth: 0 }}>
+        {user.name ? (
+          <>
+            <span
+              style={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                display: 'block',
+              }}
+            >
+              {user.name}
+            </span>
+            {isCurrentUser && (
+              <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.28)' }}> (you)</span>
+            )}
+          </>
+        ) : (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ color: 'rgba(255,255,255,0.22)' }}>—</span>
+            <span
+              title="No name set"
+              style={{ color: 'rgba(234,179,8,0.85)', fontSize: 7, lineHeight: 1 }}
+            >
+              ●
+            </span>
+            {isCurrentUser && (
+              <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.28)' }}>(you)</span>
+            )}
+          </span>
+        )}
+      </div>
+
+      {/* Email */}
+      <div
+        style={{
+          fontSize: 13,
+          color: 'rgba(255,255,255,0.45)',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {user.email}
+      </div>
+
+      {/* Joined */}
+      <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.38)' }}>
+        {formatDate(user.createdAt)}
+      </div>
+
+      {/* Plan */}
+      <div>
+        <PlanBadge plan={plan} />
+        {user.temporaryAccess && (
+          <div style={{ marginTop: 4 }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: '#E040FB', lineHeight: 1.3 }}>
+              ⚡ {user.temporaryAccess.plan.toUpperCase()} until {user.temporaryAccess.until}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Role */}
+      <div>
+        {role ? (
+          <RoleBadge role={role} locked={locked} />
+        ) : (
+          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)' }}>User</span>
+        )}
+      </div>
+
+      {/* Status */}
+      <div>
+        <StatusBadge suspended={user.isSuspended} />
+      </div>
+
+      {/* Actions (3-dots) */}
+      <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onMenuToggle(menuOpen ? null : user.id);
+          }}
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: 8,
+            border: '1px solid rgba(255,255,255,0.1)',
+            backgroundColor: menuOpen ? 'rgba(255,255,255,0.08)' : 'transparent',
+            color: 'rgba(255,255,255,0.45)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.15s',
+          }}
+        >
+          <DotsIcon />
+        </button>
+
+        {menuOpen && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'absolute',
+              right: 0,
+              top: 34,
+              zIndex: 50,
+              width: 200,
+              borderRadius: 12,
+              backgroundColor: 'rgba(20,14,40,0.97)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              boxShadow: '0 16px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)',
+              backdropFilter: 'blur(16px)',
+              overflow: 'hidden',
+              padding: '4px 0',
+            }}
+          >
+            <MenuItem
+              icon="✎"
+              label="Edit name"
+              onClick={() => {
+                onMenuToggle(null);
+                onEdit(user);
+              }}
+            />
+            <MenuItem
+              icon="⚡"
+              label="Grant temp access"
+              accent="#E040FB"
+              onClick={() => {
+                onMenuToggle(null);
+                alert('Temporary access grants — coming soon.');
+              }}
+            />
+
+            {canManageRoles && (
+              <>
+                {role === null && (
+                  <MenuItem
+                    icon="🛡"
+                    label="Make admin"
+                    onClick={() => {
+                      onMenuToggle(null);
+                      onRoleChange(user, 'admin');
+                    }}
+                  />
+                )}
+                {role === 'admin' && (
+                  <>
+                    <MenuItem
+                      icon="👑"
+                      label="Promote to owner"
+                      onClick={() => {
+                        onMenuToggle(null);
+                        onRoleChange(user, 'owner');
+                      }}
+                    />
+                    <MenuItem
+                      icon="✕"
+                      label="Revoke admin"
+                      danger
+                      onClick={() => {
+                        onMenuToggle(null);
+                        onRoleChange(user, 'none');
+                      }}
+                    />
+                  </>
+                )}
+                {role === 'owner' && (
+                  <MenuItem
+                    icon="🛡"
+                    label="Demote to admin"
+                    onClick={() => {
+                      onMenuToggle(null);
+                      onRoleChange(user, 'admin');
+                    }}
+                  />
+                )}
+              </>
+            )}
+
+            <div
+              style={{
+                height: 1,
+                backgroundColor: 'rgba(255,255,255,0.07)',
+                margin: '4px 0',
+              }}
+            />
+
+            <MenuItem
+              icon={user.isSuspended ? '✓' : '⊘'}
+              label={suspending ? '…' : user.isSuspended ? 'Reactivate account' : 'Suspend account'}
+              danger={!user.isSuspended}
+              disabled={suspending}
+              onClick={toggleSuspend}
+            />
+            <MenuItem
+              icon="🗑"
+              label="Delete user"
+              danger
+              onClick={() => {
+                onMenuToggle(null);
+                onDelete(user);
+              }}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Table header ────────────────────────────────────────────────────────────────
+
+const COLS = ['Handle', 'Name', 'Email', 'Joined', 'Plan', 'Role', 'Status', 'Actions'];
+
+function TableHeader() {
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: ROW_GRID,
+        gap: 14,
+        padding: '12px 24px',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        backgroundColor: 'rgba(0,0,0,0.18)',
+      }}
+    >
+      {COLS.map((col) => (
+        <div
+          key={col}
+          style={{
+            fontSize: 10.5,
+            fontWeight: 700,
+            letterSpacing: '1.5px',
+            textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.28)',
+            fontFamily: '"Space Grotesk", sans-serif',
+          }}
+        >
+          {col}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Loading / error / empty ─────────────────────────────────────────────────────
+
+function LoadingRows() {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: ROW_GRID,
+            gap: 14,
+            padding: '17px 24px',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            alignItems: 'center',
+          }}
+        >
+          {COLS.map((_, j) => (
+            <div
+              key={j}
+              style={{
+                height: 12,
+                borderRadius: 6,
+                backgroundColor: 'rgba(255,255,255,0.07)',
+                width: j === 2 ? '90%' : j === 0 ? '80%' : '60%',
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}
+            />
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
+function MessageRow({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        padding: '48px 24px',
+        textAlign: 'center',
+        color: 'rgba(255,255,255,0.35)',
+        fontSize: 14,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ─── Modal shared field ───────────────────────────────────────────────────────────
 
 function ModalField({
   label,
@@ -283,431 +930,31 @@ function ModalField({
   );
 }
 
-// ─── Loading / error / empty rows ─────────────────────────────────────────────
+// ─── Modal backdrop ───────────────────────────────────────────────────────────────
 
-function LoadingRows() {
-  return (
-    <>
-      {Array.from({ length: 4 }).map((_, i) => (
-        <tr key={i}>
-          {Array.from({ length: COLS.length }).map((_, j) => (
-            <td key={j} className="px-4 py-3">
-              <div
-                className="h-3 animate-pulse rounded"
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.07)',
-                  width: j === 0 ? '6rem' : j === 3 ? '10rem' : '5rem',
-                }}
-              />
-            </td>
-          ))}
-        </tr>
-      ))}
-    </>
-  );
-}
-
-function ErrorRow({ message }: { message: string }) {
-  return (
-    <tr>
-      <td
-        colSpan={COLS.length}
-        className="px-4 py-10 text-center text-sm"
-        style={{ color: 'rgba(255,80,80,0.8)' }}
-      >
-        {message}
-      </td>
-    </tr>
-  );
-}
-
-function EmptyRow({ query }: { query: string }) {
-  return (
-    <tr>
-      <td
-        colSpan={COLS.length}
-        className="px-4 py-10 text-center text-sm"
-        style={{ color: 'rgba(255,255,255,0.3)' }}
-      >
-        {query ? `No users matching "${query}".` : 'No users found.'}
-      </td>
-    </tr>
-  );
-}
-
-// ─── Access cell ──────────────────────────────────────────────────────────────
-
-function AccessCell({ sub }: { sub: ArtistSubscription | null }) {
-  if (!sub) {
-    return <Dash />;
-  }
-
-  const grantActive = sub.isManualGrantActive && sub.manualAccessPlan;
-  const elevated = sub.accessSource === 'manual_admin_grant' && grantActive;
-  const expires = sub.manualAccessExpiresAt ? formatDate(sub.manualAccessExpiresAt) : 'no expiry';
-
-  return (
-    <div className="flex flex-col gap-1">
-      <PlanBadge plan={sub.plan} />
-      {grantActive && (
-        <span
-          className="inline-flex items-center gap-1 text-xs"
-          style={{ color: 'rgba(232,121,249,0.95)' }}
-          title={
-            (sub.manualAccessReason ? `Reason: ${sub.manualAccessReason}\n` : '') +
-            `Granted access: ${planLabel(sub.manualAccessPlan!)} until ${expires}`
-          }
-        >
-          ⚡ {planLabel(sub.manualAccessPlan!)} until {expires}
-        </span>
-      )}
-      {elevated && sub.effectiveAccess !== sub.plan && (
-        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          effective: {planLabel(sub.effectiveAccess)}
-        </span>
-      )}
-    </div>
-  );
-}
-
-// ─── Row actions dropdown ─────────────────────────────────────────────────────
-
-function DropItem({
-  label,
-  onClick,
-  color,
-}: {
-  label: string;
-  onClick: () => void;
-  color?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="w-full px-3 py-2 text-left text-sm transition-colors"
-      style={{ color: color ?? 'rgba(255,255,255,0.8)' }}
-      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)')}
-      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '')}
-    >
-      {label}
-    </button>
-  );
-}
-
-function RowActionsDropdown({
-  user,
-  role,
-  locked,
-  isCurrentUser,
-  currentUserRole,
-  onEdit,
-  onStatusChange,
-  onRoleChange,
-  onManageAccess,
-}: {
-  user: AdminUser;
-  role: BehindRole | null;
-  locked: boolean;
-  isCurrentUser: boolean;
-  currentUserRole: BehindRole | null;
-  onEdit: (user: AdminUser) => void;
-  onStatusChange: (id: string, isSuspended: boolean) => void;
-  onRoleChange: (user: AdminUser, newRole: BehindRole | 'none') => void;
-  onManageAccess: (user: AdminUser) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [suspending, setSuspending] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  const canManageRoles = currentUserRole === 'owner' && !isCurrentUser && !locked;
-  const canManageUsers = currentUserRole === 'owner';
-
+function ModalBackdrop({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
   useEffect(() => {
-    if (!open) return;
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
     }
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  async function toggleSuspend() {
-    setSuspending(true);
-    setOpen(false);
-    try {
-      const res = await fetch(`/api/admin/users/${user.id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isSuspended: !user.isSuspended }),
-      });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { message?: string };
-        alert(body.message ?? 'Could not update user status.');
-        return;
-      }
-      const { user: updated } = (await res.json()) as { user: AdminUser };
-      onStatusChange(user.id, updated.isSuspended);
-      trackUmamiEvent('behind_user_status_updated', {
-        status: updated.isSuspended ? 'suspended' : 'active',
-      });
-    } catch {
-      alert('Network error. Please try again.');
-    } finally {
-      setSuspending(false);
-    }
-  }
-
-  if (!canManageUsers && !canManageRoles) {
-    return <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '12px' }}>Read-only</span>;
-  }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
 
   return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen((o) => !o)}
-        disabled={suspending}
-        className="flex h-7 w-7 items-center justify-center rounded-md transition-colors"
-        title="Actions"
-        style={{
-          color: suspending ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.6)',
-          border: '1px solid rgba(255,255,255,0.12)',
-          backgroundColor: open ? 'rgba(255,255,255,0.08)' : 'transparent',
-        }}
-      >
-        {suspending ? (
-          <span className="text-xs">…</span>
-        ) : (
-          /* vertical three-dot icon */
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="12" cy="5" r="2" />
-            <circle cx="12" cy="12" r="2" />
-            <circle cx="12" cy="19" r="2" />
-          </svg>
-        )}
-      </button>
-
-      {open && (
-        <div
-          className="absolute right-0 z-20 mt-1 min-w-[168px] rounded-lg py-1 shadow-xl"
-          style={{
-            backgroundColor: '#1a1030',
-            border: '1px solid rgba(255,255,255,0.12)',
-            top: '100%',
-          }}
-        >
-          {canManageUsers && (
-            <>
-              <DropItem
-                label="Edit"
-                onClick={() => {
-                  setOpen(false);
-                  onEdit(user);
-                }}
-              />
-              <DropItem
-                label={user.isSuspended ? 'Unsuspend' : 'Suspend'}
-                color={user.isSuspended ? 'rgba(74,222,128,0.9)' : 'rgba(251,191,36,0.9)'}
-                onClick={toggleSuspend}
-              />
-            </>
-          )}
-
-          {canManageRoles && (
-            <>
-              {role === null && (
-                <DropItem
-                  label="Make Admin"
-                  color="rgba(232,121,249,0.9)"
-                  onClick={() => {
-                    setOpen(false);
-                    onRoleChange(user, 'admin');
-                  }}
-                />
-              )}
-              {role === 'admin' && (
-                <>
-                  <DropItem
-                    label="Make Owner"
-                    color="rgba(167,139,250,0.9)"
-                    onClick={() => {
-                      setOpen(false);
-                      onRoleChange(user, 'owner');
-                    }}
-                  />
-                  <DropItem
-                    label="Revoke Role"
-                    color="rgba(248,113,113,0.9)"
-                    onClick={() => {
-                      setOpen(false);
-                      onRoleChange(user, 'none');
-                    }}
-                  />
-                </>
-              )}
-              {role === 'owner' && (
-                <DropItem
-                  label="Demote to Admin"
-                  color="rgba(232,121,249,0.9)"
-                  onClick={() => {
-                    setOpen(false);
-                    onRoleChange(user, 'admin');
-                  }}
-                />
-              )}
-            </>
-          )}
-
-          {canManageUsers && user.artistUsernames.length > 0 && (
-            <>
-              <div style={{ margin: '4px 0', borderTop: '1px solid rgba(255,255,255,0.08)' }} />
-              <DropItem
-                label="Grant Temp Access"
-                color="rgba(167,139,250,0.9)"
-                onClick={() => {
-                  setOpen(false);
-                  onManageAccess(user);
-                }}
-              />
-            </>
-          )}
-        </div>
-      )}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      {children}
     </div>
   );
 }
 
-// ─── User row ─────────────────────────────────────────────────────────────────
-
-function UserRow({
-  user,
-  role,
-  locked,
-  isCurrentUser,
-  currentUserRole,
-  onStatusChange,
-  onEdit,
-  onRoleChange,
-  onManageAccess,
-}: {
-  user: AdminUser;
-  role: BehindRole | null;
-  locked: boolean;
-  isCurrentUser: boolean;
-  currentUserRole: BehindRole | null;
-  onStatusChange: (id: string, isSuspended: boolean) => void;
-  onEdit: (user: AdminUser) => void;
-  onRoleChange: (user: AdminUser, newRole: BehindRole | 'none') => void;
-  onManageAccess: (user: AdminUser) => void;
-}) {
-  const handle = user.artistUsernames[0] ?? null;
-
-  return (
-    <tr
-      className="transition-colors"
-      style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
-      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)')}
-      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '')}
-    >
-      {/* Handle */}
-      <td className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-        {handle ? (
-          <span style={{ color: 'var(--foreground)' }}>@{handle}</span>
-        ) : (
-          <span className="inline-flex items-center gap-1">
-            <Dash />
-            <span title="No handle set" style={{ color: 'rgba(234,179,8,0.8)', fontSize: '8px' }}>
-              ●
-            </span>
-          </span>
-        )}
-      </td>
-
-      {/* Name */}
-      <td className="px-4 py-3 text-sm" style={{ color: 'var(--foreground)' }}>
-        {user.name ? (
-          <>
-            {user.name}
-            {isCurrentUser && (
-              <span className="ml-1 text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                (you)
-              </span>
-            )}
-          </>
-        ) : (
-          <span className="inline-flex items-center gap-1">
-            <Dash />
-            <span title="No name set" style={{ color: 'rgba(234,179,8,0.8)', fontSize: '8px' }}>
-              ●
-            </span>
-            {isCurrentUser && (
-              <span className="ml-1 text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                (you)
-              </span>
-            )}
-          </span>
-        )}
-      </td>
-
-      {/* Email */}
-      <td className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-        {user.email}
-      </td>
-
-      {/* Joined */}
-      <td className="px-4 py-3 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-        {formatDate(user.createdAt)}
-      </td>
-
-      {/* Plan */}
-      <td className="px-4 py-3">
-        <AccessCell sub={user.subscription} />
-      </td>
-
-      {/* Role — null shows "User" instead of an empty dash */}
-      <td className="px-4 py-3">
-        {role ? (
-          <RoleBadge role={role} locked={locked} />
-        ) : (
-          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            User
-          </span>
-        )}
-      </td>
-
-      {/* Status — active is green, suspended is red */}
-      <td className="px-4 py-3">
-        {user.isSuspended ? (
-          <Badge variant="destructive">suspended</Badge>
-        ) : (
-          <Badge
-            variant="outline"
-            className="border-emerald-500/40 bg-emerald-500/10 text-emerald-300 text-xs"
-          >
-            active
-          </Badge>
-        )}
-      </td>
-
-      {/* Actions — dropdown */}
-      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-        <RowActionsDropdown
-          user={user}
-          role={role}
-          locked={locked}
-          isCurrentUser={isCurrentUser}
-          currentUserRole={currentUserRole}
-          onEdit={onEdit}
-          onStatusChange={onStatusChange}
-          onRoleChange={onRoleChange}
-          onManageAccess={onManageAccess}
-        />
-      </td>
-    </tr>
-  );
-}
-
-// ─── Edit modal ───────────────────────────────────────────────────────────────
+// ─── Edit modal ───────────────────────────────────────────────────────────────────
 
 function EditModal({
   user,
@@ -722,14 +969,6 @@ function EditModal({
   const [lastName, setLastName] = useState(user.lastName ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [onClose]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -748,7 +987,6 @@ function EditModal({
       }
       const { user: updated } = (await res.json()) as { user: AdminUser };
       onSaved(updated);
-      trackUmamiEvent('behind_user_profile_updated');
       onClose();
     } catch {
       setError('Network error. Please try again.');
@@ -758,14 +996,11 @@ function EditModal({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="w-full max-w-sm rounded-xl p-6" style={MODAL_PANEL_STYLE}>
+    <ModalBackdrop onClose={onClose}>
+      <div
+        className="w-full max-w-sm rounded-xl p-6"
+        style={{ backgroundColor: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)' }}
+      >
         <h3 className="mb-4 text-base font-semibold" style={{ color: 'var(--foreground)' }}>
           Edit user
         </h3>
@@ -819,11 +1054,107 @@ function EditModal({
           </div>
         </form>
       </div>
-    </div>
+    </ModalBackdrop>
   );
 }
 
-// ─── Role change confirm modal ────────────────────────────────────────────────
+// ─── Delete modal ─────────────────────────────────────────────────────────────────
+
+function DeleteModal({
+  user,
+  onClose,
+  onDeleted,
+}: {
+  user: AdminUser;
+  onClose: () => void;
+  onDeleted: (id: string) => void;
+}) {
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleDelete() {
+    setDeleting(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}`, { method: 'DELETE' });
+      if (res.status === 204) {
+        onDeleted(user.id);
+        onClose();
+        return;
+      }
+      const body = (await res.json().catch(() => ({}))) as { message?: string };
+      setError(body.message ?? 'Could not delete user.');
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <ModalBackdrop onClose={onClose}>
+      <div
+        className="w-full max-w-sm rounded-xl p-6 text-center"
+        style={{ backgroundColor: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)' }}
+      >
+        <div
+          className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-full"
+          style={{ backgroundColor: 'rgba(239,68,68,0.12)' }}
+        >
+          <svg
+            className="h-5 w-5"
+            style={{ color: 'rgba(239,68,68,0.8)' }}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+            />
+          </svg>
+        </div>
+        <h3 className="mb-1 text-base font-semibold" style={{ color: 'var(--foreground)' }}>
+          Delete user?
+        </h3>
+        <p className="mb-1 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
+          <strong style={{ color: 'var(--foreground)' }}>{user.name ?? user.email}</strong>
+        </p>
+        <p className="mb-5 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Soft delete — data preserved, access revoked immediately.
+        </p>
+        {error && (
+          <p className="mb-3 text-xs" style={{ color: 'rgba(255,80,80,0.9)' }}>
+            {error}
+          </p>
+        )}
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="flex-1"
+            onClick={onClose}
+            disabled={deleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            onClick={handleDelete}
+            disabled={deleting}
+          >
+            {deleting ? 'Deleting…' : 'Delete'}
+          </Button>
+        </div>
+      </div>
+    </ModalBackdrop>
+  );
+}
+
+// ─── Role change modal ────────────────────────────────────────────────────────────
 
 function RoleChangeModal({
   user,
@@ -838,14 +1169,6 @@ function RoleChangeModal({
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [onClose]);
 
   const label =
     newRole === 'none'
@@ -880,9 +1203,6 @@ function RoleChangeModal({
         lockedEmails: string[];
       };
       onConfirmed(roles, lockedEmails);
-      trackUmamiEvent('behind_role_updated', {
-        role: newRole,
-      });
       onClose();
     } catch {
       setError('Network error. Please try again.');
@@ -892,14 +1212,11 @@ function RoleChangeModal({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="w-full max-w-sm rounded-xl p-6" style={MODAL_PANEL_STYLE}>
+    <ModalBackdrop onClose={onClose}>
+      <div
+        className="w-full max-w-sm rounded-xl p-6"
+        style={{ backgroundColor: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)' }}
+      >
         <h3 className="mb-2 text-base font-semibold" style={{ color: 'var(--foreground)' }}>
           {label}
         </h3>
@@ -931,35 +1248,29 @@ function RoleChangeModal({
           </Button>
         </div>
       </div>
-    </div>
+    </ModalBackdrop>
   );
 }
 
-// ─── Invite modal ─────────────────────────────────────────────────────────────
+// ─── Invite modal ─────────────────────────────────────────────────────────────────
 
 type InviteState = 'idle' | 'sending' | 'sent' | 'error';
 
 function InviteModal({ onClose }: { onClose: () => void }) {
   const [email, setEmail] = useState('');
-  const [state, setState] = useState<InviteState>('idle');
+  const [inviteState, setInviteState] = useState<InviteState>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [onClose]);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) return;
-    setState('sending');
+    setInviteState('sending');
     setErrorMsg('');
-    trackUmamiEvent('behind_invitation_submitted', INVITATION_UMAMI_CONTEXT);
     try {
       const res = await fetch('/api/admin/invitations', {
         method: 'POST',
@@ -969,39 +1280,23 @@ function InviteModal({ onClose }: { onClose: () => void }) {
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { message?: string };
         setErrorMsg(body.message ?? 'Failed to send invitation.');
-        setState('error');
-        trackUmamiEvent('behind_invitation_failed', {
-          ...INVITATION_UMAMI_CONTEXT,
-          result: 'api_error',
-          status: res.status,
-        });
+        setInviteState('error');
         return;
       }
-      setState('sent');
-      trackUmamiEvent('behind_invitation_sent', {
-        ...INVITATION_UMAMI_CONTEXT,
-        result: 'sent',
-      });
+      setInviteState('sent');
     } catch {
       setErrorMsg('Network error. Please try again.');
-      setState('error');
-      trackUmamiEvent('behind_invitation_failed', {
-        ...INVITATION_UMAMI_CONTEXT,
-        result: 'network_error',
-      });
+      setInviteState('error');
     }
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="w-full max-w-sm rounded-xl p-6" style={MODAL_PANEL_STYLE}>
-        {state === 'sent' ? (
+    <ModalBackdrop onClose={onClose}>
+      <div
+        className="w-full max-w-sm rounded-xl p-6"
+        style={{ backgroundColor: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)' }}
+      >
+        {inviteState === 'sent' ? (
           <div className="text-center">
             <div className="mb-3 text-3xl">✉️</div>
             <h3 className="mb-1 text-base font-semibold" style={{ color: 'var(--foreground)' }}>
@@ -1048,7 +1343,7 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                   }}
                 />
               </div>
-              {state === 'error' && (
+              {inviteState === 'error' && (
                 <p className="text-xs" style={{ color: 'rgba(255,80,80,0.9)' }}>
                   {errorMsg}
                 </p>
@@ -1059,460 +1354,27 @@ function InviteModal({ onClose }: { onClose: () => void }) {
                   variant="ghost"
                   className="flex-1"
                   onClick={onClose}
-                  disabled={state === 'sending'}
+                  disabled={inviteState === 'sending'}
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   className="flex-1"
-                  disabled={state === 'sending' || !email.trim()}
+                  disabled={inviteState === 'sending' || !email.trim()}
                 >
-                  {state === 'sending' ? 'Sending…' : 'Send invite'}
+                  {inviteState === 'sending' ? 'Sending…' : 'Send invite'}
                 </Button>
               </div>
             </form>
           </>
         )}
       </div>
-    </div>
+    </ModalBackdrop>
   );
 }
 
-// ─── Manage access modal ──────────────────────────────────────────────────────
-
-/** YYYY-MM-DD value (for <input type="date">) `days` from now. */
-function dateInputValue(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-
-function InfoLine({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-3 text-sm">
-      <span style={{ color: 'rgba(255,255,255,0.45)' }}>{label}</span>
-      <span style={{ color: 'var(--foreground)' }}>{value}</span>
-    </div>
-  );
-}
-
-function ManageAccessModal({
-  user,
-  onClose,
-  onUpdated,
-}: {
-  user: AdminUser;
-  onClose: () => void;
-  onUpdated: (userId: string, sub: ArtistSubscription) => void;
-}) {
-  const sub = user.subscription;
-  const hasGrant = Boolean(sub?.manualAccessPlan);
-
-  // mode: 'view' | 'grant' | 'extend'
-  const [mode, setMode] = useState<'view' | 'grant' | 'extend'>('view');
-  const [plan, setPlan] = useState<'pro' | 'pro_plus'>(
-    (sub?.manualAccessPlan as 'pro' | 'pro_plus') ?? 'pro',
-  );
-  const [expiresAt, setExpiresAt] = useState<string>(
-    sub?.manualAccessExpiresAt ? sub.manualAccessExpiresAt.slice(0, 10) : dateInputValue(30),
-  );
-  const [reason, setReason] = useState(sub?.manualAccessReason ?? '');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [confirmRevoke, setConfirmRevoke] = useState(false);
-
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [onClose]);
-
-  async function submitGrant(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError('');
-    try {
-      const res = await fetch(`/api/admin/users/${user.id}/access`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan,
-          expiresAt: new Date(`${expiresAt}T23:59:59`).toISOString(),
-          reason: reason.trim() || undefined,
-        }),
-      });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { message?: string | string[] };
-        setError(
-          Array.isArray(body.message)
-            ? body.message.join(', ')
-            : (body.message ?? 'Could not grant access.'),
-        );
-        return;
-      }
-      const { subscription } = (await res.json()) as { subscription: ArtistSubscription };
-      onUpdated(user.id, subscription);
-      trackUmamiEvent('behind_access_granted', {
-        plan,
-      });
-      onClose();
-    } catch {
-      setError('Network error. Please try again.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function submitExtend(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError('');
-    try {
-      const res = await fetch(`/api/admin/users/${user.id}/access`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          expiresAt: new Date(`${expiresAt}T23:59:59`).toISOString(),
-          reason: reason.trim() || undefined,
-        }),
-      });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { message?: string | string[] };
-        setError(
-          Array.isArray(body.message)
-            ? body.message.join(', ')
-            : (body.message ?? 'Could not extend access.'),
-        );
-        return;
-      }
-      const { subscription } = (await res.json()) as { subscription: ArtistSubscription };
-      onUpdated(user.id, subscription);
-      trackUmamiEvent('behind_access_extended', {
-        plan: sub?.manualAccessPlan ?? 'unknown',
-      });
-      onClose();
-    } catch {
-      setError('Network error. Please try again.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function doRevoke() {
-    setBusy(true);
-    setError('');
-    try {
-      const res = await fetch(`/api/admin/users/${user.id}/access`, { method: 'DELETE' });
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { message?: string };
-        setError(body.message ?? 'Could not revoke access.');
-        return;
-      }
-      const { subscription } = (await res.json()) as { subscription: ArtistSubscription };
-      onUpdated(user.id, subscription);
-      trackUmamiEvent('behind_access_revoked');
-      onClose();
-    } catch {
-      setError('Network error. Please try again.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="w-full max-w-md rounded-xl p-6" style={MODAL_PANEL_STYLE}>
-        <h3 className="mb-1 text-base font-semibold" style={{ color: 'var(--foreground)' }}>
-          Manage access
-        </h3>
-        <p className="mb-4 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-          {user.name ?? user.email}
-        </p>
-
-        {error && (
-          <p className="mb-3 text-xs" style={{ color: 'rgba(255,80,80,0.9)' }}>
-            {error}
-          </p>
-        )}
-
-        {mode === 'view' && (
-          <>
-            <div
-              className="mb-4 space-y-2 rounded-lg p-3"
-              style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
-            >
-              <InfoLine label="Commercial plan" value={<PlanBadge plan={sub?.plan ?? 'free'} />} />
-              <InfoLine label="Subscription status" value={sub?.status ?? 'inactive'} />
-              <InfoLine
-                label="Effective access"
-                value={<PlanBadge plan={sub?.effectiveAccess ?? 'free'} />}
-              />
-              <InfoLine
-                label="Access source"
-                value={
-                  sub?.accessSource === 'manual_admin_grant' ? 'Admin grant ⚡' : 'Commercial plan'
-                }
-              />
-              {hasGrant && (
-                <>
-                  <div className="my-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }} />
-                  <InfoLine
-                    label="Granted plan"
-                    value={<PlanBadge plan={sub!.manualAccessPlan!} />}
-                  />
-                  <InfoLine
-                    label="Expires"
-                    value={
-                      sub!.manualAccessExpiresAt
-                        ? formatDate(sub!.manualAccessExpiresAt)
-                        : 'no expiry'
-                    }
-                  />
-                  <InfoLine
-                    label="Active now"
-                    value={sub!.isManualGrantActive ? 'Yes' : 'No (expired)'}
-                  />
-                  {sub!.manualAccessReason && (
-                    <InfoLine label="Reason" value={sub!.manualAccessReason} />
-                  )}
-                </>
-              )}
-            </div>
-
-            {confirmRevoke ? (
-              <div className="space-y-2">
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                  Revoke this grant? The tenant falls back to their commercial plan immediately.
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="flex-1"
-                    onClick={() => setConfirmRevoke(false)}
-                    disabled={busy}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                    onClick={doRevoke}
-                    disabled={busy}
-                  >
-                    {busy ? 'Revoking…' : 'Revoke'}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {!hasGrant && (
-                  <Button type="button" className="flex-1" onClick={() => setMode('grant')}>
-                    Grant temporary access
-                  </Button>
-                )}
-                {hasGrant && (
-                  <>
-                    <Button type="button" className="flex-1" onClick={() => setMode('extend')}>
-                      Extend
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="flex-1 text-red-400 hover:text-red-300"
-                      onClick={() => setConfirmRevoke(true)}
-                    >
-                      Revoke
-                    </Button>
-                  </>
-                )}
-                <Button type="button" variant="ghost" className="w-full" onClick={onClose}>
-                  Close
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-
-        {mode === 'grant' && (
-          <form onSubmit={submitGrant} className="space-y-4">
-            <div>
-              <label
-                className="mb-1.5 block text-xs font-medium"
-                style={{ color: 'rgba(255,255,255,0.6)' }}
-              >
-                Plan
-              </label>
-              <div className="flex gap-2">
-                {(['pro', 'pro_plus'] as const).map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setPlan(p)}
-                    className="flex-1 rounded-md px-3 py-2 text-sm"
-                    style={{
-                      backgroundColor:
-                        plan === p ? 'rgba(232,121,249,0.18)' : 'rgba(255,255,255,0.05)',
-                      border: `1px solid ${plan === p ? 'rgba(232,121,249,0.5)' : 'rgba(255,255,255,0.12)'}`,
-                      color: plan === p ? 'rgb(240,171,252)' : 'rgba(255,255,255,0.6)',
-                    }}
-                  >
-                    {planLabel(p)}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label
-                htmlFor="grant-expiry"
-                className="mb-1.5 block text-xs font-medium"
-                style={{ color: 'rgba(255,255,255,0.6)' }}
-              >
-                Expires on
-              </label>
-              <input
-                id="grant-expiry"
-                type="date"
-                required
-                min={dateInputValue(1)}
-                max={dateInputValue(365)}
-                value={expiresAt}
-                onChange={(e) => setExpiresAt(e.target.value)}
-                className="w-full rounded-md px-3 py-2 text-sm outline-none focus:ring-2"
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  color: 'var(--foreground)',
-                  colorScheme: 'dark',
-                }}
-              />
-            </div>
-            <ModalField
-              id="grant-reason"
-              label="Reason (optional)"
-              value={reason}
-              onChange={setReason}
-              placeholder="e.g. partnership trial"
-            />
-            <div className="flex gap-2 pt-1">
-              <Button
-                type="button"
-                variant="ghost"
-                className="flex-1"
-                onClick={() => setMode('view')}
-                disabled={busy}
-              >
-                Back
-              </Button>
-              <Button type="submit" className="flex-1" disabled={busy}>
-                {busy ? 'Granting…' : 'Grant access'}
-              </Button>
-            </div>
-          </form>
-        )}
-
-        {mode === 'extend' && (
-          <form onSubmit={submitExtend} className="space-y-4">
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
-              Extending {planLabel(sub?.manualAccessPlan ?? 'pro')} grant.
-            </p>
-            <div>
-              <label
-                htmlFor="extend-expiry"
-                className="mb-1.5 block text-xs font-medium"
-                style={{ color: 'rgba(255,255,255,0.6)' }}
-              >
-                New expiry
-              </label>
-              <input
-                id="extend-expiry"
-                type="date"
-                required
-                min={dateInputValue(1)}
-                max={dateInputValue(365)}
-                value={expiresAt}
-                onChange={(e) => setExpiresAt(e.target.value)}
-                className="w-full rounded-md px-3 py-2 text-sm outline-none focus:ring-2"
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  color: 'var(--foreground)',
-                  colorScheme: 'dark',
-                }}
-              />
-            </div>
-            <ModalField
-              id="extend-reason"
-              label="Reason (optional)"
-              value={reason}
-              onChange={setReason}
-              placeholder="Update reason"
-            />
-            <div className="flex gap-2 pt-1">
-              <Button
-                type="button"
-                variant="ghost"
-                className="flex-1"
-                onClick={() => setMode('view')}
-                disabled={busy}
-              >
-                Back
-              </Button>
-              <Button type="submit" className="flex-1" disabled={busy}>
-                {busy ? 'Saving…' : 'Update expiry'}
-              </Button>
-            </div>
-          </form>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Filter pill row ──────────────────────────────────────────────────────────
-
-function FilterPill({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-full px-2.5 py-0.5 text-xs transition-colors"
-      style={{
-        backgroundColor: active ? 'rgba(155,48,208,0.2)' : 'rgba(255,255,255,0.05)',
-        border: `1px solid ${active ? 'rgba(155,48,208,0.5)' : 'rgba(255,255,255,0.1)'}`,
-        color: active ? 'rgb(216,180,254)' : 'rgba(255,255,255,0.45)',
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-// ─── Main component ───────────────────────────────────────────────────────────
-
-type ActiveModal =
-  | { type: 'invite' }
-  | { type: 'edit'; user: AdminUser }
-  | { type: 'role'; user: AdminUser; newRole: BehindRole | 'none' }
-  | { type: 'access'; user: AdminUser }
-  | null;
+// ─── Main component ───────────────────────────────────────────────────────────────
 
 export function UsersTable({
   roles: initialRoles,
@@ -1523,25 +1385,31 @@ export function UsersTable({
   lockedOwnerEmails: string[];
   currentUserEmail: string;
 }) {
-  const [state, setState] = useState<FetchState>({ status: 'loading' });
+  const [fetchState, setFetchState] = useState<FetchState>({ status: 'loading' });
   const [modal, setModal] = useState<ActiveModal>(null);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [planFilter, setPlanFilter] = useState<PlanFilter>('all');
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [roles, setRoles] = useState<RolesMap>(initialRoles);
   const [lockedEmails, setLockedEmails] = useState<Set<string>>(
     new Set(initialLockedEmails.map((e) => e.toLowerCase())),
   );
 
-  // ── Filter state
-  const [filterPlan, setFilterPlan] = useState<FilterPlan>('all');
-  const [filterRole, setFilterRole] = useState<FilterRole>('all');
-  const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
-
-  // ── Sort state (default: most recently joined first)
-  const [sortField, setSortField] = useState<SortField>('joined');
-  const [sortDir, setSortDir] = useState<SortDir>('desc');
-
   const currentUserRole = roles[currentUserEmail.toLowerCase()] ?? null;
 
+  // Close action menu on outside click
+  useEffect(() => {
+    if (!menuOpenId) return;
+    function handleClose() {
+      setMenuOpenId(null);
+    }
+    document.addEventListener('click', handleClose);
+    return () => document.removeEventListener('click', handleClose);
+  }, [menuOpenId]);
+
+  // Fetch users
   useEffect(() => {
     let cancelled = false;
     fetch('/api/admin/users')
@@ -1553,11 +1421,11 @@ export function UsersTable({
         return res.json() as Promise<{ users: AdminUser[] }>;
       })
       .then(({ users }) => {
-        if (!cancelled) setState({ status: 'ok', users });
+        if (!cancelled) setFetchState({ status: 'ok', users });
       })
       .catch((err: unknown) => {
         if (!cancelled)
-          setState({
+          setFetchState({
             status: 'error',
             message: err instanceof Error ? err.message : 'Failed to load users.',
           });
@@ -1568,7 +1436,7 @@ export function UsersTable({
   }, []);
 
   function updateUser(updated: AdminUser) {
-    setState((prev) => {
+    setFetchState((prev) => {
       if (prev.status !== 'ok') return prev;
       return {
         ...prev,
@@ -1577,10 +1445,20 @@ export function UsersTable({
     });
   }
 
-  function handleStatusChange(id: string, isSuspended: boolean) {
-    setState((prev) => {
+  function removeUser(id: string) {
+    setFetchState((prev) => {
       if (prev.status !== 'ok') return prev;
-      return { ...prev, users: prev.users.map((u) => (u.id === id ? { ...u, isSuspended } : u)) };
+      return { ...prev, users: prev.users.filter((u) => u.id !== id) };
+    });
+  }
+
+  function handleStatusChange(id: string, isSuspended: boolean) {
+    setFetchState((prev) => {
+      if (prev.status !== 'ok') return prev;
+      return {
+        ...prev,
+        users: prev.users.map((u) => (u.id === id ? { ...u, isSuspended } : u)),
+      };
     });
   }
 
@@ -1589,74 +1467,50 @@ export function UsersTable({
     setLockedEmails(new Set(newLocked.map((e) => e.toLowerCase())));
   }, []);
 
-  function handleAccessUpdated(userId: string, sub: ArtistSubscription) {
-    setState((prev) => {
-      if (prev.status !== 'ok') return prev;
-      return {
-        ...prev,
-        users: prev.users.map((u) => (u.id === userId ? { ...u, subscription: sub } : u)),
-      };
-    });
-  }
+  const allUsers = fetchState.status === 'ok' ? fetchState.users : [];
 
-  function handleSortClick(field: SortField) {
-    if (sortField === field) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortDir('asc');
+  // KPI counts (computed from full user list, not filtered)
+  const kpiTotal = allUsers.length;
+  const kpiActive = allUsers.filter((u) => !u.isSuspended).length;
+  const kpiProPlus = allUsers.filter((u) => effectivePlan(u) === 'pro+').length;
+  const kpiNew30d = allUsers.filter((u) => isWithin30Days(u.createdAt)).length;
+
+  // Apply filters
+  const filteredUsers = allUsers.filter((u) => {
+    if (!matchesSearch(u, search.trim())) return false;
+    if (planFilter !== 'all' && effectivePlan(u) !== planFilter) return false;
+    if (roleFilter !== 'all') {
+      const emailKey = u.email.toLowerCase();
+      const role = roles[emailKey] ?? null;
+      if (roleFilter === 'owner' && role !== 'owner') return false;
+      if (roleFilter === 'admin' && role !== 'admin') return false;
+      if (roleFilter === 'user' && role !== null) return false;
     }
-    trackUmamiEvent('behind_users_sorted', {
-      field,
-      direction: sortField === field && sortDir === 'asc' ? 'desc' : 'asc',
-    });
-  }
+    if (statusFilter === 'active' && u.isSuspended) return false;
+    if (statusFilter === 'suspended' && !u.isSuspended) return false;
+    return true;
+  });
 
-  function handlePlanFilterChange(value: FilterPlan) {
-    setFilterPlan(value);
-    trackUmamiEvent('behind_users_filtered', {
-      filter: 'plan',
-      value,
-    });
-  }
-
-  function handleRoleFilterChange(value: FilterRole) {
-    setFilterRole(value);
-    trackUmamiEvent('behind_users_filtered', {
-      filter: 'role',
-      value,
-    });
-  }
-
-  function handleStatusFilterChange(value: FilterStatus) {
-    setFilterStatus(value);
-    trackUmamiEvent('behind_users_filtered', {
-      filter: 'status',
-      value,
-    });
-  }
-
-  function handleInviteOpen() {
-    trackUmamiEvent('behind_invite_opened', INVITATION_UMAMI_CONTEXT);
-    setModal({ type: 'invite' });
-  }
-
-  const allUsers = state.status === 'ok' ? state.users : [];
-  const filteredUsers = applySort(
-    applyFilters(allUsers, search.trim(), filterPlan, filterRole, filterStatus, roles),
-    sortField,
-    sortDir,
-    roles,
-  );
-
-  const hasActiveFilters =
-    filterPlan !== 'all' || filterRole !== 'all' || filterStatus !== 'all' || search.trim() !== '';
+  const isFiltered =
+    search.trim() || planFilter !== 'all' || roleFilter !== 'all' || statusFilter !== 'all';
+  const countLabel =
+    fetchState.status === 'loading'
+      ? 'Loading…'
+      : fetchState.status === 'error'
+        ? 'Could not load user data.'
+        : isFiltered
+          ? `${filteredUsers.length} of ${allUsers.length} users`
+          : `${allUsers.length} ${allUsers.length === 1 ? 'user' : 'users'} registered`;
 
   return (
     <>
+      {/* Modals */}
       {modal?.type === 'invite' && <InviteModal onClose={() => setModal(null)} />}
       {modal?.type === 'edit' && (
         <EditModal user={modal.user} onClose={() => setModal(null)} onSaved={updateUser} />
+      )}
+      {modal?.type === 'delete' && (
+        <DeleteModal user={modal.user} onClose={() => setModal(null)} onDeleted={removeUser} />
       )}
       {modal?.type === 'role' && (
         <RoleChangeModal
@@ -1666,192 +1520,315 @@ export function UsersTable({
           onConfirmed={handleRolesUpdated}
         />
       )}
-      {modal?.type === 'access' && (
-        <ManageAccessModal
-          user={modal.user}
-          onClose={() => setModal(null)}
-          onUpdated={handleAccessUpdated}
-        />
-      )}
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-4">
+      {/* ── Section header ──────────────────────────────────────────────────── */}
+      <div
+        style={{
+          padding: '36px 0 20px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 16,
+        }}
+      >
+        <div>
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '3px',
+              textTransform: 'uppercase',
+              color: '#E040FB',
+              marginBottom: 8,
+              fontFamily: '"Space Grotesk", sans-serif',
+            }}
+          >
+            BEHIND THE STAGE · ADMIN
+          </p>
+          <h1
+            style={{
+              fontSize: 'clamp(26px, 4vw, 38px)',
+              fontWeight: 700,
+              letterSpacing: '-0.025em',
+              lineHeight: 1.1,
+              fontFamily: '"Space Grotesk", sans-serif',
+              margin: 0,
+            }}
+          >
+            <span style={{ color: '#fff' }}>Registered </span>
+            <span
+              style={{
+                background: GRADIENT,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              users.
+            </span>
+          </h1>
+          <p
+            style={{
+              marginTop: 10,
+              fontSize: 15,
+              color: 'rgba(255,255,255,0.5)',
+              lineHeight: 1.55,
+              maxWidth: 460,
+            }}
+          >
+            All registered StageLink accounts. Manage roles, status and temporary access from here.
+          </p>
+        </div>
+
+        <button
+          onClick={() => setModal({ type: 'invite' })}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '10px 20px',
+            borderRadius: 999,
+            background: GRADIENT,
+            border: 'none',
+            color: '#fff',
+            fontSize: 13.5,
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: '0 0 24px rgba(224,64,251,0.3)',
+            flexShrink: 0,
+            fontFamily: '"Space Grotesk", sans-serif',
+          }}
+        >
+          + Invite user
+        </button>
+      </div>
+
+      {/* ── KPI strip ──────────────────────────────────────────────────────── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4,1fr)',
+          gap: 16,
+          marginBottom: 24,
+        }}
+        className="grid-cols-2 sm:grid-cols-4"
+      >
+        <KpiTile
+          label="Total users"
+          value={kpiTotal}
+          accent="#E040FB"
+          caption="Registered accounts"
+          icon="👥"
+        />
+        <KpiTile
+          label="Active"
+          value={kpiActive}
+          accent="#4ADE80"
+          caption={`${kpiTotal - kpiActive} suspended`}
+          icon="✓"
+        />
+        <KpiTile
+          label="PRO+ effective"
+          value={kpiProPlus}
+          accent="#9B30D0"
+          caption="Paid + temporary grants"
+          icon="⚡"
+        />
+        <KpiTile
+          label="New · 30 days"
+          value={kpiNew30d}
+          accent="#00D4FF"
+          caption="Joined this month"
+          icon="🆕"
+        />
+      </div>
+
+      {/* ── Table panel ────────────────────────────────────────────────────── */}
+      <div
+        style={{
+          borderRadius: 20,
+          backgroundColor: 'rgba(255,255,255,0.025)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Panel header */}
+        <div
+          style={{
+            padding: '20px 24px 0',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 16,
+            }}
+          >
             <div>
-              <CardTitle className="text-base">Registered users</CardTitle>
-              <CardDescription>
-                {state.status === 'loading' && 'Loading…'}
-                {state.status === 'error' && 'Could not load user data.'}
-                {state.status === 'ok' &&
-                  (hasActiveFilters
-                    ? `${filteredUsers.length} of ${allUsers.length} users`
-                    : `${allUsers.length} ${allUsers.length === 1 ? 'user' : 'users'} registered`)}
-              </CardDescription>
+              <h2
+                style={{
+                  fontSize: 17,
+                  fontWeight: 700,
+                  color: '#fff',
+                  fontFamily: '"Space Grotesk", sans-serif',
+                  margin: 0,
+                }}
+              >
+                Registered users
+              </h2>
+              <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
+                {countLabel}
+              </p>
             </div>
-            {currentUserRole === 'owner' && (
-              <Button size="sm" onClick={handleInviteOpen}>
-                Invite user
-              </Button>
-            )}
           </div>
 
-          {/* Search bar */}
-          <div className="mt-3 relative">
-            <svg
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-              style={{ color: 'rgba(255,255,255,0.3)' }}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+          {/* Search */}
+          <div style={{ position: 'relative', marginBottom: 14 }}>
+            <span
+              style={{
+                position: 'absolute',
+                left: 12,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'rgba(255,255,255,0.3)',
+                pointerEvents: 'none',
+                display: 'flex',
+              }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-              />
-            </svg>
+              <SearchIcon />
+            </span>
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, handle or email…"
-              className="w-full rounded-md py-2 pl-9 pr-8 text-sm outline-none focus:ring-2"
               style={{
-                backgroundColor: 'rgba(255,255,255,0.05)',
+                width: '100%',
+                padding: '9px 36px 9px 36px',
+                borderRadius: 12,
                 border: '1px solid rgba(255,255,255,0.1)',
-                color: 'var(--foreground)',
+                backgroundColor: 'rgba(0,0,0,0.28)',
+                color: '#fff',
+                fontSize: 13.5,
+                outline: 'none',
+                boxSizing: 'border-box',
               }}
             />
             {search && (
               <button
-                type="button"
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
+                style={{
+                  position: 'absolute',
+                  right: 12,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'rgba(255,255,255,0.35)',
+                  cursor: 'pointer',
+                  border: 'none',
+                  background: 'transparent',
+                  fontSize: 14,
+                  padding: 0,
+                }}
               >
                 ✕
               </button>
             )}
           </div>
 
-          {/* Filter pills */}
-          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
-            {/* Plan filters */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                Plan
-              </span>
-              {(['all', 'free', 'pro', 'pro_plus'] as FilterPlan[]).map((p) => (
-                <FilterPill
-                  key={p}
-                  active={filterPlan === p}
-                  onClick={() => handlePlanFilterChange(p)}
-                >
-                  {p === 'all' ? 'All' : planLabel(p)}
-                </FilterPill>
-              ))}
-            </div>
-
-            {/* Role filters */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                Role
-              </span>
-              {(['all', 'owner', 'admin', 'user'] as FilterRole[]).map((r) => (
-                <FilterPill
-                  key={r}
-                  active={filterRole === r}
-                  onClick={() => handleRoleFilterChange(r)}
-                >
-                  {r === 'all' ? 'All' : r.charAt(0).toUpperCase() + r.slice(1)}
-                </FilterPill>
-              ))}
-            </div>
-
-            {/* Status filters */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                Status
-              </span>
-              {(['all', 'active', 'suspended'] as FilterStatus[]).map((s) => (
-                <FilterPill
-                  key={s}
-                  active={filterStatus === s}
-                  onClick={() => handleStatusFilterChange(s)}
-                >
-                  {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
-                </FilterPill>
-              ))}
-            </div>
+          {/* Filters */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 20,
+              paddingBottom: 14,
+              overflowX: 'auto',
+              flexWrap: 'wrap',
+            }}
+          >
+            <FilterGroup
+              label="Plan"
+              value={planFilter}
+              onChange={setPlanFilter}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'free', label: 'Free' },
+                { value: 'pro', label: 'PRO' },
+                { value: 'pro+', label: 'PRO+' },
+              ]}
+            />
+            <FilterGroup
+              label="Role"
+              value={roleFilter}
+              onChange={setRoleFilter}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'owner', label: 'Owner' },
+                { value: 'admin', label: 'Admin' },
+                { value: 'user', label: 'User' },
+              ]}
+            />
+            <FilterGroup
+              label="Status"
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'active', label: 'active' },
+                { value: 'suspended', label: 'suspended' },
+              ]}
+            />
           </div>
-        </CardHeader>
+        </div>
 
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-sm">
-              <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                  {COLS.map((col) => (
-                    <th
-                      key={col.key}
-                      className={`px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider ${col.sortable ? 'cursor-pointer select-none' : ''}`}
-                      style={{
-                        color:
-                          sortField === col.key
-                            ? 'rgba(216,180,254,0.9)'
-                            : 'rgba(255,255,255,0.35)',
-                      }}
-                      onClick={
-                        col.sortable ? () => handleSortClick(col.key as SortField) : undefined
-                      }
-                    >
-                      <span className="inline-flex items-center gap-1">
-                        {col.label}
-                        {col.sortable && (
-                          <span
-                            style={{
-                              opacity: sortField === col.key ? 1 : 0.3,
-                              fontSize: '10px',
-                            }}
-                          >
-                            {sortField === col.key ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
-                          </span>
-                        )}
-                      </span>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {state.status === 'loading' && <LoadingRows />}
-                {state.status === 'error' && <ErrorRow message={state.message} />}
-                {state.status === 'ok' && filteredUsers.length === 0 && (
-                  <EmptyRow query={search.trim()} />
-                )}
-                {state.status === 'ok' &&
-                  filteredUsers.map((u) => {
-                    const emailKey = u.email.toLowerCase();
-                    return (
-                      <UserRow
-                        key={u.id}
-                        user={u}
-                        role={roles[emailKey] ?? null}
-                        locked={lockedEmails.has(emailKey)}
-                        isCurrentUser={emailKey === currentUserEmail.toLowerCase()}
-                        currentUserRole={currentUserRole as BehindRole | null}
-                        onStatusChange={handleStatusChange}
-                        onEdit={(user) => setModal({ type: 'edit', user })}
-                        onRoleChange={(user, newRole) => setModal({ type: 'role', user, newRole })}
-                        onManageAccess={(user) => setModal({ type: 'access', user })}
-                      />
-                    );
-                  })}
-              </tbody>
-            </table>
+        {/* Table */}
+        <div style={{ overflowX: 'auto' }}>
+          <div style={{ minWidth: 900 }}>
+            <TableHeader />
+
+            {fetchState.status === 'loading' && <LoadingRows />}
+
+            {fetchState.status === 'error' && (
+              <MessageRow>
+                <span style={{ color: 'rgba(255,80,80,0.8)' }}>{fetchState.message}</span>
+              </MessageRow>
+            )}
+
+            {fetchState.status === 'ok' && filteredUsers.length === 0 && (
+              <MessageRow>
+                <span style={{ fontSize: 22, display: 'block', marginBottom: 8 }}>🔍</span>
+                {search.trim()
+                  ? `No users matching "${search.trim()}".`
+                  : 'No users match these filters.'}
+              </MessageRow>
+            )}
+
+            {fetchState.status === 'ok' &&
+              filteredUsers.map((u) => {
+                const emailKey = u.email.toLowerCase();
+                return (
+                  <UserRow
+                    key={u.id}
+                    user={u}
+                    role={roles[emailKey] ?? null}
+                    locked={lockedEmails.has(emailKey)}
+                    isCurrentUser={emailKey === currentUserEmail.toLowerCase()}
+                    currentUserRole={currentUserRole as BehindRole | null}
+                    menuOpenId={menuOpenId}
+                    onMenuToggle={setMenuOpenId}
+                    onStatusChange={handleStatusChange}
+                    onEdit={(user) => setModal({ type: 'edit', user })}
+                    onDelete={(user) => setModal({ type: 'delete', user })}
+                    onRoleChange={(user, newRole) => setModal({ type: 'role', user, newRole })}
+                  />
+                );
+              })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </>
   );
 }
