@@ -13,10 +13,10 @@ import { Button } from '@/components/ui/button';
 const umamiShareUrl = process.env.NEXT_PUBLIC_UMAMI_PLATFORM_SHARE_URL;
 
 const EVENTS = [
-  'platform_signup_started',
-  'platform_signup_login_clicked',
-  'platform_login_started',
-  'platform_login_signup_clicked',
+  'auth_signup_started',
+  'auth_signup_login_clicked',
+  'auth_login_started',
+  'auth_login_signup_clicked',
 ] as const;
 
 const DASHBOARD_MODULES = [
@@ -47,7 +47,7 @@ const UTM_FIELDS = [
 const VALIDATION_CHECKS = [
   'Open stagelink.art and confirm the Umami script loads after analytics consent.',
   'Open /es/signup and confirm a pageview appears in the StageLink Platform website.',
-  'Start signup or login to trigger platform_* intent events.',
+  'Start signup or login to trigger auth_* intent events.',
   'Open /es/dashboard with an authenticated account and confirm product pageviews.',
   'Open behind.stagelink.art and confirm it only embeds Umami, without loading its tracker.',
 ] as const;
@@ -57,23 +57,72 @@ interface BehindAnalyticsPanelProps {
 }
 
 export function BehindAnalyticsPanel({ compact = false }: BehindAnalyticsPanelProps) {
+  const GRADIENT = 'linear-gradient(135deg, #E040FB 0%, #9B30D0 45%, #4A1A8C 100%)';
+
   return (
     <section className="space-y-5" aria-labelledby="behind-analytics-heading">
-      <div className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* ── Section header (new design) ─────────────────────────────────── */}
+      <div
+        style={{
+          padding: '36px 0 20px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 16,
+        }}
+      >
         <div>
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '3px',
+              textTransform: 'uppercase' as const,
+              color: '#E040FB',
+              marginBottom: 8,
+              fontFamily: '"Space Grotesk", sans-serif',
+            }}
+          >
+            BEHIND THE STAGE · PRODUCT
+          </p>
           <h2
             id="behind-analytics-heading"
-            className="text-xl font-semibold font-[family-name:var(--font-heading)]"
-            style={{ color: 'var(--foreground)' }}
+            style={{
+              fontSize: 'clamp(26px, 4vw, 38px)',
+              fontWeight: 700,
+              letterSpacing: '-0.025em',
+              lineHeight: 1.1,
+              fontFamily: '"Space Grotesk", sans-serif',
+              margin: 0,
+            }}
           >
-            StageLink Platform - Analytics
+            <span style={{ color: '#fff' }}>StageLink platform </span>
+            <span
+              style={{
+                background: GRADIENT,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              analytics.
+            </span>
           </h2>
-          <p className="mt-1 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          <p
+            style={{
+              marginTop: 10,
+              fontSize: 15,
+              color: 'rgba(255,255,255,0.5)',
+              lineHeight: 1.55,
+              maxWidth: 460,
+            }}
+          >
             Product analytics collected from stagelink.art and reviewed from Behind.
           </p>
         </div>
+
         {umamiShareUrl && (
-          <Button asChild size="sm" variant="outline">
+          <Button asChild size="sm" variant="outline" style={{ flexShrink: 0 }}>
             <a href={umamiShareUrl} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="h-4 w-4" aria-hidden="true" />
               Open in Umami
@@ -83,19 +132,51 @@ export function BehindAnalyticsPanel({ compact = false }: BehindAnalyticsPanelPr
       </div>
 
       {!compact && (
-        <div className="grid gap-3 md:grid-cols-3">
-          {DASHBOARD_MODULES.map((module) => {
+        <div className="grid gap-4 md:grid-cols-3">
+          {DASHBOARD_MODULES.map((module, i) => {
             const Icon = module.icon;
+            const accents = ['#E040FB', '#00D4FF', '#9B30D0'];
+            const accent = accents[i % accents.length];
             return (
               <div
                 key={module.title}
-                className="rounded-lg border border-white/10 bg-white/[0.03] px-4 py-3"
+                style={{
+                  borderRadius: 20,
+                  padding: '20px 22px',
+                  background: `radial-gradient(ellipse 80% 60% at 90% 10%, ${accent}14 0%, transparent 65%), rgba(255,255,255,0.025)`,
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+                }}
               >
-                <div className="flex items-center gap-2 text-sm font-semibold text-white/85">
-                  <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
-                  {module.title}
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    backgroundColor: `${accent}18`,
+                    border: `1px solid ${accent}28`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 12,
+                  }}
+                >
+                  <Icon className="h-4 w-4" style={{ color: accent }} aria-hidden="true" />
                 </div>
-                <p className="mt-1 text-xs text-white/45">{module.description}</p>
+                <p
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: '#fff',
+                    fontFamily: '"Space Grotesk", sans-serif',
+                    marginBottom: 6,
+                  }}
+                >
+                  {module.title}
+                </p>
+                <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
+                  {module.description}
+                </p>
               </div>
             );
           })}
