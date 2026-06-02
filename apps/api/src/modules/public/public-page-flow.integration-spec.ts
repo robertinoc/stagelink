@@ -5,6 +5,7 @@ import { AuditService } from '../audit/audit.service';
 import { PostHogService } from '../analytics/posthog.service';
 import { OnboardingController } from '../onboarding/onboarding.controller';
 import { OnboardingService } from '../onboarding/onboarding.service';
+import { OnboardingEmailsService } from '../onboarding-emails/onboarding-emails.service';
 import { PublicPagesController } from './public-pages.controller';
 import { PublicPagesService } from './public-pages.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
@@ -54,6 +55,10 @@ describe('public page integration flow', () => {
         PrismaService,
         AuditService,
         OnboardingService,
+        {
+          provide: OnboardingEmailsService,
+          useValue: { sendWelcomeEmail: jest.fn().mockResolvedValue(undefined) },
+        },
         TenantResolverService,
         PublicPagesService,
         {

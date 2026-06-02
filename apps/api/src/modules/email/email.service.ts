@@ -436,4 +436,74 @@ export class EmailService {
 
     await this.send(to, `Your StageLink subscription has changed to ${toName}`, html);
   }
+
+  // ─── Onboarding emails ───────────────────────────────────────────────────────
+
+  async sendOnboardingWelcome(to: string, firstName: string): Promise<void> {
+    const dashboardUrl = process.env['FRONTEND_URL']
+      ? `${process.env['FRONTEND_URL']}/dashboard`
+      : 'https://stagelink.art/dashboard';
+
+    const html = this.buildEmailHtml(
+      `tu stage está listo, ${firstName}`,
+      [
+        `Hola ${firstName}, bienvenido/a a StageLink.`,
+        'Tu página pública está creada y lista para que la personalices. Agregá tus links, música o video y publicala cuando quieras.',
+        'Solo te lleva unos minutos tener tu stage profesional online.',
+      ],
+      'Ir al dashboard',
+      dashboardUrl,
+    );
+
+    await this.send(to, `tu stage está listo, ${firstName}`, html);
+  }
+
+  async sendOnboardingReengagement(
+    to: string,
+    firstName: string,
+    variant: 'A' | 'B',
+  ): Promise<void> {
+    const dashboardUrl = process.env['FRONTEND_URL']
+      ? `${process.env['FRONTEND_URL']}/dashboard`
+      : 'https://stagelink.art/dashboard';
+
+    const lines =
+      variant === 'A'
+        ? [
+            `${firstName}, ya agregaste contenido a tu página, ¡está a un solo paso!`,
+            'Solo falta publicarla para que tus fans y promotores puedan encontrarte.',
+            'Entrá al dashboard y presioná "Publicar" — tarda menos de un segundo.',
+          ]
+        : [
+            `${firstName}, tu página todavía no tiene contenido, pero no es tarde.`,
+            'Agregá tu primer link de redes sociales, un embed de Spotify o algo que defina tu sonido.',
+            'Tu stage puede estar online hoy mismo.',
+          ];
+
+    const html = this.buildEmailHtml(
+      `${firstName}, tu página quedó a un paso`,
+      lines,
+      'Continuar ahora',
+      dashboardUrl,
+    );
+
+    await this.send(to, `${firstName}, tu página quedó a un paso`, html);
+  }
+
+  async sendOnboardingActivation(to: string, firstName: string, username: string): Promise<void> {
+    const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://stagelink.art';
+    const pageUrl = `${appUrl}/en/${username}`;
+
+    const html = this.buildEmailHtml(
+      'tu stage está encendido',
+      [
+        `¡Felicitaciones, ${firstName}! Tu página pública está online.`,
+        'Compartí tu link con tu audiencia y empezá a medir el alcance de tu stage.',
+      ],
+      'Ver mi página',
+      pageUrl,
+    );
+
+    await this.send(to, 'tu stage está encendido', html);
+  }
 }

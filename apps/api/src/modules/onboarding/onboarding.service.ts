@@ -6,6 +6,7 @@ import { normalizeUsername, validateUsernameFormat } from '../../common/utils/us
 import { PrismaService } from '../../lib/prisma.service';
 import { PostHogService } from '../analytics/posthog.service';
 import { AuditService } from '../audit/audit.service';
+import { OnboardingEmailsService } from '../onboarding-emails/onboarding-emails.service';
 import type { CompleteOnboardingDto } from './dto';
 
 export interface OnboardingResult {
@@ -21,9 +22,7 @@ function sanitizeSecondaryCategories(
 ): ArtistCategory[] {
   if (!secondaryCategories?.length) return [];
 
-  return Array.from(
-    new Set(secondaryCategories.filter((category) => category !== primary)),
-  );
+  return Array.from(new Set(secondaryCategories.filter((category) => category !== primary)));
 }
 
 export interface UsernameCheckResult {
@@ -40,6 +39,7 @@ export class OnboardingService {
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     private readonly posthog: PostHogService,
+    private readonly onboardingEmails: OnboardingEmailsService,
   ) {}
 
   async checkUsername(rawValue: string): Promise<UsernameCheckResult> {
@@ -160,6 +160,13 @@ export class OnboardingService {
     this.logger.log(
       `Onboarding complete: userId=${user.id} artistId=${result.artistId} username=${normalized}`,
     );
+
+    // Fire welcome email async — never block the onboarding response.
+    this.onboardingEmails
+      .sendWelcomeEmail(result.artistId)
+      .catch((err) =>
+        this.logger.warn(`Welcome email failed artistId=${result.artistId}: ${String(err)}`),
+      );
 
     return {
       artistId: result.artistId,

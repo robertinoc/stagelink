@@ -184,6 +184,7 @@ model Artist {
   merchProviderConnection MerchProviderConnection?
   insightsConnections ArtistPlatformInsightsConnection[]
   insightsSnapshots ArtistPlatformInsightsSnapshot[]
+  onboardingState OnboardingState?
 
   @@map("artists")
 }
@@ -341,6 +342,7 @@ enum EventType {
   link_click
   smart_link_resolution
   fan_capture_submit
+  onboarding_email_sent
 
   @@map("event_type")
 }
@@ -716,4 +718,25 @@ model Asset {
 
   @@index([artistId, kind])
   @@map("assets")
+}
+
+// =============================================================
+// ONBOARDING STATE
+// Tracks per-artist onboarding email delivery and dismissal.
+// Created lazily on first email send or dismiss action.
+// =============================================================
+model OnboardingState {
+  id                      String    @id @default(cuid())
+  artistId                String    @unique @map("artist_id")
+  welcomeEmailSentAt      DateTime? @map("welcome_email_sent_at")
+  reengagementEmailSentAt DateTime? @map("reengagement_email_sent_at")
+  reengagementVariant     String?   @map("reengagement_variant") // 'A' | 'B'
+  activationEmailSentAt   DateTime? @map("activation_email_sent_at")
+  isDismissed             Boolean   @default(false) @map("is_dismissed")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@map("onboarding_states")
 }

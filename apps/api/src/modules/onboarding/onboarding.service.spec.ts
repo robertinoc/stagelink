@@ -4,6 +4,7 @@ import { OnboardingService } from './onboarding.service';
 import type { AuditService } from '../audit/audit.service';
 import type { PostHogService } from '../analytics/posthog.service';
 import type { PrismaService } from '../../lib/prisma.service';
+import type { OnboardingEmailsService } from '../onboarding-emails/onboarding-emails.service';
 
 describe('OnboardingService', () => {
   const user = {
@@ -35,16 +36,21 @@ describe('OnboardingService', () => {
     const posthog = {
       capture: jest.fn(),
     };
+    const onboardingEmails = {
+      sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
+    };
 
     return {
       service: new OnboardingService(
         prisma as unknown as PrismaService,
         auditService as unknown as AuditService,
         posthog as unknown as PostHogService,
+        onboardingEmails as unknown as OnboardingEmailsService,
       ),
       prisma,
       auditService,
       posthog,
+      onboardingEmails,
     };
   };
 
