@@ -1974,7 +1974,8 @@
           "title": "Download my data",
           "hint": "Export a structured JSON with your account, workspaces, public page, EPK, integration metadata and recent activity.",
           "cta": "Download JSON export",
-          "toast": "Your export is on its way."
+          "toast": "Your export is on its way.",
+          "error": "Could not generate the export. Please try again."
         },
         "delete": {
           "title": "Delete my account",

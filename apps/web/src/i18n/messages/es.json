@@ -1974,7 +1974,8 @@
           "title": "Descargar mis datos",
           "hint": "Exportá un JSON estructurado con tu cuenta, workspaces, página pública, EPK, metadata de integraciones y actividad reciente.",
           "cta": "Descargar export JSON",
-          "toast": "Tu export está en camino."
+          "toast": "Tu export está en camino.",
+          "error": "No se pudo generar el export. Intentá de nuevo."
         },
         "delete": {
           "title": "Eliminar mi cuenta",
