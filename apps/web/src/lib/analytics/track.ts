@@ -21,9 +21,22 @@
  */
 
 import { ANALYTICS_EVENTS } from '@stagelink/types';
-import type { PublicLinkClickProps } from '@stagelink/types';
+import type { AnalyticsEventName, AuthFunnelProps, PublicLinkClickProps } from '@stagelink/types';
 import { getPostHog } from './posthog';
 import { isAnalyticsAllowed, getConsentHeaderValue } from './consent';
+import { trackUmamiEvent } from './umami';
+
+type AuthFunnelEventName =
+  | typeof ANALYTICS_EVENTS.AUTH_LOGIN_STARTED
+  | typeof ANALYTICS_EVENTS.AUTH_SIGNUP_STARTED
+  | typeof ANALYTICS_EVENTS.AUTH_LOGIN_SIGNUP_CLICKED
+  | typeof ANALYTICS_EVENTS.AUTH_SIGNUP_LOGIN_CLICKED;
+
+type PlatformFunnelProps = Omit<AuthFunnelProps, 'environment'>;
+
+function getWebEnvironment(): string {
+  return process.env.NEXT_PUBLIC_APP_ENV ?? process.env.NODE_ENV ?? 'development';
+}
 
 // ─── QA mode ─────────────────────────────────────────────────────────────────
 
@@ -90,8 +103,32 @@ function isClickDebugEnabled(): boolean {
 
 function debugLog(label: string, payload: unknown): void {
   if (!isClickDebugEnabled()) return;
-  // eslint-disable-next-line no-console
   console.log(`%c[sl_debug] ${label}`, 'color:#E040FB;font-weight:bold', payload);
+}
+
+// ─── Platform funnel events (client-side) ─────────────────────────────────────
+
+/**
+ * Tracks product funnel intent events without PII.
+ *
+ * These events intentionally carry only route locale, source surface and
+ * deployment environment. Hosted auth owns credentials, so never add email,
+ * names, handles or WorkOS identifiers here.
+ */
+export function trackPlatformFunnelEvent(
+  event: AuthFunnelEventName,
+  props: PlatformFunnelProps,
+): void {
+  if (!isAnalyticsAllowed()) return;
+
+  const payload: AuthFunnelProps = {
+    ...props,
+    environment: getWebEnvironment(),
+  };
+
+  const ph = getPostHog();
+  ph?.capture(event satisfies AnalyticsEventName, payload);
+  trackUmamiEvent(event, { ...payload });
 }
 
 // ─── Public page events (client-side) ─────────────────────────────────────────

@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { trackPlatformFunnelEvent } from '@/lib/analytics/track';
+import { ANALYTICS_EVENTS } from '@stagelink/types';
 import Link from 'next/link';
 
 interface LoginFormProps {
@@ -28,7 +30,7 @@ interface LoginFormProps {
  * SubmitButton must be a child of the <form> so useFormStatus can read
  * the pending state of the parent form's Server Action.
  */
-function SubmitButton({ label }: { label: string }) {
+function SubmitButton({ label, locale }: { label: string; locale: string }) {
   const { pending } = useFormStatus();
   return (
     <Button
@@ -37,7 +39,12 @@ function SubmitButton({ label }: { label: string }) {
       className="w-full"
       disabled={pending}
       aria-disabled={pending}
-      data-umami-event="platform_login_started"
+      onClick={() =>
+        trackPlatformFunnelEvent(ANALYTICS_EVENTS.AUTH_LOGIN_STARTED, {
+          locale,
+          surface: 'login',
+        })
+      }
     >
       {pending && <Loader2 className="h-4 w-4 animate-spin" />}
       {label}
@@ -72,7 +79,7 @@ export function LoginForm({ action, locale, errorMessage }: LoginFormProps) {
           </div>
         )}
         <form action={action}>
-          <SubmitButton label={t('submit')} />
+          <SubmitButton label={t('submit')} locale={locale} />
         </form>
       </CardContent>
       <CardFooter className="justify-center text-sm text-muted-foreground">
@@ -80,7 +87,12 @@ export function LoginForm({ action, locale, errorMessage }: LoginFormProps) {
         <Link
           href={`/${locale}/signup`}
           className="text-foreground underline-offset-4 hover:underline"
-          data-umami-event="platform_login_signup_clicked"
+          onClick={() =>
+            trackPlatformFunnelEvent(ANALYTICS_EVENTS.AUTH_LOGIN_SIGNUP_CLICKED, {
+              locale,
+              surface: 'login',
+            })
+          }
         >
           {t('signup_link')}
         </Link>
