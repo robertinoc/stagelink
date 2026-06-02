@@ -71,7 +71,8 @@ export class ShopifyService {
 
   async getConnection(artistId: string, userId: string): Promise<ShopifyConnection> {
     await this.membershipService.validateAccess(userId, artistId, 'read');
-    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'shopify_integration');
+    // Option-B grace: reading existing connection status is always allowed
+    // so the Settings UI can show the connection state after a downgrade.
 
     const connection = await this.prisma.shopifyConnection.findUnique({
       where: { artistId },
@@ -207,7 +208,7 @@ export class ShopifyService {
     ipAddress?: string,
   ): Promise<ShopifyConnection> {
     await this.membershipService.validateAccess(userId, artistId, 'write');
-    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'shopify_integration');
+    // Option-B grace: disconnecting is always allowed regardless of plan.
 
     const existing = await this.prisma.shopifyConnection.findUnique({
       where: { artistId },

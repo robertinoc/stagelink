@@ -174,7 +174,10 @@ export class BlocksService {
       const mergedConfig = { ...existing, ...dto.config };
       validateBlockConfig(block.type, mergedConfig);
 
-      await this.assertFeatureAccessForBlock(artistId, block.type);
+      // Option-B grace: editing an EXISTING block's config is always allowed
+      // regardless of plan. Feature gates only apply to creating NEW premium
+      // blocks — users keep full editing control over blocks they set up during
+      // a higher-tier period (trial or paid).
 
       // Guard: verify that any referenced smartLinkIds belong to this artist.
       if (block.type === 'links') {
@@ -330,7 +333,8 @@ export class BlocksService {
   async publish(blockId: string, userId: string, ipAddress?: string) {
     const { block, artistId } = await this.resolveBlock(blockId);
     await this.membershipService.validateAccess(userId, artistId, 'write');
-    await this.assertFeatureAccessForBlock(artistId, block.type);
+    // Option-B grace: publishing an existing block is always allowed.
+    // The premium-feature gate only applies to creating new blocks.
 
     if (block.type === 'smart_merch') {
       const config =
