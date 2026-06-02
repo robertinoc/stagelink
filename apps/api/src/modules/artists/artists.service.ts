@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, Logger } from '@nestjs/common';
 import { ArtistCategory, Prisma } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
 import { MembershipService } from '../membership/membership.service';
@@ -15,6 +15,7 @@ import {
   type SupportedLocale,
 } from '@stagelink/types';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
+import { BillingService } from '../billing/billing.service';
 import {
   hasAdditionalLocaleContent,
   sanitizeTranslationFieldMap,
@@ -168,12 +169,15 @@ function sanitizeReleases(
 
 @Injectable()
 export class ArtistsService {
+  private readonly logger = new Logger(ArtistsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly membershipService: MembershipService,
     private readonly auditService: AuditService,
     private readonly posthog: PostHogService,
     private readonly billingEntitlementsService: BillingEntitlementsService,
+    private readonly billingService: BillingService,
   ) {}
 
   private mapArtist(artist: ArtistRecord) {
@@ -239,6 +243,11 @@ export class ArtistsService {
       entityId: artist.id,
       metadata: { username: artist.username, displayName: artist.displayName },
       ipAddress,
+    });
+
+    // Grant a 30-day Pro+ trial automatically on signup (fire-and-forget).
+    void this.billingService.grantSignupTrial(artist.id).catch((err: unknown) => {
+      this.logger.error('Failed to grant signup trial', { artistId: artist.id, err });
     });
 
     return this.mapArtist({
