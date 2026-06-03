@@ -574,6 +574,8 @@ export function EpkEditorV2({
             artistId={artistId}
             locale={locale}
             inherited={inherited}
+            initialShortBio={editorData.epk.shortBio}
+            initialFullBio={editorData.epk.fullBio}
             displayedCoverImage={displayedCoverImage}
             displayedArtistImage={displayedArtistImage}
             onSetCoverImage={setCoverImage}

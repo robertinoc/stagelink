@@ -74,22 +74,19 @@ describe('epkFormSchema', () => {
     }
   });
 
-  it('rejects when shortBio is missing', () => {
-    const result = parse({ shortBio: null });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      const paths = result.error.errors.map((e) => e.path.join('.'));
-      expect(paths).toContain('shortBio');
-    }
+  it('accepts when only shortBio is provided (no fullBio required)', () => {
+    const result = parse({ fullBio: null });
+    expect(result.success).toBe(true);
   });
 
-  it('rejects when fullBio is missing', () => {
-    const result = parse({ fullBio: null });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      const paths = result.error.errors.map((e) => e.path.join('.'));
-      expect(paths).toContain('fullBio');
-    }
+  it('accepts when only fullBio is provided (no shortBio required)', () => {
+    const result = parse({ shortBio: null });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts when neither shortBio nor fullBio are provided (bio only blocks publish, not draft save)', () => {
+    const result = parse({ shortBio: null, fullBio: null });
+    expect(result.success).toBe(true);
   });
 
   it('rejects when neither featuredMedia nor galleryImageUrls are provided', () => {

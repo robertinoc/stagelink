@@ -64,22 +64,6 @@ export const epkFormSchema = z
       });
     }
 
-    if (readiness.missing.includes('Short bio')) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['shortBio'],
-        message: 'Short bio is required.',
-      });
-    }
-
-    if (readiness.missing.includes('Full bio')) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['fullBio'],
-        message: 'Full bio is required.',
-      });
-    }
-
     if (readiness.missing.includes('Featured media or gallery image')) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

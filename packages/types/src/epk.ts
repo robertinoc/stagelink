@@ -83,8 +83,8 @@ export function getEpkPublishReadiness(input: EpkPublishReadinessInput): EpkPubl
   const missing: string[] = [];
 
   if (!hasText(input.headline)) missing.push('Headline');
-  if (!hasText(input.shortBio)) missing.push('Short bio');
-  if (!hasText(input.fullBio)) missing.push('Full bio');
+  // At least one bio is required — short or full, not both mandatory.
+  if (!hasText(input.shortBio) && !hasText(input.fullBio)) missing.push('Bio');
 
   const hasFeaturedVisualContent =
     (input.featuredMedia ?? []).some((item) => hasText(item.title) && hasText(item.url)) ||
@@ -166,6 +166,8 @@ export interface EpkInheritedArtistSnapshot {
   avatarUrl: string | null;
   coverUrl: string | null;
   bio: string | null;
+  /** Full (long-form) bio from the artist profile — used as fallback in EPK editor when epk.fullBio is not yet set. */
+  fullBio: string | null;
   instagramUrl: string | null;
   tiktokUrl: string | null;
   youtubeUrl: string | null;

@@ -1,10 +1,10 @@
 'use client';
 
 // Tab 1 — Identity
-// Hero images (cover + avatar) + bio (artist name, headline, short bio,
-// full-bio link to Profile, press quote). Contacts will be added in Commit B.
-// Highlights / availability / featured links live in Booking and Media tabs.
+// Hero images (cover + avatar) + bio selector (short or full, from artist
+// profile) + headline + press quote + contacts.
 
+import { useState } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import type { EpkInheritedArtistSnapshot } from '@stagelink/types';
@@ -60,6 +60,80 @@ const TEXTAREA_STYLE: React.CSSProperties = {
   lineHeight: 1.6,
 };
 
+// ── Bio picker ────────────────────────────────────────────────────────────────
+
+function BioPicker({
+  label,
+  content,
+  checked,
+  onToggle,
+  disabled,
+}: {
+  label: string;
+  content: string | null;
+  checked: boolean;
+  onToggle: (checked: boolean) => void;
+  disabled: boolean;
+}) {
+  const available = !!content;
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <label
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          cursor: available && !disabled ? 'pointer' : 'default',
+          marginBottom: 6,
+          userSelect: 'none',
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={checked && available}
+          disabled={disabled || !available}
+          onChange={(e) => onToggle(e.target.checked)}
+          style={{ accentColor: '#E040FB', width: 15, height: 15, flexShrink: 0 }}
+        />
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: available ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)',
+            fontFamily: 'var(--font-heading)',
+          }}
+        >
+          {label}
+        </span>
+        {!available && (
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>
+            — No disponible en tu perfil
+          </span>
+        )}
+      </label>
+      {available && (
+        <div
+          style={{
+            padding: '10px 14px',
+            borderRadius: 10,
+            background: checked ? 'rgba(224,64,251,0.07)' : 'rgba(0,0,0,0.12)',
+            border: `1px solid ${checked ? 'rgba(224,64,251,0.3)' : 'rgba(255,255,255,0.07)'}`,
+            fontSize: 12.5,
+            color: checked ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.3)',
+            lineHeight: 1.6,
+            maxHeight: 110,
+            overflowY: 'auto',
+            transition: 'all 0.15s ease',
+            whiteSpace: 'pre-wrap',
+          }}
+        >
+          {content}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 interface EpkIdentityTabProps {
@@ -68,6 +142,10 @@ interface EpkIdentityTabProps {
   artistId: string;
   locale: string;
   inherited: EpkInheritedArtistSnapshot;
+  /** Raw DB value of epk.shortBio — null if never set. Used to init checkbox state. */
+  initialShortBio: string | null;
+  /** Raw DB value of epk.fullBio — null if never set. Used to init checkbox state. */
+  initialFullBio: string | null;
   displayedCoverImage: string;
   displayedArtistImage: string;
   onSetCoverImage: (url: string) => void;
@@ -80,6 +158,8 @@ export function EpkIdentityTab({
   artistId,
   locale,
   inherited,
+  initialShortBio,
+  initialFullBio,
   displayedCoverImage,
   displayedArtistImage,
   onSetCoverImage,
@@ -94,6 +174,11 @@ export function EpkIdentityTab({
   } = form;
   const isMobile = useIsMobile();
   const watchedHighlights = watch('highlights');
+
+  // Bio selector state — tracks which bios the artist wants in their EPK.
+  // Initialized from whether the DB already had a saved value for each field.
+  const [useShortBio, setUseShortBio] = useState(() => !!initialShortBio);
+  const [useFullBio, setUseFullBio] = useState(() => !!initialFullBio);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -186,6 +271,9 @@ export function EpkIdentityTab({
                 setValue('shortBio', generated.shortBio, { shouldDirty: true });
                 setValue('fullBio', generated.fullBio, { shouldDirty: true });
                 setValue('pressQuote', generated.pressQuote, { shouldDirty: true });
+                // Auto-check boxes when AI generates both bios
+                if (generated.shortBio) setUseShortBio(true);
+                if (generated.fullBio) setUseFullBio(true);
               }}
             />
           )}
@@ -219,35 +307,28 @@ export function EpkIdentityTab({
             <FieldError message={errors.headline?.message} />
           </div>
 
-          {/* Short bio */}
+          {/* Bio selector — from artist profile */}
           <div>
-            <FieldLabel required>{t('identity.shortBio')}</FieldLabel>
-            <textarea
-              rows={4}
-              placeholder={inherited.bio ?? t('identity.shortBioPlaceholder')}
-              disabled={disabled}
-              style={TEXTAREA_STYLE}
-              {...register('shortBio')}
-            />
-            <FieldError message={errors.shortBio?.message} />
-          </div>
-
-          {/* Full bio — link to profile */}
-          <div>
-            <FieldLabel>{t('identity.fullBio')}</FieldLabel>
-            <div
-              style={{
-                padding: '10px 14px',
-                borderRadius: 10,
-                background: 'rgba(0,0,0,0.15)',
-                border: '1px solid rgba(255,255,255,0.07)',
-                fontSize: 12,
-                color: 'rgba(255,255,255,0.5)',
-                lineHeight: 1.5,
-              }}
-            >
-              {t.rich('identity.fullBioNote', {
-                link: (chunks) => (
+            <div style={{ marginBottom: 10 }}>
+              <p
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: 'rgba(255,255,255,0.7)',
+                  marginBottom: 4,
+                  fontFamily: 'var(--font-heading)',
+                }}
+              >
+                Bio <span style={{ color: '#E040FB' }}>*</span>
+                <span
+                  style={{
+                    fontWeight: 400,
+                    fontSize: 11,
+                    color: 'rgba(255,255,255,0.4)',
+                    marginLeft: 6,
+                  }}
+                >
+                  Elegí al menos una. Se sincroniza desde tu{' '}
                   <a
                     href={`/${locale}/dashboard/profile`}
                     style={{
@@ -256,11 +337,42 @@ export function EpkIdentityTab({
                       textUnderlineOffset: 3,
                     }}
                   >
-                    {chunks}
+                    Perfil
                   </a>
-                ),
-              })}
+                  .
+                </span>
+              </p>
             </div>
+
+            <BioPicker
+              label="Bio corta"
+              content={inherited.bio}
+              checked={useShortBio}
+              disabled={disabled}
+              onToggle={(checked) => {
+                setUseShortBio(checked);
+                setValue('shortBio', checked ? (inherited.bio ?? '') : '', { shouldDirty: true });
+              }}
+            />
+
+            <BioPicker
+              label="Bio completa"
+              content={inherited.fullBio ?? null}
+              checked={useFullBio}
+              disabled={disabled}
+              onToggle={(checked) => {
+                setUseFullBio(checked);
+                setValue('fullBio', checked ? (inherited.fullBio ?? '') : '', {
+                  shouldDirty: true,
+                });
+              }}
+            />
+
+            {!useShortBio && !useFullBio && (
+              <p style={{ fontSize: 11, color: '#FBBF24', marginTop: 4 }}>
+                Seleccioná al menos una bio para poder publicar tu press kit.
+              </p>
+            )}
           </div>
 
           {/* Press quote */}
