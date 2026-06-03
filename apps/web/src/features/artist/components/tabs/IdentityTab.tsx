@@ -121,8 +121,8 @@ export function IdentityTab({
       await uploadToS3(intent.uploadUrl, file, () => {});
       const asset = await confirmUpload(intent.assetId);
       if (asset.deliveryUrl) onDone(asset.deliveryUrl);
-    } catch {
-      // silently fail — production adds toast
+    } catch (err) {
+      console.error(`[profile] Image upload failed (${type}):`, err);
     } finally {
       onEnd();
     }
@@ -132,6 +132,7 @@ export function IdentityTab({
     const file = e.target.files?.[0];
     if (!file) return;
     const blob = URL.createObjectURL(file);
+    setAvatarBroken(false);
     setLocalAvatarPreview(blob);
     void uploadImage(
       file,
@@ -150,6 +151,7 @@ export function IdentityTab({
     const file = e.target.files?.[0];
     if (!file) return;
     const blob = URL.createObjectURL(file);
+    setCoverBroken(false);
     setLocalCoverPreview(blob);
     void uploadImage(
       file,
@@ -235,8 +237,14 @@ export function IdentityTab({
   const isMobile = useIsMobile();
 
   // ── Artwork url ───────────────────────────────────────────────────────
-  const avatarDisplay = localAvatarPreview ?? currentAvatarUrl;
-  const coverDisplay = localCoverPreview ?? currentCoverUrl;
+  // Track broken image URLs so the UI falls back to the gradient placeholder
+  const [coverBroken, setCoverBroken] = useState(false);
+  const [avatarBroken, setAvatarBroken] = useState(false);
+
+  const rawAvatar = localAvatarPreview ?? currentAvatarUrl;
+  const rawCover = localCoverPreview ?? currentCoverUrl;
+  const avatarDisplay = avatarBroken ? null : rawAvatar;
+  const coverDisplay = coverBroken ? null : rawCover;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -257,6 +265,7 @@ export function IdentityTab({
               src={coverDisplay}
               alt="Cover"
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              onError={() => setCoverBroken(true)}
             />
           )}
           {/* Cover label pill */}
@@ -352,6 +361,7 @@ export function IdentityTab({
                   src={avatarDisplay}
                   alt="Avatar"
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={() => setAvatarBroken(true)}
                 />
               )}
             </div>
