@@ -74,6 +74,7 @@ function mapInheritedArtist(artist: Artist) {
     avatarUrl: artist.avatarUrl,
     coverUrl: artist.coverUrl,
     bio: artist.bio,
+    fullBio: artist.fullBio,
     instagramUrl: artist.instagramUrl,
     tiktokUrl: artist.tiktokUrl,
     youtubeUrl: artist.youtubeUrl,

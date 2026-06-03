@@ -42,7 +42,8 @@ export function EpkSaveBar({
   const isSaving = status === 'saving';
   const isSuccess = status === 'success';
   const isError = status === 'error';
-  const canSave = ready && !isSaving;
+  // Drafts are always saveable — readiness only gates publishing.
+  const canSave = !isSaving;
 
   let dotColor = '#E040FB';
   let label = t('saveBar.draftUnsaved');

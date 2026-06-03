@@ -172,7 +172,7 @@ export function EpkEditorV2({
       baseLocale: editorData.epk.baseLocale,
       headline: editorData.epk.headline ?? '',
       shortBio: editorData.epk.shortBio ?? '',
-      fullBio: editorData.epk.fullBio ?? '',
+      fullBio: editorData.epk.fullBio ?? editorData.inherited.fullBio ?? '',
       pressQuote: editorData.epk.pressQuote ?? '',
       bookingEmail: editorData.epk.bookingEmail ?? '',
       managementContact: editorData.epk.managementContact ?? '',
