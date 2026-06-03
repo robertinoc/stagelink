@@ -172,7 +172,7 @@ export function EpkEditorV2({
       baseLocale: editorData.epk.baseLocale,
       headline: editorData.epk.headline ?? '',
       shortBio: editorData.epk.shortBio ?? '',
-      fullBio: editorData.epk.fullBio ?? editorData.inherited.fullBio ?? '',
+      fullBio: editorData.epk.fullBio ?? '',
       pressQuote: editorData.epk.pressQuote ?? '',
       bookingEmail: editorData.epk.bookingEmail ?? '',
       managementContact: editorData.epk.managementContact ?? '',
@@ -574,6 +574,8 @@ export function EpkEditorV2({
             artistId={artistId}
             locale={locale}
             inherited={inherited}
+            initialShortBio={editorData.epk.shortBio}
+            initialFullBio={editorData.epk.fullBio}
             displayedCoverImage={displayedCoverImage}
             displayedArtistImage={displayedArtistImage}
             onSetCoverImage={setCoverImage}
