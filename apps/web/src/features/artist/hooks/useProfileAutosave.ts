@@ -14,6 +14,8 @@ const DEBOUNCE_MS = 600;
 interface UseProfileAutosaveOptions {
   form: UseFormReturn<ProfileFormValues>;
   artistId: string;
+  /** When false, translations are stripped from the payload to avoid a 403 from the billing gate. */
+  hasMultiLanguageAccess?: boolean;
   onSaved?: () => void;
   onError?: (err: unknown) => void;
 }
@@ -21,6 +23,7 @@ interface UseProfileAutosaveOptions {
 export function useProfileAutosave({
   form,
   artistId,
+  hasMultiLanguageAccess = false,
   onSaved,
   onError,
 }: UseProfileAutosaveOptions) {
@@ -110,7 +113,10 @@ export function useProfileAutosave({
       traxsourceUrl: values.traxsourceUrl || null,
       seoTitle: values.seoTitle || null,
       seoDescription: values.seoDescription || null,
-      translations: Object.keys(translations).length ? translations : undefined,
+      // Only send translations if the user's plan includes multi-language pages.
+      // Otherwise the backend's billing gate would reject the entire save.
+      translations:
+        hasMultiLanguageAccess && Object.keys(translations).length ? translations : undefined,
     };
   }
 

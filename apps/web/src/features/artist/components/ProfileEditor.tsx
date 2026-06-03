@@ -35,7 +35,6 @@ interface ProfileEditorProps {
 
 export function ProfileEditor({
   artist,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hasMultiLanguageAccess,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   billingHref,
@@ -102,6 +101,7 @@ export function ProfileEditor({
   const { saveStatus, triggerSave, triggerDiscard } = useProfileAutosave({
     form,
     artistId: artist.id,
+    hasMultiLanguageAccess,
   });
 
   // ── Completion ────────────────────────────────────────────────────────────
