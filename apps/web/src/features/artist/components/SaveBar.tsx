@@ -9,6 +9,7 @@ import { Btn } from '@/components/sl/Btn';
 interface SaveBarProps {
   isDirty: boolean;
   isSaving?: boolean;
+  saveError?: boolean;
   onSave: () => void;
   onDiscard: () => void;
 }

@@ -123,7 +123,11 @@ export function useProfileAutosave({
   const doSave = useCallback(
     async (values: ProfileFormValues) => {
       const valid = await form.trigger();
-      if (!valid) return;
+      if (!valid) {
+        // Surface validation errors to the user instead of silently aborting.
+        setSaveStatus('error');
+        return;
+      }
       setSaveStatus('saving');
       try {
         const payload = buildPayload(values);
