@@ -121,8 +121,8 @@ export function IdentityTab({
       await uploadToS3(intent.uploadUrl, file, () => {});
       const asset = await confirmUpload(intent.assetId);
       if (asset.deliveryUrl) onDone(asset.deliveryUrl);
-    } catch {
-      // silently fail — production adds toast
+    } catch (err) {
+      console.error(`[profile] Image upload failed (${type}):`, err);
     } finally {
       onEnd();
     }
