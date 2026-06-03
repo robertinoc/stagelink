@@ -111,6 +111,7 @@ export function ProfileEditor({
 
   const isDirty = form.formState.isDirty;
   const isSaving = saveStatus === 'saving';
+  const isSaveError = saveStatus === 'error';
 
   useUnsavedChangesGuard({
     enabled: isDirty && !isSaving,
@@ -229,8 +230,9 @@ export function ProfileEditor({
 
       {/* ── SaveBar ──────────────────────────────────────────────────────── */}
       <SaveBar
-        isDirty={isDirty}
+        isDirty={isDirty || isSaveError}
         isSaving={isSaving}
+        saveError={isSaveError}
         onSave={triggerSave}
         onDiscard={triggerDiscard}
       />
