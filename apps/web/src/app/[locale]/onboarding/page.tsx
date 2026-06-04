@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { getAuthMe } from '@/lib/api/me';
+import { SignupConversionTracker } from '@/lib/analytics/SignupConversionTracker';
 import { UmamiProvider } from '@/lib/analytics/UmamiProvider';
 import { ConnectionErrorState } from '@/components/shared/ConnectionErrorState';
 import { OnboardingWizard } from '@/features/onboarding/components/OnboardingWizard';
@@ -57,6 +58,7 @@ export default async function OnboardingPage({ params }: OnboardingPageProps) {
 
   return (
     <UmamiProvider>
+      <SignupConversionTracker locale={locale} accountCreatedAt={me.createdAt} />
       <OnboardingWizard locale={locale} completeOnboardingAction={completeOnboardingAction} />
     </UmamiProvider>
   );

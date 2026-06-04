@@ -84,9 +84,11 @@ referral_001,Manual,manual_outreach,referral,stagelink_growth_2026_q2,friend_ref
 
 ## Platform Umami Events
 
-StageLink Platform tracks acquisition intent with safe metadata only:
+StageLink Platform tracks acquisition intent and confirmed signup conversion
+with safe metadata only:
 
 - `auth_signup_started`
+- `auth_signup_completed`
 - `auth_signup_login_clicked`
 - `auth_login_started`
 - `auth_login_signup_clicked`
@@ -96,6 +98,10 @@ Current explicit `auth_*` event properties:
 - `locale`
 - `surface`, limited to `signup` or `login`
 - `environment`
+
+`auth_signup_completed` is emitted only after a new internal StageLink account
+returns from hosted signup to onboarding or the authenticated dashboard. It does
+not include WorkOS identifiers or account data.
 
 Umami reads `utm_source`, `utm_medium`, `utm_campaign`, and `utm_content` from
 the campaign URL/session. Do not copy contact-table identifiers or outreach

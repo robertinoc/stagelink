@@ -14,7 +14,7 @@ the tracked product surface.
 Umami should measure:
 
 - landing and marketing traffic on `stagelink.art`;
-- signup and login intent;
+- signup intent, confirmed signup conversion, and login intent;
 - onboarding and authenticated product pageviews;
 - dashboard route usage under `/{locale}/dashboard`.
 
@@ -44,6 +44,8 @@ Files:
 
 - `apps/web/src/lib/analytics/UmamiProvider.tsx`
 - `apps/web/src/lib/analytics/umami.ts`
+- `apps/web/src/lib/analytics/SignupConversionTracker.tsx`
+- `apps/web/src/lib/analytics/signup-conversion.ts`
 - `apps/web/src/app/[locale]/(home)/layout.tsx`
 - `apps/web/src/app/[locale]/(marketing)/layout.tsx`
 - `apps/web/src/app/[locale]/(auth)/layout.tsx`
@@ -65,6 +67,7 @@ website and adds operator context around it.
 Current explicit platform events:
 
 - `auth_signup_started`
+- `auth_signup_completed`
 - `auth_signup_login_clicked`
 - `auth_login_started`
 - `auth_login_signup_clicked`
@@ -99,7 +102,8 @@ Current sections:
 1. Traffic overview: platform pageviews, visitors, visits, referrers, devices,
    and geography from the Umami dashboard.
 2. UTM campaigns: naming for acquisition links into signup and product entry.
-3. Product events: explicit signup/login intent events plus dashboard pageviews.
+3. Product events: signup intent/conversion, login intent, and dashboard
+   pageviews.
 4. Manual validation: visible end-to-end checks for the active platform setup.
 
 The future native dashboard path is intentionally documented but not implemented
@@ -119,8 +123,8 @@ Minimum release checks:
 3. Keep `NEXT_PUBLIC_UMAMI_DOMAINS=stagelink.art`.
 4. Deploy and open `https://stagelink.art/`.
 5. Accept analytics consent and confirm the Umami script is present.
-6. Confirm signup/login pageviews and `auth_*` events appear in the
-   `StageLink Platform` website.
+6. Complete a new signup and confirm `auth_signup_started` and
+   `auth_signup_completed` appear in the `StageLink Platform` website.
 7. Open an authenticated dashboard route and confirm dashboard pageviews appear.
 8. Confirm the script is absent on `behind.stagelink.art`.
 9. Open `/behind/analytics` and confirm the embedded dashboard renders.

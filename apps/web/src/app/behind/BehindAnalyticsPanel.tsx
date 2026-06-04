@@ -14,6 +14,7 @@ const umamiShareUrl = process.env.NEXT_PUBLIC_UMAMI_PLATFORM_SHARE_URL;
 
 const EVENTS = [
   'auth_signup_started',
+  'auth_signup_completed',
   'auth_signup_login_clicked',
   'auth_login_started',
   'auth_login_signup_clicked',
@@ -47,7 +48,8 @@ const UTM_FIELDS = [
 const VALIDATION_CHECKS = [
   'Open stagelink.art and confirm the Umami script loads after analytics consent.',
   'Open /es/signup and confirm a pageview appears in the StageLink Platform website.',
-  'Start signup or login to trigger auth_* intent events.',
+  'Complete a new signup and confirm auth_signup_completed appears after authenticated return.',
+  'Start login to trigger auth_login_started.',
   'Open /es/dashboard with an authenticated account and confirm product pageviews.',
   'Open behind.stagelink.art and confirm it only embeds Umami, without loading its tracker.',
 ] as const;

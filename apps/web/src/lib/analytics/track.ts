@@ -29,6 +29,7 @@ import { trackUmamiEvent } from './umami';
 type AuthFunnelEventName =
   | typeof ANALYTICS_EVENTS.AUTH_LOGIN_STARTED
   | typeof ANALYTICS_EVENTS.AUTH_SIGNUP_STARTED
+  | typeof ANALYTICS_EVENTS.AUTH_SIGNUP_COMPLETED
   | typeof ANALYTICS_EVENTS.AUTH_LOGIN_SIGNUP_CLICKED
   | typeof ANALYTICS_EVENTS.AUTH_SIGNUP_LOGIN_CLICKED;
 
@@ -109,7 +110,7 @@ function debugLog(label: string, payload: unknown): void {
 // ─── Platform funnel events (client-side) ─────────────────────────────────────
 
 /**
- * Tracks product funnel intent events without PII.
+ * Tracks consented product funnel events without PII.
  *
  * These events intentionally carry only route locale, source surface and
  * deployment environment. Hosted auth owns credentials, so never add email,

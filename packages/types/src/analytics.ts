@@ -31,6 +31,8 @@ export const ANALYTICS_EVENTS = {
   AUTH_LOGIN_STARTED: 'auth_login_started',
   /** A visitor clicked the signup CTA and was sent toward hosted auth. */
   AUTH_SIGNUP_STARTED: 'auth_signup_started',
+  /** A new StageLink account returned successfully from hosted signup. */
+  AUTH_SIGNUP_COMPLETED: 'auth_signup_completed',
   /** A visitor moved from the login screen to signup. */
   AUTH_LOGIN_SIGNUP_CLICKED: 'auth_login_signup_clicked',
   /** A visitor moved from the signup screen to login. */
@@ -74,9 +76,9 @@ interface BaseDashboardProps {
 }
 
 export interface AuthFunnelProps {
-  /** Locale route where the intent happened. */
+  /** Locale route where the funnel action happened. */
   locale: string;
-  /** Source surface for the intent. */
+  /** Source surface for the funnel action. */
   surface: 'login' | 'signup';
   /** App environment. */
   environment: string;

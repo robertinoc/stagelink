@@ -66,6 +66,9 @@ Current repo status after Umami Project v1:
   `stagelink.art,www.stagelink.art` and skips script injection when the current
   hostname is not in that allowlist.
 - Umami script injection is gated by analytics consent.
+- Confirmed signup conversion uses a timestamp-only, consent-gated
+  `sessionStorage` marker. It expires after one hour and is removed after use,
+  account mismatch, or consent withdrawal.
 
 Production rule:
 
@@ -129,6 +132,7 @@ Future check:
 | `sl_qa` cookie               | QA-only analytics exclusion            | Internal testing only             |
 | PostHog localStorage/cookies | Product analytics identifiers          | Only after analytics consent      |
 | Umami storage                | Optional StageLink platform analytics  | Product/growth analytics          |
+| Signup conversion marker     | Timestamp-only signup attribution      | Only after analytics consent      |
 
 ## No-Consent Expected Behavior
 
@@ -140,4 +144,5 @@ Before optional consent:
 - No public page-view analytics persistence.
 - No SmartLink analytics persistence.
 - No analytics cookies/localStorage identifiers from PostHog.
+- No signup conversion marker.
 - Auth, public pages, onboarding, and billing flows remain functional.

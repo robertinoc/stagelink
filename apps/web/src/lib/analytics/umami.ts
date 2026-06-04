@@ -1,6 +1,7 @@
 'use client';
 
 const UMAMI_MAX_EVENT_DATA_STRING_LENGTH = 500;
+export const UMAMI_READY_EVENT = 'stagelink:umami-ready';
 
 type UmamiEventDataValue = string | number | boolean | null | undefined;
 type UmamiEventData = Record<string, UmamiEventDataValue>;
@@ -28,6 +29,10 @@ function sanitizeUmamiEventData(
         return [key, value ?? null];
       }),
   );
+}
+
+export function isUmamiReady(): boolean {
+  return typeof window !== 'undefined' && typeof window.umami?.track === 'function';
 }
 
 export function trackUmamiEvent(eventName: string, data: UmamiEventData = {}): void {

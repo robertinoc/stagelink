@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { isAnalyticsAllowed } from '@/lib/analytics/consent';
+import { markSignupPending } from '@/lib/analytics/signup-conversion';
 import { trackPlatformFunnelEvent } from '@/lib/analytics/track';
 import { ANALYTICS_EVENTS } from '@stagelink/types';
 import Link from 'next/link';
@@ -31,12 +33,13 @@ function SubmitButton({ label, locale }: { label: string; locale: string }) {
       className="w-full"
       disabled={pending}
       aria-disabled={pending}
-      onClick={() =>
+      onClick={() => {
+        if (isAnalyticsAllowed()) markSignupPending();
         trackPlatformFunnelEvent(ANALYTICS_EVENTS.AUTH_SIGNUP_STARTED, {
           locale,
           surface: 'signup',
-        })
-      }
+        });
+      }}
     >
       {pending && <Loader2 className="h-4 w-4 animate-spin" />}
       {label}
