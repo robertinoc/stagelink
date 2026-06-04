@@ -34,7 +34,7 @@ Confirmed:
 - local PostgreSQL public analytics identified;
 - StageLink Insights data identified;
 - consent cookies and PostHog storage identified;
-- Umami Behind-only source integration identified;
+- Umami StageLink Platform source integration identified, with Behind as viewer;
 - operational/security telemetry is separated from optional analytics.
 
 Gap:
@@ -278,8 +278,8 @@ Immediate:
 
 - Adopt the analytics matrix and profiling analysis as the current baseline.
 - Keep PostHog autocapture/session replay/heatmaps disabled.
-- Keep Umami scoped to Behind and documented; do not extend it to public or
-  artist-facing routes without a separate review.
+- Keep Umami scoped to StageLink Platform product/growth routes and documented;
+  do not extend it to Behind or public artist pages without a separate review.
 - Add review rule: no direct `posthog-js` imports outside analytics helpers.
 
 Before public launch:

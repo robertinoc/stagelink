@@ -46,10 +46,10 @@ rather than a tracked surface.
 
 Current explicit events:
 
-- `platform_signup_started`
-- `platform_signup_login_clicked`
-- `platform_login_started`
-- `platform_login_signup_clicked`
+- `auth_signup_started`
+- `auth_signup_login_clicked`
+- `auth_login_started`
+- `auth_login_signup_clicked`
 
 Controls:
 
@@ -162,26 +162,26 @@ Risk:
 
 ## Consent Requirement Summary
 
-| Flow                             | Before analytics consent                     | After analytics consent                        |
-| -------------------------------- | -------------------------------------------- | ---------------------------------------------- |
-| Public page content              | Allowed                                      | Allowed                                        |
-| Public page view local event     | Blocked                                      | Allowed                                        |
-| Public page view PostHog event   | Blocked                                      | Allowed                                        |
-| Umami Behind product events      | Not loaded outside Behind                    | Allowed on Behind when env vars are configured |
-| Public link click local event    | Blocked                                      | Allowed                                        |
-| Public link click PostHog event  | Blocked                                      | Allowed                                        |
-| Smart link redirect              | Allowed                                      | Allowed                                        |
-| Smart link analytics             | Blocked                                      | Allowed                                        |
-| Fan capture form submit          | Allowed when form rules pass                 | Allowed when form rules pass                   |
-| Fan capture analytics event      | Blocked                                      | Allowed                                        |
-| Auth/session/security logs       | Allowed as necessary/security                | Allowed as necessary/security                  |
-| Dashboard product PostHog events | Currently allowed when server key configured | Currently allowed when server key configured   |
+| Flow                             | Before analytics consent                     | After analytics consent                                 |
+| -------------------------------- | -------------------------------------------- | ------------------------------------------------------- |
+| Public page content              | Allowed                                      | Allowed                                                 |
+| Public page view local event     | Blocked                                      | Allowed                                                 |
+| Public page view PostHog event   | Blocked                                      | Allowed                                                 |
+| Umami StageLink Platform events  | Blocked                                      | Allowed on platform routes when env vars are configured |
+| Public link click local event    | Blocked                                      | Allowed                                                 |
+| Public link click PostHog event  | Blocked                                      | Allowed                                                 |
+| Smart link redirect              | Allowed                                      | Allowed                                                 |
+| Smart link analytics             | Blocked                                      | Allowed                                                 |
+| Fan capture form submit          | Allowed when form rules pass                 | Allowed when form rules pass                            |
+| Fan capture analytics event      | Blocked                                      | Allowed                                                 |
+| Auth/session/security logs       | Allowed as necessary/security                | Allowed as necessary/security                           |
+| Dashboard product PostHog events | Currently allowed when server key configured | Currently allowed when server key configured            |
 
 ## Inventory Gaps
 
 - PostHog project region, retention, IP handling, and autocapture/session replay
   settings must be confirmed in provider evidence.
-- Umami provider retention, IP handling, and Behind domain settings must be
+- Umami provider retention, IP handling, and StageLink Platform domain settings must be
   confirmed in provider evidence before production dashboard sign-off.
 - Product/dashboard event lawful basis and opt-out handling need final
   documented posture before public scale.

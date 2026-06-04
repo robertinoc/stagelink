@@ -55,10 +55,10 @@ In the `StageLink Platform` Umami website, validate:
 
 - pageview for `stagelink.art`;
 - pageview for `/es/signup`;
-- `platform_signup_started` after submitting the signup form;
-- `platform_signup_login_clicked` when clicking the login link from signup;
-- `platform_login_started` after submitting the login form;
-- `platform_login_signup_clicked` when clicking the signup link from login;
+- `auth_signup_started` after submitting the signup form;
+- `auth_signup_login_clicked` when clicking the login link from signup;
+- `auth_login_started` after submitting the login form;
+- `auth_login_signup_clicked` when clicking the signup link from login;
 - pageview for `/es/dashboard` after authenticated navigation.
 
 Signup completion is inferred in v1 from the authenticated post-signup pageview
@@ -87,7 +87,7 @@ Use this sequence before closing the platform setup:
 4. Open `/es/signup`.
 5. Trigger signup and login intent events.
 6. Open `/es/dashboard` with an authenticated account.
-7. Confirm pageviews and `platform_*` events appear in the `StageLink Platform`
+7. Confirm pageviews and `auth_*` events appear in the `StageLink Platform`
    Umami website.
 8. Open `https://behind.stagelink.art/behind/analytics`.
 9. Confirm Behind embeds the same platform dashboard.

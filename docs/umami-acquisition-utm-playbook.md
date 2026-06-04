@@ -86,18 +86,20 @@ referral_001,Manual,manual_outreach,referral,stagelink_growth_2026_q2,friend_ref
 
 StageLink Platform tracks acquisition intent with safe metadata only:
 
-- `platform_signup_started`
-- `platform_signup_login_clicked`
-- `platform_login_started`
-- `platform_login_signup_clicked`
+- `auth_signup_started`
+- `auth_signup_login_clicked`
+- `auth_login_started`
+- `auth_login_signup_clicked`
 
-Allowed event properties:
+Current explicit `auth_*` event properties:
 
-- `source`
-- `medium`
-- `campaign`
-- `content`
-- coarse product surface, such as `signup` or `login`
+- `locale`
+- `surface`, limited to `signup` or `login`
+- `environment`
+
+Umami reads `utm_source`, `utm_medium`, `utm_campaign`, and `utm_content` from
+the campaign URL/session. Do not copy contact-table identifiers or outreach
+notes into explicit event properties.
 
 Never send email, name, handle, user id, artist id, search text, or free-text
 outreach content to Umami.

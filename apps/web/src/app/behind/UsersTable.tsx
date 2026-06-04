@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { BehindRole, RolesMap } from '@/lib/behind-redis';
-import { trackUmamiEvent } from '@/lib/analytics/umami';
 
 // ─── Design tokens ──────────────────────────────────────────────────────────────
 const GRADIENT = 'linear-gradient(135deg, #E040FB 0%, #9B30D0 45%, #4A1A8C 100%)';
@@ -1371,7 +1370,6 @@ function ManageAccessModal({
       }
       const { subscription } = (await res.json()) as { subscription: ArtistSubscription };
       onUpdated(user.id, subscription);
-      trackUmamiEvent('behind_access_granted', { plan });
       onClose();
     } catch {
       setError('Network error. Please try again.');
@@ -1404,7 +1402,6 @@ function ManageAccessModal({
       }
       const { subscription } = (await res.json()) as { subscription: ArtistSubscription };
       onUpdated(user.id, subscription);
-      trackUmamiEvent('behind_access_extended', { plan: sub?.manualAccessPlan ?? 'unknown' });
       onClose();
     } catch {
       setError('Network error. Please try again.');
@@ -1425,7 +1422,6 @@ function ManageAccessModal({
       }
       const { subscription } = (await res.json()) as { subscription: ArtistSubscription };
       onUpdated(user.id, subscription);
-      trackUmamiEvent('behind_access_revoked');
       onClose();
     } catch {
       setError('Network error. Please try again.');
