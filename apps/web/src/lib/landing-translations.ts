@@ -654,45 +654,109 @@ const en: LandingTranslation = {
       title: 'Privacy Policy',
       sections: [
         {
-          heading: 'Who we are',
+          heading: '1. Introduction',
           body: [
-            'StageLink is an artist workspace for building a public page, Press Kit, merch, links, and audience insights. This policy explains what personal data we process and why. The final legal entity, address, and privacy contact will be confirmed here before launch.',
+            'StageLink is a platform for artists, DJs, musicians, and creators to publish profiles, Press Kits (EPKs), links, media, merch, and audience analytics. This policy explains what personal data we process and why.',
+            'It applies to account holders, artists and team members, public visitors, fans who submit forms, and business contacts. [TODO legal review: insert the final legal entity, registered address, and privacy contact.]',
           ],
         },
         {
-          heading: 'Data we collect',
+          heading: "2. StageLink's role",
           body: [
-            'Account data you provide (name, email, artist profile), the content you create, and the technical and usage data needed to operate and secure the service.',
+            'StageLink is the data controller for platform accounts, billing, security, analytics, support, and platform operations.',
+            'For an artist’s own fan or subscriber lists, the artist may be the controller and StageLink may process that data on the artist’s behalf. StageLink remains controller for security, fraud prevention, and service operation.',
           ],
         },
         {
-          heading: 'How we use your data',
+          heading: '3. Data we collect',
           body: [
-            'To provide and maintain the service, authenticate you, deliver the analytics you ask for, process payments for paid plans, and keep the platform safe.',
+            'Data you provide: account information, artist profile, EPK, public content, contact emails, and uploaded assets.',
+            'Data from fans and public visitors: email capture, contact forms, page and link events, device and country, and a hashed IP address.',
+            'Data from integrations you connect (Spotify, YouTube, SoundCloud, Shopify, merch providers), from payments (Stripe customer/subscription IDs and billing state), and automatically (cookies, analytics, logs, security events).',
           ],
         },
         {
-          heading: 'Sharing and processors',
+          heading: '4. How we use your data',
           body: [
-            'We rely on third-party processors for authentication, hosting, payments, and analytics. A complete processor list, their locations, and the relevant data-transfer safeguards will be itemized here.',
+            'To provide, secure, and maintain accounts; publish artist pages and EPKs; process subscriptions and payments; provide analytics dashboards; operate integrations; send service messages and communications you request; prevent abuse, fraud, and security incidents; provide support and improve StageLink; and comply with legal obligations.',
           ],
         },
         {
-          heading: 'Your rights',
+          heading: '5. Legal bases (GDPR)',
           body: [
-            'Subject to applicable law, you can access, correct, export, or delete your data and object to certain processing. Contact and request-handling details, including how to submit a data request, will be confirmed before launch.',
+            'Where GDPR applies, we rely on: contract (accounts, profiles, EPKs, billing, integrations); legitimate interests (security, abuse prevention, limited operational analytics, reliability); consent (non-essential cookies/analytics, marketing, email capture where applicable, OAuth authorization); and legal obligation (accounting, tax, compliance, incident response).',
           ],
         },
         {
-          heading: 'Retention',
+          heading: '6. Public content',
           body: [
-            'We keep personal data only as long as needed for the purposes above or as required by law. Specific retention periods will be listed here.',
+            'Artist pages, EPKs, links, images, biographies, media, and selected contact information may be public when you publish them. You are responsible for having the rights and permissions for content you upload or publish.',
+            'Removing content from StageLink may not immediately remove third-party copies, search-engine caches, or previously shared links.',
           ],
         },
         {
-          heading: 'Contact',
+          heading: '7. Fan and subscriber data',
           body: [
-            'Privacy questions and requests will be handled through the contact channel published here before launch.',
+            'Fans may submit email addresses to artists through StageLink blocks. Artists may use those lists subject to their own legal responsibilities, and should provide an unsubscribe or deletion path. StageLink stores consent text and metadata to support consent records.',
+            '[TODO implementation: define whether subscriber data requests go to StageLink, the artist, or both.]',
+          ],
+        },
+        {
+          heading: '8. Cookies and analytics',
+          body: [
+            'We use strictly necessary cookies for authentication, session, localization, and security, and analytics cookies/events subject to consent. See the Cookie Policy for details and how to change your choices.',
+            '[TODO legal review: for EU users, non-essential analytics should be opt-in at launch rather than default-on.]',
+          ],
+        },
+        {
+          heading: '9. Sharing and providers',
+          body: [
+            'We share data with provider categories needed to run the service: authentication, payment processing, hosting/database/storage, analytics, email, user-selected integrations, and legal/compliance/safety providers where needed. StageLink does not sell personal information as a product feature.',
+            '[TODO legal review: validate CCPA/CPRA sale/share status for analytics.]',
+          ],
+        },
+        {
+          heading: '10. International transfers',
+          body: [
+            'Your data may be processed in countries outside your own. Where required, we use contractual and technical safeguards such as Data Processing Agreements or Standard Contractual Clauses, or comparable mechanisms.',
+          ],
+        },
+        {
+          heading: '11. Retention',
+          body: [
+            'We keep personal data only as long as needed for the purposes above or as required by law, by category: account/profile, public content/assets, subscriber lists, analytics events, billing records, security/audit logs, and integration tokens.',
+            '[TODO legal review: insert the final retention periods per category.]',
+          ],
+        },
+        {
+          heading: '12. Your rights',
+          body: [
+            'Subject to applicable law you may request access/export, correction, deletion, restriction or objection, and portability; withdraw consent; and opt out of marketing. CCPA/CPRA rights apply to California residents and Argentine data-protection rights (access, rectification, update, deletion) apply where relevant.',
+            '[TODO implementation: define the data-request intake email, identity verification, response SLA, and logging.]',
+          ],
+        },
+        {
+          heading: '13. Security',
+          body: [
+            'We use HTTPS, WorkOS-managed authentication and sessions, role and ownership checks, audit logging, rate limiting and anti-abuse controls, upload controls, and managed provider secrets. No online service can be guaranteed fully secure.',
+          ],
+        },
+        {
+          heading: '14. Children',
+          body: [
+            'StageLink accounts are for users 18 or older, and the service is not directed to children under 13. Contact us if you believe a child’s data was submitted.',
+          ],
+        },
+        {
+          heading: '15. Changes to this policy',
+          body: [
+            'We may update this policy. Material changes will be communicated through appropriate channels, with an effective date and version history.',
+          ],
+        },
+        {
+          heading: '16. Contact',
+          body: [
+            '[TODO legal review: insert the privacy contact email, legal entity and address, any data-protection contact, and the data-request path.]',
           ],
         },
       ],
@@ -701,45 +765,97 @@ const en: LandingTranslation = {
       title: 'Terms of Service',
       sections: [
         {
-          heading: 'Agreement',
+          heading: '1. Introduction and acceptance',
           body: [
-            'These terms govern your use of StageLink. By creating an account or using the service you agree to them. The final version, governing law, and dispute terms will be confirmed before launch.',
+            'StageLink provides artist pages, EPKs, links, analytics, integrations, and subscription features. By using StageLink you accept these terms and our privacy documents, and you confirm you are legally able to enter into this agreement.',
           ],
         },
         {
-          heading: 'Your account',
+          heading: '2. Eligibility and accounts',
           body: [
-            'You are responsible for your account, the content you publish, and complying with applicable law and these terms.',
+            'Account creators must be at least 18 and must provide accurate information. You are responsible for your account access and team permissions. Authentication is handled through WorkOS / AuthKit.',
           ],
         },
         {
-          heading: 'Acceptable use',
+          heading: '3. Artist pages, EPKs, and public content',
           body: [
-            'Do not misuse the service, infringe the rights of others, or attempt to disrupt or gain unauthorized access to the platform.',
+            'You choose what to publish. Public pages, EPKs, images, links, and contact details may be visible to anyone, and you must have the rights to the content you upload or link. Keep booking and contact information accurate.',
+            'We may remove or disable content that violates these terms, the law, our security rules, or third-party rights.',
           ],
         },
         {
-          heading: 'Content and ownership',
+          heading: '4. User responsibilities',
           body: [
-            'You keep ownership of the content you publish and grant us the limited rights needed to host and display it as part of the service.',
+            'You must not use StageLink for illegal activity; harassment, hate, exploitation, or abusive content; impersonation; uploading malware; violating copyright, trademark, privacy, or publicity rights; scraping, reverse engineering, or attacking the platform; circumventing rate limits, auth, or access controls; or sending spam or collecting emails without proper consent.',
           ],
         },
         {
-          heading: 'Plans and payments',
+          heading: '5. Fan, subscriber, and contact data',
           body: [
-            'Paid plans, billing cycles, and the refund and cancellation policy will be detailed here in line with applicable consumer law.',
+            'Artists are responsible for the lawful use of fan and subscriber data collected through StageLink, must honor unsubscribe and deletion requests where applicable, and must not collect data without permission. StageLink may provide tools to store consent evidence but does not make your marketing compliant by default.',
           ],
         },
         {
-          heading: 'Termination',
+          heading: '6. Integrations',
           body: [
-            'You may stop using the service at any time. We may suspend or terminate access for violations of these terms, with the process described here.',
+            'Integrations such as Spotify, YouTube, SoundCloud, Shopify, Printful/Printify, and Stripe are optional. By connecting one you authorize StageLink to access integration data only for the features you choose; third-party terms apply. We may stop supporting an integration or require reauthorization, and you can disconnect at any time.',
           ],
         },
         {
-          heading: 'Disclaimers and liability',
+          heading: '7. Subscriptions, billing, and plans',
           body: [
-            'The service is provided “as is.” The final limitation-of-liability and warranty language will be confirmed by legal review.',
+            'StageLink offers Free, Pro, and Pro+ plans. Payments are processed by Stripe. Billing cycles, cancellations, upgrades/downgrades, taxes, and payment failures apply as described in the product. Access to paid-only features is not guaranteed after cancellation or non-payment.',
+            '[TODO legal review: refund policy and consumer-law cancellation language.]',
+          ],
+        },
+        {
+          heading: '8. Acceptable use and anti-abuse',
+          body: [
+            'We may rate-limit, suspend, or restrict accounts for abuse. Security controls may block suspicious behavior, and we may investigate suspicious uploads, contact forms, or login attacks.',
+          ],
+        },
+        {
+          heading: '9. Intellectual property',
+          body: [
+            'You keep ownership of your content and grant StageLink a license to host, display, process, resize, translate, cache, and transmit it to operate the service. StageLink owns its software, brand, UI, and platform materials, and may use feedback to improve the platform.',
+          ],
+        },
+        {
+          heading: '10. Service availability and changes',
+          body: [
+            'StageLink may evolve, suspend, or discontinue features, and integrations or third-party services may fail or change. Analytics may be estimates and may exclude bot, QA, or internal traffic. We do not guarantee uninterrupted service.',
+          ],
+        },
+        {
+          heading: '11. Termination and suspension',
+          body: [
+            'You may cancel or delete your account at any time. We may suspend or terminate access for breach, risk, legal request, payment failure, or abuse. Termination may affect public pages, EPKs, assets, subscriptions, and retained records.',
+          ],
+        },
+        {
+          heading: '12. Disclaimers and liability',
+          body: [
+            'To the extent allowed by law the service is provided “as is,” with no guarantee of bookings, audience growth, revenue, or platform results. Your mandatory legal rights remain unaffected.',
+            '[TODO legal review: final limitation-of-liability and warranty language.]',
+          ],
+        },
+        {
+          heading: '13. Indemnity',
+          body: [
+            'You may be required to indemnify StageLink for your content, rights violations, unlawful marketing or contact practices, misuse of integrations, and breach of these terms.',
+            '[TODO legal review: adapt indemnity to the governing law and consumer limitations.]',
+          ],
+        },
+        {
+          heading: '14. Governing law and disputes',
+          body: [
+            '[TODO legal review: final governing law, venue, any arbitration/class-action waiver, and consumer-rights exceptions.]',
+          ],
+        },
+        {
+          heading: '15. Contact and notices',
+          body: [
+            'For legal and support matters, and for notice of material changes, use the contact channels published here. [TODO legal review: insert the legal and support contacts.]',
           ],
         },
       ],
@@ -748,27 +864,51 @@ const en: LandingTranslation = {
       title: 'Cookie Policy',
       sections: [
         {
-          heading: 'What cookies we use',
+          heading: '1. What cookies are',
           body: [
-            'StageLink uses a small number of cookies: essential cookies for authentication and session security, a preference cookie for your language, and — only with your consent — analytics cookies.',
+            'Cookies and similar technologies are small files or storage items a site uses to keep you signed in, remember preferences, and understand usage. This policy explains which ones StageLink uses and how to control them.',
           ],
         },
         {
-          heading: 'Essential cookies',
+          heading: '2. Strictly necessary',
           body: [
-            'Required to sign in and keep your session secure. These cannot be turned off without breaking core functionality.',
+            'Used for authentication and session management, PKCE/state/CSRF protection, locale and basic UI preferences, and security, rate limiting, and abuse prevention. These are required for the service and cannot be turned off in-product, though you can control them in your browser.',
           ],
         },
         {
-          heading: 'Analytics and consent',
+          heading: '3. Analytics',
           body: [
-            'Analytics run only after you accept. You can change your choice at any time. The full cookie inventory — names, providers, and lifetimes — will be listed here before launch.',
+            'Used to understand page visits, link clicks, public-page performance, and product usage, and to give artists dashboard metrics. Your choice is stored in the `sl_ac` cookie (1 = accepted, 0 = rejected); product analytics such as PostHog are gated by consent.',
+            '[TODO legal review: for EU users, non-essential analytics should require opt-in consent.]',
           ],
         },
         {
-          heading: 'Managing cookies',
+          heading: '4. Marketing',
           body: [
-            'You can manage non-essential cookies through the in-product consent control and your browser settings.',
+            'Used for campaign attribution, retargeting, advertising, or marketing pixels. No marketing pixels are assumed active today; any such cookies would require opt-in consent with preference and opt-out controls.',
+          ],
+        },
+        {
+          heading: '5. Cookie inventory',
+          body: [
+            'WorkOS session cookie (Necessary, WorkOS/StageLink) — auth session.',
+            'PKCE/state cookie (Necessary, StageLink/WorkOS) — OAuth security.',
+            '`NEXT_LOCALE` (Necessary/preference, StageLink) — language.',
+            '`sl_ac` (Analytics preference, StageLink) — analytics consent state, ~365 days.',
+            'PostHog cookies/local storage (Analytics, PostHog) — product analytics, only after consent where required.',
+            '[TODO legal review: confirm exact cookie names and lifetimes in production before publishing.]',
+          ],
+        },
+        {
+          heading: '6. Managing your choices',
+          body: [
+            'You can accept all, reject non-essential, or manage categories through the in-product consent control, and change your choice at any time. You can also manage cookies through your browser settings.',
+          ],
+        },
+        {
+          heading: '7. Changes and contact',
+          body: [
+            'We may update this Cookie Policy. Questions can be sent to the contact channel published here. [TODO legal review: insert the contact details.]',
           ],
         },
       ],
@@ -1201,45 +1341,109 @@ const es: LandingTranslation = {
       title: 'Política de Privacidad',
       sections: [
         {
-          heading: 'Quiénes somos',
+          heading: '1. Introducción',
           body: [
-            'StageLink es un espacio de trabajo para artistas donde construís tu página pública, Press Kit, merch, links e insights de audiencia. Esta política explica qué datos personales tratamos y por qué. La entidad legal, el domicilio y el contacto de privacidad finales se confirmarán acá antes del lanzamiento.',
+            'StageLink es una plataforma para artistas, DJs, músicos y creadores donde publican perfiles, Press Kits (EPKs), links, media, merch e insights de audiencia. Esta política explica qué datos personales tratamos y por qué.',
+            'Aplica a titulares de cuenta, artistas y miembros de equipo, visitantes públicos, fans que envían formularios y contactos comerciales. [TODO revisión legal: insertar la entidad legal, el domicilio y el contacto de privacidad finales.]',
           ],
         },
         {
-          heading: 'Datos que recopilamos',
+          heading: '2. El rol de StageLink',
           body: [
-            'Los datos de cuenta que proporcionás (nombre, email, perfil de artista), el contenido que creás y los datos técnicos y de uso necesarios para operar y asegurar el servicio.',
+            'StageLink es responsable del tratamiento (controller) de las cuentas de la plataforma, facturación, seguridad, analytics, soporte y operación.',
+            'Para las listas de fans o suscriptores de un artista, el artista puede ser el responsable y StageLink puede tratar esos datos por cuenta del artista. StageLink sigue siendo responsable de la seguridad, la prevención de fraude y la operación del servicio.',
           ],
         },
         {
-          heading: 'Cómo usamos tus datos',
+          heading: '3. Datos que recopilamos',
           body: [
-            'Para prestar y mantener el servicio, autenticarte, entregar los analytics que pedís, procesar pagos de los planes pagos y mantener la plataforma segura.',
+            'Datos que proporcionás: información de cuenta, perfil de artista, EPK, contenido público, emails de contacto y archivos subidos.',
+            'Datos de fans y visitantes públicos: captura de email, formularios de contacto, eventos de página y links, dispositivo y país, y una IP hasheada.',
+            'Datos de integraciones que conectás (Spotify, YouTube, SoundCloud, Shopify, proveedores de merch), de pagos (IDs de cliente/suscripción de Stripe y estado de facturación) y de recolección automática (cookies, analytics, logs, eventos de seguridad).',
           ],
         },
         {
-          heading: 'Compartición y procesadores',
+          heading: '4. Cómo usamos tus datos',
           body: [
-            'Usamos procesadores externos para autenticación, hosting, pagos y analytics. Acá se detallará la lista completa de procesadores, sus ubicaciones y las salvaguardas de transferencia de datos correspondientes.',
+            'Para prestar, asegurar y mantener cuentas; publicar páginas de artista y EPKs; procesar suscripciones y pagos; ofrecer dashboards de analytics; operar integraciones; enviar mensajes de servicio y comunicaciones que pedís; prevenir abuso, fraude e incidentes de seguridad; dar soporte y mejorar StageLink; y cumplir obligaciones legales.',
           ],
         },
         {
-          heading: 'Tus derechos',
+          heading: '5. Bases legales (GDPR)',
           body: [
-            'Sujeto a la ley aplicable, podés acceder, corregir, exportar o eliminar tus datos y oponerte a ciertos tratamientos. Los detalles de contacto y de gestión de solicitudes, incluido cómo enviar una solicitud de datos, se confirmarán antes del lanzamiento.',
+            'Cuando aplica el GDPR nos basamos en: contrato (cuentas, perfiles, EPKs, facturación, integraciones); interés legítimo (seguridad, prevención de abuso, analytics operativo limitado, fiabilidad); consentimiento (cookies/analytics no esenciales, marketing, captura de email cuando corresponde, autorización OAuth); y obligación legal (contabilidad, impuestos, cumplimiento, respuesta a incidentes).',
           ],
         },
         {
-          heading: 'Conservación',
+          heading: '6. Contenido público',
           body: [
-            'Conservamos los datos personales solo el tiempo necesario para los fines anteriores o según lo exija la ley. Acá se listarán los plazos de conservación específicos.',
+            'Las páginas de artista, EPKs, links, imágenes, biografías, media y cierta información de contacto pueden ser públicas cuando las publicás. Sos responsable de tener los derechos y permisos del contenido que subís o publicás.',
+            'Eliminar contenido de StageLink puede no eliminar de inmediato copias de terceros, cachés de buscadores o links compartidos previamente.',
           ],
         },
         {
-          heading: 'Contacto',
+          heading: '7. Datos de fans y suscriptores',
           body: [
-            'Las consultas y solicitudes de privacidad se gestionarán a través del canal de contacto publicado acá antes del lanzamiento.',
+            'Los fans pueden enviar su email a los artistas mediante bloques de StageLink. Los artistas pueden usar esas listas bajo su propia responsabilidad legal y deben ofrecer una vía de baja o eliminación. StageLink guarda el texto y los metadatos de consentimiento para respaldar los registros.',
+            '[TODO implementación: definir si las solicitudes de datos de suscriptores se gestionan en StageLink, el artista, o ambos.]',
+          ],
+        },
+        {
+          heading: '8. Cookies y analytics',
+          body: [
+            'Usamos cookies estrictamente necesarias para autenticación, sesión, localización y seguridad, y cookies/eventos de analytics sujetos a consentimiento. Ver la Política de Cookies para el detalle y cómo cambiar tus elecciones.',
+            '[TODO revisión legal: para usuarios de la UE, los analytics no esenciales deberían ser opt-in en el lanzamiento, no activados por defecto.]',
+          ],
+        },
+        {
+          heading: '9. Compartición y proveedores',
+          body: [
+            'Compartimos datos con categorías de proveedores necesarias para operar: autenticación, procesamiento de pagos, hosting/base de datos/almacenamiento, analytics, email, integraciones que elegís, y proveedores legales/de cumplimiento/seguridad cuando hace falta. StageLink no vende información personal como funcionalidad del producto.',
+            '[TODO revisión legal: validar el estado de venta/compartición CCPA/CPRA para analytics.]',
+          ],
+        },
+        {
+          heading: '10. Transferencias internacionales',
+          body: [
+            'Tus datos pueden tratarse en países distintos al tuyo. Cuando es necesario, usamos salvaguardas contractuales y técnicas como Acuerdos de Tratamiento de Datos o Cláusulas Contractuales Estándar, o mecanismos comparables.',
+          ],
+        },
+        {
+          heading: '11. Conservación',
+          body: [
+            'Conservamos los datos personales solo el tiempo necesario para los fines anteriores o según lo exija la ley, por categoría: cuenta/perfil, contenido/archivos públicos, listas de suscriptores, eventos de analytics, registros de facturación, logs de seguridad/auditoría y tokens de integración.',
+            '[TODO revisión legal: insertar los plazos de conservación finales por categoría.]',
+          ],
+        },
+        {
+          heading: '12. Tus derechos',
+          body: [
+            'Sujeto a la ley aplicable podés solicitar acceso/exportación, corrección, eliminación, restricción u oposición, y portabilidad; retirar el consentimiento; y darte de baja del marketing. Los derechos CCPA/CPRA aplican a residentes de California y los derechos de protección de datos de Argentina (acceso, rectificación, actualización, supresión) aplican cuando corresponde.',
+            '[TODO implementación: definir el email de recepción de solicitudes, verificación de identidad, plazo de respuesta y registro.]',
+          ],
+        },
+        {
+          heading: '13. Seguridad',
+          body: [
+            'Usamos HTTPS, autenticación y sesiones gestionadas por WorkOS, controles de rol y propiedad, registro de auditoría, rate limiting y controles anti-abuso, controles de subida y gestión de secretos de proveedores. Ningún servicio online puede garantizarse completamente seguro.',
+          ],
+        },
+        {
+          heading: '14. Menores',
+          body: [
+            'Las cuentas de StageLink son para usuarios de 18 años o más, y el servicio no está dirigido a menores de 13. Contactanos si creés que se enviaron datos de un menor.',
+          ],
+        },
+        {
+          heading: '15. Cambios en esta política',
+          body: [
+            'Podemos actualizar esta política. Los cambios materiales se comunicarán por los canales adecuados, con fecha de vigencia e historial de versiones.',
+          ],
+        },
+        {
+          heading: '16. Contacto',
+          body: [
+            '[TODO revisión legal: insertar el email de contacto de privacidad, la entidad legal y domicilio, cualquier contacto de protección de datos y la vía para solicitudes de datos.]',
           ],
         },
       ],
@@ -1248,45 +1452,97 @@ const es: LandingTranslation = {
       title: 'Términos del Servicio',
       sections: [
         {
-          heading: 'Acuerdo',
+          heading: '1. Introducción y aceptación',
           body: [
-            'Estos términos rigen tu uso de StageLink. Al crear una cuenta o usar el servicio los aceptás. La versión final, la ley aplicable y los términos de disputas se confirmarán antes del lanzamiento.',
+            'StageLink ofrece páginas de artista, EPKs, links, analytics, integraciones y funciones de suscripción. Al usar StageLink aceptás estos términos y nuestros documentos de privacidad, y confirmás que podés celebrar legalmente este acuerdo.',
           ],
         },
         {
-          heading: 'Tu cuenta',
+          heading: '2. Elegibilidad y cuentas',
           body: [
-            'Sos responsable de tu cuenta, del contenido que publicás y de cumplir con la ley aplicable y estos términos.',
+            'Quienes crean cuentas deben tener al menos 18 años y proporcionar información exacta. Sos responsable del acceso a tu cuenta y de los permisos de equipo. La autenticación se gestiona mediante WorkOS / AuthKit.',
           ],
         },
         {
-          heading: 'Uso aceptable',
+          heading: '3. Páginas de artista, EPKs y contenido público',
           body: [
-            'No uses indebidamente el servicio, no infrinjas los derechos de terceros ni intentes interrumpir u obtener acceso no autorizado a la plataforma.',
+            'Vos elegís qué publicar. Las páginas públicas, EPKs, imágenes, links y datos de contacto pueden ser visibles para cualquiera, y debés tener los derechos del contenido que subís o enlazás. Mantené la información de booking y contacto actualizada.',
+            'Podemos eliminar o deshabilitar contenido que viole estos términos, la ley, nuestras reglas de seguridad o derechos de terceros.',
           ],
         },
         {
-          heading: 'Contenido y propiedad',
+          heading: '4. Responsabilidades del usuario',
           body: [
-            'Conservás la propiedad del contenido que publicás y nos otorgás los derechos limitados necesarios para alojarlo y mostrarlo como parte del servicio.',
+            'No debés usar StageLink para actividad ilegal; acoso, odio, explotación o contenido abusivo; suplantación de identidad; subir malware; violar derechos de autor, marca, privacidad o imagen; scraping, ingeniería inversa o ataques a la plataforma; eludir rate limits, autenticación o controles de acceso; ni enviar spam o recopilar emails sin el consentimiento adecuado.',
           ],
         },
         {
-          heading: 'Planes y pagos',
+          heading: '5. Datos de fans, suscriptores y contacto',
           body: [
-            'Los planes pagos, los ciclos de facturación y la política de reembolsos y cancelación se detallarán acá conforme a la ley de consumo aplicable.',
+            'Los artistas son responsables del uso lícito de los datos de fans y suscriptores recopilados mediante StageLink, deben atender las solicitudes de baja y eliminación cuando corresponde, y no deben recopilar datos sin permiso. StageLink puede ofrecer herramientas para guardar evidencia de consentimiento, pero no hace que tu marketing sea conforme por defecto.',
           ],
         },
         {
-          heading: 'Terminación',
+          heading: '6. Integraciones',
           body: [
-            'Podés dejar de usar el servicio en cualquier momento. Podemos suspender o terminar el acceso por violaciones de estos términos, con el proceso descripto acá.',
+            'Integraciones como Spotify, YouTube, SoundCloud, Shopify, Printful/Printify y Stripe son opcionales. Al conectar una, autorizás a StageLink a acceder a sus datos solo para las funciones que elegís; aplican los términos de terceros. Podemos dejar de soportar una integración o requerir reautorización, y podés desconectarla cuando quieras.',
           ],
         },
         {
-          heading: 'Descargos y responsabilidad',
+          heading: '7. Suscripciones, facturación y planes',
           body: [
-            'El servicio se presta “tal cual”. El texto final de limitación de responsabilidad y garantías será confirmado por revisión legal.',
+            'StageLink ofrece planes Free, Pro y Pro+. Los pagos los procesa Stripe. Los ciclos de facturación, cancelaciones, upgrades/downgrades, impuestos y fallos de pago aplican según se describe en el producto. No se garantiza el acceso a funciones de pago tras la cancelación o falta de pago.',
+            '[TODO revisión legal: política de reembolsos y redacción de cancelación conforme a la ley de consumo.]',
+          ],
+        },
+        {
+          heading: '8. Uso aceptable y anti-abuso',
+          body: [
+            'Podemos limitar la tasa, suspender o restringir cuentas por abuso. Los controles de seguridad pueden bloquear comportamiento sospechoso, y podemos investigar subidas, formularios de contacto o ataques de login sospechosos.',
+          ],
+        },
+        {
+          heading: '9. Propiedad intelectual',
+          body: [
+            'Conservás la propiedad de tu contenido y otorgás a StageLink una licencia para alojarlo, mostrarlo, procesarlo, redimensionarlo, traducirlo, cachearlo y transmitirlo para operar el servicio. StageLink es dueño de su software, marca, UI y materiales de la plataforma, y puede usar feedback para mejorarla.',
+          ],
+        },
+        {
+          heading: '10. Disponibilidad y cambios del servicio',
+          body: [
+            'StageLink puede evolucionar, suspender o discontinuar funciones, y las integraciones o servicios de terceros pueden fallar o cambiar. Los analytics pueden ser estimaciones y excluir tráfico de bots, QA o interno. No garantizamos un servicio ininterrumpido.',
+          ],
+        },
+        {
+          heading: '11. Terminación y suspensión',
+          body: [
+            'Podés cancelar o eliminar tu cuenta en cualquier momento. Podemos suspender o terminar el acceso por incumplimiento, riesgo, requerimiento legal, falta de pago o abuso. La terminación puede afectar páginas públicas, EPKs, archivos, suscripciones y registros conservados.',
+          ],
+        },
+        {
+          heading: '12. Descargos y responsabilidad',
+          body: [
+            'En la medida permitida por la ley, el servicio se presta “tal cual”, sin garantía de bookings, crecimiento de audiencia, ingresos ni resultados. Tus derechos legales imperativos no se ven afectados.',
+            '[TODO revisión legal: redacción final de limitación de responsabilidad y garantías.]',
+          ],
+        },
+        {
+          heading: '13. Indemnidad',
+          body: [
+            'Podés tener que indemnizar a StageLink por tu contenido, violaciones de derechos, prácticas de marketing o contacto ilícitas, uso indebido de integraciones e incumplimiento de estos términos.',
+            '[TODO revisión legal: adaptar la indemnidad a la ley aplicable y las limitaciones de consumo.]',
+          ],
+        },
+        {
+          heading: '14. Ley aplicable y disputas',
+          body: [
+            '[TODO revisión legal: ley aplicable final, jurisdicción, cualquier renuncia a arbitraje/acción colectiva y excepciones de derechos del consumidor.]',
+          ],
+        },
+        {
+          heading: '15. Contacto y notificaciones',
+          body: [
+            'Para temas legales y de soporte, y para la notificación de cambios materiales, usá los canales de contacto publicados acá. [TODO revisión legal: insertar los contactos legal y de soporte.]',
           ],
         },
       ],
@@ -1295,27 +1551,51 @@ const es: LandingTranslation = {
       title: 'Política de Cookies',
       sections: [
         {
-          heading: 'Qué cookies usamos',
+          heading: '1. Qué son las cookies',
           body: [
-            'StageLink usa una cantidad reducida de cookies: cookies esenciales para autenticación y seguridad de sesión, una cookie de preferencia para tu idioma y —solo con tu consentimiento— cookies de analytics.',
+            'Las cookies y tecnologías similares son pequeños archivos o elementos de almacenamiento que un sitio usa para mantenerte con sesión iniciada, recordar preferencias y entender el uso. Esta política explica cuáles usa StageLink y cómo controlarlas.',
           ],
         },
         {
-          heading: 'Cookies esenciales',
+          heading: '2. Estrictamente necesarias',
           body: [
-            'Necesarias para iniciar sesión y mantener tu sesión segura. No se pueden desactivar sin romper la funcionalidad principal.',
+            'Se usan para autenticación y gestión de sesión, protección PKCE/state/CSRF, idioma y preferencias básicas de UI, y seguridad, rate limiting y prevención de abuso. Son necesarias para el servicio y no pueden desactivarse dentro del producto, aunque podés controlarlas en tu navegador.',
           ],
         },
         {
-          heading: 'Analytics y consentimiento',
+          heading: '3. Analytics',
           body: [
-            'Los analytics se ejecutan solo después de que aceptás. Podés cambiar tu elección en cualquier momento. El inventario completo de cookies —nombres, proveedores y duraciones— se listará acá antes del lanzamiento.',
+            'Se usan para entender visitas, clics en links, rendimiento de páginas públicas y uso del producto, y para dar métricas a los artistas. Tu elección se guarda en la cookie `sl_ac` (1 = aceptado, 0 = rechazado); los analytics de producto como PostHog están condicionados al consentimiento.',
+            '[TODO revisión legal: para usuarios de la UE, los analytics no esenciales deberían requerir consentimiento opt-in.]',
           ],
         },
         {
-          heading: 'Gestionar cookies',
+          heading: '4. Marketing',
           body: [
-            'Podés gestionar las cookies no esenciales mediante el control de consentimiento dentro del producto y la configuración de tu navegador.',
+            'Se usan para atribución de campañas, retargeting, publicidad o píxeles de marketing. Hoy no se asume ningún píxel de marketing activo; cualquier cookie de este tipo requeriría consentimiento opt-in con controles de preferencia y baja.',
+          ],
+        },
+        {
+          heading: '5. Inventario de cookies',
+          body: [
+            'Cookie de sesión de WorkOS (Necesaria, WorkOS/StageLink) — sesión de autenticación.',
+            'Cookie PKCE/state (Necesaria, StageLink/WorkOS) — seguridad OAuth.',
+            '`NEXT_LOCALE` (Necesaria/preferencia, StageLink) — idioma.',
+            '`sl_ac` (Preferencia de analytics, StageLink) — estado de consentimiento de analytics, ~365 días.',
+            'Cookies/almacenamiento local de PostHog (Analytics, PostHog) — analytics de producto, solo tras consentimiento cuando corresponde.',
+            '[TODO revisión legal: confirmar los nombres y duraciones exactos en producción antes de publicar.]',
+          ],
+        },
+        {
+          heading: '6. Gestionar tus elecciones',
+          body: [
+            'Podés aceptar todo, rechazar las no esenciales o gestionar categorías mediante el control de consentimiento dentro del producto, y cambiar tu elección en cualquier momento. También podés gestionar las cookies desde la configuración de tu navegador.',
+          ],
+        },
+        {
+          heading: '7. Cambios y contacto',
+          body: [
+            'Podemos actualizar esta Política de Cookies. Las consultas pueden enviarse al canal de contacto publicado acá. [TODO revisión legal: insertar los datos de contacto.]',
           ],
         },
       ],
