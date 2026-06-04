@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../lib/prisma.service';
 import { TenantResolverService } from '../tenant/tenant-resolver.service';
 import { PublicPageResponseDto, PublicBlockDto } from './dto/public-page-response.dto';
@@ -26,6 +26,7 @@ import {
   type SmartMerchProvider,
 } from '@stagelink/types';
 import { resolveTrafficFlags } from '../../common/utils/analytics-flags';
+import { formatAnalyticsEvent } from '../../common/utils/analytics-log';
 import {
   normalizeBaseLocale,
   resolveDocumentLocale,
@@ -361,6 +362,8 @@ export interface ClickQualityCtx {
  */
 @Injectable()
 export class PublicPagesService {
+  private readonly logger = new Logger(PublicPagesService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenantResolver: TenantResolverService,
@@ -495,8 +498,16 @@ export class PublicPagesService {
           ...flags,
         },
       })
-      .catch(() => {
-        // Fire-and-forget — recording failure is non-fatal.
+      .catch((error: unknown) => {
+        // Fire-and-forget — recording failure is non-fatal to the visitor, but
+        // log it so ingestion failures are visible to ops (was silently swallowed).
+        this.logger.warn(
+          formatAnalyticsEvent('failed', {
+            eventType: 'link_click',
+            artistId,
+            reason: error instanceof Error ? error.message : 'unknown',
+          }),
+        );
       });
   }
 
@@ -681,8 +692,16 @@ export class PublicPagesService {
               ...flags,
             },
           })
-          .catch(() => {
-            // DB write failure must never propagate to the visitor response.
+          .catch((error: unknown) => {
+            // DB write failure must never propagate to the visitor response, but
+            // log it so ingestion failures are visible to ops (was silently swallowed).
+            this.logger.warn(
+              formatAnalyticsEvent('failed', {
+                eventType: 'page_view',
+                artistId,
+                reason: error instanceof Error ? error.message : 'unknown',
+              }),
+            );
           });
       }
 
