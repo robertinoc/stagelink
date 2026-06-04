@@ -14,6 +14,7 @@ import {
   getOpenGraphLocale,
 } from '@/lib/seo-localization';
 import { getCanonicalAppUrl } from '@/lib/site-url';
+import { buildArtistOgImageUrl } from '@/lib/og-image';
 
 function buildJsonLd(
   artist: NonNullable<Awaited<ReturnType<typeof fetchPublicPage>>>['artist'],
@@ -67,6 +68,25 @@ export async function buildPublicArtistMetadata(
     artist.bio ??
     t('seo_description_fallback', { name: artist.displayName });
 
+  // OG image priority: real cover → avatar → generated branded card.
+  // Artists with no cover/avatar still get a large, on-brand social preview
+  // instead of no image at all.
+  const generatedOgImageUrl = buildArtistOgImageUrl(appUrl, artist.displayName, artist.username);
+  const ogImages = artist.coverUrl
+    ? [{ url: artist.coverUrl, width: 1200, height: 630, alt: artist.displayName }]
+    : artist.avatarUrl
+      ? [{ url: artist.avatarUrl, width: 400, height: 400, alt: artist.displayName }]
+      : [{ url: generatedOgImageUrl, width: 1200, height: 630, alt: artist.displayName }];
+
+  // A large-format card exists whenever there is a cover or a generated image
+  // (both 1200×630); only the small avatar-only case stays a `summary` card.
+  const hasLargeCard = Boolean(artist.coverUrl) || !artist.avatarUrl;
+  const twitterImages = artist.coverUrl
+    ? [artist.coverUrl]
+    : artist.avatarUrl
+      ? [artist.avatarUrl]
+      : [generatedOgImageUrl];
+
   return {
     title,
     description,
@@ -82,20 +102,16 @@ export async function buildPublicArtistMetadata(
       title: artist.seoTitle ?? artist.displayName,
       description,
       ...(canonical && { url: canonical }),
-      images: artist.coverUrl
-        ? [{ url: artist.coverUrl, width: 1200, height: 630, alt: artist.displayName }]
-        : artist.avatarUrl
-          ? [{ url: artist.avatarUrl, width: 400, height: 400, alt: artist.displayName }]
-          : [],
+      images: ogImages,
       type: 'profile',
       locale: getOpenGraphLocale(locale),
       alternateLocale: getAlternateOpenGraphLocales(locale),
     },
     twitter: {
-      card: artist.coverUrl ? 'summary_large_image' : 'summary',
+      card: hasLargeCard ? 'summary_large_image' : 'summary',
       title: artist.seoTitle ?? artist.displayName,
       description,
-      images: artist.coverUrl ? [artist.coverUrl] : artist.avatarUrl ? [artist.avatarUrl] : [],
+      images: twitterImages,
     },
   };
 }
