@@ -9,12 +9,13 @@ import {
 import type { Request, Response } from 'express';
 import type { User } from '@prisma/client';
 import { extractClientIp } from '../utils/request.utils';
-import { FixedWindowRateLimiter, type RateLimitDecision } from '../utils/fixed-window-rate-limit';
+import type { RateLimitDecision } from '../utils/fixed-window-rate-limit';
+import { DistributedRateLimiter } from '../utils/redis-rate-limit';
 import { formatSecurityEvent, sanitizeLogPath, sanitizeLogValue } from '../utils/security-log';
 
 /**
- * UploadRateLimitGuard — fixed-window in-memory rate limiter for the
- * presigned-URL generation endpoint (`POST /api/assets/upload-intent`).
+ * UploadRateLimitGuard — fixed-window rate limiter for the presigned-URL
+ * generation endpoint (`POST /api/assets/upload-intent`).
  *
  * Motivation: each call generates a signed S3 PUT URL and creates an Asset
  * record in the DB. Without a limit, a compromised token could generate
@@ -24,15 +25,15 @@ import { formatSecurityEvent, sanitizeLogPath, sanitizeLogValue } from '../utils
  * This is intentionally stricter than the public rate limit because upload
  * intents are user-scoped and 20 is well above any legitimate burst.
  *
- * ⚠️  In-memory only — resets on cold starts and does NOT coordinate across
- * multiple instances. Upgrade to a shared store (Redis/Upstash) for
- * multi-instance production deployments.
+ * Backed by {@link DistributedRateLimiter}: shared Upstash counter across
+ * instances when configured, with a per-instance in-memory fallback when Redis
+ * is absent (local/CI) or unavailable.
  */
 
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 20;
 
-const limiter = new FixedWindowRateLimiter({
+const limiter = new DistributedRateLimiter({
   namespace: 'upload-intent',
   windowMs: WINDOW_MS,
   maxRequests: MAX_REQUESTS,
@@ -42,12 +43,12 @@ const limiter = new FixedWindowRateLimiter({
 export class UploadRateLimitGuard implements CanActivate {
   private readonly logger = new Logger(UploadRateLimitGuard.name);
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<Request & { user?: User }>();
     const res = context.switchToHttp().getResponse<Response>();
     const userId = req.user?.id ?? 'anonymous';
     const ip = extractClientIp(req) ?? 'unknown';
-    const decision = limiter.check(`${userId}:${ip}`);
+    const decision = await limiter.check(`${userId}:${ip}`);
     setRateLimitHeaders(res, decision);
     if (!decision.allowed) {
       this.logger.warn(

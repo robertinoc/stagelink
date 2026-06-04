@@ -8,11 +8,12 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { extractClientIp } from '../utils/request.utils';
-import { FixedWindowRateLimiter, type RateLimitDecision } from '../utils/fixed-window-rate-limit';
+import type { RateLimitDecision } from '../utils/fixed-window-rate-limit';
+import { DistributedRateLimiter } from '../utils/redis-rate-limit';
 import { formatSecurityEvent, sanitizeLogPath, sanitizeLogValue } from '../utils/security-log';
 
 /**
- * PublicRateLimitGuard — fixed-window in-memory rate limiter for public endpoints.
+ * PublicRateLimitGuard — fixed-window rate limiter for public endpoints.
  *
  * Applied to unauthenticated routes (e.g. smart-link resolution) as a secondary
  * defense layer. The primary rate limit lives in the Next.js web tier (/go/[id]).
@@ -21,15 +22,15 @@ import { formatSecurityEvent, sanitizeLogPath, sanitizeLogValue } from '../utils
  * Limits: 120 requests / 60 s per IP (4× the web tier limit to account for
  * legitimate proxy scenarios while still blocking direct API abuse).
  *
- * ⚠️  In-memory only — resets on cold starts and does NOT coordinate across
- * multiple instances. Upgrade to a shared store (Redis/Upstash) for
- * multi-instance production deployments.
+ * Backed by {@link DistributedRateLimiter}: shared Upstash counter across
+ * instances when configured, with a per-instance in-memory fallback when Redis
+ * is absent (local/CI) or unavailable.
  */
 
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 120;
 
-const limiter = new FixedWindowRateLimiter({
+const limiter = new DistributedRateLimiter({
   namespace: 'public',
   windowMs: WINDOW_MS,
   maxRequests: MAX_REQUESTS,
@@ -39,11 +40,11 @@ const limiter = new FixedWindowRateLimiter({
 export class PublicRateLimitGuard implements CanActivate {
   private readonly logger = new Logger(PublicRateLimitGuard.name);
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<Request>();
     const res = context.switchToHttp().getResponse<Response>();
     const ip = extractClientIp(req) ?? 'unknown';
-    const decision = limiter.check(ip);
+    const decision = await limiter.check(ip);
     setRateLimitHeaders(res, decision);
     if (!decision.allowed) {
       this.logger.warn(
