@@ -405,6 +405,45 @@ export class PublicPagesService {
   }
 
   /**
+   * Lists published public pages for sitemap generation.
+   *
+   * Eligibility = `Page.isPublished = true` — the same explicit publish signal
+   * the dashboard publish action sets and the onboarding "not yet published"
+   * emails read. This is intentionally stricter than the transitional public
+   * route resolver (which currently treats page existence as enough), so the
+   * sitemap only advertises pages the artist deliberately published.
+   *
+   * Returns only already-public fields (username + last update). Cursor-paginated
+   * by page id so the web tier can page through large result sets safely.
+   */
+  async listPublishedPages(params: { limit: number; cursor?: string }): Promise<{
+    items: { username: string; updatedAt: Date }[];
+    nextCursor: string | null;
+  }> {
+    const limit = Math.min(Math.max(Math.trunc(params.limit) || 0, 1), 1000);
+
+    const pages = await this.prisma.page.findMany({
+      where: { isPublished: true },
+      orderBy: { id: 'asc' },
+      take: limit + 1, // fetch one extra to detect whether more remain
+      ...(params.cursor ? { cursor: { id: params.cursor }, skip: 1 } : {}),
+      select: {
+        id: true,
+        updatedAt: true,
+        artist: { select: { username: true } },
+      },
+    });
+
+    const hasMore = pages.length > limit;
+    const slice = hasMore ? pages.slice(0, limit) : pages;
+
+    return {
+      items: slice.map((p) => ({ username: p.artist.username, updatedAt: p.updatedAt })),
+      nextCursor: hasMore && slice.length > 0 ? slice[slice.length - 1]!.id : null,
+    };
+  }
+
+  /**
    * Records a link_click event from the public page.
    * Called by the public link-click endpoint (browser reports click after user action).
    *

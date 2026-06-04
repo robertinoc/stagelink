@@ -88,6 +88,7 @@ function createService() {
     },
     page: {
       findUnique: jest.fn(),
+      findMany: jest.fn(),
     },
     analyticsEvent: {
       create: jest.fn().mockResolvedValue(undefined),
@@ -485,6 +486,50 @@ describe('PublicPagesService', () => {
       });
 
       expect(prisma.analyticsEvent.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('listPublishedPages', () => {
+    it('returns only published pages mapped to username + updatedAt', async () => {
+      const { service, prisma } = createService();
+      const updatedAt = new Date('2026-01-01T00:00:00.000Z');
+      prisma.page.findMany.mockResolvedValue([
+        { id: 'page-1', updatedAt, artist: { username: 'artist-one' } },
+      ]);
+
+      const result = await service.listPublishedPages({ limit: 100 });
+
+      expect(prisma.page.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { isPublished: true } }),
+      );
+      expect(result.items).toEqual([{ username: 'artist-one', updatedAt }]);
+      expect(result.nextCursor).toBeNull();
+    });
+
+    it('returns a nextCursor when more rows remain than the limit', async () => {
+      const { service, prisma } = createService();
+      const updatedAt = new Date('2026-01-01T00:00:00.000Z');
+      // limit=1 → service fetches take=2; two rows means "more remain".
+      prisma.page.findMany.mockResolvedValue([
+        { id: 'page-1', updatedAt, artist: { username: 'a' } },
+        { id: 'page-2', updatedAt, artist: { username: 'b' } },
+      ]);
+
+      const result = await service.listPublishedPages({ limit: 1 });
+
+      expect(result.items).toEqual([{ username: 'a', updatedAt }]);
+      expect(result.nextCursor).toBe('page-1');
+    });
+
+    it('clamps the limit into the 1..1000 range', async () => {
+      const { service, prisma } = createService();
+      prisma.page.findMany.mockResolvedValue([]);
+
+      await service.listPublishedPages({ limit: 999999 });
+
+      expect(prisma.page.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ take: 1001 }), // 1000 clamp + 1 lookahead
+      );
     });
   });
 });

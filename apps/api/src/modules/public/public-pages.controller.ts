@@ -155,6 +155,37 @@ export class PublicPagesController {
   }
 
   /**
+   * GET /api/public/pages/published
+   *
+   * Lists published public pages for sitemap generation. Returns only
+   * already-public fields (username + last update), cursor-paginated by page id.
+   *
+   * `limit` is clamped to 1..1000 server-side; an invalid/missing `cursor` is
+   * ignored (starts from the beginning). Eligibility is `Page.isPublished = true`.
+   */
+  @Get('pages/published')
+  async listPublishedPages(
+    @Query('limit') limitQuery?: string,
+    @Query('cursor') cursorQuery?: string,
+  ): Promise<{ items: { username: string; updatedAt: string }[]; nextCursor: string | null }> {
+    const parsedLimit = Number.parseInt(limitQuery ?? '', 10);
+    const cursor = cursorQuery && CUID_PATTERN.test(cursorQuery) ? cursorQuery : undefined;
+
+    const result = await this.publicPagesService.listPublishedPages({
+      limit: Number.isFinite(parsedLimit) ? parsedLimit : 1000,
+      cursor,
+    });
+
+    return {
+      items: result.items.map((item) => ({
+        username: item.username,
+        updatedAt: item.updatedAt.toISOString(),
+      })),
+      nextCursor: result.nextCursor,
+    };
+  }
+
+  /**
    * POST /api/public/events/link-click
    *
    * Records a link_click event when a visitor clicks a link on a public page.
