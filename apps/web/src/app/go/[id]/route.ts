@@ -129,7 +129,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // Bots are excluded from rate limiting — they must not consume quota that
   // belongs to real users sharing the same IP (corporate/school networks).
   if (!isBot(userAgent)) {
-    if (!checkRateLimit('go', ip, { windowMs: 60_000, max: 30 })) {
+    if (!(await checkRateLimit('go', ip, { windowMs: 60_000, max: 30 }))) {
       return new NextResponse('Too many requests', {
         status: 429,
         headers: { 'Retry-After': '60' },

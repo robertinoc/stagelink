@@ -67,7 +67,7 @@ function formatEmailHtml(payload: z.infer<typeof contactSchema>) {
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
-  const withinLimit = checkRateLimit('landing-contact', ip, {
+  const withinLimit = await checkRateLimit('landing-contact', ip, {
     windowMs: 10 * 60_000,
     max: 6,
   });
