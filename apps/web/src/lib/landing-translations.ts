@@ -27,6 +27,16 @@ interface PlaceholderItem {
   description: string;
 }
 
+interface LegalSection {
+  heading: string;
+  body: string[];
+}
+
+interface LegalDoc {
+  title: string;
+  sections: LegalSection[];
+}
+
 export interface LandingTranslation {
   seo: {
     title: string;
@@ -180,6 +190,12 @@ export interface LandingTranslation {
       docs: string;
       install: string;
     };
+    legal: {
+      heading: string;
+      privacy: string;
+      terms: string;
+      cookies: string;
+    };
     community: {
       heading: string;
       instagram: string;
@@ -203,6 +219,15 @@ export interface LandingTranslation {
     comingSoon: string;
     backLabel: string;
     items: PlaceholderItem[];
+  };
+  legal: {
+    eyebrow: string;
+    lastUpdatedLabel: string;
+    reviewNotice: string;
+    backLabel: string;
+    privacy: LegalDoc;
+    terms: LegalDoc;
+    cookies: LegalDoc;
   };
 }
 
@@ -525,6 +550,12 @@ const en: LandingTranslation = {
       docs: 'Docs',
       install: 'Install for mobile',
     },
+    legal: {
+      heading: 'Legal',
+      privacy: 'Privacy Policy',
+      terms: 'Terms of Service',
+      cookies: 'Cookie Policy',
+    },
     community: {
       heading: 'Community',
       instagram: 'Instagram',
@@ -612,6 +643,136 @@ const en: LandingTranslation = {
         description: 'Real artists, real pages, real results.',
       },
     ],
+  },
+  legal: {
+    eyebrow: 'Legal',
+    lastUpdatedLabel: 'Last updated: pending publication',
+    reviewNotice:
+      'This is a working draft published for structure and review. It is not yet the final, lawyer-reviewed agreement and should not be relied upon. The definitive version will replace this text before StageLink opens to the public.',
+    backLabel: 'Back to StageLink',
+    privacy: {
+      title: 'Privacy Policy',
+      sections: [
+        {
+          heading: 'Who we are',
+          body: [
+            'StageLink is an artist workspace for building a public page, Press Kit, merch, links, and audience insights. This policy explains what personal data we process and why. The final legal entity, address, and privacy contact will be confirmed here before launch.',
+          ],
+        },
+        {
+          heading: 'Data we collect',
+          body: [
+            'Account data you provide (name, email, artist profile), the content you create, and the technical and usage data needed to operate and secure the service.',
+          ],
+        },
+        {
+          heading: 'How we use your data',
+          body: [
+            'To provide and maintain the service, authenticate you, deliver the analytics you ask for, process payments for paid plans, and keep the platform safe.',
+          ],
+        },
+        {
+          heading: 'Sharing and processors',
+          body: [
+            'We rely on third-party processors for authentication, hosting, payments, and analytics. A complete processor list, their locations, and the relevant data-transfer safeguards will be itemized here.',
+          ],
+        },
+        {
+          heading: 'Your rights',
+          body: [
+            'Subject to applicable law, you can access, correct, export, or delete your data and object to certain processing. Contact and request-handling details, including how to submit a data request, will be confirmed before launch.',
+          ],
+        },
+        {
+          heading: 'Retention',
+          body: [
+            'We keep personal data only as long as needed for the purposes above or as required by law. Specific retention periods will be listed here.',
+          ],
+        },
+        {
+          heading: 'Contact',
+          body: [
+            'Privacy questions and requests will be handled through the contact channel published here before launch.',
+          ],
+        },
+      ],
+    },
+    terms: {
+      title: 'Terms of Service',
+      sections: [
+        {
+          heading: 'Agreement',
+          body: [
+            'These terms govern your use of StageLink. By creating an account or using the service you agree to them. The final version, governing law, and dispute terms will be confirmed before launch.',
+          ],
+        },
+        {
+          heading: 'Your account',
+          body: [
+            'You are responsible for your account, the content you publish, and complying with applicable law and these terms.',
+          ],
+        },
+        {
+          heading: 'Acceptable use',
+          body: [
+            'Do not misuse the service, infringe the rights of others, or attempt to disrupt or gain unauthorized access to the platform.',
+          ],
+        },
+        {
+          heading: 'Content and ownership',
+          body: [
+            'You keep ownership of the content you publish and grant us the limited rights needed to host and display it as part of the service.',
+          ],
+        },
+        {
+          heading: 'Plans and payments',
+          body: [
+            'Paid plans, billing cycles, and the refund and cancellation policy will be detailed here in line with applicable consumer law.',
+          ],
+        },
+        {
+          heading: 'Termination',
+          body: [
+            'You may stop using the service at any time. We may suspend or terminate access for violations of these terms, with the process described here.',
+          ],
+        },
+        {
+          heading: 'Disclaimers and liability',
+          body: [
+            'The service is provided “as is.” The final limitation-of-liability and warranty language will be confirmed by legal review.',
+          ],
+        },
+      ],
+    },
+    cookies: {
+      title: 'Cookie Policy',
+      sections: [
+        {
+          heading: 'What cookies we use',
+          body: [
+            'StageLink uses a small number of cookies: essential cookies for authentication and session security, a preference cookie for your language, and — only with your consent — analytics cookies.',
+          ],
+        },
+        {
+          heading: 'Essential cookies',
+          body: [
+            'Required to sign in and keep your session secure. These cannot be turned off without breaking core functionality.',
+          ],
+        },
+        {
+          heading: 'Analytics and consent',
+          body: [
+            'Analytics run only after you accept. You can change your choice at any time. The full cookie inventory — names, providers, and lifetimes — will be listed here before launch.',
+          ],
+        },
+        {
+          heading: 'Managing cookies',
+          body: [
+            'You can manage non-essential cookies through the in-product consent control and your browser settings.',
+          ],
+        },
+      ],
+    },
   },
 };
 
@@ -936,6 +1097,12 @@ const es: LandingTranslation = {
       docs: 'Docs',
       install: 'Instalar en mobile',
     },
+    legal: {
+      heading: 'Legal',
+      privacy: 'Política de Privacidad',
+      terms: 'Términos del Servicio',
+      cookies: 'Política de Cookies',
+    },
     community: {
       heading: 'Comunidad',
       instagram: 'Instagram',
@@ -1023,6 +1190,136 @@ const es: LandingTranslation = {
         description: 'Artistas reales, páginas reales, resultados reales.',
       },
     ],
+  },
+  legal: {
+    eyebrow: 'Legal',
+    lastUpdatedLabel: 'Última actualización: pendiente de publicación',
+    reviewNotice:
+      'Este es un borrador de trabajo publicado para revisión y estructura. Todavía no es el acuerdo final revisado por un abogado y no debe tomarse como definitivo. La versión final reemplazará este texto antes de que StageLink se abra al público.',
+    backLabel: 'Volver a StageLink',
+    privacy: {
+      title: 'Política de Privacidad',
+      sections: [
+        {
+          heading: 'Quiénes somos',
+          body: [
+            'StageLink es un espacio de trabajo para artistas donde construís tu página pública, Press Kit, merch, links e insights de audiencia. Esta política explica qué datos personales tratamos y por qué. La entidad legal, el domicilio y el contacto de privacidad finales se confirmarán acá antes del lanzamiento.',
+          ],
+        },
+        {
+          heading: 'Datos que recopilamos',
+          body: [
+            'Los datos de cuenta que proporcionás (nombre, email, perfil de artista), el contenido que creás y los datos técnicos y de uso necesarios para operar y asegurar el servicio.',
+          ],
+        },
+        {
+          heading: 'Cómo usamos tus datos',
+          body: [
+            'Para prestar y mantener el servicio, autenticarte, entregar los analytics que pedís, procesar pagos de los planes pagos y mantener la plataforma segura.',
+          ],
+        },
+        {
+          heading: 'Compartición y procesadores',
+          body: [
+            'Usamos procesadores externos para autenticación, hosting, pagos y analytics. Acá se detallará la lista completa de procesadores, sus ubicaciones y las salvaguardas de transferencia de datos correspondientes.',
+          ],
+        },
+        {
+          heading: 'Tus derechos',
+          body: [
+            'Sujeto a la ley aplicable, podés acceder, corregir, exportar o eliminar tus datos y oponerte a ciertos tratamientos. Los detalles de contacto y de gestión de solicitudes, incluido cómo enviar una solicitud de datos, se confirmarán antes del lanzamiento.',
+          ],
+        },
+        {
+          heading: 'Conservación',
+          body: [
+            'Conservamos los datos personales solo el tiempo necesario para los fines anteriores o según lo exija la ley. Acá se listarán los plazos de conservación específicos.',
+          ],
+        },
+        {
+          heading: 'Contacto',
+          body: [
+            'Las consultas y solicitudes de privacidad se gestionarán a través del canal de contacto publicado acá antes del lanzamiento.',
+          ],
+        },
+      ],
+    },
+    terms: {
+      title: 'Términos del Servicio',
+      sections: [
+        {
+          heading: 'Acuerdo',
+          body: [
+            'Estos términos rigen tu uso de StageLink. Al crear una cuenta o usar el servicio los aceptás. La versión final, la ley aplicable y los términos de disputas se confirmarán antes del lanzamiento.',
+          ],
+        },
+        {
+          heading: 'Tu cuenta',
+          body: [
+            'Sos responsable de tu cuenta, del contenido que publicás y de cumplir con la ley aplicable y estos términos.',
+          ],
+        },
+        {
+          heading: 'Uso aceptable',
+          body: [
+            'No uses indebidamente el servicio, no infrinjas los derechos de terceros ni intentes interrumpir u obtener acceso no autorizado a la plataforma.',
+          ],
+        },
+        {
+          heading: 'Contenido y propiedad',
+          body: [
+            'Conservás la propiedad del contenido que publicás y nos otorgás los derechos limitados necesarios para alojarlo y mostrarlo como parte del servicio.',
+          ],
+        },
+        {
+          heading: 'Planes y pagos',
+          body: [
+            'Los planes pagos, los ciclos de facturación y la política de reembolsos y cancelación se detallarán acá conforme a la ley de consumo aplicable.',
+          ],
+        },
+        {
+          heading: 'Terminación',
+          body: [
+            'Podés dejar de usar el servicio en cualquier momento. Podemos suspender o terminar el acceso por violaciones de estos términos, con el proceso descripto acá.',
+          ],
+        },
+        {
+          heading: 'Descargos y responsabilidad',
+          body: [
+            'El servicio se presta “tal cual”. El texto final de limitación de responsabilidad y garantías será confirmado por revisión legal.',
+          ],
+        },
+      ],
+    },
+    cookies: {
+      title: 'Política de Cookies',
+      sections: [
+        {
+          heading: 'Qué cookies usamos',
+          body: [
+            'StageLink usa una cantidad reducida de cookies: cookies esenciales para autenticación y seguridad de sesión, una cookie de preferencia para tu idioma y —solo con tu consentimiento— cookies de analytics.',
+          ],
+        },
+        {
+          heading: 'Cookies esenciales',
+          body: [
+            'Necesarias para iniciar sesión y mantener tu sesión segura. No se pueden desactivar sin romper la funcionalidad principal.',
+          ],
+        },
+        {
+          heading: 'Analytics y consentimiento',
+          body: [
+            'Los analytics se ejecutan solo después de que aceptás. Podés cambiar tu elección en cualquier momento. El inventario completo de cookies —nombres, proveedores y duraciones— se listará acá antes del lanzamiento.',
+          ],
+        },
+        {
+          heading: 'Gestionar cookies',
+          body: [
+            'Podés gestionar las cookies no esenciales mediante el control de consentimiento dentro del producto y la configuración de tu navegador.',
+          ],
+        },
+      ],
+    },
   },
 };
 
