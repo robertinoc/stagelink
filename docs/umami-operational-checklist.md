@@ -56,14 +56,17 @@ In the `StageLink Platform` Umami website, validate:
 - pageview for `stagelink.art`;
 - pageview for `/es/signup`;
 - `auth_signup_started` after submitting the signup form;
+- `auth_signup_completed` after a newly created account returns to onboarding or
+  the authenticated dashboard;
 - `auth_signup_login_clicked` when clicking the login link from signup;
 - `auth_login_started` after submitting the login form;
 - `auth_login_signup_clicked` when clicking the signup link from login;
 - pageview for `/es/dashboard` after authenticated navigation.
 
-Signup completion is inferred in v1 from the authenticated post-signup pageview
-or onboarding/dashboard entry. A future API-backed phase can add a server-side
-conversion event if it is needed.
+`auth_signup_completed` uses a consent-gated, one-hour `sessionStorage` marker
+created at signup start. It is emitted only after StageLink confirms that the
+authenticated internal account was newly created, then the marker is removed.
+It carries only `locale`, `surface`, and `environment`.
 
 ## Dashboard V1 Validation
 
@@ -85,10 +88,10 @@ Use this sequence before closing the platform setup:
 2. Grant analytics consent.
 3. Confirm the Umami script is present on `stagelink.art`.
 4. Open `/es/signup`.
-5. Trigger signup and login intent events.
-6. Open `/es/dashboard` with an authenticated account.
-7. Confirm pageviews and `auth_*` events appear in the `StageLink Platform`
-   Umami website.
+5. Complete a signup using a new account.
+6. Confirm `auth_signup_started` and `auth_signup_completed` appear in the
+   `StageLink Platform` Umami website.
+7. Open `/es/dashboard` and confirm authenticated product pageviews appear.
 8. Open `https://behind.stagelink.art/behind/analytics`.
 9. Confirm Behind embeds the same platform dashboard.
 10. Confirm the Umami script itself is absent on Behind routes.
@@ -98,6 +101,8 @@ Use this sequence before closing the platform setup:
 - Do not send emails, names, handles, user IDs, artist IDs, or free-text search
   queries to Umami.
 - Explicit event properties must describe product context only.
+- The temporary signup-conversion marker must be created only after analytics
+  consent and removed after conversion, expiry, mismatch, or consent withdrawal.
 - Keep `NEXT_PUBLIC_UMAMI_DOMAINS=stagelink.art` in production.
 - Keep public artist page tracking out of this Umami website until there is a
   separate product/privacy decision.

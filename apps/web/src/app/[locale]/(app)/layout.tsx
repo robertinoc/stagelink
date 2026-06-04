@@ -4,6 +4,7 @@ import { getArtist } from '@/lib/api/artists';
 import { getBillingSummary } from '@/lib/api/billing';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import { AppShell } from '@/components/layout/AppShell';
+import { SignupConversionTracker } from '@/lib/analytics/SignupConversionTracker';
 import { UmamiProvider } from '@/lib/analytics/UmamiProvider';
 
 interface AppLayoutProps {
@@ -59,6 +60,7 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
 
   return (
     <UmamiProvider>
+      <SignupConversionTracker locale={locale} accountCreatedAt={me?.createdAt} />
       <AppShell artist={artist} effectivePlan={effectivePlan}>
         {children}
       </AppShell>

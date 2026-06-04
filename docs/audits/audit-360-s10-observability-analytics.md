@@ -59,9 +59,11 @@ the web UI and the shared event catalog.
 
 ### T10.2 Funnel Tracking
 
-The signup/login funnel now has typed intent events:
+The signup/login funnel now has typed intent events plus a confirmed signup
+conversion:
 
 - `auth_signup_started`
+- `auth_signup_completed`
 - `auth_signup_login_clicked`
 - `auth_login_started`
 - `auth_login_signup_clicked`

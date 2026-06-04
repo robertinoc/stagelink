@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { CONSENT_CHANGED_EVENT, isAnalyticsAllowed } from './consent';
+import { UMAMI_READY_EVENT } from './umami';
 
 const DEFAULT_UMAMI_SCRIPT_URL = 'https://cloud.umami.is/script.js';
 const DEFAULT_UMAMI_DOMAINS = 'stagelink.art,www.stagelink.art';
@@ -78,6 +79,7 @@ export function UmamiProvider({ children }: UmamiProviderProps) {
       script.src = scriptUrl;
       script.dataset.websiteId = websiteId;
       script.dataset.doNotTrack = 'true';
+      script.onload = () => window.dispatchEvent(new Event(UMAMI_READY_EVENT));
 
       if (hostUrl) script.dataset.hostUrl = hostUrl;
       if (domains) script.dataset.domains = domains;

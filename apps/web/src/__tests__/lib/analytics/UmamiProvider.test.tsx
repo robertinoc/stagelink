@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { usePathname } from 'next/navigation';
 import { CONSENT_CHANGED_EVENT, isAnalyticsAllowed } from '@/lib/analytics/consent';
 import { UmamiProvider } from '@/lib/analytics/UmamiProvider';
+import { UMAMI_READY_EVENT } from '@/lib/analytics/umami';
 
 vi.mock('next/navigation', () => ({
   usePathname: vi.fn(),
@@ -47,6 +48,23 @@ describe('UmamiProvider', () => {
     expect(script).toHaveAttribute('data-website-id', 'platform-website-id');
     expect(script).toHaveAttribute('data-domains', 'localhost');
     expect(script).toHaveAttribute('data-do-not-track', 'true');
+  });
+
+  it('announces when the Umami script is ready', async () => {
+    const onReady = vi.fn();
+    window.addEventListener(UMAMI_READY_EVENT, onReady);
+
+    render(
+      <UmamiProvider>
+        <div>Platform</div>
+      </UmamiProvider>,
+    );
+
+    await waitFor(() => expect(document.getElementById(SCRIPT_ID)).toBeInTheDocument());
+    act(() => document.getElementById(SCRIPT_ID)?.dispatchEvent(new Event('load')));
+
+    expect(onReady).toHaveBeenCalledOnce();
+    window.removeEventListener(UMAMI_READY_EVENT, onReady);
   });
 
   it('does not inject the script without analytics consent', () => {
