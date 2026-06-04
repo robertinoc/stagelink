@@ -139,8 +139,9 @@ Severity: Critical for public launch.
 
 ### Low
 
-- Umami: active only for Behind when public env vars are configured; provider
-  region, transfer, retention, and IP handling evidence remains pending.
+- Umami: active for StageLink Platform routes after analytics consent when
+  public env vars are configured; Behind is viewer only, and provider region,
+  transfer, retention, and IP handling evidence remains pending.
 - Printify: future provider, not active.
 
 ## Risk Assessment

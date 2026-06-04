@@ -79,7 +79,7 @@ Residual gaps:
 
 - exact provider log retention and regions;
 - exact object-storage provider/region;
-- Umami provider evidence for the Behind-only v1 setup;
+- Umami provider evidence for the StageLink Platform v1 setup;
 - final backup policy after Railway Pro.
 
 ### Data Classification

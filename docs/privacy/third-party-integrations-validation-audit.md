@@ -154,7 +154,8 @@ Result: good for StageLink-owned analytics; embeds still need follow-up.
 Good:
 
 - PostHog browser analytics is consent-gated;
-- Umami is documented as Behind-only when public env vars are configured;
+- Umami is documented as StageLink Platform-only when public env vars are
+  configured, with Behind as viewer;
 - analytics must not include raw email, tokens, payment data, or message
   content.
 

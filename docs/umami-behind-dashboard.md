@@ -64,10 +64,10 @@ website and adds operator context around it.
 
 Current explicit platform events:
 
-- `platform_signup_started`
-- `platform_signup_login_clicked`
-- `platform_login_started`
-- `platform_login_signup_clicked`
+- `auth_signup_started`
+- `auth_signup_login_clicked`
+- `auth_login_started`
+- `auth_login_signup_clicked`
 
 Core pageview analysis should use Umami URLs and filters:
 
@@ -119,7 +119,7 @@ Minimum release checks:
 3. Keep `NEXT_PUBLIC_UMAMI_DOMAINS=stagelink.art`.
 4. Deploy and open `https://stagelink.art/`.
 5. Accept analytics consent and confirm the Umami script is present.
-6. Confirm signup/login pageviews and `platform_*` events appear in the
+6. Confirm signup/login pageviews and `auth_*` events appear in the
    `StageLink Platform` website.
 7. Open an authenticated dashboard route and confirm dashboard pageviews appear.
 8. Confirm the script is absent on `behind.stagelink.art`.
