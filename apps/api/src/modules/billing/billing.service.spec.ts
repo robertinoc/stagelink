@@ -1155,4 +1155,19 @@ describe('BillingService', () => {
     expect(prisma.$transaction).not.toHaveBeenCalled();
     expect(prisma.stripeWebhookEvent.create).not.toHaveBeenCalled();
   });
+
+  describe('getPublicPlanCatalog', () => {
+    it('returns formatted prices for free/pro/pro_plus and excludes enterprise', async () => {
+      const { service } = createService();
+
+      const catalog = await service.getPublicPlanCatalog();
+      const byPlan = Object.fromEntries(catalog.map((item) => [item.plan, item]));
+
+      expect(catalog.some((item) => (item.plan as string) === 'enterprise')).toBe(false);
+      expect(byPlan['free']?.priceDisplay).toBe('$0');
+      expect(byPlan['pro']?.priceDisplay).toBe('$9'); // unit_amount 900 → $9
+      expect(byPlan['pro_plus']?.priceDisplay).toBe('$19'); // unit_amount 1900 → $19
+      expect(byPlan['pro']?.available).toBe(true);
+    });
+  });
 });

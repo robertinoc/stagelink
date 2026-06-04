@@ -14,6 +14,7 @@ import {
 import { Check } from 'lucide-react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { buildLocalizedAlternates } from '@/lib/seo-localization';
+import { fetchPublicPlanPrices } from '@/lib/pricing-catalog';
 import type { SupportedLocale } from '@stagelink/types';
 
 interface PricingPageProps {
@@ -83,7 +84,12 @@ const plans = [
 
 export default async function PricingPage({ params }: PricingPageProps) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: 'marketing.pricing' });
+  const [t, catalogPrices] = await Promise.all([
+    getTranslations({ locale, namespace: 'marketing.pricing' }),
+    // Live prices from the billing catalog (source of truth); falls back to the
+    // static i18n price copy per-plan when unavailable.
+    fetchPublicPlanPrices(),
+  ]);
 
   return (
     <PageContainer>
@@ -101,7 +107,9 @@ export default async function PricingPage({ params }: PricingPageProps) {
                   <CardTitle className="text-base">{t(`${plan.key}.name`)}</CardTitle>
                   {plan.popular && <Badge variant="default">{t('popular_badge')}</Badge>}
                 </div>
-                <div className="text-3xl font-bold">{t(`${plan.key}.price`)}</div>
+                <div className="text-3xl font-bold">
+                  {catalogPrices[plan.key] ?? t(`${plan.key}.price`)}
+                </div>
                 <CardDescription>{t(`${plan.key}.description`)}</CardDescription>
                 <p className="pt-2 text-sm leading-6 text-muted-foreground">
                   {t(`${plan.key}.best_for`)}

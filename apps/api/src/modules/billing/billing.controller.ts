@@ -20,6 +20,19 @@ export class BillingController {
     return this.billingService.getProducts();
   }
 
+  /**
+   * GET /api/billing/public/plans
+   *
+   * Public plan catalog for the marketing pricing page (no auth). Returns only
+   * plan code + formatted price + availability — the single source of truth so
+   * marketing prices never drift from real billing prices.
+   */
+  @Public()
+  @Get('public/plans')
+  getPublicPlans() {
+    return this.billingService.getPublicPlanCatalog();
+  }
+
   @Get(':artistId/subscription')
   @CheckOwnership('artist', 'artistId', 'read')
   @UseGuards(OwnershipGuard)

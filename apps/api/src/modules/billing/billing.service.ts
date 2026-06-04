@@ -125,6 +125,35 @@ export class BillingService {
     return ok({ plans });
   }
 
+  /**
+   * Public plan catalog for the marketing pricing page.
+   *
+   * Returns only safe, already-public fields (plan code + formatted price +
+   * availability) — no Stripe IDs. Reuses the same Stripe-backed catalog and
+   * in-process cache as the authenticated flow, so the marketing price display
+   * can never drift from the real billing price. Enterprise (contact-sales) is
+   * excluded; the public pricing grid only shows free / pro / pro_plus.
+   */
+  async getPublicPlanCatalog(): Promise<
+    Array<{ plan: PlanTier; priceDisplay: string; available: boolean }>
+  > {
+    const products = await this.getProductsCatalog();
+
+    return products
+      .filter((product): product is BillingPlanCatalogItem & { plan: PlanTier } => {
+        return product.plan !== 'enterprise';
+      })
+      .map((product) => ({
+        plan: product.plan,
+        priceDisplay: this.formatPriceDisplay(
+          product.amount,
+          product.currency,
+          product.contactSales,
+        ),
+        available: product.available,
+      }));
+  }
+
   async getSubscription(artistId: string) {
     const subscription = await this.ensureSubscriptionRecord(artistId);
 
