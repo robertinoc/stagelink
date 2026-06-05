@@ -53,11 +53,15 @@ export default async function DashboardProfilePage({ params }: DashboardProfileP
   ]);
   if (!artist) redirect(`/${locale}/onboarding`);
 
+  const plan = entitlements?.effectivePlan ?? 'free';
+  const maxSocialLinks = plan === 'pro_plus' ? 13 : plan === 'pro' ? 8 : 5;
+
   return (
     <ProfileEditor
       artist={artist}
       hasMultiLanguageAccess={!!entitlements?.features.multi_language_pages}
       billingHref={`/${locale}/dashboard/billing`}
+      maxSocialLinks={maxSocialLinks}
     />
   );
 }

@@ -1606,13 +1606,52 @@
           "hint": "Each plan includes everything from the previous one. Switch any time — you only pay the prorated difference."
         },
         "tiers": {
-          "current": "Plan actual",
+          "current": "Current plan",
           "popular": "POPULAR",
           "cta": {
             "free": "Managed via billing",
             "pro": "Managed via billing",
             "pro_plus": "Upgrade to Pro+"
-          }
+          },
+          "free": {
+            "sub": "When you're ready, upgrade to unlock more of StageLink.",
+            "features": [
+              "1 artist page",
+              "5 social media links",
+              "5 link blocks",
+              "Basic analytics",
+              "Basic EPK",
+              "stagelink.art/@user"
+            ]
+          },
+          "pro": {
+            "sub": "For artists ready to start unlocking features.",
+            "features": [
+              "1 artist page",
+              "8 social media links",
+              "10 link blocks",
+              "Advanced analytics",
+              "Advanced EPK",
+              "EPK templates",
+              "stagelink.art/@user"
+            ]
+          },
+          "pro_plus": {
+            "sub": "This is the plan currently linked to your billing.",
+            "features": [
+              "1 artist page",
+              "13 social media links",
+              "Unlimited link blocks",
+              "Advanced analytics",
+              "Spotify analytics integration",
+              "YouTube analytics integration",
+              "Multiple EPK templates",
+              "Custom EPK templates",
+              "stagelink.art/@user",
+              "Priority support"
+            ]
+          },
+          "cta_upgrade": "Upgrade to {plan}"
         }
       },
       "usage": {
@@ -1640,47 +1679,6 @@
           "amount": "Amount",
           "pdf": "PDF"
         }
-      },
-      "tiers": {
-        "free": {
-          "sub": "When you're ready, upgrade to unlock more of StageLink.",
-          "features": [
-            "1 artist page",
-            "5 social media links",
-            "5 link blocks",
-            "Basic analytics",
-            "Basic EPK",
-            "stagelink.art/@user"
-          ]
-        },
-        "pro": {
-          "sub": "For artists ready to start unlocking features.",
-          "features": [
-            "1 artist page",
-            "8 social media links",
-            "10 link blocks",
-            "Advanced analytics",
-            "Advanced EPK",
-            "EPK templates",
-            "stagelink.art/@user"
-          ]
-        },
-        "pro_plus": {
-          "sub": "This is the plan currently linked to your billing.",
-          "features": [
-            "1 artist page",
-            "13 social media links",
-            "Unlimited link blocks",
-            "Advanced analytics",
-            "Spotify analytics integration",
-            "YouTube analytics integration",
-            "Multiple EPK templates",
-            "Custom EPK templates",
-            "stagelink.art/@user",
-            "Priority support"
-          ]
-        },
-        "cta_upgrade": "Upgrade to {plan}"
       },
       "danger": {
         "plan": {

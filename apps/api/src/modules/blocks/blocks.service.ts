@@ -23,8 +23,15 @@ import { ANALYTICS_EVENTS, type BlockLocalizedContent } from '@stagelink/types';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { MerchService } from '../merch/merch.service';
 
-// Maximum blocks allowed per page — prevents unbounded data growth.
+// Maximum blocks allowed per page — hard cap to prevent unbounded data growth.
 const MAX_BLOCKS_PER_PAGE = 50;
+
+// Per-plan block limits matching the pricing page (Free=5, Pro=10, Pro+=unlimited/50).
+const PLAN_BLOCK_LIMITS: Record<string, number> = {
+  free: 5,
+  pro: 10,
+  pro_plus: MAX_BLOCKS_PER_PAGE,
+};
 
 @Injectable()
 export class BlocksService {
@@ -69,6 +76,16 @@ export class BlocksService {
     validateBlockConfig(blockType, dto.config);
 
     await this.assertFeatureAccessForBlock(artistId, blockType);
+
+    // Enforce per-plan block limit (Free=5, Pro=10, Pro+=50).
+    const entitlements = await this.billingEntitlementsService.getArtistEntitlements(artistId);
+    const planBlockLimit = PLAN_BLOCK_LIMITS[entitlements.effectivePlan] ?? MAX_BLOCKS_PER_PAGE;
+    const currentBlockCount = await this.prisma.block.count({ where: { pageId } });
+    if (currentBlockCount >= planBlockLimit) {
+      throw new UnprocessableEntityException(
+        `Your ${entitlements.effectivePlan} plan allows a maximum of ${planBlockLimit} blocks. Upgrade to add more.`,
+      );
+    }
 
     // Guard: verify that any referenced smartLinkIds belong to this artist.
     // Prevents IDOR where a user embeds another artist's SmartLink in their block.

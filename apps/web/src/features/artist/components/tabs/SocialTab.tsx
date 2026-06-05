@@ -146,11 +146,17 @@ const ALL_PLATFORMS: { key: keyof ProfileFormValues; brand: string; icon: string
 
 interface SocialTabProps {
   form: UseFormReturn<ProfileFormValues>;
+  /** Max platforms allowed by plan (Free=5, Pro=8, Pro+=13). Default 13. */
+  maxSocialLinks?: number;
+  /** Billing upgrade href for the lock CTA. */
+  billingHref?: string;
 }
 
-export function SocialTab({ form }: SocialTabProps) {
+export function SocialTab({ form, maxSocialLinks = 13, billingHref }: SocialTabProps) {
   const { watch, setValue } = form;
   const isMobile = useIsMobile();
+  // Running index across groups to apply the per-plan limit
+  let globalPlatformIndex = 0;
 
   const values = watch();
   const activePlatforms = ALL_PLATFORMS.filter((p) => {
@@ -299,8 +305,53 @@ export function SocialTab({ form }: SocialTabProps) {
               }}
             >
               {group.platforms.map((p) => {
+                const platformIndex = globalPlatformIndex++;
+                const isLocked = platformIndex >= maxSocialLinks;
                 const raw = values[p.key];
                 const val = typeof raw === 'string' ? raw : '';
+
+                if (isLocked) {
+                  return (
+                    <div
+                      key={p.key}
+                      style={{
+                        borderRadius: 12,
+                        border: '1px dashed rgba(255,255,255,0.1)',
+                        padding: '10px 14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        opacity: 0.5,
+                      }}
+                    >
+                      <span style={{ fontSize: 18, filter: 'grayscale(1)' }}>{p.icon}</span>
+                      <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', flex: 1 }}>
+                        {p.name}
+                      </span>
+                      {billingHref ? (
+                        <a
+                          href={billingHref}
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: '3px 8px',
+                            borderRadius: 6,
+                            background: 'rgba(224,64,251,0.12)',
+                            color: '#E040FB',
+                            border: '1px solid rgba(224,64,251,0.25)',
+                            textDecoration: 'none',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          🔒 Upgrade
+                        </a>
+                      ) : (
+                        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>🔒</span>
+                      )}
+                    </div>
+                  );
+                }
+
                 return (
                   <SocialField
                     key={p.key}
