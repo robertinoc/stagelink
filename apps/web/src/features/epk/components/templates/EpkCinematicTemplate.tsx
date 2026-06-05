@@ -51,7 +51,7 @@ export function EpkCinematicTemplate({
 
   // Derived
   // Skip slot 0 (hero cover) and slot 1 (artist portrait) — those are displayed elsewhere.
-  let galleryImages = epk.galleryImageUrls.slice(2).filter(Boolean);
+  const galleryImages = epk.galleryImageUrls.slice(2).filter(Boolean);
   const hasContacts = epk.bookingEmail || epk.managementContact || epk.pressContact || epk.location;
   const hasRider = epk.riderInfo || epk.techRequirements || epk.availabilityNotes;
   const [nameLine1, nameLine2] = splitArtistName(artist.displayName);
