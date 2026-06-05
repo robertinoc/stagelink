@@ -5,19 +5,22 @@ import { Bento } from '@/components/sl/Bento';
 import { Pill, Sparkline, Sparkbars } from '@/components/sl/SlPrimitives';
 import type { Artist } from '@/lib/api/artists';
 import type { BillingSummaryResponse } from '@/lib/api/billing';
+import type { AnalyticsOverview } from '@/lib/api/analytics';
 import { DashboardShareStrip } from './DashboardShareStrip';
 
 interface DashboardWelcomeProps {
   artist: Artist | null;
   billingSummary: BillingSummaryResponse | null;
+  analyticsOverview?: AnalyticsOverview | null;
 }
 
-// Mock sparkline data — will be replaced by real analytics once the API
-// surfaces weekly aggregates on the dashboard endpoint.
-const MOCK_SPARK = [12, 18, 14, 22, 31, 27, 57];
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'];
 
-export async function DashboardWelcome({ artist, billingSummary }: DashboardWelcomeProps) {
+export async function DashboardWelcome({
+  artist,
+  billingSummary,
+  analyticsOverview,
+}: DashboardWelcomeProps) {
   const t = await getTranslations('dashboard.home');
   const locale = await getLocale();
 
@@ -26,7 +29,8 @@ export async function DashboardWelcome({ artist, billingSummary }: DashboardWelc
   const artistName = artist?.displayName ?? artist?.username ?? 'Artist';
   const greeting = t(`intro.greeting_${greetingIndex}`, { name: artistName });
 
-  const hasAnalytics = false; // Wire to real data when analytics API exposes weekly rollup
+  const pageViews = analyticsOverview?.summary?.pageViews ?? 0;
+  const hasAnalytics = pageViews > 0;
   const entitlements = billingSummary?.entitlements ?? {
     remove_stagelink_branding: false,
     custom_domain: false,
@@ -98,14 +102,10 @@ export async function DashboardWelcome({ artist, billingSummary }: DashboardWelc
                   backgroundClip: 'text',
                 }}
               >
-                181 people
+                {pageViews.toLocaleString()} {t('hero.views_label')}
               </div>
               <div className="mb-3 text-[16px] leading-relaxed text-white/70">
                 {t('hero.suffix')}
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Pill tone="green">↑ 34%</Pill>
-                <span className="text-[13px] text-white/50">{t('hero.trend_label')}</span>
               </div>
             </div>
             {/* Right: sparkline */}
@@ -115,11 +115,16 @@ export async function DashboardWelcome({ artist, billingSummary }: DashboardWelc
                   <span key={d}>{d}</span>
                 ))}
               </div>
-              <Sparkline data={MOCK_SPARK} color="#E040FB" height={100} width={500} />
+              <Sparkline
+                data={analyticsOverview?.summary ? [analyticsOverview.summary.pageViews] : [1]}
+                color="#E040FB"
+                height={100}
+                width={500}
+              />
               <div className="mt-3 flex flex-wrap gap-3 text-[12px] text-white/50">
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#E040FB]" />
-                  {t('hero.peak')}: 57 visits
+                  {analyticsOverview?.summary?.linkClicks ?? 0} {t('hero.clicks_label')}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#00D4FF]" />7 {t('hero.aux_label')}

@@ -676,21 +676,28 @@ function BlockRow({
       </button>
 
       {/* Publish toggle */}
-      <button
-        type="button"
-        role="switch"
-        aria-checked={block.isPublished}
-        onClick={(e) => {
-          e.stopPropagation();
-          void handleTogglePublish();
-        }}
-        disabled={toggling}
-        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${block.isPublished ? 'bg-[#E040FB]' : 'bg-white/20'} ${toggling ? 'opacity-60' : ''}`}
-      >
-        <span
-          className={`absolute top-0.5 inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${block.isPublished ? 'translate-x-4' : 'translate-x-0.5'}`}
-        />
-      </button>
+      <div className="flex shrink-0 items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+        {toggling && (
+          <span className="text-[10px] text-white/40 animate-pulse">
+            {block.isPublished ? t('deactivating') : t('activating')}
+          </span>
+        )}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={block.isPublished}
+          onClick={(e) => {
+            e.stopPropagation();
+            void handleTogglePublish();
+          }}
+          disabled={toggling}
+          className={`relative inline-flex h-5 w-9 cursor-pointer rounded-full transition-colors ${block.isPublished ? 'bg-[#E040FB]' : 'bg-white/20'} ${toggling ? 'opacity-60' : ''}`}
+        >
+          <span
+            className={`absolute top-0.5 inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${block.isPublished ? 'translate-x-4' : 'translate-x-0.5'}`}
+          />
+        </button>
+      </div>
     </div>
   );
 }

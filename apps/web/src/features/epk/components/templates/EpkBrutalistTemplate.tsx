@@ -114,8 +114,8 @@ export function EpkBrutalistTemplate({
   const [riderOpen, setRiderOpen] = useState(false);
 
   // Derived
-  let galleryImages = epk.galleryImageUrls.filter(Boolean);
-  if (galleryImages[0] === epk.heroImageUrl) galleryImages = galleryImages.slice(1);
+  // Skip slot 0 (hero cover) and slot 1 (artist portrait) — those are displayed elsewhere.
+  let galleryImages = epk.galleryImageUrls.slice(2).filter(Boolean);
   const hasContacts = epk.bookingEmail || epk.managementContact || epk.pressContact || epk.location;
 
   // In print mode override to white-ink

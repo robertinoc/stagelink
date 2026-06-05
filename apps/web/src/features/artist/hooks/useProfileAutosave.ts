@@ -122,11 +122,17 @@ export function useProfileAutosave({
 
   const doSave = useCallback(
     async (values: ProfileFormValues) => {
-      const valid = await form.trigger();
-      if (!valid) {
-        // Surface validation errors to the user instead of silently aborting.
-        setSaveStatus('error');
-        return;
+      // Only trigger validation on fields that were actually changed — triggering
+      // all fields blocks save when unrelated tabs have incomplete optional fields.
+      const dirtyFieldNames = Object.keys(
+        form.formState.dirtyFields,
+      ) as (keyof ProfileFormValues)[];
+      if (dirtyFieldNames.length > 0) {
+        const valid = await form.trigger(dirtyFieldNames);
+        if (!valid) {
+          setSaveStatus('error');
+          return;
+        }
       }
       setSaveStatus('saving');
       try {

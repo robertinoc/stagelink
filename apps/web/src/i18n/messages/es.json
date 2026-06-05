@@ -139,6 +139,8 @@
       "hero": {
         "eyebrow": "Esta semana",
         "suffix": "entraron a tu escenario.",
+        "views_label": "visitas a tu página",
+        "clicks_label": "clicks en tus links",
         "trend_label": "vs. la semana pasada",
         "peak": "Pico el jueves",
         "aux_label": "clicks a tus links",
@@ -2130,6 +2132,8 @@
     "move_up": "Subir",
     "move_down": "Bajar",
     "delete_confirm": "¿Estás seguro de que querés eliminar este bloque? Esta acción no se puede deshacer.",
+    "activating": "Activando...",
+    "deactivating": "Desactivando...",
     "saving": "Guardando...",
     "save_error": "No se pudieron guardar los cambios.",
     "types": {
@@ -2365,8 +2369,8 @@
       },
       "technical_rider": {
         "section_label": "Rider técnico",
-        "rider_info_label": "Rider",
-        "tech_requirements_label": "Requisitos técnicos"
+        "rider_info_label": "Requerimientos del artista",
+        "tech_requirements_label": "Rider técnico"
       },
       "contact_form": {
         "section_label": "Contacto",
@@ -2487,9 +2491,9 @@
       "traxsource": "Comprar en Traxsource"
     },
     "technical_rider": {
-      "section_label": "Technical Rider",
-      "rider_info_label": "Rider",
-      "tech_requirements_label": "Requerimientos técnicos"
+      "section_label": "Rider técnico",
+      "rider_info_label": "Requerimientos del artista",
+      "tech_requirements_label": "Rider técnico"
     }
   },
   "public_epk": {
