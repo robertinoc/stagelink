@@ -7,7 +7,12 @@ import { getArtist } from '@/lib/api/artists';
 import { getBillingSummary } from '@/lib/api/billing';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import { getSession } from '@/lib/auth';
-import { getAnalyticsOverview } from '@/lib/api/analytics';
+import {
+  getAnalyticsOverview,
+  getAnalyticsProTrends,
+  type AnalyticsOverview,
+  type AnalyticsProTrends,
+} from '@/lib/api/analytics';
 
 interface DashboardPageProps {
   params: Promise<{ locale: string }>;
@@ -41,23 +46,29 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
     redirect(`/${locale}/onboarding`);
   }
 
-  const [artist, billingSummary, analyticsResult] = await Promise.all([
+  const [artist, billingSummary, analyticsResult, trendsResult] = await Promise.all([
     getArtist(artistId, session.accessToken).catch(() => null),
     getBillingSummary(artistId, session.accessToken).catch(() => null),
     getAnalyticsOverview(artistId, session.accessToken, '7d').catch(() => null),
+    // Pro trends are gated to analytics_pro (Pro+) — silently null for other plans.
+    getAnalyticsProTrends(artistId, session.accessToken, '7d').catch(() => null),
   ]);
 
-  const analyticsOverview =
-    analyticsResult && 'kind' in analyticsResult && analyticsResult.kind !== 'ok'
-      ? null
-      : ((analyticsResult as Awaited<ReturnType<typeof getAnalyticsOverview>> & { kind: 'ok' })
-          ?.data ?? null);
+  function unwrapAnalytics<T>(result: unknown): T | null {
+    if (!result || typeof result !== 'object') return null;
+    const r = result as { kind?: string; data?: T };
+    return r.kind === 'ok' ? (r.data ?? null) : null;
+  }
+
+  const analyticsOverview = unwrapAnalytics<AnalyticsOverview>(analyticsResult);
+  const analyticsTrends = unwrapAnalytics<AnalyticsProTrends>(trendsResult);
 
   return (
     <DashboardWelcome
       artist={artist}
       billingSummary={billingSummary}
       analyticsOverview={analyticsOverview}
+      analyticsTrends={analyticsTrends}
     />
   );
 }
