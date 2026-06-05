@@ -178,7 +178,12 @@ export function EpkEditorV2({
       managementContact: editorData.epk.managementContact ?? '',
       pressContact: editorData.epk.pressContact ?? '',
       heroImageUrl: editorData.epk.heroImageUrl ?? '',
-      galleryImageUrls: editorData.epk.galleryImageUrls ?? [],
+      galleryImageUrls: (() => {
+        const arr = [...(editorData.epk.galleryImageUrls ?? [])];
+        // Slot 1 = artist portrait; default to profile avatar if not explicitly set.
+        if (!arr[1] && editorData.inherited.avatarUrl) arr[1] = editorData.inherited.avatarUrl;
+        return arr;
+      })(),
       featuredMedia: editorData.epk.featuredMedia ?? [],
       featuredLinks: editorData.epk.featuredLinks ?? [],
       highlights: editorData.epk.highlights ?? [],
@@ -219,8 +224,8 @@ export function EpkEditorV2({
   } = form;
 
   const isBusy = isSubmitting || saveStatus === 'saving';
-  // EPK is always editable — saving auto-republishes when already published.
-  const editorLocked = false;
+  // Lock editor when EPK is published — user must unpublish first to edit.
+  const editorLocked = editorData.epk.isPublished;
   const formDisabled = isBusy;
 
   const watchedGallery = watch('galleryImageUrls');

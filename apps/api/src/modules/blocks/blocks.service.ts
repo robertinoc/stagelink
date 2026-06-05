@@ -119,7 +119,7 @@ export class BlocksService {
           config: enrichedConfig as Prisma.InputJsonValue,
           localizedContent: localizedContent as Prisma.InputJsonValue,
           position,
-          isPublished: false,
+          isPublished: true,
         },
       });
     });

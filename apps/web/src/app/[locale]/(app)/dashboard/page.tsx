@@ -7,6 +7,7 @@ import { getArtist } from '@/lib/api/artists';
 import { getBillingSummary } from '@/lib/api/billing';
 import { getAuthMe, getCurrentArtistId } from '@/lib/api/me';
 import { getSession } from '@/lib/auth';
+import { getAnalyticsOverview } from '@/lib/api/analytics';
 
 interface DashboardPageProps {
   params: Promise<{ locale: string }>;
@@ -40,10 +41,23 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
     redirect(`/${locale}/onboarding`);
   }
 
-  const [artist, billingSummary] = await Promise.all([
+  const [artist, billingSummary, analyticsResult] = await Promise.all([
     getArtist(artistId, session.accessToken).catch(() => null),
     getBillingSummary(artistId, session.accessToken).catch(() => null),
+    getAnalyticsOverview(artistId, session.accessToken, '7d').catch(() => null),
   ]);
 
-  return <DashboardWelcome artist={artist} billingSummary={billingSummary} />;
+  const analyticsOverview =
+    analyticsResult && 'kind' in analyticsResult && analyticsResult.kind !== 'ok'
+      ? null
+      : ((analyticsResult as Awaited<ReturnType<typeof getAnalyticsOverview>> & { kind: 'ok' })
+          ?.data ?? null);
+
+  return (
+    <DashboardWelcome
+      artist={artist}
+      billingSummary={billingSummary}
+      analyticsOverview={analyticsOverview}
+    />
+  );
 }

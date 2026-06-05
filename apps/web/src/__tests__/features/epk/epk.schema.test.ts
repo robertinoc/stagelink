@@ -63,15 +63,13 @@ describe('epkFormSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  // ── Required field validation via superRefine ────────────────────────────
+  // ── Publish-readiness fields are optional for draft saves ───────────────
+  // These fields are checked by getEpkPublishReadiness() at publish time,
+  // NOT by the schema — so drafts can be saved at any stage of completion.
 
-  it('rejects when headline is missing', () => {
+  it('accepts when headline is missing (publish readiness checked separately at publish time)', () => {
     const result = parse({ headline: null });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      const paths = result.error.errors.map((e) => e.path.join('.'));
-      expect(paths).toContain('headline');
-    }
+    expect(result.success).toBe(true);
   });
 
   it('accepts when only shortBio is provided (no fullBio required)', () => {
@@ -89,26 +87,18 @@ describe('epkFormSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('rejects when neither featuredMedia nor galleryImageUrls are provided', () => {
+  it('accepts when neither featuredMedia nor galleryImageUrls are provided (draft can be saved without media)', () => {
     const result = parse({ featuredMedia: [], galleryImageUrls: [] });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      const paths = result.error.errors.map((e) => e.path.join('.'));
-      expect(paths).toContain('featuredMedia');
-    }
+    expect(result.success).toBe(true);
   });
 
-  it('rejects when no public contact is provided (bookingEmail, managementContact, pressContact all null)', () => {
+  it('accepts when no public contact is provided (draft can be saved without contacts)', () => {
     const result = parse({
       bookingEmail: null,
       managementContact: null,
       pressContact: null,
     });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      const paths = result.error.errors.map((e) => e.path.join('.'));
-      expect(paths).toContain('bookingEmail');
-    }
+    expect(result.success).toBe(true);
   });
 
   // ── String length limits ─────────────────────────────────────────────────
@@ -165,11 +155,11 @@ describe('epkFormSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('accepts empty string bookingEmail as "no email" (treated as absent)', () => {
-    // Empty string is allowed by the optionalEmail schema
+  it('accepts empty string bookingEmail as "no email" (draft save does not require contacts)', () => {
+    // Empty string is allowed by the optionalEmail schema.
+    // Publish readiness (requiring at least one contact) is checked separately at publish time.
     const result = parse({ bookingEmail: '' });
-    // With empty email and no other contact, should fail the "public contact" check
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   it('rejects an invalid heroImageUrl', () => {

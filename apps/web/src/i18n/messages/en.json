@@ -139,6 +139,8 @@
       "hero": {
         "eyebrow": "This week",
         "suffix": "visited your stage.",
+        "views_label": "page views",
+        "clicks_label": "link clicks",
         "trend_label": "vs. last week",
         "peak": "Peak on Thursday",
         "aux_label": "clicks to your links",
@@ -2130,6 +2132,8 @@
     "move_up": "Move up",
     "move_down": "Move down",
     "delete_confirm": "Are you sure you want to delete this block? This action cannot be undone.",
+    "activating": "Activating...",
+    "deactivating": "Deactivating...",
     "saving": "Saving...",
     "save_error": "Failed to save changes.",
     "types": {
@@ -2365,8 +2369,8 @@
       },
       "technical_rider": {
         "section_label": "Technical Rider",
-        "rider_info_label": "Rider Info",
-        "tech_requirements_label": "Tech Requirements"
+        "rider_info_label": "Artist Requirements",
+        "tech_requirements_label": "Technical Rider"
       },
       "contact_form": {
         "section_label": "Get in touch",
@@ -2488,8 +2492,8 @@
     },
     "technical_rider": {
       "section_label": "Technical Rider",
-      "rider_info_label": "Rider",
-      "tech_requirements_label": "Technical requirements"
+      "rider_info_label": "Artist Requirements",
+      "tech_requirements_label": "Technical Rider"
     }
   },
   "public_epk": {

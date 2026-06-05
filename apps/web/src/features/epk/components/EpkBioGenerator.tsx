@@ -62,7 +62,15 @@ export function EpkBioGenerator({
       setResult(generated);
       setPreview(generated);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Generation failed. Please try again.');
+      const raw = err instanceof Error ? err.message : '';
+      // Translate opaque server errors into actionable messages.
+      const msg =
+        raw.toLowerCase().includes('not configured') || raw.toLowerCase().includes('unavailable')
+          ? 'AI generation is not configured on this server. Contact your administrator.'
+          : raw.toLowerCase().includes('internal server')
+            ? 'AI generation failed unexpectedly. Please try again in a moment.'
+            : raw || 'Generation failed. Please try again.';
+      setError(msg);
     } finally {
       setGenerating(false);
     }
