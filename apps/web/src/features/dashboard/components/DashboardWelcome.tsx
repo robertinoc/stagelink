@@ -5,13 +5,14 @@ import { Bento } from '@/components/sl/Bento';
 import { Pill, Sparkline, Sparkbars } from '@/components/sl/SlPrimitives';
 import type { Artist } from '@/lib/api/artists';
 import type { BillingSummaryResponse } from '@/lib/api/billing';
-import type { AnalyticsOverview } from '@/lib/api/analytics';
+import type { AnalyticsOverview, AnalyticsProTrends } from '@/lib/api/analytics';
 import { DashboardShareStrip } from './DashboardShareStrip';
 
 interface DashboardWelcomeProps {
   artist: Artist | null;
   billingSummary: BillingSummaryResponse | null;
   analyticsOverview?: AnalyticsOverview | null;
+  analyticsTrends?: AnalyticsProTrends | null;
 }
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'];
@@ -20,6 +21,7 @@ export async function DashboardWelcome({
   artist,
   billingSummary,
   analyticsOverview,
+  analyticsTrends,
 }: DashboardWelcomeProps) {
   const t = await getTranslations('dashboard.home');
   const locale = await getLocale();
@@ -92,44 +94,49 @@ export async function DashboardWelcome({
             {/* Left: stat */}
             <div className="relative">
               <div className="mb-2 text-[13px] text-white/50">{t('hero.eyebrow')}</div>
+              {/* Big number */}
               <div
-                className="mb-3 font-[family-name:var(--font-heading)] font-bold leading-none tracking-[-0.03em]"
+                className="font-[family-name:var(--font-heading)] font-bold leading-none tracking-[-0.03em]"
                 style={{
-                  fontSize: 'clamp(40px, 8cqw, 56px)',
+                  fontSize: 'clamp(48px, 8cqw, 64px)',
                   background: 'linear-gradient(135deg, #fff 0%, #E040FB 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
                 }}
               >
-                {pageViews.toLocaleString()} {t('hero.views_label')}
+                {pageViews.toLocaleString()}
               </div>
-              <div className="mb-3 text-[16px] leading-relaxed text-white/70">
-                {t('hero.suffix')}
-              </div>
-            </div>
-            {/* Right: sparkline */}
-            <div className="relative min-w-0">
-              <div className="mb-2 flex justify-between font-[family-name:var(--font-heading)] text-[10px] uppercase tracking-[1px] text-white/30">
-                {DAY_LABELS.map((d) => (
-                  <span key={d}>{d}</span>
-                ))}
-              </div>
-              <Sparkline
-                data={analyticsOverview?.summary ? [analyticsOverview.summary.pageViews] : [1]}
-                color="#E040FB"
-                height={100}
-                width={500}
-              />
-              <div className="mt-3 flex flex-wrap gap-3 text-[12px] text-white/50">
-                <span className="inline-flex items-center gap-1.5">
+              {/* Human-readable label */}
+              <div className="mt-2 text-[16px] leading-snug text-white/70">{t('hero.suffix')}</div>
+              {/* Link clicks pill */}
+              {(analyticsOverview?.summary?.linkClicks ?? 0) > 0 && (
+                <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[12px] text-white/50">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#E040FB]" />
-                  {analyticsOverview?.summary?.linkClicks ?? 0} {t('hero.clicks_label')}
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#00D4FF]" />7 {t('hero.aux_label')}
-                </span>
-              </div>
+                  {analyticsOverview!.summary.linkClicks} {t('hero.clicks_label')}
+                </div>
+              )}
+            </div>
+            {/* Right: sparkline (Pro+ only — null for other plans) */}
+            <div className="relative min-w-0">
+              {analyticsTrends?.series?.pageViews?.length ? (
+                <>
+                  <div className="mb-2 flex justify-between font-[family-name:var(--font-heading)] text-[10px] uppercase tracking-[1px] text-white/30">
+                    {DAY_LABELS.map((d) => (
+                      <span key={d}>{d}</span>
+                    ))}
+                  </div>
+                  <Sparkline
+                    data={analyticsTrends.series.pageViews.map((p) => p.value)}
+                    color="#E040FB"
+                    height={100}
+                    width={500}
+                  />
+                </>
+              ) : (
+                /* No trend data — show decorative bars */
+                <Sparkbars data={[2, 3, 1, 4, 2, 5, 3]} color="rgba(224,64,251,0.25)" height={80} />
+              )}
             </div>
           </div>
         ) : (
