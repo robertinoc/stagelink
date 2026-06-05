@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Globe,
   BarChart2,
+  User,
   FileText,
   Settings,
   ExternalLink,
@@ -48,6 +49,7 @@ interface SidebarNavLinkProps {
 
 const NAV_ITEMS: NavItem[] = [
   { icon: LayoutDashboard, labelKey: 'nav.dashboard', href: 'dashboard', exact: true },
+  { icon: User, labelKey: 'nav.profile', href: 'dashboard/profile' },
   { icon: Globe, labelKey: 'nav.my_page', href: 'dashboard/page' },
   { icon: FileText, labelKey: 'nav.epk', href: 'dashboard/epk' },
   { icon: BarChart2, labelKey: 'nav.analytics', href: 'dashboard/analytics', exact: true },
