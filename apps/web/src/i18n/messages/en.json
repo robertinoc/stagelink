@@ -138,7 +138,7 @@
       },
       "hero": {
         "eyebrow": "This week",
-        "suffix": "visited your stage.",
+        "suffix": "people visited your page this week.",
         "views_label": "page views",
         "clicks_label": "link clicks",
         "trend_label": "vs. last week",
