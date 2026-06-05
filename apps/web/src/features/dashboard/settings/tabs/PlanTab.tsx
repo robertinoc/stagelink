@@ -42,7 +42,7 @@ export function PlanTab({ data, locale }: PlanTabProps) {
   const tu = useTranslations('dashboard.settings.usage');
   const ti = useTranslations('dashboard.settings.invoices');
   const td = useTranslations('dashboard.settings.danger.plan');
-  const ttiers = useTranslations('dashboard.settings.tiers');
+  const ttiers = useTranslations('dashboard.settings.plan.tiers');
 
   const summary = data.summary;
   const planLabel = resolvePlanLabel(summary.effectivePlan);

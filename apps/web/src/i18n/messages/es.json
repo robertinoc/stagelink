@@ -1611,8 +1611,47 @@
           "cta": {
             "free": "Se gestiona desde billing",
             "pro": "Se gestiona desde billing",
-            "pro_plus": "Upgrade a Pro+"
-          }
+            "pro_plus": "Mejorar a Pro+"
+          },
+          "free": {
+            "sub": "Cuando estés listo, actualizá para desbloquear más de StageLink.",
+            "features": [
+              "1 página de artista",
+              "5 links de redes sociales",
+              "5 bloques de links",
+              "Analytics básicos",
+              "EPK básico",
+              "stagelink.art/@usuario"
+            ]
+          },
+          "pro": {
+            "sub": "Para artistas que quieren empezar a desbloquear features.",
+            "features": [
+              "1 página de artista",
+              "8 links de redes sociales",
+              "10 bloques de links",
+              "Analytics avanzados",
+              "EPK avanzado",
+              "Templates de EPK",
+              "stagelink.art/@usuario"
+            ]
+          },
+          "pro_plus": {
+            "sub": "Este es el plan actualmente asociado a tu billing.",
+            "features": [
+              "1 página de artista",
+              "13 links de redes sociales",
+              "Bloques de links ilimitados",
+              "Analytics avanzados",
+              "Analytics de Spotify integrado",
+              "Analytics de YouTube integrado",
+              "Múltiples templates de EPK",
+              "Templates personalizados de EPK",
+              "stagelink.art/@usuario",
+              "Soporte prioritario"
+            ]
+          },
+          "cta_upgrade": "Mejorar a {plan}"
         }
       },
       "usage": {
@@ -1640,47 +1679,6 @@
           "amount": "Monto",
           "pdf": "PDF"
         }
-      },
-      "tiers": {
-        "free": {
-          "sub": "Cuando estés listo, actualizá para desbloquear más de StageLink.",
-          "features": [
-            "1 página de artista",
-            "5 links de redes sociales",
-            "5 bloques de links",
-            "Analytics básicos",
-            "EPK básico",
-            "stagelink.art/@usuario"
-          ]
-        },
-        "pro": {
-          "sub": "Para artistas que quieren empezar a desbloquear features.",
-          "features": [
-            "1 página de artista",
-            "8 links de redes sociales",
-            "10 bloques de links",
-            "Analytics avanzados",
-            "EPK avanzado",
-            "Templates de EPK",
-            "stagelink.art/@usuario"
-          ]
-        },
-        "pro_plus": {
-          "sub": "Este es el plan actualmente asociado a tu billing.",
-          "features": [
-            "1 página de artista",
-            "13 links de redes sociales",
-            "Bloques de links ilimitados",
-            "Analytics avanzados",
-            "Analytics de Spotify integrado",
-            "Analytics de YouTube integrado",
-            "Múltiples templates de EPK",
-            "Templates personalizados de EPK",
-            "stagelink.art/@usuario",
-            "Soporte prioritario"
-          ]
-        },
-        "cta_upgrade": "Mejorar a {plan}"
       },
       "danger": {
         "plan": {

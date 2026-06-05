@@ -31,6 +31,8 @@ interface ProfileEditorProps {
   hasMultiLanguageAccess: boolean;
   /** Href to the billing/upgrade page. */
   billingHref: string;
+  /** Max social/platform links allowed by the current plan (Free=5, Pro=8, Pro+=13). */
+  maxSocialLinks?: number;
 }
 
 export function ProfileEditor({
@@ -38,6 +40,7 @@ export function ProfileEditor({
   hasMultiLanguageAccess,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   billingHref,
+  maxSocialLinks = 13,
 }: ProfileEditorProps) {
   const t = useTranslations('dashboard.profile');
   const [activeTab, setActiveTab] = useState<ProfileTabId>('identity');
@@ -216,7 +219,7 @@ export function ProfileEditor({
         </div>
 
         <div style={{ display: activeTab === 'social' ? 'block' : 'none' }}>
-          <SocialTab form={form} />
+          <SocialTab form={form} maxSocialLinks={maxSocialLinks} billingHref={billingHref} />
         </div>
 
         <div style={{ display: activeTab === 'catalog' ? 'block' : 'none' }}>
