@@ -45,6 +45,7 @@ interface EpkTemplateTabProps {
   templateId: EpkTemplateId;
   brand: EpkBrand | null;
   isSaving: boolean;
+  disabled: boolean;
   billingHref: string;
   onSelectTemplate: (id: EpkTemplateId) => void;
   onApplyBrand: (brand: EpkBrand) => void;
@@ -56,6 +57,7 @@ export function EpkTemplateTab({
   templateId,
   brand,
   isSaving,
+  disabled,
   billingHref,
   onSelectTemplate,
   onApplyBrand,
@@ -144,8 +146,8 @@ export function EpkTemplateTab({
               <div key={tpl.id} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button
                   type="button"
-                  onClick={() => accessible && !isSaving && onSelectTemplate(tpl.id)}
-                  disabled={!accessible || isSaving}
+                  onClick={() => accessible && !isSaving && !disabled && onSelectTemplate(tpl.id)}
+                  disabled={!accessible || isSaving || disabled}
                   style={{
                     position: 'relative',
                     background: 'transparent',
@@ -153,7 +155,7 @@ export function EpkTemplateTab({
                     borderRadius: 12,
                     overflow: 'hidden',
                     padding: 0,
-                    cursor: !accessible ? 'not-allowed' : isSaving ? 'wait' : 'pointer',
+                    cursor: !accessible || disabled ? 'not-allowed' : isSaving ? 'wait' : 'pointer',
                     transition: 'border-color 0.15s, box-shadow 0.15s',
                     boxShadow: selected ? '0 0 0 3px rgba(224,64,251,0.25)' : 'none',
                     opacity: !accessible ? 0.55 : 1,
@@ -376,7 +378,8 @@ export function EpkTemplateTab({
             )}
             <button
               type="button"
-              onClick={() => setShowBrandDrawer(true)}
+              onClick={() => !disabled && setShowBrandDrawer(true)}
+              disabled={disabled}
               style={{
                 background: 'rgba(224,64,251,0.15)',
                 border: '1px solid rgba(224,64,251,0.35)',

@@ -22,6 +22,7 @@ interface PublishBannerProps {
   publicUrl: string;
   userPlan: PlanCode;
   onToggle: () => void;
+  onPreview?: () => void;
 }
 
 export function PublishBanner({
@@ -32,6 +33,7 @@ export function PublishBanner({
   publicUrl,
   userPlan,
   onToggle,
+  onPreview,
 }: PublishBannerProps) {
   const t = useTranslations('dashboard.epk.editor');
   const [copied, setCopied] = useState(false);
@@ -167,6 +169,41 @@ export function PublishBanner({
 
       {/* Right — actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        {!isPublished && onPreview && (
+          <button
+            type="button"
+            onClick={onPreview}
+            style={{
+              padding: '9px 14px',
+              borderRadius: 10,
+              background: 'rgba(255,255,255,0.05)',
+              color: 'rgba(255,255,255,0.75)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              fontFamily: 'var(--font-body)',
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            {t('publish.previewDraft')}
+          </button>
+        )}
         {isPublished && (
           <button
             type="button"

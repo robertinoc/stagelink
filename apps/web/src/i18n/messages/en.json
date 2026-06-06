@@ -927,7 +927,8 @@
           "publishing": "Publishing…",
           "unpublishing": "Unpublishing…",
           "unpublish": "Unpublish & edit",
-          "publishCta": "✓ Publish Press Kit"
+          "publishCta": "✓ Publish Press Kit",
+          "previewDraft": "Preview draft"
         },
         "tabs": {
           "templateLabel": "Template",
