@@ -28,7 +28,9 @@ import type {
   EpkFeaturedMediaItem,
   EpkTemplateId,
   PlanCode,
+  PublicEpkResponse,
   SmartLink,
+  SupportedLocale,
   UpdateEpkPayload,
 } from '@stagelink/types';
 import {
@@ -52,6 +54,7 @@ import { EpkMediaTab } from './tabs/EpkMediaTab';
 import { EpkBookingTab } from './tabs/EpkBookingTab';
 import { EpkLocalesTab } from './tabs/EpkLocalesTab';
 import { EpkTemplateTab } from './tabs/EpkTemplateTab';
+import { EpkDraftPreviewOverlay } from './EpkDraftPreviewOverlay';
 
 interface EpkEditorV2Props {
   artistId: string;
@@ -165,6 +168,7 @@ export function EpkEditorV2({
   );
   const [brand, setBrand] = useState<EpkBrand | null>(editorData.epk.brand ?? null);
   const [templateSaving, setTemplateSaving] = useState(false);
+  const [previewData, setPreviewData] = useState<PublicEpkResponse | null>(null);
 
   const form = useForm<EpkFormValues>({
     resolver: zodResolver(epkFormSchema),
@@ -348,6 +352,73 @@ export function EpkEditorV2({
     setGalleryImageAt(1, url);
   }
 
+  // ── Draft preview ─────────────────────────────────────────────────────────
+
+  function openPreview() {
+    const values = getValues();
+    const { inherited } = editorData;
+    const previewLinks = normalizeFeaturedLinksForProfile(
+      values.featuredLinks,
+      profileAndSmartLinks,
+    );
+    const fallbackLinks: EpkFeaturedLinkItem[] = profileLinkShortcuts.map((l, i) => ({
+      id: `fallback-${i}`,
+      label: l.label,
+      url: l.url,
+    }));
+
+    const data: PublicEpkResponse = {
+      artistId: 'preview',
+      epkId: 'preview',
+      isPublished: false,
+      baseLocale: values.baseLocale as SupportedLocale,
+      artist: {
+        username: inherited.username,
+        displayName: inherited.displayName,
+        bio: inherited.bio,
+        avatarUrl: inherited.avatarUrl,
+        coverUrl: inherited.coverUrl,
+        websiteUrl: inherited.websiteUrl,
+        instagramUrl: inherited.instagramUrl,
+        tiktokUrl: inherited.tiktokUrl,
+        youtubeUrl: inherited.youtubeUrl,
+        spotifyUrl: inherited.spotifyUrl,
+        soundcloudUrl: inherited.soundcloudUrl,
+        appleMusicUrl: inherited.appleMusicUrl,
+        amazonMusicUrl: inherited.amazonMusicUrl,
+        deezerUrl: inherited.deezerUrl,
+        tidalUrl: inherited.tidalUrl,
+        beatportUrl: inherited.beatportUrl,
+        traxsourceUrl: inherited.traxsourceUrl,
+      },
+      headline: values.headline || null,
+      shortBio: values.shortBio || inherited.bio || null,
+      fullBio: values.fullBio || inherited.fullBio || null,
+      pressQuote: values.pressQuote || null,
+      bookingEmail: values.bookingEmail || null,
+      managementContact: values.managementContact || null,
+      pressContact: values.pressContact || null,
+      heroImageUrl: values.heroImageUrl || inherited.coverUrl || inherited.avatarUrl || null,
+      galleryImageUrls: values.galleryImageUrls.filter(Boolean),
+      featuredMedia: values.featuredMedia as EpkFeaturedMediaItem[],
+      featuredLinks: previewLinks.length > 0 ? previewLinks : fallbackLinks,
+      highlights: values.highlights.filter(Boolean),
+      riderInfo: values.riderInfo || null,
+      techRequirements: values.techRequirements || null,
+      location: values.location || null,
+      availabilityNotes: values.availabilityNotes || null,
+      recordLabels: inherited.recordLabels ?? [],
+      epsReleasedCount: null,
+      externalCollabsCount: null,
+      recordLabelsCount: (inherited.recordLabels ?? []).length,
+      locale: locale as SupportedLocale,
+      contentLocale: locale as SupportedLocale,
+      templateId,
+      brand,
+    };
+    setPreviewData(data);
+  }
+
   // ── Save ──────────────────────────────────────────────────────────────────
 
   async function onSubmit(values: EpkFormValues): Promise<boolean> {
@@ -485,168 +556,183 @@ export function EpkEditorV2({
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <form
-      style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate
-    >
-      {/* ── Hero header ── */}
-      <SectionHeader
-        eyebrow={t('header.eyebrow')}
-        title={t('header.title')}
-        gradient={t('header.gradient')}
-        subtitle={t('header.subtitle')}
-        className="!px-0 !pt-2"
-        right={
-          editorData.epk.isPublished ? (
-            <>
-              <Btn
-                size="sm"
-                variant="ghost"
-                type="button"
-                icon={<Icon.Eye size={14} />}
-                onClick={() =>
-                  window.open(`${sharePath}?_t=${Date.now()}`, '_blank', 'noopener,noreferrer')
-                }
-              >
-                {t('header.viewPublic')}
-              </Btn>
-              <Btn
-                size="sm"
-                variant="ghost"
-                type="button"
-                onClick={() => window.open(printPath, '_blank', 'noopener,noreferrer')}
-                icon={
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="6 9 6 2 18 2 18 9" />
-                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-                    <rect x="6" y="14" width="12" height="8" />
-                  </svg>
-                }
-              >
-                {t('header.printView')}
-              </Btn>
-            </>
-          ) : null
-        }
-      />
+    <>
+      <form
+        style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+      >
+        {/* ── Hero header ── */}
+        <SectionHeader
+          eyebrow={t('header.eyebrow')}
+          title={t('header.title')}
+          gradient={t('header.gradient')}
+          subtitle={t('header.subtitle')}
+          className="!px-0 !pt-2"
+          right={
+            editorData.epk.isPublished ? (
+              <>
+                <Btn
+                  size="sm"
+                  variant="ghost"
+                  type="button"
+                  icon={<Icon.Eye size={14} />}
+                  onClick={() =>
+                    window.open(`${sharePath}?_t=${Date.now()}`, '_blank', 'noopener,noreferrer')
+                  }
+                >
+                  {t('header.viewPublic')}
+                </Btn>
+                <Btn
+                  size="sm"
+                  variant="ghost"
+                  type="button"
+                  onClick={() => window.open(printPath, '_blank', 'noopener,noreferrer')}
+                  icon={
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="6 9 6 2 18 2 18 9" />
+                      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                      <rect x="6" y="14" width="12" height="8" />
+                    </svg>
+                  }
+                >
+                  {t('header.printView')}
+                </Btn>
+              </>
+            ) : null
+          }
+        />
 
-      {/* ── Publish banner ── */}
-      <PublishBanner
-        isPublished={editorData.epk.isPublished}
-        publishBusy={publishBusy}
-        publishReadiness={publishReadiness}
-        sharePath={sharePath}
-        publicUrl={publicUrl}
-        userPlan={userPlan}
-        onToggle={() => togglePublish(!editorData.epk.isPublished)}
-      />
-
-      {/* ── Tab bar ── */}
-      <EpkTabBar
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        hasMultiLanguageAccess={hasMultiLanguageAccess}
-      />
-
-      {/* ── Tab content ── */}
-      {activeTab === 'template' && (
-        <EpkTemplateTab
+        {/* ── Publish banner ── */}
+        <PublishBanner
+          isPublished={editorData.epk.isPublished}
+          publishBusy={publishBusy}
+          publishReadiness={publishReadiness}
+          sharePath={sharePath}
+          publicUrl={publicUrl}
           userPlan={userPlan}
-          templateId={templateId}
-          brand={brand}
-          isSaving={templateSaving}
-          billingHref={billingHref}
-          onSelectTemplate={handleSelectTemplate}
-          onApplyBrand={handleApplyBrand}
-          onResetBrand={handleResetBrand}
+          onToggle={() => togglePublish(!editorData.epk.isPublished)}
+          onPreview={editorLocked ? undefined : openPreview}
+        />
+
+        {/* ── Tab bar ── */}
+        <EpkTabBar
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          hasMultiLanguageAccess={hasMultiLanguageAccess}
+        />
+
+        {/* ── Tab content ── */}
+        {activeTab === 'template' && (
+          <>
+            {editorLocked && <EpkLockedBanner />}
+            <EpkTemplateTab
+              userPlan={userPlan}
+              templateId={templateId}
+              brand={brand}
+              isSaving={templateSaving}
+              disabled={editorLocked}
+              billingHref={billingHref}
+              onSelectTemplate={handleSelectTemplate}
+              onApplyBrand={handleApplyBrand}
+              onResetBrand={handleResetBrand}
+            />
+          </>
+        )}
+
+        {activeTab === 'identity' && (
+          <>
+            {editorLocked && <EpkLockedBanner />}
+            <EpkIdentityTab
+              form={form}
+              disabled={formDisabled}
+              artistId={artistId}
+              locale={locale}
+              inherited={inherited}
+              initialShortBio={editorData.epk.shortBio}
+              initialFullBio={editorData.epk.fullBio}
+              displayedCoverImage={displayedCoverImage}
+              displayedArtistImage={displayedArtistImage}
+              onSetCoverImage={setCoverImage}
+              onSetAvatarImage={setAvatarImage}
+            />
+          </>
+        )}
+
+        {activeTab === 'media' && (
+          <>
+            {editorLocked && <EpkLockedBanner />}
+            <EpkMediaTab
+              form={form}
+              disabled={formDisabled}
+              artistId={artistId}
+              inherited={inherited}
+              profileAndSmartLinks={profileAndSmartLinks}
+              maxVisibleLinks={maxVisibleLinks}
+              billingHref={billingHref}
+            />
+          </>
+        )}
+
+        {activeTab === 'booking' && (
+          <>
+            {editorLocked && <EpkLockedBanner />}
+            <EpkBookingTab form={form} disabled={formDisabled} inherited={inherited} />
+          </>
+        )}
+
+        {activeTab === 'locales' && (
+          <>
+            {editorLocked && hasMultiLanguageAccess && <EpkLockedBanner />}
+            <EpkLocalesTab
+              form={form}
+              disabled={formDisabled}
+              hasMultiLanguageAccess={hasMultiLanguageAccess}
+              billingHref={billingHref}
+            />
+          </>
+        )}
+
+        {/* ── Floating save pill (only when dirty or status non-idle) ── */}
+        <EpkSaveBar
+          status={saveStatus}
+          errorMessage={saveError}
+          isDirty={isDirty}
+          locked={editorLocked}
+          ready={publishReadiness.ready}
+          missing={publishReadiness.missing}
+          onSave={() =>
+            handleSubmit(onSubmit, (errors) => {
+              // Validation failed — surface the first error so the user knows why
+              // the save bar click did nothing (previously a silent no-op).
+              const firstError = Object.values(errors)[0];
+              const msg =
+                firstError && 'message' in firstError && typeof firstError.message === 'string'
+                  ? firstError.message
+                  : 'Some fields have validation errors. Review your EPK data.';
+              setSaveError(msg);
+              setSaveStatus('error');
+            })()
+          }
+        />
+      </form>
+
+      {previewData && (
+        <EpkDraftPreviewOverlay
+          epk={previewData}
+          locale={locale as SupportedLocale}
+          onClose={() => setPreviewData(null)}
         />
       )}
-
-      {activeTab === 'identity' && (
-        <>
-          {editorLocked && <EpkLockedBanner />}
-          <EpkIdentityTab
-            form={form}
-            disabled={formDisabled}
-            artistId={artistId}
-            locale={locale}
-            inherited={inherited}
-            initialShortBio={editorData.epk.shortBio}
-            initialFullBio={editorData.epk.fullBio}
-            displayedCoverImage={displayedCoverImage}
-            displayedArtistImage={displayedArtistImage}
-            onSetCoverImage={setCoverImage}
-            onSetAvatarImage={setAvatarImage}
-          />
-        </>
-      )}
-
-      {activeTab === 'media' && (
-        <>
-          {editorLocked && <EpkLockedBanner />}
-          <EpkMediaTab
-            form={form}
-            disabled={formDisabled}
-            artistId={artistId}
-            inherited={inherited}
-            profileAndSmartLinks={profileAndSmartLinks}
-            maxVisibleLinks={maxVisibleLinks}
-            billingHref={billingHref}
-          />
-        </>
-      )}
-
-      {activeTab === 'booking' && (
-        <>
-          {editorLocked && <EpkLockedBanner />}
-          <EpkBookingTab form={form} disabled={formDisabled} inherited={inherited} />
-        </>
-      )}
-
-      {activeTab === 'locales' && (
-        <>
-          {editorLocked && hasMultiLanguageAccess && <EpkLockedBanner />}
-          <EpkLocalesTab
-            form={form}
-            disabled={formDisabled}
-            hasMultiLanguageAccess={hasMultiLanguageAccess}
-            billingHref={billingHref}
-          />
-        </>
-      )}
-
-      {/* ── Floating save pill (only when dirty or status non-idle) ── */}
-      <EpkSaveBar
-        status={saveStatus}
-        errorMessage={saveError}
-        isDirty={isDirty}
-        locked={editorLocked}
-        ready={publishReadiness.ready}
-        missing={publishReadiness.missing}
-        onSave={() =>
-          handleSubmit(onSubmit, (errors) => {
-            // Validation failed — surface the first error so the user knows why
-            // the save bar click did nothing (previously a silent no-op).
-            const firstError = Object.values(errors)[0];
-            const msg =
-              firstError && 'message' in firstError && typeof firstError.message === 'string'
-                ? firstError.message
-                : 'Some fields have validation errors. Review your EPK data.';
-            setSaveError(msg);
-            setSaveStatus('error');
-          })()
-        }
-      />
-    </form>
+    </>
   );
 }

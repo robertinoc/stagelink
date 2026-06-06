@@ -927,7 +927,8 @@
           "publishing": "Publicando…",
           "unpublishing": "Despublicando…",
           "unpublish": "Unpublish y editar",
-          "publishCta": "✓ Publicar Press Kit"
+          "publishCta": "✓ Publicar Press Kit",
+          "previewDraft": "Vista previa"
         },
         "tabs": {
           "templateLabel": "Plantilla",
