@@ -631,7 +631,19 @@ export function EpkEditorV2({
         locked={editorLocked}
         ready={publishReadiness.ready}
         missing={publishReadiness.missing}
-        onSave={() => handleSubmit(onSubmit)()}
+        onSave={() =>
+          handleSubmit(onSubmit, (errors) => {
+            // Validation failed — surface the first error so the user knows why
+            // the save bar click did nothing (previously a silent no-op).
+            const firstError = Object.values(errors)[0];
+            const msg =
+              firstError && 'message' in firstError && typeof firstError.message === 'string'
+                ? firstError.message
+                : 'Some fields have validation errors. Review your EPK data.';
+            setSaveError(msg);
+            setSaveStatus('error');
+          })()
+        }
       />
     </form>
   );
