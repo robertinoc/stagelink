@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { EPK_VISIBLE_LINKS_LIMITS } from '@stagelink/types';
 
 const optionalUrl = z.string().trim().url().or(z.literal('')).nullable().optional();
 const optionalEmail = z.string().trim().email().or(z.literal('')).nullable().optional();
@@ -40,9 +41,10 @@ export const epkFormSchema = z.object({
   // 2 reserved slots (hero + portrait at indices 0/1) + up to 6 extra gallery photos = 8 max.
   galleryImageUrls: z.array(z.string().trim().url().max(2048)).max(8),
   featuredMedia: z.array(epkFeaturedMediaSchema).max(6),
-  // Max 13 = Pro+ plan limit (the highest tier). Per-plan UI gating is enforced
-  // in EpkMediaTab via the maxVisibleLinks prop — this cap is just a schema safety net.
-  featuredLinks: z.array(epkFeaturedLinkSchema).max(13),
+  // Schema cap = highest plan limit across all plans. Per-plan UI gating is in EpkMediaTab.
+  featuredLinks: z
+    .array(epkFeaturedLinkSchema)
+    .max(Math.max(...Object.values(EPK_VISIBLE_LINKS_LIMITS))),
   highlights: z.array(z.string().trim().max(160)).max(8),
   riderInfo: z.string().trim().max(2000).optional().nullable(),
   techRequirements: z.string().trim().max(2000).optional().nullable(),
