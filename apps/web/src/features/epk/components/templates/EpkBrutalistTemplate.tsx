@@ -6,6 +6,7 @@
 // Brand palette: --epk-primary, --epk-secondary, --epk-bg, --epk-ink.
 
 import { useState } from 'react';
+import { EpkShimmerLinks } from '../EpkShimmerLinks';
 import type { EpkBrand, PublicEpkResponse, SupportedLocale } from '@stagelink/types';
 import { EpkLightbox } from '../EpkLightbox';
 import { EpkLocaleSwitcher } from '../EpkLocaleSwitcher';
@@ -652,28 +653,19 @@ export function EpkBrutalistTemplate({
                   ))}
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {epk.featuredLinks.map((lnk) => (
-                    <a
-                      key={lnk.id}
-                      href={lnk.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{
-                        padding: '7px 14px',
-                        border: `1px solid ${borderColor}`,
-                        fontSize: 12,
-                        fontWeight: 700,
-                        color: ink,
-                        textDecoration: 'none',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.06em',
-                      }}
-                    >
-                      {lnk.label}
-                    </a>
-                  ))}
-                </div>
+                <EpkShimmerLinks
+                  links={epk.featuredLinks}
+                  gap={6}
+                  pillStyle={{
+                    padding: '7px 14px',
+                    border: `1px solid ${borderColor}`,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: ink,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}
+                />
               )}
             </section>
           )}

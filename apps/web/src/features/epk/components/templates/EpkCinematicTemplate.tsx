@@ -6,6 +6,7 @@
 // Print mode: preserves dark layout with reduced hero height.
 
 import { useState } from 'react';
+import { EpkShimmerLinks } from '../EpkShimmerLinks';
 import type { PublicEpkResponse, SupportedLocale } from '@stagelink/types';
 import { EpkLightbox } from '../EpkLightbox';
 import { EpkLocaleSwitcher } from '../EpkLocaleSwitcher';
@@ -583,37 +584,19 @@ export function EpkCinematicTemplate({
                   ))}
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {epk.featuredLinks.map((lnk) => (
-                    <a
-                      key={lnk.id}
-                      href={lnk.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{
-                        padding: '9px 18px',
-                        border: `1px solid ${C.border}`,
-                        background: C.surface,
-                        borderRadius: 24,
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: C.ink,
-                        textDecoration: 'none',
-                        transition: 'border-color 0.15s, box-shadow 0.15s',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = C.accentBorder;
-                        e.currentTarget.style.boxShadow = `0 0 20px rgba(224,64,251,0.15)`;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = C.border;
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
-                    >
-                      {lnk.label}
-                    </a>
-                  ))}
-                </div>
+                <EpkShimmerLinks
+                  links={epk.featuredLinks}
+                  gap={8}
+                  pillStyle={{
+                    padding: '9px 18px',
+                    border: `1px solid ${C.border}`,
+                    background: C.surface,
+                    borderRadius: 24,
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: C.ink,
+                  }}
+                />
               )}
             </div>
           )}

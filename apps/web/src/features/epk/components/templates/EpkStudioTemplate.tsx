@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from 'react';
 import type { PublicEpkResponse, SupportedLocale } from '@stagelink/types';
+import { EpkShimmerLinks } from '../EpkShimmerLinks';
 import { EpkLightbox } from '../EpkLightbox';
 import { EpkLocaleSwitcher } from '../EpkLocaleSwitcher';
 
@@ -642,28 +643,19 @@ export function EpkStudioTemplate({ epk, locale, printMode = false }: EpkStudioT
                 ))}
               </div>
             ) : (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {epk.featuredLinks.map((lnk) => (
-                  <a
-                    key={lnk.id}
-                    href={lnk.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      padding: '8px 16px',
-                      border: `1px solid ${border}`,
-                      borderRadius: 24,
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: ink,
-                      textDecoration: 'none',
-                      background: surface,
-                    }}
-                  >
-                    {lnk.label}
-                  </a>
-                ))}
-              </div>
+              <EpkShimmerLinks
+                links={epk.featuredLinks}
+                gap={8}
+                pillStyle={{
+                  padding: '8px 16px',
+                  border: `1px solid ${border}`,
+                  borderRadius: 24,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: ink,
+                  background: surface,
+                }}
+              />
             )}
           </section>
         )}
