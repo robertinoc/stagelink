@@ -40,7 +40,9 @@ export const epkFormSchema = z.object({
   // 2 reserved slots (hero + portrait at indices 0/1) + up to 6 extra gallery photos = 8 max.
   galleryImageUrls: z.array(z.string().trim().url().max(2048)).max(8),
   featuredMedia: z.array(epkFeaturedMediaSchema).max(6),
-  featuredLinks: z.array(epkFeaturedLinkSchema).max(8),
+  // Max 13 = Pro+ plan limit (the highest tier). Per-plan UI gating is enforced
+  // in EpkMediaTab via the maxVisibleLinks prop — this cap is just a schema safety net.
+  featuredLinks: z.array(epkFeaturedLinkSchema).max(13),
   highlights: z.array(z.string().trim().max(160)).max(8),
   riderInfo: z.string().trim().max(2000).optional().nullable(),
   techRequirements: z.string().trim().max(2000).optional().nullable(),
