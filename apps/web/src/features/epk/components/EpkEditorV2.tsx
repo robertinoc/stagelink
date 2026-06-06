@@ -350,7 +350,7 @@ export function EpkEditorV2({
 
   // ── Save ──────────────────────────────────────────────────────────────────
 
-  async function onSubmit(values: EpkFormValues) {
+  async function onSubmit(values: EpkFormValues): Promise<boolean> {
     // NOTE: Readiness gate removed — drafts must be saveable at any stage.
     // The readiness check remains in togglePublish() and the disabled state
     // of the Publish button in PublishBanner.
@@ -424,9 +424,11 @@ export function EpkEditorV2({
       });
       setSaveStatus('success');
       setTimeout(() => setSaveStatus('idle'), 3000);
+      return true;
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Could not save your EPK right now.');
       setSaveStatus('error');
+      return false;
     }
   }
 
@@ -446,8 +448,8 @@ export function EpkEditorV2({
       const saveOk = await new Promise<boolean>((resolve) => {
         handleSubmit(
           async (values) => {
-            await onSubmit(values);
-            resolve(true);
+            const saved = await onSubmit(values);
+            resolve(saved);
           },
           () => resolve(false),
         )();

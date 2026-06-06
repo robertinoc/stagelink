@@ -14,11 +14,14 @@ import { Transform, Type } from 'class-transformer';
 import {
   EPK_AI_TONES,
   EPK_TEMPLATE_IDS,
+  EPK_VISIBLE_LINKS_LIMITS,
   SUPPORTED_LOCALES,
   type EpkAiTone,
   type EpkTemplateId,
   type SupportedLocale,
 } from '@stagelink/types';
+
+const MAX_FEATURED_LINKS = Math.max(...Object.values(EPK_VISIBLE_LINKS_LIMITS));
 
 function emptyStringToNull(value: unknown) {
   return typeof value === 'string' && value.trim() === '' ? null : value;
@@ -127,7 +130,7 @@ export class UpdateEpkDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayMaxSize(8)
+  @ArrayMaxSize(MAX_FEATURED_LINKS)
   @ValidateNested({ each: true })
   @Type(() => EpkFeaturedLinkItemDto)
   featuredLinks?: EpkFeaturedLinkItemDto[];
