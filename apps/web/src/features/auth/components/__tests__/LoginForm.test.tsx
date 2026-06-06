@@ -20,22 +20,32 @@ vi.mock('@/lib/analytics/track', () => ({
 
 describe('LoginForm', () => {
   it('renders translated submit and signup link for the active locale', () => {
-    render(<LoginForm action={vi.fn()} locale="es" />);
+    render(<LoginForm action="/es/login/start" locale="es" />);
 
     expect(screen.getByRole('button', { name: 'Continue with WorkOS' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Continue with WorkOS' }).closest('form'),
+    ).toHaveAttribute('action', '/es/login/start');
+    expect(
+      screen.getByRole('button', { name: 'Continue with WorkOS' }).closest('form'),
+    ).toHaveAttribute('method', 'post');
     expect(screen.getByText('No account?')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/es/signup');
   });
 
   it('renders an accessible auth error when provided', () => {
-    render(<LoginForm action={vi.fn()} locale="en" errorMessage="Authentication failed" />);
+    render(<LoginForm action="/en/login/start" locale="en" errorMessage="Authentication failed" />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Authentication failed');
   });
 
   it('tracks login funnel intent without PII', async () => {
     const user = userEvent.setup();
-    render(<LoginForm action={vi.fn()} locale="es" />);
+    render(<LoginForm action="/es/login/start" locale="es" />);
+    screen
+      .getByRole('button', { name: 'Continue with WorkOS' })
+      .closest('form')
+      ?.addEventListener('submit', (event) => event.preventDefault());
 
     await user.click(screen.getByRole('button', { name: 'Continue with WorkOS' }));
     await user.click(screen.getByRole('link', { name: 'Sign up' }));

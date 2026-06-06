@@ -89,9 +89,9 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Localized app entrypoints. The PWA manifest starts at /dashboard so installed
-  // app launches land in the app when a session exists, while the protected app
-  // layout redirects missing or expired sessions to /{locale}/login.
+  // Localized app entrypoints. The PWA manifest starts at /login so installed
+  // app launches land on auth first; /{locale}/login redirects active sessions
+  // to dashboard and shows login only when the session is absent.
   if (segments.length === 1 && ['dashboard', 'login', 'signup', 'install'].includes(segments[0]!)) {
     const url = request.nextUrl.clone();
     url.pathname = `/${locale}/${segments[0]!}`;

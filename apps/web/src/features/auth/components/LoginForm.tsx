@@ -11,12 +11,12 @@ import Link from 'next/link';
 
 interface LoginFormProps {
   /**
-   * Server Action that calls getSignInUrl() and redirects to WorkOS.
-   * Using a Server Action (instead of a plain href to /api/auth/signin) keeps
-   * the raw API URL out of the address bar, which prevents Chrome SafeBrowsing
-   * from flagging the page as a dangerous credential-harvesting endpoint.
+   * Localized route that starts WorkOS and redirects to the hosted auth UI.
+   * Keeping this outside /api keeps the raw API URL out of the address bar,
+   * while still using a Route Handler for reliable PKCE cookie writes on PWA
+   * mobile launches.
    */
-  action: () => Promise<void>;
+  action: string;
   locale: string;
   /**
    * Optional error message to display above the submit button.
@@ -57,9 +57,8 @@ function SubmitButton({ label, locale }: { label: string; locale: string }) {
  *
  * No maneja credenciales directamente. La autenticación ocurre en la
  * hosted UI de WorkOS:
- *   1. El formulario envía un POST al Server Action (no se muestra /api/* en la barra)
- *   2. El Server Action llama a getSignInUrl() (requiere cookie — solo permitido
- *      en Route Handlers y Server Actions en Next.js 15)
+ *   1. El formulario envía un POST a /{locale}/login/start (no se muestra /api/*)
+ *   2. Ese Route Handler llama a getSignInUrl() y escribe la cookie PKCE
  *   3. Next.js redirige al usuario a la URL de WorkOS (https://authkit.workos.com/...)
  *   4. WorkOS autentica al usuario y redirige a /api/auth/callback
  *   5. El callback handler crea la sesión y redirige al dashboard
@@ -78,7 +77,7 @@ export function LoginForm({ action, locale, errorMessage }: LoginFormProps) {
             {errorMessage}
           </div>
         )}
-        <form action={action}>
+        <form action={action} method="post">
           <SubmitButton label={t('submit')} locale={locale} />
         </form>
       </CardContent>
