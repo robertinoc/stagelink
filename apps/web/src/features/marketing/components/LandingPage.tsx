@@ -170,7 +170,7 @@ export function LandingPage({ locale }: LandingPageProps) {
     const landingPaths = ['/', `/${resolvedLocale}`];
 
     if (isStandalone && landingPaths.includes(window.location.pathname)) {
-      window.location.replace(`/${resolvedLocale}/dashboard`);
+      window.location.replace(`/${resolvedLocale}/login`);
     }
   }, [resolvedLocale]);
 
