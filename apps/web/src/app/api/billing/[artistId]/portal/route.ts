@@ -20,11 +20,18 @@ export async function POST(request: NextRequest, context: RouteContext) {
   }
 
   const { artistId } = await context.params;
-  const body = (await request.json().catch(() => ({}))) as { returnUrl?: string };
+  const body = (await request.json().catch(() => ({}))) as {
+    returnUrl?: string;
+    targetPlan?: 'pro' | 'pro_plus';
+  };
   const returnUrl = body.returnUrl ?? request.nextUrl.origin;
 
   try {
-    const { url } = await createBillingPortalSession(artistId, { returnUrl }, session.accessToken);
+    const { url } = await createBillingPortalSession(
+      artistId,
+      { returnUrl, targetPlan: body.targetPlan },
+      session.accessToken,
+    );
     return NextResponse.json({ url });
   } catch {
     return NextResponse.json({ message: 'Could not open the billing portal.' }, { status: 502 });

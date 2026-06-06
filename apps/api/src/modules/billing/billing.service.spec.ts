@@ -90,6 +90,11 @@ describe('BillingService', () => {
         list: jest.fn(),
         update: jest.fn(),
       },
+      billingPortal: {
+        sessions: {
+          create: jest.fn(async () => ({ url: 'https://portal.stripe.test/session' })),
+        },
+      },
     };
 
     const emailService = {
@@ -354,6 +359,103 @@ describe('BillingService', () => {
 
     expect(stripe.checkout.sessions.create).not.toHaveBeenCalled();
     expect(stripe.subscriptions.update).not.toHaveBeenCalled();
+  });
+
+  it('deep-links the portal to a plan switch when targetPlan is provided', async () => {
+    const { service, prisma, stripe } = createService();
+
+    prisma.subscription.findUnique.mockResolvedValue({
+      artistId: 'artist_123',
+      plan: PlanTier.pro_plus,
+      status: SubscriptionStatus.active,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_pro_plus_123',
+    });
+    stripe.subscriptions.retrieve.mockResolvedValue({
+      id: 'sub_pro_plus_123',
+      items: { data: [{ id: 'si_123', price: { id: 'price_pro_plus_456' } }] },
+    });
+
+    const result = await service.createPortalSession('artist_123', {
+      returnUrl: 'http://localhost:4000/en/dashboard/settings?tab=plan',
+      targetPlan: 'pro',
+    });
+
+    expect(result.data.url).toBe('https://portal.stripe.test/session');
+    const switchCalls = stripe.billingPortal.sessions.create.mock.calls as unknown as Array<
+      [{ flow_data?: unknown }]
+    >;
+    const params = switchCalls[0]?.[0] ?? {};
+    expect(params.flow_data).toEqual({
+      type: 'subscription_update_confirm',
+      subscription_update_confirm: {
+        subscription: 'sub_pro_plus_123',
+        items: [{ id: 'si_123', price: 'price_pro_123' }],
+      },
+    });
+  });
+
+  it('falls back to the generic portal when the plan-switch flow is rejected', async () => {
+    const { service, prisma, stripe } = createService();
+
+    prisma.subscription.findUnique.mockResolvedValue({
+      artistId: 'artist_123',
+      plan: PlanTier.pro_plus,
+      status: SubscriptionStatus.active,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_pro_plus_123',
+    });
+    stripe.subscriptions.retrieve.mockResolvedValue({
+      id: 'sub_pro_plus_123',
+      items: { data: [{ id: 'si_123', price: { id: 'price_pro_plus_456' } }] },
+    });
+    // First call (with flow_data) rejected by Stripe (portal config); second
+    // call (generic) succeeds.
+    stripe.billingPortal.sessions.create
+      .mockRejectedValueOnce(
+        Object.assign(new Error('No configuration provided'), {
+          type: 'StripeInvalidRequestError',
+          code: 'parameter_invalid',
+        }),
+      )
+      .mockResolvedValueOnce({ url: 'https://portal.stripe.test/generic' });
+
+    const result = await service.createPortalSession('artist_123', {
+      returnUrl: 'http://localhost:4000/en/dashboard/settings?tab=plan',
+      targetPlan: 'pro',
+    });
+
+    expect(result.data.url).toBe('https://portal.stripe.test/generic');
+    expect(stripe.billingPortal.sessions.create).toHaveBeenCalledTimes(2);
+    // The fallback call carries no flow_data.
+    const fallbackCalls = stripe.billingPortal.sessions.create.mock.calls as unknown as Array<
+      [{ flow_data?: unknown }]
+    >;
+    const fallbackParams = fallbackCalls[1]?.[0] ?? {};
+    expect(fallbackParams.flow_data).toBeUndefined();
+  });
+
+  it('opens the generic portal (no flow_data) when no targetPlan is provided', async () => {
+    const { service, prisma, stripe } = createService();
+
+    prisma.subscription.findUnique.mockResolvedValue({
+      artistId: 'artist_123',
+      plan: PlanTier.pro_plus,
+      status: SubscriptionStatus.active,
+      stripeCustomerId: 'cus_123',
+      stripeSubscriptionId: 'sub_pro_plus_123',
+    });
+
+    await service.createPortalSession('artist_123', {
+      returnUrl: 'http://localhost:4000/en/dashboard/settings?tab=plan',
+    });
+
+    const genericCalls = stripe.billingPortal.sessions.create.mock.calls as unknown as Array<
+      [{ flow_data?: unknown }]
+    >;
+    const params = genericCalls[0]?.[0] ?? {};
+    expect(params.flow_data).toBeUndefined();
+    expect(stripe.subscriptions.retrieve).not.toHaveBeenCalled();
   });
 
   it('syncs subscription data from Stripe webhook events', async () => {
