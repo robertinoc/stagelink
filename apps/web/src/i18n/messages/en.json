@@ -1107,7 +1107,7 @@
         "current_plan": "Current plan",
         "included": "Included",
         "included_in_higher_tier": "Included in higher tiers",
-        "contact_sales": "Contact sales",
+        "contact_sales": "Talk to us",
         "retry": "Try again",
         "refresh": "Refresh status",
         "upgrade_to": "Upgrade to {plan}"
@@ -1173,6 +1173,17 @@
         "billing_description": "This is the plan still attached to billing while effective product access is resolved separately.",
         "effective_description": "This is the plan currently granting access inside the product.",
         "available_description": "A simple upgrade path you can start directly from the dashboard."
+      },
+      "enterprise": {
+        "description": "For agencies, music managers, labels and event organizers handling a roster of artists.",
+        "features": [
+          "Manage multiple artists from one workspace",
+          "Agency, label and management dashboard",
+          "Team roles and permissions",
+          "Everything in Pro+ for every artist on the roster",
+          "Centralized billing across all artists",
+          "Dedicated onboarding and priority support"
+        ]
       },
       "feature_state": {
         "included": "Included in your current access.",

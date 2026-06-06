@@ -1107,7 +1107,7 @@
         "current_plan": "Plan actual",
         "included": "Incluido",
         "included_in_higher_tier": "Incluido en planes superiores",
-        "contact_sales": "Contactar ventas",
+        "contact_sales": "Hablemos",
         "retry": "Intentar de nuevo",
         "refresh": "Actualizar estado",
         "upgrade_to": "Actualizar a {plan}"
@@ -1173,6 +1173,17 @@
         "billing_description": "Este es el plan que sigue asociado al billing mientras el acceso efectivo de producto se resuelve por separado.",
         "effective_description": "Este es el plan que actualmente está otorgando acceso dentro del producto.",
         "available_description": "Un camino de upgrade simple que podés iniciar directo desde el dashboard."
+      },
+      "enterprise": {
+        "description": "Para agencias, representantes musicales, sellos y organizadores de eventos que manejan varios artistas.",
+        "features": [
+          "Gestioná múltiples artistas desde un solo espacio",
+          "Panel para agencias, sellos y management",
+          "Roles y permisos de equipo",
+          "Todo lo de Pro+ para cada artista del roster",
+          "Facturación centralizada de todos los artistas",
+          "Onboarding dedicado y soporte prioritario"
+        ]
       },
       "feature_state": {
         "included": "Incluida en tu acceso actual.",
