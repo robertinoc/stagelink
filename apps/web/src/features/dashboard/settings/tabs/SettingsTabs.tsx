@@ -10,6 +10,10 @@ import type {
   SettingsTabId,
 } from '@/features/dashboard/settings/settings-data';
 import { resolvePlanLabel, resolveTabId } from '@/features/dashboard/settings/settings-data';
+import {
+  SETTINGS_TAB_CHANGE_EVENT,
+  emitSettingsTabChange,
+} from '@/features/dashboard/settings/settings-tab-events';
 
 // Each tab is its own code-split chunk. The user only downloads the tab
 // they open (~80–150 kB each pre-gzip), instead of paying for all four on
@@ -70,12 +74,26 @@ export function SettingsTabs({ initialTab, locale, data }: SettingsTabsProps) {
     setActive(resolveTabId(search.get('tab') ?? initialTab));
   }, [search, initialTab]);
 
+  // Swap the panel when the sidebar sub-items request a tab change client-side
+  // (same page, no navigation) — keeps the in-page panel and the sidebar in
+  // lockstep without a server round-trip.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const tab = (e as CustomEvent<string>).detail;
+      setActive(resolveTabId(tab));
+    };
+    window.addEventListener(SETTINGS_TAB_CHANGE_EVENT, handler);
+    return () => window.removeEventListener(SETTINGS_TAB_CHANGE_EVENT, handler);
+  }, []);
+
   const onChange = useCallback(
     (id: SettingsTabId) => {
       setActive(id);
       const params = new URLSearchParams(search.toString());
       params.set('tab', id);
       window.history.replaceState(null, '', `${pathname}?${params.toString()}`);
+      // Let the sidebar highlight follow the in-page tab clicks.
+      emitSettingsTabChange(id);
     },
     [pathname, search],
   );
