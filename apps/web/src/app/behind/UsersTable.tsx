@@ -75,6 +75,13 @@ function planLabel(plan: string): string {
   return 'Free';
 }
 
+/** Plan ordering for downgrade math. Higher = more access. */
+function planRank(plan: string): number {
+  if (plan === 'pro_plus') return 2;
+  if (plan === 'pro') return 1;
+  return 0;
+}
+
 /** YYYY-MM-DD value (for <input type="date">) `days` from now. */
 function dateInputValue(days: number): string {
   const d = new Date();
@@ -1333,6 +1340,17 @@ function ManageAccessModal({
   const sub = user.subscription;
   const hasGrant = Boolean(sub?.manualAccessPlan);
 
+  // Commercial plan is the floor — manual downgrades can only lower the grant
+  // down to (but not below) the Stripe-backed plan. Going below requires Stripe.
+  const commercialPlan = sub?.plan ?? 'free';
+  const effectivePlanCode = sub?.effectiveAccess ?? 'free';
+
+  // Reachable downgrade targets: every plan from the commercial floor (inclusive)
+  // up to — but not including — the current effective access.
+  const downgradeTargets = (['pro_plus', 'pro', 'free'] as const).filter(
+    (p) => planRank(p) >= planRank(commercialPlan) && planRank(p) < planRank(effectivePlanCode),
+  );
+
   const [mode, setMode] = useState<'view' | 'grant' | 'extend'>('view');
   const [plan, setPlan] = useState<'pro' | 'pro_plus'>(
     (sub?.manualAccessPlan as 'pro' | 'pro_plus') ?? 'pro',
@@ -1343,7 +1361,9 @@ function ManageAccessModal({
   const [reason, setReason] = useState(sub?.manualAccessReason ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [confirmRevoke, setConfirmRevoke] = useState(false);
+  const [pendingDowngrade, setPendingDowngrade] = useState<'free' | 'pro' | 'pro_plus' | null>(
+    null,
+  );
 
   async function submitGrant(e: React.FormEvent) {
     e.preventDefault();
@@ -1430,6 +1450,49 @@ function ManageAccessModal({
     }
   }
 
+  /** PATCH the grant to a lower paid plan, keeping the existing expiry. */
+  async function submitDowngrade(toPlan: 'pro' | 'pro_plus') {
+    setBusy(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/access`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: toPlan }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { message?: string | string[] };
+        setError(
+          Array.isArray(body.message)
+            ? body.message.join(', ')
+            : (body.message ?? 'Could not downgrade access.'),
+        );
+        return;
+      }
+      const { subscription } = (await res.json()) as { subscription: ArtistSubscription };
+      onUpdated(user.id, subscription);
+      onClose();
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /**
+   * Confirms a queued downgrade to `pendingDowngrade`. If the target equals the
+   * commercial floor, removing the grant (revoke) lands the tenant exactly there;
+   * otherwise the grant plan is lowered to the (still paid) target.
+   */
+  async function confirmDowngrade() {
+    if (pendingDowngrade === null) return;
+    if (planRank(pendingDowngrade) === planRank(commercialPlan)) {
+      await doRevoke();
+    } else {
+      await submitDowngrade(pendingDowngrade as 'pro' | 'pro_plus');
+    }
+  }
+
   return (
     <ModalBackdrop onClose={onClose}>
       <div
@@ -1493,17 +1556,26 @@ function ManageAccessModal({
               )}
             </div>
 
-            {confirmRevoke ? (
+            {pendingDowngrade !== null ? (
               <div className="space-y-2">
                 <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                  Revoke this grant? The tenant falls back to their commercial plan immediately.
+                  Downgrade{' '}
+                  <strong style={{ color: 'var(--foreground)' }}>{user.name ?? user.email}</strong>{' '}
+                  to{' '}
+                  <strong style={{ color: 'var(--foreground)' }}>
+                    {planLabel(pendingDowngrade)}
+                  </strong>
+                  ?{' '}
+                  {pendingDowngrade === 'free'
+                    ? 'Their courtesy grant is removed and access drops immediately.'
+                    : 'The grant is lowered now, keeping the same expiry date.'}
                 </p>
                 <div className="flex gap-2">
                   <Button
                     type="button"
                     variant="ghost"
                     className="flex-1"
-                    onClick={() => setConfirmRevoke(false)}
+                    onClick={() => setPendingDowngrade(null)}
                     disabled={busy}
                   >
                     Cancel
@@ -1511,10 +1583,10 @@ function ManageAccessModal({
                   <Button
                     type="button"
                     className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                    onClick={doRevoke}
+                    onClick={confirmDowngrade}
                     disabled={busy}
                   >
-                    {busy ? 'Revoking…' : 'Revoke'}
+                    {busy ? 'Working…' : `Downgrade to ${planLabel(pendingDowngrade)}`}
                   </Button>
                 </div>
               </div>
@@ -1530,14 +1602,17 @@ function ManageAccessModal({
                     <Button type="button" className="flex-1" onClick={() => setMode('extend')}>
                       Extend
                     </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="flex-1 text-red-400 hover:text-red-300"
-                      onClick={() => setConfirmRevoke(true)}
-                    >
-                      Revoke
-                    </Button>
+                    {downgradeTargets.map((target) => (
+                      <Button
+                        key={target}
+                        type="button"
+                        variant="ghost"
+                        className="flex-1 text-amber-300 hover:text-amber-200"
+                        onClick={() => setPendingDowngrade(target)}
+                      >
+                        ↓ {planLabel(target)}
+                      </Button>
+                    ))}
                   </>
                 )}
                 <Button type="button" variant="ghost" className="w-full" onClick={onClose}>
