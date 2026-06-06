@@ -258,9 +258,9 @@ export interface PublicEpkResponse {
 
 /** Maximum number of links a user can mark as visible in their EPK, by plan. */
 export const EPK_VISIBLE_LINKS_LIMITS: Record<string, number> = {
-  free: 3,
-  pro: 6,
-  pro_plus: 1000,
+  free: 5,
+  pro: 8,
+  pro_plus: 13,
 };
 
 // ---------------------------------------------------------------------------
