@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { Btn } from '@/components/sl/Btn';
+import { useOpenStripePortal } from '@/lib/hooks/useOpenStripePortal';
 import { cn } from '@/lib/utils';
 
 interface OpenPortalButtonProps {
@@ -20,10 +20,9 @@ interface OpenPortalButtonProps {
 }
 
 /**
- * Opens the Stripe Customer Portal in a NEW TAB. Fetches the portal URL from
- * the web proxy (`/api/billing/{id}/portal`) and window.open()s it, so the
- * dashboard tab is preserved (the old server-action approach redirected the
- * current tab). Falls back to an inline error if the portal can't be created.
+ * Opens the Stripe Customer Portal in a NEW TAB across every browser (incl.
+ * mobile Safari) via the shared `useOpenStripePortal` hook — see that hook for
+ * the gesture-preservation details. Settings (sl/Btn) styling.
  */
 export function OpenPortalButton({
   artistId,
@@ -33,28 +32,7 @@ export function OpenPortalButton({
   errorLabel,
   targetPlan,
 }: OpenPortalButtonProps) {
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState(false);
-
-  const open = async () => {
-    setPending(true);
-    setError(false);
-    try {
-      const res = await fetch(`/api/billing/${artistId}/portal`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ returnUrl: window.location.href, targetPlan }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const { url } = (await res.json()) as { url?: string };
-      if (!url) throw new Error('no url');
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch {
-      setError(true);
-    } finally {
-      setPending(false);
-    }
-  };
+  const { open, pending, error } = useOpenStripePortal(artistId, { targetPlan });
 
   if (rawClassName) {
     return (
