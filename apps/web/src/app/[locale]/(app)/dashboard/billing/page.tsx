@@ -21,7 +21,8 @@ import { getAuthMe } from '@/lib/api/me';
 import { getSession } from '@/lib/auth';
 import { ConnectionErrorState } from '@/components/shared/ConnectionErrorState';
 import { SUPPORT_URL } from '@/lib/constants';
-import { refreshBillingStatusAction, startCheckoutAction, startPortalAction } from './actions';
+import { OpenStripePortalButton } from '@/components/billing/OpenStripePortalButton';
+import { refreshBillingStatusAction, startCheckoutAction } from './actions';
 
 interface DashboardBillingPageProps {
   params: Promise<{ locale: string }>;
@@ -624,13 +625,12 @@ export default async function DashboardBillingPage({
                   ) : null}
 
                   {showManageBilling ? (
-                    <form action={startPortalAction}>
-                      <input type="hidden" name="artistId" value={artistId} />
-                      <input type="hidden" name="locale" value={locale} />
-                      <Button type="submit" variant="outline">
-                        {billingT('actions.manage_billing')}
-                      </Button>
-                    </form>
+                    <OpenStripePortalButton
+                      artistId={artistId}
+                      errorLabel={billingT('messages.portal_error')}
+                    >
+                      {billingT('actions.manage_billing')}
+                    </OpenStripePortalButton>
                   ) : null}
 
                   {isEnterprise ? (
@@ -716,13 +716,13 @@ export default async function DashboardBillingPage({
             </form>
           ) : null}
 
-          <form action={startPortalAction}>
-            <input type="hidden" name="artistId" value={artistId} />
-            <input type="hidden" name="locale" value={locale} />
-            <Button type="submit" variant="outline" disabled={!summary.portalAvailable}>
-              {billingT('actions.manage_billing')}
-            </Button>
-          </form>
+          <OpenStripePortalButton
+            artistId={artistId}
+            disabled={!summary.portalAvailable}
+            errorLabel={billingT('messages.portal_error')}
+          >
+            {billingT('actions.manage_billing')}
+          </OpenStripePortalButton>
 
           <form action={refreshBillingStatusAction}>
             <input type="hidden" name="artistId" value={artistId} />
