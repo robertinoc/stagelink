@@ -63,7 +63,7 @@ function resolvePlanLabel(plan: PlanCode | 'enterprise') {
     case 'pro_plus':
       return 'Pro+';
     case 'enterprise':
-      return 'Enterprise';
+      return 'Label & Agency';
     default:
       return 'Free';
   }
@@ -571,13 +571,15 @@ export default async function DashboardBillingPage({
                     </div>
                   </div>
                   <CardDescription>
-                    {currentCard && billingMismatch
-                      ? billingT('plan_card.billing_description')
-                      : currentCard
-                        ? billingT('plan_card.current_description')
-                        : isEffectivePlanCard
-                          ? billingT('plan_card.effective_description')
-                          : billingT('plan_card.available_description')}
+                    {isEnterprise
+                      ? billingT('enterprise.description')
+                      : currentCard && billingMismatch
+                        ? billingT('plan_card.billing_description')
+                        : currentCard
+                          ? billingT('plan_card.current_description')
+                          : isEffectivePlanCard
+                            ? billingT('plan_card.effective_description')
+                            : billingT('plan_card.available_description')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -592,12 +594,19 @@ export default async function DashboardBillingPage({
                     </p>
                   </div>
                   <ul className="space-y-2 text-sm text-muted-foreground">
-                    {plan.features.slice(0, 4).map((feature) => (
-                      <li key={feature} className="flex items-center gap-2">
-                        <span className="text-foreground">•</span>
-                        <span>{settingsT(`features.${feature}.title`)}</span>
-                      </li>
-                    ))}
+                    {isEnterprise
+                      ? (billingT.raw('enterprise.features') as string[]).map((bullet) => (
+                          <li key={bullet} className="flex items-center gap-2">
+                            <span className="text-foreground">•</span>
+                            <span>{bullet}</span>
+                          </li>
+                        ))
+                      : plan.features.slice(0, 4).map((feature) => (
+                          <li key={feature} className="flex items-center gap-2">
+                            <span className="text-foreground">•</span>
+                            <span>{settingsT(`features.${feature}.title`)}</span>
+                          </li>
+                        ))}
                   </ul>
                 </CardContent>
                 <CardFooter className="flex flex-wrap gap-2">
