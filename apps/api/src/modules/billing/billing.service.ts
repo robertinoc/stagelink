@@ -33,7 +33,7 @@ import type Stripe from 'stripe';
 import { PrismaService } from '../../lib/prisma.service';
 import { ok } from '../../common/utils/response.util';
 import { EmailService } from '../email/email.service';
-import type { CreateCheckoutSessionDto, CreatePortalSessionDto } from './dto';
+import type { CreateCheckoutSessionDto, CreatePortalSessionDto, PortalTargetPlan } from './dto';
 import {
   getPlanFromStripePriceId,
   getStripePriceIdForPlan,
@@ -408,12 +408,20 @@ export class BillingService {
       throw new BadRequestException('No Stripe customer exists for this artist yet');
     }
 
+    const baseParams = {
+      customer: subscription.stripeCustomerId,
+      return_url: returnUrl,
+    };
+
+    // Optional deep-link: open the portal directly on the "switch to {plan}"
+    // confirmation (e.g. "Downgrade to Pro") instead of the generic overview.
+    const flowData = await this.buildPortalSwitchFlow(subscription, dto.targetPlan);
+
     let session: Awaited<ReturnType<typeof stripe.billingPortal.sessions.create>>;
     try {
-      session = await stripe.billingPortal.sessions.create({
-        customer: subscription.stripeCustomerId,
-        return_url: returnUrl,
-      });
+      session = await stripe.billingPortal.sessions.create(
+        flowData ? { ...baseParams, flow_data: flowData } : baseParams,
+      );
     } catch (err) {
       // Stripe returns a StripeInvalidRequestError with code 'resource_missing'
       // when the customer ID stored in our DB no longer exists in Stripe — most
@@ -435,10 +443,61 @@ export class BillingService {
           'Your billing profile needs to be re-created. Please start a new subscription.',
         );
       }
+
+      // The plan-switch flow can be rejected when the Stripe Customer Portal
+      // configuration doesn't have "subscription update" enabled. Rather than
+      // failing the click, fall back to the generic portal so the user still
+      // gets in. (Enable plan switching in the Stripe portal settings to get
+      // the direct "switch to {plan}" screen.)
+      if (flowData) {
+        this.logger.warn(
+          `[billing] Portal plan-switch flow rejected for artist ${artistId} — ` +
+            `falling back to the generic portal. Enable subscription updates in the ` +
+            `Stripe Customer Portal settings. Stripe message: ${stripeErr.message ?? 'unknown'}`,
+        );
+        session = await stripe.billingPortal.sessions.create(baseParams);
+        return ok({ url: session.url });
+      }
+
       throw err;
     }
 
     return ok({ url: session.url });
+  }
+
+  /**
+   * Builds the Stripe `flow_data` that deep-links the Customer Portal to the
+   * "switch to {targetPlan}" confirmation screen. Returns null (→ generic
+   * portal) when there's no active Stripe subscription, no configured target
+   * price, or the subscription can't be read.
+   */
+  private async buildPortalSwitchFlow(
+    subscription: PrismaSubscription,
+    targetPlan: PortalTargetPlan | undefined,
+  ): Promise<Stripe.BillingPortal.SessionCreateParams.FlowData | null> {
+    if (!targetPlan || !subscription.stripeSubscriptionId) return null;
+
+    const targetPriceId = getStripePriceIdForPlan(targetPlan as PlanTier, this.getPriceConfig());
+    if (!targetPriceId) return null;
+
+    const stripe = this.getStripeClientOrThrow();
+    let stripeSubscription: Stripe.Subscription;
+    try {
+      stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+    } catch {
+      return null;
+    }
+
+    const itemId = stripeSubscription.items.data[0]?.id;
+    if (!itemId) return null;
+
+    return {
+      type: 'subscription_update_confirm',
+      subscription_update_confirm: {
+        subscription: subscription.stripeSubscriptionId,
+        items: [{ id: itemId, price: targetPriceId }],
+      },
+    };
   }
 
   async refreshSubscriptionState(artistId: string) {

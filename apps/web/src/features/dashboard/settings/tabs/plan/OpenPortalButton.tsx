@@ -11,6 +11,12 @@ interface OpenPortalButtonProps {
   /** When set, renders a bare <button> with this class instead of the Btn primitive (danger zone). */
   rawClassName?: string;
   errorLabel: string;
+  /**
+   * When set, deep-links the portal to the "switch to {targetPlan}"
+   * confirmation screen (e.g. "Downgrade to Pro") instead of the generic
+   * overview. Falls back to the generic portal if Stripe rejects the flow.
+   */
+  targetPlan?: 'pro' | 'pro_plus';
 }
 
 /**
@@ -25,6 +31,7 @@ export function OpenPortalButton({
   variant = 'ghost',
   rawClassName,
   errorLabel,
+  targetPlan,
 }: OpenPortalButtonProps) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
@@ -36,7 +43,7 @@ export function OpenPortalButton({
       const res = await fetch(`/api/billing/${artistId}/portal`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ returnUrl: window.location.href }),
+        body: JSON.stringify({ returnUrl: window.location.href, targetPlan }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const { url } = (await res.json()) as { url?: string };

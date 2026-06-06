@@ -231,10 +231,16 @@ export function PlanTab({ data, locale }: PlanTabProps) {
         title={td('title')}
         body={td('body')}
         downgradeCta={
-          // Downgrades go through the Stripe portal (a checkout to a lower
-          // tier is rejected). Only meaningful once a Stripe customer exists.
-          portalAvailable ? (
-            <OpenPortalButton artistId={data.artistId} errorLabel={t('hero.portal_error')}>
+          // "Downgrade to Pro" only makes sense from Pro+ (the one paid tier
+          // above Pro). It deep-links the Stripe portal straight to the
+          // "switch to Pro" confirmation. Downgrades from Pro go to Free, which
+          // is a cancellation — handled by the Cancel action, not here.
+          portalAvailable && summary.billingPlan === 'pro_plus' ? (
+            <OpenPortalButton
+              artistId={data.artistId}
+              errorLabel={t('hero.portal_error')}
+              targetPlan="pro"
+            >
               {td('downgrade')}
             </OpenPortalButton>
           ) : null

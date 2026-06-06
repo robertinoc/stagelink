@@ -1,7 +1,11 @@
-import { IsIn, IsUrl } from 'class-validator';
+import { IsIn, IsOptional, IsUrl } from 'class-validator';
 
 export const BILLING_PLANS = ['free', 'pro', 'pro_plus'] as const;
 export type BillingPlan = (typeof BILLING_PLANS)[number];
+
+/** Paid plans a portal "switch plan" flow can target. */
+export const PORTAL_TARGET_PLANS = ['pro', 'pro_plus'] as const;
+export type PortalTargetPlan = (typeof PORTAL_TARGET_PLANS)[number];
 
 /**
  * CreateCheckoutSessionDto — POST /api/billing/checkout
@@ -24,6 +28,15 @@ export class CreatePortalSessionDto {
     require_protocol: true,
   })
   returnUrl!: string;
+
+  /**
+   * Optional deep-link target. When set, the portal opens directly on the
+   * "switch to {targetPlan}" confirmation screen (Stripe `flow_data`) instead
+   * of the generic overview — used by the "Downgrade to Pro" action.
+   */
+  @IsOptional()
+  @IsIn(PORTAL_TARGET_PLANS)
+  targetPlan?: PortalTargetPlan;
 }
 
 /**

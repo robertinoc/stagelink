@@ -142,7 +142,7 @@ export async function createBillingCheckoutSession(
 
 export async function createBillingPortalSession(
   artistId: string,
-  payload: { returnUrl: string },
+  payload: { returnUrl: string; targetPlan?: 'pro' | 'pro_plus' },
   accessToken: string,
 ): Promise<{ url: string }> {
   const res = await apiFetch(`/api/billing/${artistId}/portal`, {
