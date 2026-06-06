@@ -436,18 +436,24 @@ export class AdminService {
   }
 
   /**
-   * Extends (or shortens) the expiry of an existing manual grant,
-   * optionally updating the reason and optionally changing the granted plan.
+   * Updates an existing manual grant. Every input is optional:
+   *   - expiresAt: extend/shorten the window (omit to keep the current expiry,
+   *     e.g. a downgrade PRO+ → PRO that should not move the end date)
+   *   - reason: update the note
+   *   - plan: change the granted plan in either direction (upgrade or downgrade)
+   *
+   * To clear a grant entirely (downgrade to free), use revokeAccess() instead.
    */
   async extendAccess(
     targetUserId: string,
-    expiresAt: string,
+    expiresAt: string | undefined,
     reason: string | undefined,
     actorId: string,
     ipAddress?: string,
     plan?: typeof PlanTier.pro | typeof PlanTier.pro_plus,
   ): Promise<AdminSubscriptionDto> {
-    const expiry = this.parseExpiry(expiresAt);
+    // Only validate/parse the expiry when the caller actually sends one.
+    const expiry = expiresAt !== undefined ? this.parseExpiry(expiresAt) : null;
     const { artistId, targetEmail } = await this.resolveArtistForUser(targetUserId);
 
     const current = await this.prisma.subscription.findUnique({
@@ -456,13 +462,13 @@ export class AdminService {
     });
 
     if (!current || current.manualAccessPlan === null) {
-      throw new BadRequestException('No active manual grant to extend');
+      throw new BadRequestException('No active manual grant to update');
     }
 
     const sub = await this.prisma.subscription.update({
       where: { artistId },
       data: {
-        manualAccessExpiresAt: expiry,
+        ...(expiry !== null && { manualAccessExpiresAt: expiry }),
         ...(reason !== undefined && { manualAccessReason: reason.trim() || null }),
         ...(plan !== undefined && { manualAccessPlan: plan }),
       },
@@ -477,7 +483,7 @@ export class AdminService {
       metadata: {
         targetUserId,
         targetEmail,
-        expiresAt: expiry.toISOString(),
+        ...(expiry !== null && { expiresAt: expiry.toISOString() }),
         reason: reason ?? null,
         ...(plan !== undefined && { plan }),
       },

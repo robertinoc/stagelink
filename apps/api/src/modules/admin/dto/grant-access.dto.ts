@@ -22,13 +22,17 @@ export class GrantAccessDto {
 }
 
 /**
- * Body for PATCH /api/admin/users/:id/access — extend (or shorten) the
- * expiry of an existing manual grant, optionally updating the reason
- * and optionally changing the granted plan.
+ * Body for PATCH /api/admin/users/:id/access — update an existing manual
+ * grant. Every field is optional:
+ *   - expiresAt: extend/shorten the window (omit to keep the current expiry,
+ *     e.g. when only changing the plan on a downgrade PRO+ → PRO)
+ *   - reason: update the note
+ *   - plan: change the granted plan in either direction (upgrade or downgrade)
  */
 export class ExtendAccessDto {
+  @IsOptional()
   @IsISO8601({}, { message: 'expiresAt must be an ISO8601 date string' })
-  expiresAt!: string;
+  expiresAt?: string;
 
   @IsOptional()
   @IsString()

@@ -329,7 +329,31 @@ describe('AdminService', () => {
     );
   });
 
-  it('rejects extending when no grant exists', async () => {
+  it('downgrades a grant plan without touching the expiry (no expiresAt sent)', async () => {
+    const { service, prisma, auditService } = createService();
+    mockArtist(prisma);
+    prisma.subscription.findUnique.mockResolvedValueOnce({ manualAccessPlan: 'pro_plus' });
+    prisma.subscription.update.mockResolvedValueOnce({ ...subRow, manualAccessPlan: 'pro' });
+
+    await service.extendAccess(
+      'user_1',
+      undefined,
+      undefined,
+      'owner_1',
+      undefined,
+      'pro' as never,
+    );
+
+    const updateArg = prisma.subscription.update.mock.calls[0][0];
+    // plan changes, expiry is NOT in the update payload
+    expect(updateArg.data).toEqual({ manualAccessPlan: 'pro' });
+    expect(updateArg.data.manualAccessExpiresAt).toBeUndefined();
+    expect(auditService.log).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'admin.access.extend' }),
+    );
+  });
+
+  it('rejects updating when no grant exists', async () => {
     const { service, prisma } = createService();
     mockArtist(prisma);
     prisma.subscription.findUnique.mockResolvedValueOnce({ manualAccessPlan: null });
