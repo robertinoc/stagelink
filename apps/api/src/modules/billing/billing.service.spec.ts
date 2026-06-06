@@ -294,6 +294,38 @@ describe('BillingService', () => {
     expect(stripe.subscriptions.update).not.toHaveBeenCalled();
   });
 
+  it('bounces back with a refresh (no error) when already on the target plan', async () => {
+    // Stale-summary case: the dashboard rendered an "Upgrade to Pro+" button
+    // from a cached summary, but a webhook already moved the subscription to
+    // pro_plus. Clicking must not surface a scary checkout error.
+    const { service, prisma, stripe } = createService();
+
+    prisma.artist.findUnique.mockResolvedValue({
+      id: 'artist_123',
+      username: 'robertinoc',
+      displayName: 'Robertino',
+      contactEmail: 'artist@example.com',
+      user: { email: 'owner@example.com' },
+      subscription: {
+        artistId: 'artist_123',
+        plan: PlanTier.pro_plus,
+        status: SubscriptionStatus.active,
+        stripeCustomerId: 'cus_123',
+        stripeSubscriptionId: 'sub_pro_plus_123',
+      },
+    });
+
+    const result = await service.createCheckoutSession(
+      'artist_123',
+      { plan: 'pro_plus', returnUrl: 'http://localhost:4000/en/dashboard/billing' },
+      { id: 'user_123', email: 'owner@example.com' } as never,
+    );
+
+    expect(result.data.url).toBe('http://localhost:4000/en/dashboard/billing?refresh=done');
+    expect(stripe.checkout.sessions.create).not.toHaveBeenCalled();
+    expect(stripe.subscriptions.update).not.toHaveBeenCalled();
+  });
+
   it('requires billing portal recovery before checkout when payment is past due', async () => {
     const { service, prisma, stripe } = createService();
 

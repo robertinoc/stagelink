@@ -288,7 +288,36 @@ export class BillingService {
       throw new NotFoundException('Artist not found');
     }
 
-    this.assertCheckoutTargetIsValid(artist.subscription, dto.plan);
+    // Payment issues must be resolved in the portal before any plan change.
+    if (
+      artist.subscription?.status === SubscriptionStatus.past_due ||
+      artist.subscription?.status === SubscriptionStatus.unpaid
+    ) {
+      throw new BadRequestException(
+        'Resolve the existing payment issue in the billing portal before changing plans',
+      );
+    }
+
+    // Stale-summary guard: the dashboard renders the "Upgrade" button from a
+    // cached billing summary. If a webhook moved the real subscription to the
+    // target plan after that render, the user is already on this plan — don't
+    // surface a scary "checkout failed" error. Bounce them back with a refresh
+    // so the UI re-reads the current state and the button disappears.
+    const checkoutBasePlan = this.resolveCheckoutBasePlan(artist.subscription);
+    if (
+      checkoutBasePlan !== PlanTier.free &&
+      this.planRank(dto.plan) === this.planRank(checkoutBasePlan)
+    ) {
+      const refreshedUrl = new URL(returnUrl);
+      refreshedUrl.searchParams.set('refresh', 'done');
+      return ok({ url: refreshedUrl.toString() });
+    }
+
+    // A genuine downgrade is not available through checkout — it goes through
+    // the billing portal.
+    if (this.planRank(dto.plan) < this.planRank(checkoutBasePlan)) {
+      throw new BadRequestException('Checkout is only available for plan upgrades');
+    }
 
     const stripe = this.getStripeClientOrThrow();
     const priceId = getStripePriceIdForPlan(dto.plan, this.getPriceConfig());
@@ -615,8 +644,8 @@ export class BillingService {
         amount: null,
         currency: null,
         interval: null,
-        productName: 'Enterprise',
-        productDescription: 'Manual onboarding for custom needs.',
+        productName: 'Label & Agency',
+        productDescription: 'For agencies, labels and event organizers managing multiple artists.',
       }),
     ]);
 
@@ -714,25 +743,6 @@ export class BillingService {
     );
 
     return next?.plan ?? null;
-  }
-
-  private assertCheckoutTargetIsValid(
-    subscription: PrismaSubscription | null,
-    targetPlan: PlanTier,
-  ) {
-    if (
-      subscription?.status === SubscriptionStatus.past_due ||
-      subscription?.status === SubscriptionStatus.unpaid
-    ) {
-      throw new BadRequestException(
-        'Resolve the existing payment issue in the billing portal before changing plans',
-      );
-    }
-
-    const checkoutBasePlan = this.resolveCheckoutBasePlan(subscription);
-    if (this.planRank(targetPlan) <= this.planRank(checkoutBasePlan)) {
-      throw new BadRequestException('Checkout is only available for plan upgrades');
-    }
   }
 
   private async ensureSubscriptionRecord(artistId: string): Promise<PrismaSubscription> {
