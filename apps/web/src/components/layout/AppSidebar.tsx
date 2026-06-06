@@ -1,9 +1,14 @@
 'use client';
 
+import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
+import {
+  SETTINGS_TAB_CHANGE_EVENT,
+  emitSettingsTabChange,
+} from '@/features/dashboard/settings/settings-tab-events';
 import {
   LayoutDashboard,
   Globe,
@@ -44,6 +49,13 @@ interface SidebarNavLinkProps {
     expanded: boolean;
     activeTab: SettingsTabId;
     children: SettingsChild[];
+    /**
+     * Called when a sub-item is clicked. Returns true when it handled the
+     * switch client-side (already on the settings page) so the <Link> should
+     * NOT navigate; false to let Next navigate normally (coming from another
+     * page).
+     */
+    onSelectTab: (tab: SettingsTabId, href: string) => boolean;
   };
 }
 
@@ -158,7 +170,15 @@ function SidebarNavLink({
               <Link
                 key={child.id}
                 href={child.href}
-                onClick={onNavigate}
+                onClick={(e) => {
+                  // When already on the settings page, swap the tab client-side
+                  // (instant) instead of letting Next re-run the server
+                  // component and refetch everything.
+                  if (settingsSubmenu.onSelectTab(child.id, child.href)) {
+                    e.preventDefault();
+                  }
+                  onNavigate?.();
+                }}
                 role="listitem"
                 aria-current={childActive ? 'page' : undefined}
                 className={cn(
@@ -187,7 +207,46 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
   const settingsBaseHref = `/${locale}/dashboard/settings`;
   const settingsExpanded =
     pathname === settingsBaseHref || pathname.startsWith(`${settingsBaseHref}/`);
-  const activeSettingsTab = resolveSettingsTab(pathname, settingsBaseHref, searchParams.get('tab'));
+  const isOnSettingsPage = pathname === settingsBaseHref;
+
+  // Active settings tab is local state so the sidebar highlight can follow
+  // client-side tab switches (both the in-page tabs and the sidebar sub-items)
+  // without a Next navigation. Seeded + re-synced from the URL for deep links,
+  // legacy-route redirects, browser back/forward, and arrivals from other pages.
+  const tabParam = searchParams.get('tab');
+  const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTabId>(() =>
+    resolveSettingsTab(pathname, settingsBaseHref, tabParam),
+  );
+
+  useEffect(() => {
+    setActiveSettingsTab(resolveSettingsTab(pathname, settingsBaseHref, tabParam));
+  }, [pathname, settingsBaseHref, tabParam]);
+
+  // Follow client-side tab changes emitted by the in-page tabs.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const tab = (e as CustomEvent<string>).detail;
+      if (tab === 'connections' || tab === 'stores' || tab === 'privacy' || tab === 'plan') {
+        setActiveSettingsTab(tab);
+      }
+    };
+    window.addEventListener(SETTINGS_TAB_CHANGE_EVENT, handler);
+    return () => window.removeEventListener(SETTINGS_TAB_CHANGE_EVENT, handler);
+  }, []);
+
+  const handleSettingsTabSelect = useCallback(
+    (tab: SettingsTabId, href: string): boolean => {
+      // Not on the settings page yet → let <Link> navigate (full load once).
+      if (!isOnSettingsPage) return false;
+      // Already here → swap instantly: sync URL + tell SettingsTabs + highlight.
+      window.history.replaceState(null, '', href);
+      emitSettingsTabChange(tab);
+      setActiveSettingsTab(tab);
+      return true;
+    },
+    [isOnSettingsPage],
+  );
+
   const settingsChildren: SettingsChild[] = [
     {
       id: 'plan',
@@ -295,6 +354,7 @@ export function AppSidebar({ artist, effectivePlan, onNavigate }: AppSidebarProp
                       expanded: settingsExpanded,
                       activeTab: activeSettingsTab,
                       children: settingsChildren,
+                      onSelectTab: handleSettingsTabSelect,
                     }
                   : undefined
               }
