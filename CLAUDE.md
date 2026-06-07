@@ -793,6 +793,78 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
 
 ---
 
+### Bloques — Fixes y mejoras (PR #494)
+
+#### Límites de bloques por plan en la página pública
+
+`PLAN_BLOCK_LIMITS` y `MAX_BLOCKS_PER_PAGE` movidos a `@stagelink/types` (eran constantes locales en `blocks.service.ts`). Fuente de verdad compartida entre el enforcer de creación y el renderer público.
+
+| Plan | Máximo de bloques |
+| ---- | ----------------- |
+| Free | 5                 |
+| Pro  | 10                |
+| Pro+ | 50                |
+
+`loadPublicPage` en `public-pages.service.ts` aplica `take: MAX_BLOCKS_PER_PAGE` en la query Prisma y luego hace slice a `PLAN_BLOCK_LIMITS[effectivePlan]` una vez conocido el plan efectivo del artista.
+
+**Archivos clave:**
+
+- `packages/types/src/billing.ts` — `PLAN_BLOCK_LIMITS` + `MAX_BLOCKS_PER_PAGE` exportados
+- `apps/api/src/modules/blocks/blocks.service.ts` — importa desde types (antes eran constantes locales)
+- `apps/api/src/modules/public/public-pages.service.ts` — aplica el límite al servir bloques públicos
+
+---
+
+#### Orden de bloques respeta el dashboard (fix crítico)
+
+`ArtistPageView` tenía un layout hardcodeado por tipo que ignoraba la posición del usuario:
+
+- Links → sección FEATURED LINKS
+- Music/Video → sección MEDIA DESTACADA
+- Text + rest → sección INFORMACIÓN ADICIONAL
+- Email Capture → sección FAN LIST (siempre al fondo)
+
+El artista podía reordenar bloques en el dashboard pero el orden nunca se reflejaba en la página pública.
+
+**Fix:** `ArtistPageView` ahora renderiza todos los bloques del usuario en el orden exacto de posición (el API ya los devuelve con `ORDER BY position ASC`), usando un único `<PublicPageClient blocks={orderedBlocks} />`. Las secciones con headers fijos fueron eliminadas. Solo el contenido generado por la plataforma (Releases del catálogo, About auto desde bio, EPK/Contacto) sigue siendo fijo al final — no son bloques del usuario.
+
+**Archivos clave:**
+
+- `apps/web/src/features/public-page/components/ArtistPageView.tsx` — refactor principal (-341/+93 líneas)
+
+---
+
+#### Warnings en el dashboard para bloques activos que no van a renderizarse
+
+Badge ambar **"⚠ No visible"** en la fila del bloque cuando:
+
+- `shopify_store` activo + Shopify `isConnected: false` → "Configurar en Ajustes → Integraciones"
+- `smart_merch` activo + Printful no conectado → "Conectar Printful en Ajustes"
+- `smart_merch` activo + `selectedProducts` vacío → "Editar el bloque y elegir productos"
+
+La page del dashboard carga `shopifyConnection` + `merchConnection` en paralelo y pasa `shopifyIsConnected` / `smartMerchIsConnected` a `BlockManager`.
+
+**Archivos clave:**
+
+- `apps/web/src/features/blocks/components/BlockManager.tsx` — props `shopifyIsConnected`, `smartMerchIsConnected`, badge `wontRender`
+- `apps/web/src/app/[locale]/(app)/dashboard/page/page.tsx` — carga conexiones en `Promise.all`
+
+---
+
+#### Auto-refresh del preview al editar bloques
+
+`PhonePreviewFrame` (iframe de la página pública) se recargaba solo con el botón "Actualizar". Ahora se refresca automáticamente 1 segundo después de cualquier mutación de bloque.
+
+- `BlockManager` dispara `window.dispatchEvent(new CustomEvent('stagelink:blocks-changed'))` en `handleCreated`, `handleUpdated`, `handleDeleted`, `handleMoved` y `handleDrop`
+- `PhonePreviewFrame` escucha ese evento y debouncea 1 s el reload del iframe (evita reloads múltiples en drag-drop rápido)
+
+**Archivos clave:**
+
+- `apps/web/src/features/blocks/components/BlockManager.tsx` — `notifyBlocksChanged()`
+- `apps/web/src/features/blocks/components/PhonePreviewFrame.tsx` — event listener + debounce
+
+---
+
 ### ⏳ Pendiente
 
 - T2-5: Implementar queries Prisma reales en módulos stub (artists, pages, blocks)
