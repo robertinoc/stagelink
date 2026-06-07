@@ -55,6 +55,10 @@ interface Props {
   artistId: string;
   canUseShopifyIntegration: boolean;
   canUseSmartMerch: boolean;
+  /** Whether the artist has an active Shopify storefront connection. */
+  shopifyIsConnected?: boolean;
+  /** Whether the artist's Printful/Smart Merch store is connected. */
+  smartMerchIsConnected?: boolean;
   galleryImages?: string[];
   textSources?: Array<{
     id: string;
@@ -505,6 +509,8 @@ function BlockRow({
   onDragEnter,
   onDragEnd,
   onDrop,
+  wontRender = false,
+  wontRenderReason,
 }: {
   block: Block;
   isFirst: boolean;
@@ -520,6 +526,9 @@ function BlockRow({
   onDragEnter: (id: string) => void;
   onDragEnd: () => void;
   onDrop: (id: string) => void;
+  /** When true the block is published but will NOT appear on the public page (e.g. integration not set up). */
+  wontRender?: boolean;
+  wontRenderReason?: string;
 }) {
   const t = useTranslations('blocks');
   const [toggling, setToggling] = useState(false);
@@ -642,6 +651,16 @@ function BlockRow({
               Primario
             </span>
           )}
+          {wontRender && block.isPublished && (
+            <span
+              title={
+                wontRenderReason ?? 'Este bloque está activo pero no aparece en tu página pública.'
+              }
+              className="inline-flex shrink-0 cursor-help items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[1px] text-amber-400"
+            >
+              ⚠ No visible
+            </span>
+          )}
         </div>
         <p className="text-[12px] text-white/40">
           {t(`types.${block.type}`)}
@@ -709,6 +728,8 @@ export function BlockManager({
   artistId,
   canUseShopifyIntegration,
   canUseSmartMerch,
+  shopifyIsConnected = false,
+  smartMerchIsConnected = false,
   galleryImages,
   textSources,
   username,
@@ -865,32 +886,61 @@ export function BlockManager({
           </div>
         ) : (
           <div className="bg-white/[0.015] px-2 py-2">
-            {blocks.map((block, index) => (
-              <BlockRow
-                key={block.id}
-                block={block}
-                isFirst={index === 0}
-                isLast={index === blocks.length - 1}
-                isPrimary={index === firstPublishedIndex && firstPublishedIndex !== -1}
-                isDragging={draggedBlockId === block.id || dragTargetBlockId === block.id}
-                dragDisabled={blocks.length <= 1}
-                onEdit={() => setEditingBlock(block)}
-                onUpdated={handleUpdated}
-                onDeleted={handleDeleted}
-                onMoved={handleMoved}
-                onDragStart={(id) => setDraggedBlockId(id)}
-                onDragEnter={(id) => setDragTargetBlockId(id)}
-                onDragEnd={() => {
-                  setDraggedBlockId(null);
-                  setDragTargetBlockId(null);
-                }}
-                onDrop={(targetId) => {
-                  if (draggedBlockId) {
-                    void handleDrop(draggedBlockId, targetId);
+            {blocks.map((block, index) => {
+              // Detect blocks that are published but won't appear on the public page.
+              let wontRender = false;
+              let wontRenderReason: string | undefined;
+
+              if (block.isPublished) {
+                if (block.type === 'shopify_store' && !shopifyIsConnected) {
+                  wontRender = true;
+                  wontRenderReason =
+                    'Tu tienda Shopify no está conectada. Configurala en Ajustes → Integraciones para que este bloque aparezca en tu página.';
+                } else if (block.type === 'smart_merch') {
+                  const cfg = block.config as { selectedProducts?: unknown[] };
+                  const hasSelected =
+                    Array.isArray(cfg.selectedProducts) && cfg.selectedProducts.length > 0;
+                  if (!smartMerchIsConnected) {
+                    wontRender = true;
+                    wontRenderReason =
+                      'Tu cuenta de Printful no está conectada. Configurala en Ajustes → Integraciones.';
+                  } else if (!hasSelected) {
+                    wontRender = true;
+                    wontRenderReason =
+                      'No hay productos seleccionados en este bloque. Editalo y elegí los productos de Printful que querés mostrar.';
                   }
-                }}
-              />
-            ))}
+                }
+              }
+
+              return (
+                <BlockRow
+                  key={block.id}
+                  block={block}
+                  isFirst={index === 0}
+                  isLast={index === blocks.length - 1}
+                  isPrimary={index === firstPublishedIndex && firstPublishedIndex !== -1}
+                  isDragging={draggedBlockId === block.id || dragTargetBlockId === block.id}
+                  dragDisabled={blocks.length <= 1}
+                  onEdit={() => setEditingBlock(block)}
+                  onUpdated={handleUpdated}
+                  onDeleted={handleDeleted}
+                  onMoved={handleMoved}
+                  onDragStart={(id) => setDraggedBlockId(id)}
+                  onDragEnter={(id) => setDragTargetBlockId(id)}
+                  onDragEnd={() => {
+                    setDraggedBlockId(null);
+                    setDragTargetBlockId(null);
+                  }}
+                  onDrop={(targetId) => {
+                    if (draggedBlockId) {
+                      void handleDrop(draggedBlockId, targetId);
+                    }
+                  }}
+                  wontRender={wontRender}
+                  wontRenderReason={wontRenderReason}
+                />
+              );
+            })}
           </div>
         )}
 

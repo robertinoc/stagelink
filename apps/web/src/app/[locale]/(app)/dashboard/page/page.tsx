@@ -8,6 +8,8 @@ import { getBillingSummary } from '@/lib/api/billing';
 import { getArtistEpk } from '@/lib/api/epk';
 import { getAuthMe } from '@/lib/api/me';
 import { getArtistPages } from '@/lib/api/pages';
+import { getShopifyConnection } from '@/lib/api/shopify';
+import { getMerchConnection } from '@/lib/api/merch';
 import { ConnectionErrorState } from '@/components/shared/ConnectionErrorState';
 import { BlockManager } from '@/features/blocks/components/BlockManager';
 import { ThemeSelector } from '@/features/blocks/components/ThemeSelector';
@@ -49,11 +51,13 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
   const artistId = me?.artistIds[0];
   if (!artistId) redirect(`/${locale}/onboarding`);
 
-  const [artist, pages, billingSummary, epkData] = await Promise.all([
+  const [artist, pages, billingSummary, epkData, shopifyConn, merchConn] = await Promise.all([
     getArtist(artistId, session.accessToken),
     getArtistPages(artistId, session.accessToken),
     getBillingSummary(artistId, session.accessToken),
     getArtistEpk(artistId, session.accessToken).catch(() => null),
+    getShopifyConnection(artistId, session.accessToken).catch(() => null),
+    getMerchConnection(artistId, session.accessToken).catch(() => null),
   ]);
   const page = pages[0];
   if (!page) redirect(`/${locale}/onboarding`);
@@ -161,6 +165,8 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
           artistId={artistId}
           canUseShopifyIntegration={billingSummary.entitlements.shopify_integration}
           canUseSmartMerch={billingSummary.entitlements.smart_merch}
+          shopifyIsConnected={shopifyConn?.isConnected ?? false}
+          smartMerchIsConnected={merchConn?.isConnected ?? false}
           galleryImages={artist?.galleryImageUrls ?? []}
           username={artist?.username ?? undefined}
           textSources={textSourceList}
