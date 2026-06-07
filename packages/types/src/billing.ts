@@ -438,3 +438,17 @@ export function buildTenantEntitlements(
     featureKeys: getPlanFeatures(effectivePlan),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Block limits per plan
+// Shared between the block creation service and the public page renderer
+// so the dashboard enforcer and the public display cap stay in sync.
+// ---------------------------------------------------------------------------
+
+export const MAX_BLOCKS_PER_PAGE = 50;
+
+export const PLAN_BLOCK_LIMITS: Record<string, number> = {
+  free: 5,
+  pro: 10,
+  pro_plus: MAX_BLOCKS_PER_PAGE,
+};

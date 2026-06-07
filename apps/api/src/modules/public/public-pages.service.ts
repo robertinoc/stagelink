@@ -7,6 +7,8 @@ import { PostHogService } from '../analytics/posthog.service';
 import {
   ANALYTICS_EVENTS,
   DEFAULT_LOCALE,
+  MAX_BLOCKS_PER_PAGE,
+  PLAN_BLOCK_LIMITS,
   buildTenantEntitlements,
   hasFeature,
   type ArtistRelease,
@@ -627,6 +629,10 @@ export class PublicPagesService {
         blocks: {
           where: { isPublished: true },
           orderBy: { position: 'asc' },
+          // Hard cap — PLAN_BLOCK_LIMITS.pro_plus = MAX_BLOCKS_PER_PAGE.
+          // After the query, the array is sliced further to PLAN_BLOCK_LIMITS[effectivePlan]
+          // once we know the artist's effective plan.
+          take: MAX_BLOCKS_PER_PAGE,
           select: {
             id: true,
             type: true,
@@ -644,6 +650,12 @@ export class PublicPagesService {
     }
 
     const entitlements = buildTenantEntitlements(page.artist.subscription);
+
+    // Enforce per-plan block display limit (Free=5, Pro=10, Pro+=50).
+    // Blocks are already ordered by position ASC; we keep the first N by plan.
+    const planBlockLimit = PLAN_BLOCK_LIMITS[entitlements.effectivePlan] ?? PLAN_BLOCK_LIMITS.free;
+    page.blocks = page.blocks.slice(0, planBlockLimit);
+
     const promoSlot = {
       kind: hasFeature(entitlements.effectivePlan, 'remove_stagelink_branding')
         ? ('none' as const)

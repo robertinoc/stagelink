@@ -19,19 +19,14 @@ import {
 } from './schemas/block-config.schema';
 import { CreateBlockDto, UpdateBlockDto, ReorderBlocksDto } from './dto';
 import { SmartLinksService } from '../smart-links/smart-links.service';
-import { ANALYTICS_EVENTS, type BlockLocalizedContent } from '@stagelink/types';
+import {
+  ANALYTICS_EVENTS,
+  MAX_BLOCKS_PER_PAGE,
+  PLAN_BLOCK_LIMITS,
+  type BlockLocalizedContent,
+} from '@stagelink/types';
 import { BillingEntitlementsService } from '../billing/billing-entitlements.service';
 import { MerchService } from '../merch/merch.service';
-
-// Maximum blocks allowed per page — hard cap to prevent unbounded data growth.
-const MAX_BLOCKS_PER_PAGE = 50;
-
-// Per-plan block limits matching the pricing page (Free=5, Pro=10, Pro+=unlimited/50).
-const PLAN_BLOCK_LIMITS: Record<string, number> = {
-  free: 5,
-  pro: 10,
-  pro_plus: MAX_BLOCKS_PER_PAGE,
-};
 
 @Injectable()
 export class BlocksService {
