@@ -167,6 +167,7 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
           canUseSmartMerch={billingSummary.entitlements.smart_merch}
           shopifyIsConnected={shopifyConn?.isConnected ?? false}
           smartMerchIsConnected={merchConn?.isConnected ?? false}
+          userPlan={billingSummary.effectivePlan}
           galleryImages={artist?.galleryImageUrls ?? []}
           username={artist?.username ?? undefined}
           textSources={textSourceList}

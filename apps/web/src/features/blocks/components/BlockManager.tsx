@@ -26,8 +26,9 @@ import type {
   BlockLocalizedContent,
   CreateBlockPayload,
   UpdateBlockPayload,
+  PlanCode,
 } from '@stagelink/types';
-import { BLOCK_TYPES } from '@stagelink/types';
+import { BLOCK_TYPES, PLAN_BLOCK_LIMITS } from '@stagelink/types';
 import {
   getBlocks,
   createBlock,
@@ -59,6 +60,8 @@ interface Props {
   shopifyIsConnected?: boolean;
   /** Whether the artist's Printful/Smart Merch store is connected. */
   smartMerchIsConnected?: boolean;
+  /** Artist's effective plan — used to warn when active blocks exceed the plan's public display limit. */
+  userPlan?: PlanCode;
   galleryImages?: string[];
   textSources?: Array<{
     id: string;
@@ -730,6 +733,7 @@ export function BlockManager({
   canUseSmartMerch,
   shopifyIsConnected = false,
   smartMerchIsConnected = false,
+  userPlan = 'free',
   galleryImages,
   textSources,
   username,
@@ -849,6 +853,15 @@ export function BlockManager({
 
   const activeCount = blocks.filter((b) => b.isPublished).length;
   const firstPublishedIndex = blocks.findIndex((b) => b.isPublished);
+  const planBlockLimit: number = PLAN_BLOCK_LIMITS[userPlan] ?? 5;
+  // Pre-compute which block IDs exceed the plan display limit, mirroring the
+  // slice applied by loadPublicPage on the backend (published blocks, position ASC).
+  const overLimitBlockIds = new Set<string>(
+    blocks
+      .filter((b) => b.isPublished)
+      .slice(planBlockLimit)
+      .map((b) => b.id),
+  );
 
   return (
     <div className="space-y-4">
@@ -892,7 +905,13 @@ export function BlockManager({
               let wontRenderReason: string | undefined;
 
               if (block.isPublished) {
-                if (block.type === 'shopify_store' && !shopifyIsConnected) {
+                if (overLimitBlockIds.has(block.id)) {
+                  // This block is beyond the plan's public display limit.
+                  wontRender = true;
+                  const planLabel =
+                    userPlan === 'pro_plus' ? 'Pro+' : userPlan === 'pro' ? 'Pro' : 'Free';
+                  wontRenderReason = `Tu plan ${planLabel} muestra hasta ${planBlockLimit} bloques en tu página pública. Este bloque no se ve porque supera ese límite. Subí de plan o desactivá otros bloques para que aparezca.`;
+                } else if (block.type === 'shopify_store' && !shopifyIsConnected) {
                   wontRender = true;
                   wontRenderReason =
                     'Tu tienda Shopify no está conectada. Configurala en Ajustes → Integraciones para que este bloque aparezca en tu página.';

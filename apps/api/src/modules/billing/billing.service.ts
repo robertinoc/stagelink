@@ -1278,11 +1278,16 @@ export class BillingService {
     metadataPlan: string | undefined,
     stripePriceId: string | null,
   ): PlanTier | null {
+    const pricePlan = getPlanFromStripePriceId(stripePriceId, this.getPriceConfig());
+    if (pricePlan) {
+      return pricePlan;
+    }
+
     if (metadataPlan === PlanTier.pro || metadataPlan === PlanTier.pro_plus) {
       return metadataPlan;
     }
 
-    return getPlanFromStripePriceId(stripePriceId, this.getPriceConfig());
+    return null;
   }
 
   private async resolveArtistIdForStripeSubscription(
