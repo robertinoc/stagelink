@@ -478,10 +478,10 @@ GET /api/public/pages/by-domain (Host header)
 
 ## Planes
 
-| Plan | Features                                                                                                                                                                                      |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Free | 1 página de artista · 5 links de redes sociales · 5 bloques de links · Analytics básicos · EPK básico · `stagelink.art/@user`                                                                |
-| Pro  | 1 página de artista · 8 links de redes sociales · 10 bloques de links · Analytics avanzados · EPK avanzado · EPK templates · `stagelink.art/@user`                                           |
+| Plan | Features                                                                                                                                                                                                                                                  |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Free | 1 página de artista · 5 links de redes sociales · 5 bloques de links · Analytics básicos · EPK básico · `stagelink.art/@user`                                                                                                                             |
+| Pro  | 1 página de artista · 8 links de redes sociales · 10 bloques de links · Analytics avanzados · EPK avanzado · EPK templates · `stagelink.art/@user`                                                                                                        |
 | Pro+ | 1 página de artista · 13 links de redes sociales · Bloques de links ilimitados · Analytics avanzados · Analytics de Spotify · Analytics de YouTube · Múltiples EPK templates · EPK templates personalizados · `stagelink.art/@user` · Soporte prioritario |
 
 ### Feature Gating
@@ -740,6 +740,58 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
   - `STRIPE_PRICE_PRO_ID`
   - `STRIPE_PRICE_PRO_PLUS_ID`
 - Docs: `docs/stripe-billing-foundation.md`
+
+### EPK — Fixes y mejoras (PRs #491, #492, #493)
+
+#### Bug fix: límite de links visibles para usuarios PRO+ (PR #491)
+
+**Problema 1 — DTO demasiado restrictivo:**
+`UpdateEpkDto.featuredLinks` tenía `@ArrayMaxSize(8)` hardcodeado en `apps/api/src/modules/epk/dto/index.ts`. El plan PRO+ permite hasta 13 links, por lo que cualquier usuario PRO+ que activara 9+ links recibía un 400 del backend al guardar. El enforcement real por plan ya estaba en el service layer.
+
+**Fix:** Cambiado a `@ArrayMaxSize(MAX_FEATURED_LINKS)` donde `MAX_FEATURED_LINKS = Math.max(...Object.values(EPK_VISIBLE_LINKS_LIMITS))` = 13.
+
+**Problema 2 — Publish ignoraba fallo del save:**
+`onSubmit` en `EpkEditorV2.tsx` capturaba errores internamente y retornaba `void`. El flujo de publish llamaba `handleSubmit(onSubmit)` en una Promise que siempre resolvía `true`, incluso cuando el save fallaba. Resultado: el EPK se publicaba leyendo los datos viejos del DB, descartando silenciosamente los cambios del usuario.
+
+**Fix:** `onSubmit` ahora retorna `Promise<boolean>` (true = guardado, false = error). `togglePublish` usa ese valor para abortar si el save falla.
+
+**Archivos modificados:**
+
+- `apps/api/src/modules/epk/dto/index.ts` — `@ArrayMaxSize` dinámico
+- `apps/web/src/features/epk/components/EpkEditorV2.tsx` — `onSubmit` retorna booleano; `togglePublish` lo usa
+
+---
+
+#### Feature: hard lock cuando publicado + preview en draft (PR #492 + #493)
+
+**Reglas de edición del EPK:**
+
+- **EPK publicado** → todo read-only. Ningún campo editable. Solo "Unpublish y editar" como acción.
+- **EPK en draft** → todo editable + botón "Vista previa" disponible.
+
+**Problema detectado en PR #492:** El Template tab no recibía `editorLocked`, así que templates y brand customizer seguían siendo interactivos cuando el EPK estaba publicado.
+
+**Problema detectado en PR #493 (fix crítico):** `formDisabled = isBusy` — solo se deshabilitaba mientras guardaba. Los tabs Identity/Media/Booking/Locales mostraban el banner de lock pero los campos eran interactivos.
+
+**Fix:** `formDisabled = editorLocked || isBusy` en `EpkEditorV2.tsx`.
+
+**Draft preview — cómo funciona:**
+
+- Botón "Vista previa" aparece en `PublishBanner` solo en draft mode (oculto si publicado).
+- Abre `EpkDraftPreviewOverlay`: overlay full-screen que renderiza `PublicEpkView` con el estado actual del form, sin guardar ni llamar al backend.
+- Construye un `PublicEpkResponse` desde los valores del form + `editorData.inherited` (URLs del perfil, datos del artista).
+- Incluye: template seleccionado, brand colors, links toggleados (con fallback a URLs del perfil), todos los campos de contenido.
+- Se cierra con Escape o el botón ×. Body scroll bloqueado mientras está abierto.
+
+**Archivos creados/modificados:**
+
+- `apps/web/src/features/epk/components/EpkDraftPreviewOverlay.tsx` ← nuevo
+- `apps/web/src/features/epk/components/tabs/EpkTemplateTab.tsx` — prop `disabled`
+- `apps/web/src/features/epk/components/PublishBanner.tsx` — prop `onPreview` + botón draft
+- `apps/web/src/features/epk/components/EpkEditorV2.tsx` — `formDisabled`, `openPreview()`, overlay
+- `apps/web/src/i18n/messages/en.json` + `es.json` — key `publish.previewDraft`
+
+---
 
 ### ⏳ Pendiente
 
