@@ -854,9 +854,14 @@ export function BlockManager({
   const activeCount = blocks.filter((b) => b.isPublished).length;
   const firstPublishedIndex = blocks.findIndex((b) => b.isPublished);
   const planBlockLimit: number = PLAN_BLOCK_LIMITS[userPlan] ?? 5;
-  // Count published blocks in position order to know which ones exceed the plan limit.
-  // Mirrors the slice applied by loadPublicPage on the backend.
-  let publishedSoFar = 0;
+  // Pre-compute which block IDs exceed the plan display limit, mirroring the
+  // slice applied by loadPublicPage on the backend (published blocks, position ASC).
+  const overLimitBlockIds = new Set<string>(
+    blocks
+      .filter((b) => b.isPublished)
+      .slice(planBlockLimit)
+      .map((b) => b.id),
+  );
 
   return (
     <div className="space-y-4">
@@ -900,9 +905,7 @@ export function BlockManager({
               let wontRenderReason: string | undefined;
 
               if (block.isPublished) {
-                publishedSoFar += 1;
-
-                if (publishedSoFar > planBlockLimit) {
+                if (overLimitBlockIds.has(block.id)) {
                   // This block is beyond the plan's public display limit.
                   wontRender = true;
                   const planLabel =
