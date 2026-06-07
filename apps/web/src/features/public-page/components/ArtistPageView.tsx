@@ -32,10 +32,6 @@ interface ArtistPageViewProps {
 
 type IconComponent = (props: { className?: string }) => React.ReactElement;
 
-function normalizeTextForComparison(value: string | null | undefined): string {
-  return value?.toLowerCase().replace(/\s+/g, ' ').trim() ?? '';
-}
-
 function isFeaturedMediaBlock(block: PublicPageResponse['blocks'][number]) {
   return block.type === 'music_embed' || block.type === 'video_embed';
 }
@@ -164,24 +160,11 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       block.type !== 'email_capture',
   );
   const additionalInfoBlocks = [...textBlocks, ...remainingBlocks];
-  const normalizedArtistBio = normalizeTextForComparison(artist.bio);
-  const hasCustomAboutBlock = textBlocks.some((block) => {
-    const config = block.config as { body?: string; bioSource?: string };
-    const title = normalizeTextForComparison(block.title);
-    const body = typeof config.body === 'string' ? normalizeTextForComparison(config.body) : '';
-
-    // A text block that pulls from profile bio counts as the "about" block —
-    // suppress the auto-rendered About section so the bio isn't shown twice.
-    if (config.bioSource === 'short_bio' || config.bioSource === 'full_bio') {
-      return true;
-    }
-
-    return (
-      title.includes('about') ||
-      title.includes(artist.displayName.toLowerCase()) ||
-      (normalizedArtistBio.length > 0 && body === normalizedArtistBio)
-    );
-  });
+  // If the artist has ANY published text blocks they are managing their own content —
+  // suppress both the short-bio teaser and the auto-generated About section so the
+  // profile bio never doubles up with custom block content. The auto sections only
+  // exist as a fallback for artists who have not created any text blocks yet.
+  const hasCustomAboutBlock = textBlocks.length > 0;
 
   const hasAboutSection = (Boolean(artist.bio) || Boolean(artist.fullBio)) && !hasCustomAboutBlock;
   const hasAdditionalInfo = additionalInfoBlocks.length > 0;
