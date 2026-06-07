@@ -1,12 +1,7 @@
 import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
 import { Download, FileText, Globe, Instagram, Mail, Sparkles } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
-import type {
-  MusicEmbedBlockConfig,
-  PublicPageResponse,
-  VideoEmbedBlockConfig,
-} from '@stagelink/types';
+import type { PublicPageResponse } from '@stagelink/types';
 import { PublicPageClient } from './PublicPageClient';
 import { PublicAvatarImage } from './PublicAvatarImage';
 import { PublicCoverImage } from './PublicCoverImage';
@@ -34,10 +29,6 @@ type IconComponent = (props: { className?: string }) => React.ReactElement;
 
 function normalizeTextForComparison(value: string | null | undefined): string {
   return value?.toLowerCase().replace(/\s+/g, ' ').trim() ?? '';
-}
-
-function isFeaturedMediaBlock(block: PublicPageResponse['blocks'][number]) {
-  return block.type === 'music_embed' || block.type === 'video_embed';
 }
 
 export async function ArtistPageView({ page }: ArtistPageViewProps) {
@@ -138,7 +129,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
       label: string;
       key: string;
       color: string;
-      Icon: IconComponent; // still used as JSX in the render (<social.Icon />)
+      Icon: IconComponent;
     } => Boolean(item),
   );
 
@@ -147,35 +138,20 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
   );
   const descriptorLine = categoryLabels.join(t('tagline_separator'));
 
-  const linkBlocks = blocks.filter((block) => block.type === 'links');
-  const featuredMediaBlocks = blocks.filter(isFeaturedMediaBlock);
-  const merchBlocks = blocks.filter(
-    (block) => block.type === 'shopify_store' || block.type === 'smart_merch',
-  );
-  const textBlocks = blocks.filter((block) => block.type === 'text');
-  const emailCaptureBlocks = blocks.filter((block) => block.type === 'email_capture');
-  const remainingBlocks = blocks.filter(
-    (block) =>
-      block.type !== 'links' &&
-      !isFeaturedMediaBlock(block) &&
-      block.type !== 'shopify_store' &&
-      block.type !== 'smart_merch' &&
-      block.type !== 'text' &&
-      block.type !== 'email_capture',
-  );
-  const additionalInfoBlocks = [...textBlocks, ...remainingBlocks];
+  // Render blocks in the exact order the artist set in the dashboard (position ASC).
+  // The API already returns them sorted by position ASC.
+  const orderedBlocks = blocks;
+
+  // Determine whether the auto-bio "About" section should be shown.
+  // Suppressed if the artist has a custom text block referencing their bio
+  // (to avoid showing the same content twice).
   const normalizedArtistBio = normalizeTextForComparison(artist.bio);
+  const textBlocks = blocks.filter((b) => b.type === 'text');
   const hasCustomAboutBlock = textBlocks.some((block) => {
     const config = block.config as { body?: string; bioSource?: string };
     const title = normalizeTextForComparison(block.title);
     const body = typeof config.body === 'string' ? normalizeTextForComparison(config.body) : '';
-
-    // A text block that pulls from profile bio counts as the "about" block —
-    // suppress the auto-rendered About section so the bio isn't shown twice.
-    if (config.bioSource === 'short_bio' || config.bioSource === 'full_bio') {
-      return true;
-    }
-
+    if (config.bioSource === 'short_bio' || config.bioSource === 'full_bio') return true;
     return (
       title.includes('about') ||
       title.includes(artist.displayName.toLowerCase()) ||
@@ -184,28 +160,9 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
   });
 
   const hasAboutSection = (Boolean(artist.bio) || Boolean(artist.fullBio)) && !hasCustomAboutBlock;
-  const hasAdditionalInfo = additionalInfoBlocks.length > 0;
-  const hasAnyPublicContent =
-    linkBlocks.length > 0 ||
-    featuredMediaBlocks.length > 0 ||
-    hasAboutSection ||
-    hasAdditionalInfo ||
-    emailCaptureBlocks.length > 0 ||
-    remainingBlocks.length > 0;
+  const hasAnyContent = orderedBlocks.length > 0 || hasAboutSection;
 
-  function getMusicProvider(block: PublicPageResponse['blocks'][number]): string | null {
-    if (block.type !== 'music_embed') return null;
-    return (block.config as MusicEmbedBlockConfig).provider;
-  }
-
-  function getVideoProvider(block: PublicPageResponse['blocks'][number]): string | null {
-    if (block.type !== 'video_embed') return null;
-    return (block.config as VideoEmbedBlockConfig).provider;
-  }
-
-  // ── Theme mapping ────────────────────────────────────────────────────────────
-  // Minimal per-theme overrides for background and glow colours.
-  // All other colours remain unchanged to avoid a full CSS-var refactor.
+  // Theme
   const themeName = page.theme?.name ?? 'noche';
   const themeStyles: Record<string, { bg: string; glow1: string; glow2: string; glow3: string }> = {
     noche: {
@@ -288,6 +245,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
 
         <div className="rounded-[2rem] border border-violet-500/15 bg-black/20 p-3 shadow-[0_32px_140px_rgba(0,0,0,0.45)]">
           <div className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.24),_rgba(11,6,20,0.98)_55%)] backdrop-blur-xl">
+            {/* ── Cover + header ── */}
             <div className="relative h-52 overflow-hidden sm:h-64">
               {artist.coverUrl ? (
                 <PublicCoverImage
@@ -358,9 +316,6 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                   </div>
                 )}
 
-                {/* REQ-11 — public counters social-proof row. Component itself
-                    returns null when all three values are missing/zero, so we
-                    don't need an outer conditional here. */}
                 <ArtistStatsRow
                   epsReleasedCount={artist.epsReleasedCount}
                   recordLabelsCount={artist.recordLabelsCount}
@@ -369,306 +324,103 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                 />
               </div>
 
-              <div className="mx-auto mt-10 max-w-5xl space-y-10">
-                {linkBlocks.length > 0 && (
-                  <section className="mx-auto max-w-xl">
-                    <div className="mb-4 text-center">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                        {t('sections.featured_links')}
-                      </p>
-                    </div>
-                    <PublicPageClient page={page} blocks={linkBlocks} className="space-y-5" />
-                  </section>
+              {/* ── Main content: blocks in user-defined order ── */}
+              <div className="mx-auto mt-10 max-w-5xl space-y-6">
+                {/* Blocks rendered in the exact order set in the dashboard */}
+                {orderedBlocks.length > 0 && (
+                  <PublicPageClient page={page} blocks={orderedBlocks} className="space-y-6" />
                 )}
 
-                {/* Short bio teaser — shown before media if the artist has a bio
-                    and it hasn't been placed in a custom text block already. */}
-                {artist.bio && !hasCustomAboutBlock && (
-                  <div className="mx-auto max-w-2xl text-center">
-                    <ReactMarkdown
-                      components={{
-                        p: ({ children }) => (
-                          <p className="text-sm leading-7 text-zinc-300 sm:text-base">{children}</p>
-                        ),
-                        strong: ({ children }) => (
-                          <strong className="font-semibold text-white">{children}</strong>
-                        ),
-                        em: ({ children }) => <em className="italic text-zinc-400">{children}</em>,
-                      }}
-                    >
-                      {artist.bio}
-                    </ReactMarkdown>
-                  </div>
-                )}
-
-                {featuredMediaBlocks.length > 0 && (
-                  <section className="space-y-6">
-                    <div className="space-y-2 text-center">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                        {t('sections.featured_media')}
-                      </p>
-                    </div>
-                    {featuredMediaBlocks.map((block, index) => {
-                      const musicProvider = getMusicProvider(block);
-                      const videoProvider = getVideoProvider(block);
-                      return (
-                        <div key={block.id ?? index} className="space-y-3">
-                          <PublicPageClient page={page} blocks={[block]} className="" />
-                          {musicProvider === 'apple_music' && artist.appleMusicUrl && (
-                            <div className="flex justify-center">
-                              <a
-                                href={artist.appleMusicUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label={t('cta.apple_music')}
-                                className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100"
-                                style={{ '--cta-color': '#FC3C44' } as React.CSSProperties}
-                              >
-                                <AppleMusicIcon />
-                                {t('cta.apple_music')}
-                              </a>
-                            </div>
-                          )}
-                          {musicProvider === 'soundcloud' && artist.soundcloudUrl && (
-                            <div className="flex justify-center">
-                              <a
-                                href={artist.soundcloudUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label={t('cta.soundcloud')}
-                                className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100"
-                                style={{ '--cta-color': '#FF5500' } as React.CSSProperties}
-                              >
-                                <SoundCloudIcon />
-                                {t('cta.soundcloud')}
-                              </a>
-                            </div>
-                          )}
-                          {videoProvider === 'youtube' && artist.youtubeUrl && (
-                            <div className="flex justify-center">
-                              <a
-                                href={artist.youtubeUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label={t('cta.youtube')}
-                                className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100"
-                                style={{ '--cta-color': '#FF0000' } as React.CSSProperties}
-                              >
-                                <YouTubeIcon />
-                                {t('cta.youtube')}
-                              </a>
-                            </div>
-                          )}
-                          {musicProvider === 'spotify' && artist.spotifyUrl && (
-                            <div className="flex justify-center">
-                              <a
-                                href={artist.spotifyUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label={t('cta.spotify')}
-                                className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white"
-                                style={{ '--cta-color': '#1DB954' } as React.CSSProperties}
-                              >
-                                <SpotifyIcon />
-                                {t('cta.spotify')}
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </section>
-                )}
-
-                {/* REQ-10 — Releases / EPs / Albums. Section returns null when
-                    `releases` is empty, so the header doesn't leak onto a
-                    brand-new artist page. Sits between featured media (typical
-                    "single Spotify embed") and merch — natural musical flow. */}
+                {/* REQ-10 — Releases / EPs / Albums. Shown after user blocks.
+                    Returns null when releases is empty. */}
                 <ReleasesSection releases={artist.releases} locale={artist.locale} />
 
-                {merchBlocks.length > 0 && (
+                {/* Auto "About" section — only shown when the artist has a bio
+                    but hasn't placed a custom text block for it. */}
+                {hasAboutSection && (
                   <section className="space-y-4">
-                    <div className="space-y-2 text-center">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                        {t('sections.merch')}
-                      </p>
-                    </div>
-                    <PublicPageClient page={page} blocks={merchBlocks} className="space-y-4" />
-                  </section>
-                )}
-
-                {additionalInfoBlocks.length > 0 && (
-                  <section className="space-y-4">
-                    <div className="space-y-2 text-center">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                        {t('sections.additional_info')}
-                      </p>
-                    </div>
-                    <PublicPageClient
-                      page={page}
-                      blocks={additionalInfoBlocks}
-                      className="space-y-4"
-                    />
-                  </section>
-                )}
-
-                {(hasAboutSection || page.publicEpkAvailable || artist.contactEmail) && (
-                  <section className="space-y-4">
-                    {hasAboutSection && (
-                      <div className="neon-card-border rounded-[1.5rem] p-[1px]">
-                        <div className="rounded-[1.4rem] bg-[#0b0614] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
-                          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                            {t('sections.about')}
-                          </p>
-                          {artist.bio && (
-                            <div className="bio-prose mt-4">
-                              <ReactMarkdown
-                                components={{
-                                  p: ({ children }) => (
-                                    <p className="mb-3 text-sm leading-7 text-zinc-200 last:mb-0 sm:text-base">
-                                      {children}
-                                    </p>
-                                  ),
-                                  strong: ({ children }) => (
-                                    <strong className="font-semibold text-white">{children}</strong>
-                                  ),
-                                  em: ({ children }) => (
-                                    <em className="italic text-zinc-300">{children}</em>
-                                  ),
-                                  ul: ({ children }) => (
-                                    <ul className="mb-3 ml-4 list-disc space-y-1 text-sm leading-7 text-zinc-200 sm:text-base">
-                                      {children}
-                                    </ul>
-                                  ),
-                                  ol: ({ children }) => (
-                                    <ol className="mb-3 ml-4 list-decimal space-y-1 text-sm leading-7 text-zinc-200 sm:text-base">
-                                      {children}
-                                    </ol>
-                                  ),
-                                  li: ({ children }) => <li>{children}</li>,
-                                }}
-                              >
-                                {artist.bio}
-                              </ReactMarkdown>
-                            </div>
-                          )}
-                          {artist.fullBio && (
-                            <>
-                              {artist.bio && (
-                                <div className="my-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                              )}
-                              <div className="bio-prose">
-                                <ReactMarkdown
-                                  components={{
-                                    p: ({ children }) => (
-                                      <p className="mb-4 text-sm leading-7 text-zinc-300 last:mb-0 sm:text-base">
-                                        {children}
-                                      </p>
-                                    ),
-                                    strong: ({ children }) => (
-                                      <strong className="font-semibold text-white">
-                                        {children}
-                                      </strong>
-                                    ),
-                                    em: ({ children }) => (
-                                      <em className="italic text-zinc-300">{children}</em>
-                                    ),
-                                    ul: ({ children }) => (
-                                      <ul className="mb-4 ml-4 list-disc space-y-1 text-sm leading-7 text-zinc-300 sm:text-base">
-                                        {children}
-                                      </ul>
-                                    ),
-                                    ol: ({ children }) => (
-                                      <ol className="mb-4 ml-4 list-decimal space-y-1 text-sm leading-7 text-zinc-300 sm:text-base">
-                                        {children}
-                                      </ol>
-                                    ),
-                                    li: ({ children }) => <li>{children}</li>,
-                                  }}
-                                >
-                                  {artist.fullBio}
-                                </ReactMarkdown>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {(page.publicEpkAvailable || artist.contactEmail) && (
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        {page.publicEpkAvailable && (
-                          <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
-                            <div className="space-y-2">
-                              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                                {t('sections.presskit')}
-                              </p>
-                              <p className="text-sm leading-7 text-zinc-300">
-                                {t('presskit_copy')}
-                              </p>
-                            </div>
-                            <div className="mt-6 flex flex-wrap gap-3">
-                              <Link
-                                href={`/${locale}/${artist.username}/epk`}
-                                className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500/25"
-                              >
-                                <FileText className="h-4 w-4" />
-                                {t('actions.view_presskit')}
-                              </Link>
-                              <Link
-                                href={`/${locale}/${artist.username}/epk/print?download=1`}
-                                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
-                              >
-                                <Download className="h-4 w-4" />
-                                {t('actions.download_presskit')}
-                              </Link>
-                            </div>
+                    <div className="neon-card-border rounded-[1.5rem] p-[1px]">
+                      <div className="rounded-[1.4rem] bg-[#0b0614] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
+                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+                          {t('sections.about')}
+                        </p>
+                        {artist.bio && (
+                          <div className="bio-prose mt-4">
+                            <p className="mb-3 text-sm leading-7 text-zinc-200 last:mb-0 sm:text-base">
+                              {artist.bio}
+                            </p>
                           </div>
                         )}
+                        {artist.fullBio && (
+                          <>
+                            {artist.bio && (
+                              <div className="my-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                            )}
+                            <div className="bio-prose">
+                              <p className="mb-4 text-sm leading-7 text-zinc-300 last:mb-0 sm:text-base">
+                                {artist.fullBio}
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                )}
 
-                        {artist.contactEmail && (
-                          <div className="rounded-[1.5rem] border border-violet-400/20 bg-violet-500/10 p-6 shadow-[0_20px_80px_rgba(45,10,90,0.16)]">
-                            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-violet-200/70">
-                              {t('sections.bookings')}
+                {/* EPK + contact — fixed at bottom */}
+                {(page.publicEpkAvailable || artist.contactEmail) && (
+                  <section className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      {page.publicEpkAvailable && (
+                        <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
+                              {t('sections.presskit')}
                             </p>
-                            <p className="mt-4 text-sm leading-7 text-violet-50">
-                              {t('booking_copy')}
-                            </p>
-                            <a
-                              href={`mailto:${artist.contactEmail}`}
-                              className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
+                            <p className="text-sm leading-7 text-zinc-300">{t('presskit_copy')}</p>
+                          </div>
+                          <div className="mt-6 flex flex-wrap gap-3">
+                            <Link
+                              href={`/${locale}/${artist.username}/epk`}
+                              className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500/25"
                             >
-                              <Mail className="h-4 w-4" />
-                              {t('actions.book_artist')}
-                            </a>
+                              <FileText className="h-4 w-4" />
+                              {t('actions.view_presskit')}
+                            </Link>
+                            <Link
+                              href={`/${locale}/${artist.username}/epk/print?download=1`}
+                              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
+                            >
+                              <Download className="h-4 w-4" />
+                              {t('actions.download_presskit')}
+                            </Link>
                           </div>
-                        )}
-                      </div>
-                    )}
-                  </section>
-                )}
+                        </div>
+                      )}
 
-                {emailCaptureBlocks.length > 0 && (
-                  <section className="space-y-4">
-                    <div className="space-y-2 text-center">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                        {t('sections.fan_list')}
-                      </p>
-                      <p className="mx-auto max-w-2xl text-sm leading-7 text-zinc-400">
-                        {t('fan_list_copy')}
-                      </p>
-                    </div>
-                    <div className="mx-auto max-w-2xl">
-                      <PublicPageClient
-                        page={page}
-                        blocks={emailCaptureBlocks}
-                        className="space-y-4"
-                      />
+                      {artist.contactEmail && (
+                        <div className="rounded-[1.5rem] border border-violet-400/20 bg-violet-500/10 p-6 shadow-[0_20px_80px_rgba(45,10,90,0.16)]">
+                          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-violet-200/70">
+                            {t('sections.bookings')}
+                          </p>
+                          <p className="mt-4 text-sm leading-7 text-violet-50">
+                            {t('booking_copy')}
+                          </p>
+                          <a
+                            href={`mailto:${artist.contactEmail}`}
+                            className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/15"
+                          >
+                            <Mail className="h-4 w-4" />
+                            {t('actions.book_artist')}
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </section>
                 )}
 
-                {!hasAnyPublicContent && (
+                {!hasAnyContent && (
                   <p className="py-10 text-center text-sm text-zinc-500">{t('no_blocks')}</p>
                 )}
 
