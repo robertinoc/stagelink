@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { RotateCcw } from 'lucide-react';
 
 interface PhonePreviewFrameProps {
@@ -10,9 +10,26 @@ interface PhonePreviewFrameProps {
 
 export function PhonePreviewFrame({ username, locale }: PhonePreviewFrameProps) {
   const [refreshKey, setRefreshKey] = useState(0);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleRefresh = useCallback(() => {
     setRefreshKey((k) => k + 1);
+  }, []);
+
+  // Auto-refresh when any block is mutated (created, updated, deleted, reordered).
+  // Debounced 1 s so rapid drag-reorder sequences only reload once.
+  useEffect(() => {
+    function onBlocksChanged() {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      debounceTimer.current = setTimeout(() => {
+        setRefreshKey((k) => k + 1);
+      }, 1000);
+    }
+    window.addEventListener('stagelink:blocks-changed', onBlocksChanged);
+    return () => {
+      window.removeEventListener('stagelink:blocks-changed', onBlocksChanged);
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
   }, []);
 
   const previewUrl = `/${locale}/${username}`;

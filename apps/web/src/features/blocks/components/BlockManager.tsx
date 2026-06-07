@@ -760,16 +760,24 @@ export function BlockManager({
     void load();
   }, [load]);
 
+  /** Notify the PhonePreviewFrame to refresh after any block mutation. */
+  function notifyBlocksChanged() {
+    window.dispatchEvent(new CustomEvent('stagelink:blocks-changed'));
+  }
+
   function handleCreated(block: Block) {
     setBlocks((prev) => [...prev, block]);
+    notifyBlocksChanged();
   }
 
   function handleUpdated(updated: Block) {
     setBlocks((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+    notifyBlocksChanged();
   }
 
   function handleDeleted(id: string) {
     setBlocks((prev) => prev.filter((b) => b.id !== id));
+    notifyBlocksChanged();
   }
 
   async function handleMoved(id: string, direction: 'up' | 'down') {
@@ -792,6 +800,7 @@ export function BlockManager({
         blocks: reordered.map((b) => ({ id: b.id, position: b.position })),
       });
       setBlocks(updated);
+      notifyBlocksChanged();
     } catch {
       // Revert on failure
       void load();
@@ -827,6 +836,7 @@ export function BlockManager({
         blocks: nextBlocks.map((block) => ({ id: block.id, position: block.position })),
       });
       setBlocks(updated);
+      notifyBlocksChanged();
     } catch {
       void load();
     }
