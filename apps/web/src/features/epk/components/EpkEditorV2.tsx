@@ -230,7 +230,7 @@ export function EpkEditorV2({
   const isBusy = isSubmitting || saveStatus === 'saving';
   // Lock editor when EPK is published — user must unpublish first to edit.
   const editorLocked = editorData.epk.isPublished;
-  const formDisabled = isBusy;
+  const formDisabled = editorLocked || isBusy;
 
   const watchedGallery = watch('galleryImageUrls');
   const watchedHeroImageUrl = watch('heroImageUrl');
