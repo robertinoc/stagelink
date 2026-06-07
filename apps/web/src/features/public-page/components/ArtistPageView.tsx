@@ -32,10 +32,6 @@ interface ArtistPageViewProps {
 
 type IconComponent = (props: { className?: string }) => React.ReactElement;
 
-function isFeaturedMediaBlock(block: PublicPageResponse['blocks'][number]) {
-  return block.type === 'music_embed' || block.type === 'video_embed';
-}
-
 export async function ArtistPageView({ page }: ArtistPageViewProps) {
   const t = await getTranslations('public_page');
   const locale = await getLocale();
@@ -143,38 +139,24 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
   );
   const descriptorLine = categoryLabels.join(t('tagline_separator'));
 
-  const linkBlocks = blocks.filter((block) => block.type === 'links');
-  const featuredMediaBlocks = blocks.filter(isFeaturedMediaBlock);
-  const merchBlocks = blocks.filter(
-    (block) => block.type === 'shopify_store' || block.type === 'smart_merch',
-  );
-  const textBlocks = blocks.filter((block) => block.type === 'text');
-  const emailCaptureBlocks = blocks.filter((block) => block.type === 'email_capture');
-  const remainingBlocks = blocks.filter(
-    (block) =>
-      block.type !== 'links' &&
-      !isFeaturedMediaBlock(block) &&
-      block.type !== 'shopify_store' &&
-      block.type !== 'smart_merch' &&
-      block.type !== 'text' &&
-      block.type !== 'email_capture',
-  );
-  const additionalInfoBlocks = [...textBlocks, ...remainingBlocks];
+  // Blocks render in the exact position order the artist defined in the dashboard
+  // (the API already returns them ordered by `position ASC`). No type grouping and
+  // no section headers — each block surfaces its own optional title. This is what
+  // makes the page 100% user-orderable.
+
   // If the artist has ANY published text blocks they are managing their own content —
   // suppress both the short-bio teaser and the auto-generated About section so the
   // profile bio never doubles up with custom block content. The auto sections only
   // exist as a fallback for artists who have not created any text blocks yet.
-  const hasCustomAboutBlock = textBlocks.length > 0;
+  const hasCustomAboutBlock = blocks.some((block) => block.type === 'text');
 
   const hasAboutSection = (Boolean(artist.bio) || Boolean(artist.fullBio)) && !hasCustomAboutBlock;
-  const hasAdditionalInfo = additionalInfoBlocks.length > 0;
   const hasAnyPublicContent =
-    linkBlocks.length > 0 ||
-    featuredMediaBlocks.length > 0 ||
+    blocks.length > 0 ||
     hasAboutSection ||
-    hasAdditionalInfo ||
-    emailCaptureBlocks.length > 0 ||
-    remainingBlocks.length > 0;
+    artist.releases.length > 0 ||
+    page.publicEpkAvailable ||
+    Boolean(artist.contactEmail);
 
   function getMusicProvider(block: PublicPageResponse['blocks'][number]): string | null {
     if (block.type !== 'music_embed') return null;
@@ -184,6 +166,95 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
   function getVideoProvider(block: PublicPageResponse['blocks'][number]): string | null {
     if (block.type !== 'video_embed') return null;
     return (block.config as VideoEmbedBlockConfig).provider;
+  }
+
+  /**
+   * Per-block max-width so links/email-capture stay narrow & centered (as before),
+   * while media/merch/text use the full column. Replaces the old per-section wrappers.
+   */
+  function blockWidthClass(block: PublicPageResponse['blocks'][number]): string {
+    if (block.type === 'links') return 'mx-auto w-full max-w-xl';
+    if (block.type === 'email_capture') return 'mx-auto w-full max-w-2xl';
+    return '';
+  }
+
+  /**
+   * Platform CTA shown under a media (music/video) block — preserves the
+   * Spotify / Apple Music / SoundCloud / YouTube "listen on" buttons that used
+   * to live in the grouped featured-media section.
+   */
+  function renderMediaCta(block: PublicPageResponse['blocks'][number]): React.ReactNode {
+    const musicProvider = getMusicProvider(block);
+    const videoProvider = getVideoProvider(block);
+    if (musicProvider === 'apple_music' && artist.appleMusicUrl) {
+      return (
+        <div className="flex justify-center">
+          <a
+            href={artist.appleMusicUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t('cta.apple_music')}
+            className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100"
+            style={{ '--cta-color': '#FC3C44' } as React.CSSProperties}
+          >
+            <AppleMusicIcon />
+            {t('cta.apple_music')}
+          </a>
+        </div>
+      );
+    }
+    if (musicProvider === 'soundcloud' && artist.soundcloudUrl) {
+      return (
+        <div className="flex justify-center">
+          <a
+            href={artist.soundcloudUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t('cta.soundcloud')}
+            className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100"
+            style={{ '--cta-color': '#FF5500' } as React.CSSProperties}
+          >
+            <SoundCloudIcon />
+            {t('cta.soundcloud')}
+          </a>
+        </div>
+      );
+    }
+    if (videoProvider === 'youtube' && artist.youtubeUrl) {
+      return (
+        <div className="flex justify-center">
+          <a
+            href={artist.youtubeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t('cta.youtube')}
+            className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100"
+            style={{ '--cta-color': '#FF0000' } as React.CSSProperties}
+          >
+            <YouTubeIcon />
+            {t('cta.youtube')}
+          </a>
+        </div>
+      );
+    }
+    if (musicProvider === 'spotify' && artist.spotifyUrl) {
+      return (
+        <div className="flex justify-center">
+          <a
+            href={artist.spotifyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t('cta.spotify')}
+            className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white"
+            style={{ '--cta-color': '#1DB954' } as React.CSSProperties}
+          >
+            <SpotifyIcon />
+            {t('cta.spotify')}
+          </a>
+        </div>
+      );
+    }
+    return null;
   }
 
   // ── Theme mapping ────────────────────────────────────────────────────────────
@@ -353,18 +424,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
               </div>
 
               <div className="mx-auto mt-10 max-w-5xl space-y-10">
-                {linkBlocks.length > 0 && (
-                  <section className="mx-auto max-w-xl">
-                    <div className="mb-4 text-center">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                        {t('sections.featured_links')}
-                      </p>
-                    </div>
-                    <PublicPageClient page={page} blocks={linkBlocks} className="space-y-5" />
-                  </section>
-                )}
-
-                {/* Short bio teaser — shown before media if the artist has a bio
+                {/* Short bio teaser — shown before blocks if the artist has a bio
                     and it hasn't been placed in a custom text block already. */}
                 {artist.bio && !hasCustomAboutBlock && (
                   <div className="mx-auto max-w-2xl text-center">
@@ -384,116 +444,20 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                   </div>
                 )}
 
-                {featuredMediaBlocks.length > 0 && (
-                  <section className="space-y-6">
-                    <div className="space-y-2 text-center">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                        {t('sections.featured_media')}
-                      </p>
+                {/* User blocks — rendered in the exact position order the artist
+                    defined in the dashboard. No type grouping, no section headers. */}
+                {blocks.map((block, index) => (
+                  <div key={block.id ?? index} className={blockWidthClass(block) || undefined}>
+                    <div className="space-y-3">
+                      <PublicPageClient page={page} blocks={[block]} className="" />
+                      {renderMediaCta(block)}
                     </div>
-                    {featuredMediaBlocks.map((block, index) => {
-                      const musicProvider = getMusicProvider(block);
-                      const videoProvider = getVideoProvider(block);
-                      return (
-                        <div key={block.id ?? index} className="space-y-3">
-                          <PublicPageClient page={page} blocks={[block]} className="" />
-                          {musicProvider === 'apple_music' && artist.appleMusicUrl && (
-                            <div className="flex justify-center">
-                              <a
-                                href={artist.appleMusicUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label={t('cta.apple_music')}
-                                className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100"
-                                style={{ '--cta-color': '#FC3C44' } as React.CSSProperties}
-                              >
-                                <AppleMusicIcon />
-                                {t('cta.apple_music')}
-                              </a>
-                            </div>
-                          )}
-                          {musicProvider === 'soundcloud' && artist.soundcloudUrl && (
-                            <div className="flex justify-center">
-                              <a
-                                href={artist.soundcloudUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label={t('cta.soundcloud')}
-                                className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100"
-                                style={{ '--cta-color': '#FF5500' } as React.CSSProperties}
-                              >
-                                <SoundCloudIcon />
-                                {t('cta.soundcloud')}
-                              </a>
-                            </div>
-                          )}
-                          {videoProvider === 'youtube' && artist.youtubeUrl && (
-                            <div className="flex justify-center">
-                              <a
-                                href={artist.youtubeUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label={t('cta.youtube')}
-                                className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100"
-                                style={{ '--cta-color': '#FF0000' } as React.CSSProperties}
-                              >
-                                <YouTubeIcon />
-                                {t('cta.youtube')}
-                              </a>
-                            </div>
-                          )}
-                          {musicProvider === 'spotify' && artist.spotifyUrl && (
-                            <div className="flex justify-center">
-                              <a
-                                href={artist.spotifyUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label={t('cta.spotify')}
-                                className="platform-cta-link inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white"
-                                style={{ '--cta-color': '#1DB954' } as React.CSSProperties}
-                              >
-                                <SpotifyIcon />
-                                {t('cta.spotify')}
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </section>
-                )}
+                  </div>
+                ))}
 
-                {/* REQ-10 — Releases / EPs / Albums. Section returns null when
-                    `releases` is empty, so the header doesn't leak onto a
-                    brand-new artist page. Sits between featured media (typical
-                    "single Spotify embed") and merch — natural musical flow. */}
+                {/* REQ-10 — Releases / EPs / Albums. Auto section for now; becomes
+                    a user block in a later PR. Returns null when empty. */}
                 <ReleasesSection releases={artist.releases} locale={artist.locale} />
-
-                {merchBlocks.length > 0 && (
-                  <section className="space-y-4">
-                    <div className="space-y-2 text-center">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                        {t('sections.merch')}
-                      </p>
-                    </div>
-                    <PublicPageClient page={page} blocks={merchBlocks} className="space-y-4" />
-                  </section>
-                )}
-
-                {additionalInfoBlocks.length > 0 && (
-                  <section className="space-y-4">
-                    <div className="space-y-2 text-center">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                        {t('sections.additional_info')}
-                      </p>
-                    </div>
-                    <PublicPageClient
-                      page={page}
-                      blocks={additionalInfoBlocks}
-                      className="space-y-4"
-                    />
-                  </section>
-                )}
 
                 {(hasAboutSection || page.publicEpkAvailable || artist.contactEmail) && (
                   <section className="space-y-4">
@@ -628,26 +592,6 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                         )}
                       </div>
                     )}
-                  </section>
-                )}
-
-                {emailCaptureBlocks.length > 0 && (
-                  <section className="space-y-4">
-                    <div className="space-y-2 text-center">
-                      <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
-                        {t('sections.fan_list')}
-                      </p>
-                      <p className="mx-auto max-w-2xl text-sm leading-7 text-zinc-400">
-                        {t('fan_list_copy')}
-                      </p>
-                    </div>
-                    <div className="mx-auto max-w-2xl">
-                      <PublicPageClient
-                        page={page}
-                        blocks={emailCaptureBlocks}
-                        className="space-y-4"
-                      />
-                    </div>
                   </section>
                 )}
 
