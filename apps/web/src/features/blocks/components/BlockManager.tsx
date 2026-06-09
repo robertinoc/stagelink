@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import {
   Check,
   Copy,
+  Disc3,
   GripVertical,
   Images,
   Link2,
@@ -27,6 +28,7 @@ import type {
   CreateBlockPayload,
   UpdateBlockPayload,
   PlanCode,
+  ArtistRelease,
 } from '@stagelink/types';
 import { BLOCK_TYPES, PLAN_BLOCK_LIMITS } from '@stagelink/types';
 import {
@@ -68,6 +70,8 @@ interface Props {
     label: string;
     body: string;
   }>;
+  /** Artist's release catalog — source for the releases block selector + "won't render" warning. */
+  releases?: ArtistRelease[];
   username?: string;
 }
 
@@ -84,6 +88,7 @@ const BLOCK_TYPE_ICONS: Record<BlockType, LucideIcon> = {
   smart_merch: Shirt,
   technical_rider: Sliders,
   contact_form: MessageSquare,
+  releases: Disc3,
 };
 
 /** Brand background colours for music-embed providers (shown in the block row icon). */
@@ -219,6 +224,7 @@ function CreateBlockDialog({
   canUseSmartMerch,
   galleryImages,
   textSources,
+  releases,
   onCreated,
   onClose,
 }: {
@@ -229,6 +235,7 @@ function CreateBlockDialog({
   canUseSmartMerch: boolean;
   galleryImages?: Props['galleryImages'];
   textSources?: Props['textSources'];
+  releases?: Props['releases'];
   onCreated: (block: Block) => void;
   onClose: () => void;
 }) {
@@ -357,6 +364,7 @@ function CreateBlockDialog({
                 artistId={artistId}
                 galleryImages={galleryImages}
                 textSources={textSources}
+                releases={releases}
               />
             )}
 
@@ -384,6 +392,7 @@ function EditBlockSheet({
   artistId,
   galleryImages,
   textSources,
+  releases,
   onUpdated,
   onClose,
 }: {
@@ -391,6 +400,7 @@ function EditBlockSheet({
   artistId: string;
   galleryImages?: Props['galleryImages'];
   textSources?: Props['textSources'];
+  releases?: Props['releases'];
   onUpdated: (block: Block) => void;
   onClose: () => void;
 }) {
@@ -475,6 +485,7 @@ function EditBlockSheet({
                 artistId={artistId}
                 galleryImages={galleryImages}
                 textSources={textSources}
+                releases={releases}
               />
 
               {error && <p className="text-sm text-destructive">{error}</p>}
@@ -736,6 +747,7 @@ export function BlockManager({
   userPlan = 'free',
   galleryImages,
   textSources,
+  releases,
   username,
 }: Props) {
   const t = useTranslations('blocks');
@@ -928,6 +940,24 @@ export function BlockManager({
                     wontRenderReason =
                       'No hay productos seleccionados en este bloque. Editalo y elegí los productos de Printful que querés mostrar.';
                   }
+                } else if (block.type === 'releases') {
+                  const cfg = block.config as { releaseIds?: string[] };
+                  const profileReleaseCount = releases?.length ?? 0;
+                  const selectedCount = cfg.releaseIds?.length ?? 0;
+                  if (profileReleaseCount === 0) {
+                    wontRender = true;
+                    wontRenderReason =
+                      'No tenés lanzamientos cargados en tu perfil. Agregalos en Mi Perfil → Catálogo para que este bloque aparezca.';
+                  } else if (selectedCount > 0) {
+                    // Explicit selection — check at least one selected ID still exists.
+                    const validIds = new Set(releases?.map((r) => r.id) ?? []);
+                    const anyValid = cfg.releaseIds!.some((id) => validIds.has(id));
+                    if (!anyValid) {
+                      wontRender = true;
+                      wontRenderReason =
+                        'Los lanzamientos seleccionados ya no existen en tu perfil. Editá el bloque y elegí otros.';
+                    }
+                  }
                 }
               }
 
@@ -979,6 +1009,7 @@ export function BlockManager({
         canUseSmartMerch={canUseSmartMerch}
         galleryImages={galleryImages}
         textSources={textSources}
+        releases={releases}
         onCreated={handleCreated}
         onClose={() => setCreateOpen(false)}
       />
@@ -988,6 +1019,7 @@ export function BlockManager({
         artistId={artistId}
         galleryImages={galleryImages}
         textSources={textSources}
+        releases={releases}
         onUpdated={(updated) => {
           handleUpdated(updated);
           setEditingBlock(null);

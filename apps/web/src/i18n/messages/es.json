@@ -2156,7 +2156,8 @@
       "shopify_store": "Merch",
       "smart_merch": "Smart Merch",
       "technical_rider": "Rider técnico",
-      "contact_form": "Formulario de contacto"
+      "contact_form": "Formulario de contacto",
+      "releases": "Lanzamientos / EPs"
     },
     "type_descriptions": {
       "links": "Agregá links a tus perfiles, sitio web o cualquier lugar.",
@@ -2168,7 +2169,8 @@
       "shopify_store": "Mostrá merch seleccionada desde tu storefront conectado de Shopify.",
       "smart_merch": "Elegí productos reales desde Printful y agregá un link externo de compra para cada uno.",
       "technical_rider": "Mostrá tu rider técnico y de producción desde tu Press Kit.",
-      "contact_form": "Dejá que los visitantes te envíen un mensaje directamente desde tu página."
+      "contact_form": "Dejá que los visitantes te envíen un mensaje directamente desde tu página.",
+      "releases": "Mostrá los lanzamientos, EPs y álbumes del catálogo de tu perfil."
     },
     "fields": {
       "title": "Título del bloque (opcional)",
@@ -2299,7 +2301,17 @@
       "source_mode_playlist_no_connection": "Conectá tu canal de YouTube en Insights para usar este modo.",
       "source_mode_playlist_no_connection_link": "Ir a Insights settings →",
       "source_mode_playlist_no_artist": "El modo playlist solo está disponible al editar una página.",
-      "source_mode_playlist_info": "La playlist seleccionada se incrustará en tu página."
+      "source_mode_playlist_info": "La playlist seleccionada se incrustará en tu página.",
+      "releases_empty": "Todavía no tenés lanzamientos en tu perfil",
+      "releases_from_profile": "Agregá tus lanzamientos en el catálogo de tu perfil para mostrarlos acá.",
+      "releases_go_to_catalog": "Ir al catálogo",
+      "releases_title": "Lanzamientos a mostrar",
+      "releases_hint": "Elegí qué lanzamientos aparecen y ordenálos como quieras. Dejá todos seleccionados para mostrar todo tu catálogo.",
+      "releases_showing_all": "Mostrando los {total} lanzamientos",
+      "releases_selected_count": "{selected} de {total} seleccionados",
+      "releases_show_all": "Mostrar todos",
+      "releases_move_up": "Subir",
+      "releases_move_down": "Bajar"
     },
     "smart_link": {
       "destination": "Destino",

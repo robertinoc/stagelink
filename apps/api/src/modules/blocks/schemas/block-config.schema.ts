@@ -61,6 +61,8 @@ const MAX_SMART_MERCH_HEADLINE_LENGTH = 100;
 const MAX_SMART_MERCH_SUBTITLE_LENGTH = 300;
 const MAX_SMART_MERCH_CTA_LENGTH = 40;
 const MAX_SMART_MERCH_PRODUCTS = 12;
+const MAX_RELEASE_ITEMS = 50;
+const MAX_RELEASE_ID_LENGTH = 64;
 const MAX_LOCALIZED_ITEM_LABELS = 50;
 const MAX_LOCALIZED_ITEM_ID_LENGTH = 64;
 
@@ -561,6 +563,34 @@ function validateContactFormConfig(c: Record<string, unknown>): void {
   }
 }
 
+function validateReleasesConfig(c: Record<string, unknown>): void {
+  // releaseIds holds the profile release IDs to show, in display order.
+  // Empty array = "show all". Only IDs are stored; the full release objects
+  // are resolved from artist.releases at serve time (localizeBlock).
+  if (!Array.isArray(c['releaseIds'])) {
+    throw new BadRequestException('releases config.releaseIds must be an array');
+  }
+
+  const releaseIds = c['releaseIds'] as unknown[];
+  if (releaseIds.length > MAX_RELEASE_ITEMS) {
+    throw new BadRequestException(
+      `releases config.releaseIds must contain at most ${MAX_RELEASE_ITEMS} items`,
+    );
+  }
+
+  const seen = new Set<string>();
+  for (const [index, value] of releaseIds.entries()) {
+    assertNonEmptyString(value, `releases config.releaseIds[${index}]`, MAX_RELEASE_ID_LENGTH);
+    const normalized = (value as string).trim();
+    if (seen.has(normalized)) {
+      throw new BadRequestException(
+        `releases config.releaseIds[${index}] must be unique within the block`,
+      );
+    }
+    seen.add(normalized);
+  }
+}
+
 function validateSmartMerchConfig(c: Record<string, unknown>): void {
   if (!SMART_MERCH_PROVIDERS.includes(c['provider'] as (typeof SMART_MERCH_PROVIDERS)[number])) {
     throw new BadRequestException(
@@ -942,6 +972,9 @@ export function validateBlockConfig(type: BlockType, config: unknown): void {
       break;
     case 'contact_form':
       validateContactFormConfig(config);
+      break;
+    case 'releases':
+      validateReleasesConfig(config);
       break;
     default: {
       // Exhaustive guard — TypeScript will error here if a new BlockType

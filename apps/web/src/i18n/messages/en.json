@@ -2156,7 +2156,8 @@
       "shopify_store": "Merch",
       "smart_merch": "Smart Merch",
       "technical_rider": "Technical Rider",
-      "contact_form": "Contact Form"
+      "contact_form": "Contact Form",
+      "releases": "Releases / EPs"
     },
     "type_descriptions": {
       "links": "Add clickable links to your profiles, website or anywhere.",
@@ -2168,7 +2169,8 @@
       "shopify_store": "Show selected merch from your connected Shopify storefront.",
       "smart_merch": "Pick real products from Printful and attach an external purchase link for each one.",
       "technical_rider": "Display your technical and production rider from your EPK.",
-      "contact_form": "Let visitors send you a message directly from your page."
+      "contact_form": "Let visitors send you a message directly from your page.",
+      "releases": "Showcase the releases, EPs and albums from your profile catalog."
     },
     "fields": {
       "title": "Block title (optional)",
@@ -2299,7 +2301,17 @@
       "source_mode_playlist_no_connection": "Connect your YouTube channel in Insights to use this mode.",
       "source_mode_playlist_no_connection_link": "Go to Insights settings →",
       "source_mode_playlist_no_artist": "Playlist mode is only available when editing a page.",
-      "source_mode_playlist_info": "The selected playlist will be embedded on your page."
+      "source_mode_playlist_info": "The selected playlist will be embedded on your page.",
+      "releases_empty": "No releases in your profile yet",
+      "releases_from_profile": "Add your releases in your profile catalog to show them here.",
+      "releases_go_to_catalog": "Go to catalog",
+      "releases_title": "Releases to show",
+      "releases_hint": "Pick which releases appear and order them as you like. Leave all selected to show your whole catalog.",
+      "releases_showing_all": "Showing all {total} releases",
+      "releases_selected_count": "{selected} of {total} selected",
+      "releases_show_all": "Show all",
+      "releases_move_up": "Move up",
+      "releases_move_down": "Move down"
     },
     "smart_link": {
       "destination": "Destination",

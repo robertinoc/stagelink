@@ -1,3 +1,4 @@
+import type { ArtistRelease } from './artist';
 import type { LocalizedTextMap } from './i18n';
 import type {
   SmartMerchDisplayMode,
@@ -25,6 +26,7 @@ export const BLOCK_TYPES = [
   'smart_merch',
   'technical_rider',
   'contact_form',
+  'releases',
 ] as const;
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
@@ -233,6 +235,21 @@ export interface ContactFormBlockConfig {
   email: string;
 }
 
+/**
+ * Releases / EPs block. Surfaces the artist's catalog (stored on the profile,
+ * `artists.releases`) as a user-orderable block.
+ *
+ * `releaseIds` holds the IDs to show, in display order. An empty array means
+ * "show all releases from the profile, in profile order". Only the IDs are
+ * stored — the full `ArtistRelease[]` is resolved server-side at serve time
+ * (same pattern as shopify_store products) and attached as `releases`.
+ */
+export interface ReleasesBlockConfig {
+  releaseIds: string[];
+  /** Resolved at serve time by the public API (localizeBlock). Not persisted. */
+  releases?: ArtistRelease[];
+}
+
 export interface BlockLocalizedContent {
   title?: LocalizedTextMap;
   emailCapture?: EmailCaptureBlockTranslations;
@@ -252,7 +269,8 @@ export type BlockConfig =
   | ShopifyStoreBlockConfig
   | SmartMerchBlockConfig
   | TechnicalRiderBlockConfig
-  | ContactFormBlockConfig;
+  | ContactFormBlockConfig
+  | ReleasesBlockConfig;
 
 // ─── Block entity ─────────────────────────────────────────────────────────────
 
@@ -344,4 +362,8 @@ export function isContactFormBlock(
   block: Block,
 ): block is Block & { config: ContactFormBlockConfig } {
   return block.type === 'contact_form';
+}
+
+export function isReleasesBlock(block: Block): block is Block & { config: ReleasesBlockConfig } {
+  return block.type === 'releases';
 }
