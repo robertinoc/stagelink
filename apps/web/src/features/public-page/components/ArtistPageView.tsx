@@ -148,7 +148,10 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
   // exist as a fallback for artists who have not created any text blocks yet.
   const hasCustomAboutBlock = blocks.some((block) => block.type === 'text');
 
-  const hasAboutSection = (Boolean(artist.bio) || Boolean(artist.fullBio)) && !hasCustomAboutBlock;
+  // The bio teaser (above blocks) shows the short bio when artist hasn't added text blocks.
+  // The About section (below blocks) shows the full bio — only when fullBio exists to avoid
+  // duplicating the short bio that already appears in the teaser above.
+  const hasAboutSection = Boolean(artist.fullBio) && !hasCustomAboutBlock;
   const hasAnyPublicContent =
     blocks.length > 0 || hasAboutSection || page.publicEpkAvailable || Boolean(artist.contactEmail);
 
@@ -166,10 +169,8 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
    * Per-block max-width so links/email-capture stay narrow & centered (as before),
    * while media/merch/text use the full column. Replaces the old per-section wrappers.
    */
-  function blockWidthClass(block: PublicPageResponse['blocks'][number]): string {
-    if (block.type === 'links') return 'mx-auto w-full max-w-xl';
-    if (block.type === 'email_capture') return 'mx-auto w-full max-w-2xl';
-    return '';
+  function blockWidthClass(_block: PublicPageResponse['blocks'][number]): string {
+    return 'mx-auto w-full max-w-2xl';
   }
 
   /**
@@ -449,77 +450,38 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
                             {t('sections.about')}
                           </p>
-                          {artist.bio && (
-                            <div className="bio-prose mt-4">
-                              <ReactMarkdown
-                                components={{
-                                  p: ({ children }) => (
-                                    <p className="mb-3 text-sm leading-7 text-zinc-200 last:mb-0 sm:text-base">
-                                      {children}
-                                    </p>
-                                  ),
-                                  strong: ({ children }) => (
-                                    <strong className="font-semibold text-white">{children}</strong>
-                                  ),
-                                  em: ({ children }) => (
-                                    <em className="italic text-zinc-300">{children}</em>
-                                  ),
-                                  ul: ({ children }) => (
-                                    <ul className="mb-3 ml-4 list-disc space-y-1 text-sm leading-7 text-zinc-200 sm:text-base">
-                                      {children}
-                                    </ul>
-                                  ),
-                                  ol: ({ children }) => (
-                                    <ol className="mb-3 ml-4 list-decimal space-y-1 text-sm leading-7 text-zinc-200 sm:text-base">
-                                      {children}
-                                    </ol>
-                                  ),
-                                  li: ({ children }) => <li>{children}</li>,
-                                }}
-                              >
-                                {artist.bio}
-                              </ReactMarkdown>
-                            </div>
-                          )}
-                          {artist.fullBio && (
-                            <>
-                              {artist.bio && (
-                                <div className="my-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                              )}
-                              <div className="bio-prose">
-                                <ReactMarkdown
-                                  components={{
-                                    p: ({ children }) => (
-                                      <p className="mb-4 text-sm leading-7 text-zinc-300 last:mb-0 sm:text-base">
-                                        {children}
-                                      </p>
-                                    ),
-                                    strong: ({ children }) => (
-                                      <strong className="font-semibold text-white">
-                                        {children}
-                                      </strong>
-                                    ),
-                                    em: ({ children }) => (
-                                      <em className="italic text-zinc-300">{children}</em>
-                                    ),
-                                    ul: ({ children }) => (
-                                      <ul className="mb-4 ml-4 list-disc space-y-1 text-sm leading-7 text-zinc-300 sm:text-base">
-                                        {children}
-                                      </ul>
-                                    ),
-                                    ol: ({ children }) => (
-                                      <ol className="mb-4 ml-4 list-decimal space-y-1 text-sm leading-7 text-zinc-300 sm:text-base">
-                                        {children}
-                                      </ol>
-                                    ),
-                                    li: ({ children }) => <li>{children}</li>,
-                                  }}
-                                >
-                                  {artist.fullBio}
-                                </ReactMarkdown>
-                              </div>
-                            </>
-                          )}
+                          {/* Only fullBio is shown here — the short bio already appears
+                              as a teaser above the blocks to avoid duplication. */}
+                          <div className="bio-prose mt-4">
+                            <ReactMarkdown
+                              components={{
+                                p: ({ children }) => (
+                                  <p className="mb-4 text-sm leading-7 text-zinc-300 last:mb-0 sm:text-base">
+                                    {children}
+                                  </p>
+                                ),
+                                strong: ({ children }) => (
+                                  <strong className="font-semibold text-white">{children}</strong>
+                                ),
+                                em: ({ children }) => (
+                                  <em className="italic text-zinc-300">{children}</em>
+                                ),
+                                ul: ({ children }) => (
+                                  <ul className="mb-4 ml-4 list-disc space-y-1 text-sm leading-7 text-zinc-300 sm:text-base">
+                                    {children}
+                                  </ul>
+                                ),
+                                ol: ({ children }) => (
+                                  <ol className="mb-4 ml-4 list-decimal space-y-1 text-sm leading-7 text-zinc-300 sm:text-base">
+                                    {children}
+                                  </ol>
+                                ),
+                                li: ({ children }) => <li>{children}</li>,
+                              }}
+                            >
+                              {artist.fullBio}
+                            </ReactMarkdown>
+                          </div>
                         </div>
                       </div>
                     )}

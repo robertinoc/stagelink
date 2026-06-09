@@ -11,9 +11,8 @@ import { getArtistPages } from '@/lib/api/pages';
 import { getShopifyConnection } from '@/lib/api/shopify';
 import { getMerchConnection } from '@/lib/api/merch';
 import { ConnectionErrorState } from '@/components/shared/ConnectionErrorState';
-import { BlockManager } from '@/features/blocks/components/BlockManager';
+import { PageBuilderClient } from '@/features/blocks/components/PageBuilderClient';
 import { ThemeSelector } from '@/features/blocks/components/ThemeSelector';
-import { PhonePreviewFrame } from '@/features/blocks/components/PhonePreviewFrame';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('blocks');
@@ -158,35 +157,28 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
       </div>
 
       {/* ── Two-column editor layout ────────────────────────────────────── */}
-      <div className="grid gap-5 xl:grid-cols-[1fr_320px] xl:items-start">
-        {/* Left: Block manager */}
-        <BlockManager
+      {artist?.username && (
+        <PageBuilderClient
           pageId={page.id}
           artistId={artistId}
+          username={artist.username}
+          locale={locale}
           canUseShopifyIntegration={billingSummary.entitlements.shopify_integration}
           canUseSmartMerch={billingSummary.entitlements.smart_merch}
           shopifyIsConnected={shopifyConn?.isConnected ?? false}
           smartMerchIsConnected={merchConn?.isConnected ?? false}
           userPlan={billingSummary.effectivePlan}
-          galleryImages={artist?.galleryImageUrls ?? []}
-          releases={artist?.releases ?? []}
-          recordLabels={artist?.recordLabels ?? []}
+          galleryImages={artist.galleryImageUrls ?? []}
+          releases={artist.releases ?? []}
+          recordLabels={artist.recordLabels ?? []}
           counterValues={{
-            eps: artist?.epsReleasedCount ?? 0,
-            labels: artist?.recordLabels?.length ?? 0,
-            collabs: artist?.externalCollabsCount ?? 0,
+            eps: artist.epsReleasedCount ?? 0,
+            labels: artist.recordLabels?.length ?? 0,
+            collabs: artist.externalCollabsCount ?? 0,
           }}
-          username={artist?.username ?? undefined}
           textSources={textSourceList}
         />
-
-        {/* Right: Phone frame preview (sticky on xl+) */}
-        {artist?.username && (
-          <div className="hidden xl:block xl:sticky xl:top-6">
-            <PhonePreviewFrame username={artist.username} locale={locale} />
-          </div>
-        )}
-      </div>
+      )}
 
       {/* ── Theme selector ──────────────────────────────────────────────── */}
       <ThemeSelector pageId={page.id} currentTheme={page.theme ?? undefined} />

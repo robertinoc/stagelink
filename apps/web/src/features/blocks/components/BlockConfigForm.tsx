@@ -912,9 +912,9 @@ function TextBlockForm({
             onChange={(e) => onChange({ ...config, body: e.target.value })}
             placeholder={t('body_placeholder')}
             className="min-h-[180px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            maxLength={5000}
+            maxLength={2000}
           />
-          <p className="mt-1 text-xs text-muted-foreground">{config.body.length}/5000</p>
+          <p className="mt-1 text-xs text-muted-foreground">{config.body.length}/2000</p>
         </div>
       )}
       <p className="text-xs text-muted-foreground">{t('body_locale_hint')}</p>

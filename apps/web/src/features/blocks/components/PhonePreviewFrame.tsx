@@ -1,20 +1,33 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { RefreshCw, RotateCcw } from 'lucide-react';
 
 interface PhonePreviewFrameProps {
   username: string;
   locale: string;
+  /** Increments every time blocks change — used to auto-refresh when live preview is on. */
+  blocksVersion?: number;
 }
 
-export function PhonePreviewFrame({ username, locale }: PhonePreviewFrameProps) {
-  const [refreshKey, setRefreshKey] = useState(0);
+export function PhonePreviewFrame({ username, locale, blocksVersion = 0 }: PhonePreviewFrameProps) {
+  const [manualKey, setManualKey] = useState(0);
+  const [livePreview, setLivePreview] = useState(false);
+  // Track which blocksVersion we've applied so we only re-render on NEW changes
+  const [appliedVersion, setAppliedVersion] = useState(blocksVersion);
+
+  useEffect(() => {
+    if (livePreview && blocksVersion !== appliedVersion) {
+      setAppliedVersion(blocksVersion);
+      setManualKey((k) => k + 1);
+    }
+  }, [livePreview, blocksVersion, appliedVersion]);
 
   const handleRefresh = useCallback(() => {
-    setRefreshKey((k) => k + 1);
+    setManualKey((k) => k + 1);
   }, []);
 
+  const iframeKey = manualKey;
   const previewUrl = `/${locale}/${username}`;
 
   return (
@@ -22,20 +35,53 @@ export function PhonePreviewFrame({ username, locale }: PhonePreviewFrameProps) 
       {/* Header */}
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[#4ade80]" />
+          <span
+            className={`h-2 w-2 rounded-full ${livePreview ? 'animate-pulse bg-[#E040FB]' : 'bg-[#4ade80]'}`}
+          />
           <span className="font-[family-name:var(--font-heading)] text-[10px] font-bold uppercase tracking-[2px] text-white/40">
-            Preview · Vivo
+            Preview · {livePreview ? 'En vivo' : 'Vivo'}
           </span>
         </div>
-        <button
-          onClick={handleRefresh}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-white/50 transition-colors hover:bg-white/10 hover:text-white"
-          title="Refresh preview"
-        >
-          <RotateCcw className="h-3 w-3" />
-          Actualizar
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Live preview toggle */}
+          <label
+            className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-white/50 transition-colors hover:bg-white/10 hover:text-white select-none"
+            title="Actualiza el preview automáticamente al guardar cambios. Puede hacer el editor un poco más lento."
+          >
+            <RefreshCw className={`h-3 w-3 ${livePreview ? 'text-[#E040FB]' : ''}`} />
+            <span className={livePreview ? 'text-[#E040FB]' : ''}>Auto</span>
+            <input
+              type="checkbox"
+              className="sr-only"
+              checked={livePreview}
+              onChange={(e) => setLivePreview(e.target.checked)}
+            />
+            <span
+              className={`relative inline-flex h-3.5 w-6 items-center rounded-full transition-colors ${livePreview ? 'bg-[#E040FB]' : 'bg-white/20'}`}
+            >
+              <span
+                className={`absolute inline-block h-2.5 w-2.5 rounded-full bg-white shadow-sm transition-transform ${livePreview ? 'translate-x-[10px]' : 'translate-x-[1px]'}`}
+              />
+            </span>
+          </label>
+
+          <button
+            onClick={handleRefresh}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+            title="Actualizar preview"
+          >
+            <RotateCcw className="h-3 w-3" />
+            Actualizar
+          </button>
+        </div>
       </div>
+
+      {/* Live preview hint */}
+      {livePreview && (
+        <p className="w-full text-[10px] text-white/30">
+          ⚡ El preview se actualiza automáticamente al guardar cambios.
+        </p>
+      )}
 
       {/* Phone frame */}
       <div className="relative mx-auto" style={{ width: 280, height: 580 }}>
@@ -62,7 +108,7 @@ export function PhonePreviewFrame({ username, locale }: PhonePreviewFrameProps) 
 
           {/* Iframe */}
           <iframe
-            key={refreshKey}
+            key={iframeKey}
             src={previewUrl}
             title="Página pública"
             className="absolute inset-0 h-full w-full border-0"

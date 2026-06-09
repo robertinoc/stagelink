@@ -80,6 +80,9 @@ interface Props {
   /** Artist's public counter values — for the public_counters block selector + warning. */
   counterValues?: { eps: number; labels: number; collabs: number };
   username?: string;
+  /** Called after any block state change (create/update/delete/reorder/toggle).
+   *  Used by the parent to know when to refresh the phone preview iframe. */
+  onBlocksChanged?: () => void;
 }
 
 // ─── Block type metadata ──────────────────────────────────────────────────────
@@ -116,8 +119,25 @@ function hasLocalizedContent(content: BlockLocalizedContent | null | undefined):
   });
 }
 
-function getBlockConfigValidationMessage(config: BlockConfig | null): string | null {
-  if (!config || !('provider' in config)) return null;
+function getBlockConfigValidationMessage(
+  config: BlockConfig | null,
+  type?: BlockType,
+): string | null {
+  if (!config) return null;
+
+  // music_embed / video_embed in manual mode require a source URL
+  if (type === 'music_embed' || type === 'video_embed') {
+    const mode = 'mode' in config ? config.mode : 'manual';
+    if (mode !== 'latest_track' && mode !== 'latest_video') {
+      const sourceUrl =
+        'sourceUrl' in config ? (config.sourceUrl as string | undefined) : undefined;
+      if (!sourceUrl?.trim()) {
+        return 'Ingresá la URL del contenido para poder guardar este bloque.';
+      }
+    }
+  }
+
+  if (!('provider' in config)) return null;
 
   if (config.provider === 'printful' || config.provider === 'printify') {
     if ('selectedProducts' in config && Array.isArray(config.selectedProducts)) {
@@ -282,7 +302,7 @@ function CreateBlockDialog({
 
   async function handleCreate() {
     if (!selectedType || !config) return;
-    const validationMessage = getBlockConfigValidationMessage(config);
+    const validationMessage = getBlockConfigValidationMessage(config, selectedType);
     if (validationMessage) {
       setError(validationMessage);
       return;
@@ -441,7 +461,7 @@ function EditBlockSheet({
 
   async function handleSave() {
     if (!block || !config) return;
-    const validationMessage = getBlockConfigValidationMessage(config);
+    const validationMessage = getBlockConfigValidationMessage(config, block.type);
     if (validationMessage) {
       setError(validationMessage);
       return;
@@ -451,7 +471,8 @@ function EditBlockSheet({
     try {
       const payload: UpdateBlockPayload = {
         config,
-        ...(title.trim() !== (block.title ?? '') && { title: title.trim() || undefined }),
+        // Send title: '' to explicitly clear — the API trims empty strings to null.
+        ...(title.trim() !== (block.title ?? '') && { title: title.trim() }),
         ...(hasLocalizedContent(localizedContent) && { localizedContent }),
       };
       if (!hasLocalizedContent(localizedContent) && block.localizedContent) {
@@ -571,12 +592,17 @@ function BlockRow({
   const thumbnail = getBlockThumbnail(block);
 
   async function handleTogglePublish() {
+    // Optimistic update — flip immediately, revert on failure
+    const optimistic: Block = { ...block, isPublished: !block.isPublished };
+    onUpdated(optimistic);
     setToggling(true);
     try {
       const updated = block.isPublished
         ? await unpublishBlock(block.id)
         : await publishBlock(block.id);
       onUpdated(updated);
+    } catch {
+      onUpdated(block); // revert
     } finally {
       setToggling(false);
     }
@@ -772,6 +798,7 @@ export function BlockManager({
   recordLabels,
   counterValues,
   username,
+  onBlocksChanged,
 }: Props) {
   const t = useTranslations('blocks');
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -801,14 +828,17 @@ export function BlockManager({
 
   function handleCreated(block: Block) {
     setBlocks((prev) => [...prev, block]);
+    onBlocksChanged?.();
   }
 
   function handleUpdated(updated: Block) {
     setBlocks((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+    onBlocksChanged?.();
   }
 
   function handleDeleted(id: string) {
     setBlocks((prev) => prev.filter((b) => b.id !== id));
+    onBlocksChanged?.();
   }
 
   async function handleMoved(id: string, direction: 'up' | 'down') {
@@ -825,6 +855,7 @@ export function BlockManager({
     reordered[swapIndex] = { ...blockB, position: blockA.position };
     reordered.sort((a, b) => a.position - b.position);
     setBlocks(reordered);
+    onBlocksChanged?.();
 
     try {
       const updated = await reorderBlocks(pageId, {
@@ -860,6 +891,7 @@ export function BlockManager({
     setBlocks(nextBlocks);
     setDraggedBlockId(null);
     setDragTargetBlockId(null);
+    onBlocksChanged?.();
 
     try {
       const updated = await reorderBlocks(pageId, {
