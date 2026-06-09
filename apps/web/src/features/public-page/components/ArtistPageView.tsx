@@ -12,7 +12,6 @@ import { PublicAvatarImage } from './PublicAvatarImage';
 import { PublicCoverImage } from './PublicCoverImage';
 import { SocialIconLink } from './SocialIconLink';
 import { ArtistStatsRow } from './ArtistStatsRow';
-import { ReleasesSection } from './ReleasesSection';
 import {
   SpotifyIcon,
   YouTubeIcon,
@@ -152,11 +151,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
 
   const hasAboutSection = (Boolean(artist.bio) || Boolean(artist.fullBio)) && !hasCustomAboutBlock;
   const hasAnyPublicContent =
-    blocks.length > 0 ||
-    hasAboutSection ||
-    artist.releases.length > 0 ||
-    page.publicEpkAvailable ||
-    Boolean(artist.contactEmail);
+    blocks.length > 0 || hasAboutSection || page.publicEpkAvailable || Boolean(artist.contactEmail);
 
   function getMusicProvider(block: PublicPageResponse['blocks'][number]): string | null {
     if (block.type !== 'music_embed') return null;
@@ -454,10 +449,6 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                     </div>
                   </div>
                 ))}
-
-                {/* REQ-10 — Releases / EPs / Albums. Auto section for now; becomes
-                    a user block in a later PR. Returns null when empty. */}
-                <ReleasesSection releases={artist.releases} locale={artist.locale} />
 
                 {(hasAboutSection || page.publicEpkAvailable || artist.contactEmail) && (
                   <section className="space-y-4">

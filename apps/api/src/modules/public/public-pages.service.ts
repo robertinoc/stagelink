@@ -24,6 +24,7 @@ import {
   type ShopifyStoreBlockConfig,
   type ShopifyStoreProduct,
   type TechnicalRiderBlockConfig,
+  type ReleasesBlockConfig,
   type SupportedLocale,
   type SmartMerchProvider,
 } from '@stagelink/types';
@@ -154,6 +155,7 @@ function localizeBlock(
     epkRiderInfo?: string | null;
     epkTechRequirements?: string | null;
     artistContactEmail?: string | null;
+    artistReleases?: ArtistRelease[];
   },
 ): PublicBlockDto {
   const localizedContent = (block.localizedContent as BlockLocalizedContent | null) ?? {};
@@ -316,6 +318,34 @@ function localizeBlock(
       position: block.position,
       config: {
         email: contactConfig.email || options?.artistContactEmail || '',
+      },
+    };
+  }
+
+  if (block.type === 'releases') {
+    // Resolve stored release IDs into the full release objects from the
+    // artist profile, preserving the block's display order. An empty
+    // releaseIds array means "show all" (in profile order).
+    const releasesConfig = baseConfig as { releaseIds?: unknown };
+    const allReleases = options?.artistReleases ?? [];
+    const releaseIds = Array.isArray(releasesConfig.releaseIds)
+      ? (releasesConfig.releaseIds as string[])
+      : [];
+    const resolved =
+      releaseIds.length === 0
+        ? allReleases
+        : releaseIds
+            .map((id) => allReleases.find((release) => release.id === id))
+            .filter((release): release is ArtistRelease => Boolean(release));
+
+    return {
+      id: block.id,
+      type: block.type,
+      title: localizedTitle,
+      position: block.position,
+      config: {
+        releaseIds,
+        releases: resolved,
       },
     };
   }
@@ -840,6 +870,12 @@ export class PublicPagesService {
       });
     }
 
+    // Releases catalog from the profile, defensively filtered (drops partial
+    // entries). Shared by every `releases` block so they resolve their IDs.
+    const resolvedReleases = ((page.artist.releases as ArtistRelease[] | null) ?? []).filter(
+      (release) => release && release.title?.trim(),
+    );
+
     const localizedBlocks = (
       await Promise.all(
         page.blocks.map(async (block) => {
@@ -850,6 +886,7 @@ export class PublicPagesService {
             epkRiderInfo,
             epkTechRequirements,
             artistContactEmail: page.artist.contactEmail,
+            artistReleases: resolvedReleases,
           });
         }),
       )
@@ -862,7 +899,9 @@ export class PublicPagesService {
             0) &&
         (block.type !== 'technical_rider' ||
           !!(block.config as unknown as TechnicalRiderBlockConfig).riderInfo ||
-          !!(block.config as unknown as TechnicalRiderBlockConfig).techRequirements),
+          !!(block.config as unknown as TechnicalRiderBlockConfig).techRequirements) &&
+        (block.type !== 'releases' ||
+          ((block.config as unknown as ReleasesBlockConfig).releases ?? []).length > 0),
     );
 
     return {

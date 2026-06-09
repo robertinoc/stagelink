@@ -21,6 +21,8 @@ import type {
   SmartMerchProduct,
   ShopifyStoreBlockConfig,
   ContactFormBlockConfig,
+  ReleasesBlockConfig,
+  ArtistRelease,
   SupportedLocale,
 } from '@stagelink/types';
 import { SUPPORTED_LOCALES } from '@stagelink/types';
@@ -39,6 +41,8 @@ interface Props {
     label: string;
     body: string;
   }>;
+  /** Artist's release catalog from the profile — source for the releases block selector. */
+  releases?: ArtistRelease[];
   /**
    * Required for the smart link picker inside the links block form.
    * When absent, the smart link option is hidden.
@@ -1714,10 +1718,172 @@ export function defaultConfig(type: BlockType): BlockConfig {
       return { riderInfo: null, techRequirements: null };
     case 'contact_form':
       return { email: '' };
+    case 'releases':
+      return { releaseIds: [] };
   }
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
+
+function ReleasesBlockForm({
+  config,
+  onChange,
+  releases,
+}: {
+  config: ReleasesBlockConfig;
+  onChange: (c: ReleasesBlockConfig) => void;
+  releases?: ArtistRelease[];
+}) {
+  const t = useTranslations('blocks.fields');
+  const tReleaseType = useTranslations('public_page.releases.types');
+  const locale = useLocale();
+  const allReleases = useMemo(() => releases ?? [], [releases]);
+  const allIds = useMemo(() => allReleases.map((r) => r.id), [allReleases]);
+
+  // Empty releaseIds means "show all in profile order". Any explicit selection
+  // materializes the ordered list. The two states collapse back to [] when the
+  // explicit list once again equals every release in profile order.
+  const isShowingAll = config.releaseIds.length === 0;
+  const selectedIds = useMemo(
+    () => (isShowingAll ? allIds : config.releaseIds.filter((id) => allIds.includes(id))),
+    [isShowingAll, allIds, config.releaseIds],
+  );
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+
+  // Selected releases first (in display order), then the unselected ones.
+  const orderedReleases = useMemo(() => {
+    const byId = new Map(allReleases.map((r) => [r.id, r]));
+    const selected = selectedIds
+      .map((id) => byId.get(id))
+      .filter((r): r is ArtistRelease => Boolean(r));
+    const unselected = allReleases.filter((r) => !selectedSet.has(r.id));
+    return [...selected, ...unselected];
+  }, [allReleases, selectedIds, selectedSet]);
+
+  function commit(ids: string[]) {
+    const isAllInOrder = ids.length === allIds.length && ids.every((id, i) => id === allIds[i]);
+    onChange({ ...config, releaseIds: isAllInOrder ? [] : ids });
+  }
+
+  function toggle(id: string) {
+    if (selectedSet.has(id)) {
+      commit(selectedIds.filter((x) => x !== id));
+    } else {
+      commit([...selectedIds, id]);
+    }
+  }
+
+  function move(id: string, dir: 'up' | 'down') {
+    const idx = selectedIds.indexOf(id);
+    if (idx === -1) return;
+    const swap = dir === 'up' ? idx - 1 : idx + 1;
+    if (swap < 0 || swap >= selectedIds.length) return;
+    const next = [...selectedIds];
+    const a = next[idx]!;
+    const b = next[swap]!;
+    next[idx] = b;
+    next[swap] = a;
+    commit(next);
+  }
+
+  if (allReleases.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.03] p-4 text-sm text-muted-foreground">
+        <p className="font-medium text-white">{t('releases_empty')}</p>
+        <p className="mt-1">
+          {t('releases_from_profile')}{' '}
+          <Link
+            href={`/${locale}/dashboard/profile?tab=catalog`}
+            className="font-medium text-primary underline-offset-2 hover:underline"
+          >
+            {t('releases_go_to_catalog')}
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-white">{t('releases_title')}</p>
+            <p className="text-xs text-muted-foreground">{t('releases_hint')}</p>
+            <p className="text-xs text-muted-foreground">
+              {isShowingAll
+                ? t('releases_showing_all', { total: allReleases.length })
+                : t('releases_selected_count', {
+                    selected: selectedIds.length,
+                    total: allReleases.length,
+                  })}
+            </p>
+          </div>
+          {!isShowingAll && (
+            <button
+              type="button"
+              onClick={() => onChange({ ...config, releaseIds: [] })}
+              className="shrink-0 rounded-full border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary hover:text-foreground"
+            >
+              {t('releases_show_all')}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <ul className="space-y-2">
+        {orderedReleases.map((release) => {
+          const selected = selectedSet.has(release.id);
+          const orderIndex = selectedIds.indexOf(release.id);
+          return (
+            <li
+              key={release.id}
+              className={`flex items-center gap-3 rounded-xl border p-3 transition ${
+                selected ? 'border-primary/40 bg-primary/[0.06]' : 'border-white/10 bg-white/[0.02]'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={selected}
+                onChange={() => toggle(release.id)}
+                className="h-4 w-4 shrink-0 accent-[#E040FB]"
+                aria-label={release.title}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-white">{release.title}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {tReleaseType(release.type)}
+                </p>
+              </div>
+              {selected && (
+                <div className="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => move(release.id, 'up')}
+                    disabled={orderIndex <= 0}
+                    aria-label={t('releases_move_up')}
+                    className="rounded-md border border-white/10 px-2 py-1 text-xs text-white/70 transition hover:border-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => move(release.id, 'down')}
+                    disabled={orderIndex === selectedIds.length - 1}
+                    aria-label={t('releases_move_down')}
+                    className="rounded-md border border-white/10 px-2 py-1 text-xs text-white/70 transition hover:border-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    ↓
+                  </button>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
 
 export function BlockConfigForm({
   type,
@@ -1727,6 +1893,7 @@ export function BlockConfigForm({
   onLocalizedContentChange,
   galleryImages,
   textSources,
+  releases,
   artistId,
 }: Props) {
   switch (type) {
@@ -1799,6 +1966,14 @@ export function BlockConfigForm({
         <ContactFormFormBlock
           config={config as ContactFormBlockConfig}
           onChange={(c) => onChange(c)}
+        />
+      );
+    case 'releases':
+      return (
+        <ReleasesBlockForm
+          config={config as ReleasesBlockConfig}
+          onChange={(c) => onChange(c)}
+          releases={releases}
         />
       );
   }

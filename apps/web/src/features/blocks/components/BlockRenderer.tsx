@@ -11,6 +11,7 @@ import type {
   ShopifyStoreBlockConfig,
   TechnicalRiderBlockConfig,
   ContactFormBlockConfig,
+  ReleasesBlockConfig,
 } from '@stagelink/types';
 import { LinksBlockRenderer } from './LinksBlockRenderer';
 import { MusicEmbedRenderer } from './MusicEmbedRenderer';
@@ -22,6 +23,7 @@ import { SmartMerchRenderer } from './SmartMerchRenderer';
 import { ShopifyStoreRenderer } from './ShopifyStoreRenderer';
 import { TechnicalRiderRenderer } from './TechnicalRiderRenderer';
 import { ContactFormRenderer } from './ContactFormRenderer';
+import { ReleasesBlockRenderer } from './ReleasesBlockRenderer';
 
 /**
  * Minimal block shape accepted by BlockRenderer.
@@ -157,6 +159,12 @@ export function BlockRenderer({ block, onLinkClick, artistId }: BlockRendererPro
         title={block.title}
         config={block.config as ContactFormBlockConfig}
       />
+    );
+  }
+
+  if (block.type === 'releases') {
+    return (
+      <ReleasesBlockRenderer title={block.title} config={block.config as ReleasesBlockConfig} />
     );
   }
 

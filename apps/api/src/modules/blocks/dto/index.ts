@@ -25,6 +25,7 @@ export const BLOCK_TYPES = [
   'smart_merch',
   'technical_rider',
   'contact_form',
+  'releases',
 ] as const;
 export type BlockTypeValue = (typeof BLOCK_TYPES)[number];
 
