@@ -65,6 +65,7 @@ const MAX_RELEASE_ITEMS = 50;
 const MAX_RELEASE_ID_LENGTH = 64;
 const MAX_RECORD_LABEL_ITEMS = 50;
 const MAX_RECORD_LABEL_ID_LENGTH = 64;
+const PUBLIC_COUNTER_KEYS = ['eps', 'labels', 'collabs'] as const;
 const MAX_LOCALIZED_ITEM_LABELS = 50;
 const MAX_LOCALIZED_ITEM_ID_LENGTH = 64;
 
@@ -625,6 +626,36 @@ function validateRecordLabelsConfig(c: Record<string, unknown>): void {
   }
 }
 
+function validatePublicCountersConfig(c: Record<string, unknown>): void {
+  // `show` lists which counters to display, in order. Empty = "show all".
+  // Only the three known keys are accepted; values are resolved at serve time.
+  if (!Array.isArray(c['show'])) {
+    throw new BadRequestException('public_counters config.show must be an array');
+  }
+
+  const show = c['show'] as unknown[];
+  if (show.length > PUBLIC_COUNTER_KEYS.length) {
+    throw new BadRequestException(
+      `public_counters config.show must contain at most ${PUBLIC_COUNTER_KEYS.length} items`,
+    );
+  }
+
+  const seen = new Set<string>();
+  for (const [index, value] of show.entries()) {
+    if (!PUBLIC_COUNTER_KEYS.includes(value as (typeof PUBLIC_COUNTER_KEYS)[number])) {
+      throw new BadRequestException(
+        `public_counters config.show[${index}] must be one of: ${PUBLIC_COUNTER_KEYS.join(', ')}`,
+      );
+    }
+    if (seen.has(value as string)) {
+      throw new BadRequestException(
+        `public_counters config.show[${index}] must be unique within the block`,
+      );
+    }
+    seen.add(value as string);
+  }
+}
+
 function validateSmartMerchConfig(c: Record<string, unknown>): void {
   if (!SMART_MERCH_PROVIDERS.includes(c['provider'] as (typeof SMART_MERCH_PROVIDERS)[number])) {
     throw new BadRequestException(
@@ -1012,6 +1043,9 @@ export function validateBlockConfig(type: BlockType, config: unknown): void {
       break;
     case 'record_labels':
       validateRecordLabelsConfig(config);
+      break;
+    case 'public_counters':
+      validatePublicCountersConfig(config);
       break;
     default: {
       // Exhaustive guard — TypeScript will error here if a new BlockType

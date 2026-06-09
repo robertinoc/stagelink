@@ -29,6 +29,7 @@ export const BLOCK_TYPES = [
   'contact_form',
   'releases',
   'record_labels',
+  'public_counters',
 ] as const;
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
@@ -267,6 +268,23 @@ export interface RecordLabelsBlockConfig {
   labels?: RecordLabel[];
 }
 
+/** The three public social-proof counters an artist can surface. */
+export type PublicCounterKey = 'eps' | 'labels' | 'collabs';
+
+/**
+ * Public Counters block. Surfaces the artist's social-proof counters
+ * (EPs released, record labels, external collabs) as a user-controllable block.
+ *
+ * `show` lists which counters to display, in order. Empty = "show all that have
+ * a value". The actual values live on the profile; they're resolved server-side
+ * at serve time and attached as `counters` (only those with value > 0).
+ */
+export interface PublicCountersBlockConfig {
+  show: PublicCounterKey[];
+  /** Resolved at serve time by the public API (localizeBlock). Not persisted. */
+  counters?: { key: PublicCounterKey; value: number }[];
+}
+
 export interface BlockLocalizedContent {
   title?: LocalizedTextMap;
   emailCapture?: EmailCaptureBlockTranslations;
@@ -288,7 +306,8 @@ export type BlockConfig =
   | TechnicalRiderBlockConfig
   | ContactFormBlockConfig
   | ReleasesBlockConfig
-  | RecordLabelsBlockConfig;
+  | RecordLabelsBlockConfig
+  | PublicCountersBlockConfig;
 
 // ─── Block entity ─────────────────────────────────────────────────────────────
 
@@ -390,4 +409,10 @@ export function isRecordLabelsBlock(
   block: Block,
 ): block is Block & { config: RecordLabelsBlockConfig } {
   return block.type === 'record_labels';
+}
+
+export function isPublicCountersBlock(
+  block: Block,
+): block is Block & { config: PublicCountersBlockConfig } {
+  return block.type === 'public_counters';
 }

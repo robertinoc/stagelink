@@ -309,6 +309,7 @@ enum BlockType {
   contact_form
   releases
   record_labels
+  public_counters
 
   @@map("block_type")
 }

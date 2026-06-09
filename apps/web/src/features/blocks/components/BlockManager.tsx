@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import {
+  BarChart3,
   Check,
   Copy,
   Disc3,
@@ -76,6 +77,8 @@ interface Props {
   releases?: ArtistRelease[];
   /** Artist's curated record labels — source for the record_labels block selector + warning. */
   recordLabels?: RecordLabel[];
+  /** Artist's public counter values — for the public_counters block selector + warning. */
+  counterValues?: { eps: number; labels: number; collabs: number };
   username?: string;
 }
 
@@ -94,6 +97,7 @@ const BLOCK_TYPE_ICONS: Record<BlockType, LucideIcon> = {
   contact_form: MessageSquare,
   releases: Disc3,
   record_labels: Tag,
+  public_counters: BarChart3,
 };
 
 /** Brand background colours for music-embed providers (shown in the block row icon). */
@@ -231,6 +235,7 @@ function CreateBlockDialog({
   textSources,
   releases,
   recordLabels,
+  counterValues,
   onCreated,
   onClose,
 }: {
@@ -243,6 +248,7 @@ function CreateBlockDialog({
   textSources?: Props['textSources'];
   releases?: Props['releases'];
   recordLabels?: Props['recordLabels'];
+  counterValues?: Props['counterValues'];
   onCreated: (block: Block) => void;
   onClose: () => void;
 }) {
@@ -373,6 +379,7 @@ function CreateBlockDialog({
                 textSources={textSources}
                 releases={releases}
                 recordLabels={recordLabels}
+                counterValues={counterValues}
               />
             )}
 
@@ -402,6 +409,7 @@ function EditBlockSheet({
   textSources,
   releases,
   recordLabels,
+  counterValues,
   onUpdated,
   onClose,
 }: {
@@ -411,6 +419,7 @@ function EditBlockSheet({
   textSources?: Props['textSources'];
   releases?: Props['releases'];
   recordLabels?: Props['recordLabels'];
+  counterValues?: Props['counterValues'];
   onUpdated: (block: Block) => void;
   onClose: () => void;
 }) {
@@ -497,6 +506,7 @@ function EditBlockSheet({
                 textSources={textSources}
                 releases={releases}
                 recordLabels={recordLabels}
+                counterValues={counterValues}
               />
 
               {error && <p className="text-sm text-destructive">{error}</p>}
@@ -760,6 +770,7 @@ export function BlockManager({
   textSources,
   releases,
   recordLabels,
+  counterValues,
   username,
 }: Props) {
   const t = useTranslations('blocks');
@@ -987,6 +998,17 @@ export function BlockManager({
                         'Los sellos seleccionados ya no existen en tu perfil. Editá el bloque y elegí otros.';
                     }
                   }
+                } else if (block.type === 'public_counters') {
+                  const cfg = block.config as { show?: string[] };
+                  const vals = counterValues ?? { eps: 0, labels: 0, collabs: 0 };
+                  const shownKeys =
+                    cfg.show && cfg.show.length > 0 ? cfg.show : ['eps', 'labels', 'collabs'];
+                  const anyVisible = shownKeys.some((k) => (vals[k as keyof typeof vals] ?? 0) > 0);
+                  if (!anyVisible) {
+                    wontRender = true;
+                    wontRenderReason =
+                      'Ninguno de los contadores elegidos tiene valor en tu perfil. Cargá EPs, sellos o colaboraciones en Mi Perfil → Catálogo.';
+                  }
                 }
               }
 
@@ -1040,6 +1062,7 @@ export function BlockManager({
         textSources={textSources}
         releases={releases}
         recordLabels={recordLabels}
+        counterValues={counterValues}
         onCreated={handleCreated}
         onClose={() => setCreateOpen(false)}
       />
@@ -1051,6 +1074,7 @@ export function BlockManager({
         textSources={textSources}
         releases={releases}
         recordLabels={recordLabels}
+        counterValues={counterValues}
         onUpdated={(updated) => {
           handleUpdated(updated);
           setEditingBlock(null);

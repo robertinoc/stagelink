@@ -2158,7 +2158,8 @@
       "technical_rider": "Technical Rider",
       "contact_form": "Contact Form",
       "releases": "Releases / EPs",
-      "record_labels": "Record Labels"
+      "record_labels": "Record Labels",
+      "public_counters": "Public Counters"
     },
     "type_descriptions": {
       "links": "Add clickable links to your profiles, website or anywhere.",
@@ -2172,7 +2173,8 @@
       "technical_rider": "Display your technical and production rider from your EPK.",
       "contact_form": "Let visitors send you a message directly from your page.",
       "releases": "Showcase the releases, EPs and albums from your profile catalog.",
-      "record_labels": "Highlight the labels you have released on, in your own order."
+      "record_labels": "Highlight the labels you have released on, in your own order.",
+      "public_counters": "Show social-proof counters: EPs released, labels, collaborations."
     },
     "fields": {
       "title": "Block title (optional)",
@@ -2324,7 +2326,12 @@
       "record_labels_show_all": "Show all",
       "record_labels_move_up": "Move up",
       "record_labels_move_down": "Move down",
-      "record_labels_default_title": "Labels"
+      "record_labels_default_title": "Labels",
+      "public_counters_title": "Counters to show",
+      "public_counters_hint": "Choose which counters appear. Only counters with a value show on your page.",
+      "public_counters_current_value": "Current: {value}",
+      "public_counters_no_data": "No data in your profile yet",
+      "public_counters_none_visible": "None of the selected counters has a value, so this block will not appear. Add data in your profile catalog."
     },
     "smart_link": {
       "destination": "Destination",

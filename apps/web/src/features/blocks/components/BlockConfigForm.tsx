@@ -25,6 +25,8 @@ import type {
   ArtistRelease,
   RecordLabelsBlockConfig,
   RecordLabel,
+  PublicCountersBlockConfig,
+  PublicCounterKey,
   SupportedLocale,
 } from '@stagelink/types';
 import { SUPPORTED_LOCALES } from '@stagelink/types';
@@ -47,6 +49,8 @@ interface Props {
   releases?: ArtistRelease[];
   /** Artist's curated record labels — source for the record_labels block selector. */
   recordLabels?: RecordLabel[];
+  /** Artist's public counter values — used by the public_counters block to show which have data. */
+  counterValues?: { eps: number; labels: number; collabs: number };
   /**
    * Required for the smart link picker inside the links block form.
    * When absent, the smart link option is hidden.
@@ -1726,6 +1730,8 @@ export function defaultConfig(type: BlockType): BlockConfig {
       return { releaseIds: [] };
     case 'record_labels':
       return { labelIds: [] };
+    case 'public_counters':
+      return { show: [] };
   }
 }
 
@@ -2046,6 +2052,96 @@ function RecordLabelsBlockForm({
   );
 }
 
+const PUBLIC_COUNTER_KEYS: PublicCounterKey[] = ['eps', 'labels', 'collabs'];
+const PUBLIC_COUNTER_STAT_KEY: Record<PublicCounterKey, string> = {
+  eps: 'eps_released',
+  labels: 'record_labels',
+  collabs: 'external_collabs',
+};
+
+function PublicCountersBlockForm({
+  config,
+  onChange,
+  counterValues,
+}: {
+  config: PublicCountersBlockConfig;
+  onChange: (c: PublicCountersBlockConfig) => void;
+  counterValues?: { eps: number; labels: number; collabs: number };
+}) {
+  const t = useTranslations('blocks.fields');
+  const tStat = useTranslations('public_page.stats');
+  const values = counterValues ?? { eps: 0, labels: 0, collabs: 0 };
+
+  const isShowingAll = config.show.length === 0;
+  const selected = useMemo(
+    () => (isShowingAll ? PUBLIC_COUNTER_KEYS : config.show),
+    [isShowingAll, config.show],
+  );
+  const selectedSet = useMemo(() => new Set(selected), [selected]);
+
+  function toggle(key: PublicCounterKey) {
+    const next = selectedSet.has(key)
+      ? selected.filter((k) => k !== key)
+      : PUBLIC_COUNTER_KEYS.filter((k) => selectedSet.has(k) || k === key);
+    // Collapse "all three selected, in canonical order" back to [] (= show all).
+    const isAll =
+      next.length === PUBLIC_COUNTER_KEYS.length &&
+      next.every((k, i) => k === PUBLIC_COUNTER_KEYS[i]);
+    onChange({ ...config, show: isAll ? [] : next });
+  }
+
+  const anyVisible = selected.some((k) => values[k] > 0);
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+        <p className="text-sm font-medium text-white">{t('public_counters_title')}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{t('public_counters_hint')}</p>
+      </div>
+
+      <ul className="space-y-2">
+        {PUBLIC_COUNTER_KEYS.map((key) => {
+          const checked = selectedSet.has(key);
+          const value = values[key];
+          const hasData = value > 0;
+          return (
+            <li
+              key={key}
+              className={`flex items-center gap-3 rounded-xl border p-3 transition ${
+                checked ? 'border-primary/40 bg-primary/[0.06]' : 'border-white/10 bg-white/[0.02]'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={() => toggle(key)}
+                className="h-4 w-4 shrink-0 accent-[#E040FB]"
+                aria-label={tStat(PUBLIC_COUNTER_STAT_KEY[key])}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-white">
+                  {tStat(PUBLIC_COUNTER_STAT_KEY[key])}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {hasData
+                    ? t('public_counters_current_value', { value })
+                    : t('public_counters_no_data')}
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {!anyVisible && (
+        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
+          {t('public_counters_none_visible')}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function BlockConfigForm({
   type,
   config,
@@ -2056,6 +2152,7 @@ export function BlockConfigForm({
   textSources,
   releases,
   recordLabels,
+  counterValues,
   artistId,
 }: Props) {
   switch (type) {
@@ -2144,6 +2241,14 @@ export function BlockConfigForm({
           config={config as RecordLabelsBlockConfig}
           onChange={(c) => onChange(c)}
           recordLabels={recordLabels}
+        />
+      );
+    case 'public_counters':
+      return (
+        <PublicCountersBlockForm
+          config={config as PublicCountersBlockConfig}
+          onChange={(c) => onChange(c)}
+          counterValues={counterValues}
         />
       );
   }
