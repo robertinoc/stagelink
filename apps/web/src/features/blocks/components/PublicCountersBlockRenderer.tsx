@@ -8,21 +8,31 @@ interface PublicCountersBlockRendererProps {
   config: PublicCountersBlockConfig;
 }
 
-/** Per-counter accent styling, mirroring the legacy ArtistStatsRow. */
-const COUNTER_STYLE: Record<PublicCounterKey, { pill: string; label: string; i18nKey: string }> = {
+/**
+ * Per-counter accent styling. Each card carries a distinct brand accent on the
+ * number, a tinted background + border, and a matching hover glow — mirroring
+ * (and amplifying) the legacy ArtistStatsRow palette.
+ */
+const COUNTER_STYLE: Record<
+  PublicCounterKey,
+  { card: string; number: string; label: string; i18nKey: string }
+> = {
   eps: {
-    pill: 'border-cyan-500/30 bg-cyan-500/[0.08] hover:border-cyan-400/50 hover:shadow-[0_0_18px_rgba(34,211,238,0.2)]',
-    label: 'text-cyan-200/80',
+    card: 'border-cyan-500/25 bg-cyan-500/[0.07] hover:border-cyan-400/50 hover:shadow-[0_0_40px_rgba(34,211,238,0.22)]',
+    number: 'text-cyan-300',
+    label: 'text-cyan-200/70',
     i18nKey: 'eps_released',
   },
   labels: {
-    pill: 'border-fuchsia-500/30 bg-fuchsia-500/[0.08] hover:border-fuchsia-400/50 hover:shadow-[0_0_18px_rgba(168,85,247,0.2)]',
-    label: 'text-fuchsia-200/80',
+    card: 'border-fuchsia-500/25 bg-fuchsia-500/[0.07] hover:border-fuchsia-400/50 hover:shadow-[0_0_40px_rgba(217,70,239,0.22)]',
+    number: 'text-fuchsia-300',
+    label: 'text-fuchsia-200/70',
     i18nKey: 'record_labels',
   },
   collabs: {
-    pill: 'border-emerald-500/30 bg-emerald-500/[0.08] hover:border-emerald-400/50 hover:shadow-[0_0_18px_rgba(52,211,153,0.2)]',
-    label: 'text-emerald-200/80',
+    card: 'border-emerald-500/25 bg-emerald-500/[0.07] hover:border-emerald-400/50 hover:shadow-[0_0_40px_rgba(52,211,153,0.22)]',
+    number: 'text-emerald-300',
+    label: 'text-emerald-200/70',
     i18nKey: 'external_collabs',
   },
 };
@@ -30,8 +40,11 @@ const COUNTER_STYLE: Record<PublicCounterKey, { pill: string; label: string; i18
 /**
  * Public renderer for the "Public Counters" block. The visible counters
  * (key + value, value > 0 only) are resolved server-side (localizeBlock) and
- * arrive on `config.counters`. Mirrors the social-proof pill row that used to
- * live automatically in the page header.
+ * arrive on `config.counters`.
+ *
+ * Renders large full-width stat cards (one per visible counter): a big
+ * Space Grotesk number above a small uppercase label, with the brand accent
+ * and a hover glow. The grid stretches the cards evenly across the column.
  */
 export function PublicCountersBlockRenderer({ title, config }: PublicCountersBlockRendererProps) {
   const t = useTranslations('public_page.stats');
@@ -40,7 +53,7 @@ export function PublicCountersBlockRenderer({ title, config }: PublicCountersBlo
   if (counters.length === 0) return null;
 
   return (
-    <section className="space-y-3 print:break-inside-avoid">
+    <section className="space-y-4 print:break-inside-avoid">
       {title?.trim() ? (
         <h2 className="text-center text-sm font-semibold uppercase tracking-[0.22em] text-zinc-400">
           {title}
@@ -48,17 +61,26 @@ export function PublicCountersBlockRenderer({ title, config }: PublicCountersBlo
       ) : null}
       <ul
         aria-label={t('aria_label')}
-        className="flex flex-wrap items-center justify-center gap-2 text-xs sm:gap-3"
+        className="grid gap-3 sm:gap-4"
+        style={{ gridTemplateColumns: `repeat(${counters.length}, minmax(0, 1fr))` }}
       >
         {counters.map((counter) => {
           const style = COUNTER_STYLE[counter.key];
           return (
             <li
               key={counter.key}
-              className={`inline-flex cursor-default items-center gap-1.5 rounded-full border px-3 py-1.5 text-white transition-all duration-200 hover:scale-[1.04] ${style.pill}`}
+              className={`group flex cursor-default flex-col items-center justify-center gap-1.5 rounded-2xl border px-3 py-6 text-center transition-all duration-300 hover:-translate-y-0.5 sm:gap-2 sm:px-5 sm:py-8 ${style.card}`}
             >
-              <span className="font-semibold tabular-nums">{counter.value}</span>
-              <span className={style.label}>{t(style.i18nKey)}</span>
+              <span
+                className={`font-[family-name:var(--font-heading)] text-4xl font-bold leading-none tabular-nums tracking-tight sm:text-6xl ${style.number}`}
+              >
+                {counter.value}
+              </span>
+              <span
+                className={`text-[10px] font-semibold uppercase leading-tight tracking-[0.16em] sm:text-xs ${style.label}`}
+              >
+                {t(style.i18nKey)}
+              </span>
             </li>
           );
         })}
