@@ -2158,7 +2158,8 @@
       "technical_rider": "Rider técnico",
       "contact_form": "Formulario de contacto",
       "releases": "Lanzamientos / EPs",
-      "record_labels": "Sellos discográficos"
+      "record_labels": "Sellos discográficos",
+      "public_counters": "Contadores públicos"
     },
     "type_descriptions": {
       "links": "Agregá links a tus perfiles, sitio web o cualquier lugar.",
@@ -2172,7 +2173,8 @@
       "technical_rider": "Mostrá tu rider técnico y de producción desde tu Press Kit.",
       "contact_form": "Dejá que los visitantes te envíen un mensaje directamente desde tu página.",
       "releases": "Mostrá los lanzamientos, EPs y álbumes del catálogo de tu perfil.",
-      "record_labels": "Destacá los sellos en los que editaste, en el orden que vos quieras."
+      "record_labels": "Destacá los sellos en los que editaste, en el orden que vos quieras.",
+      "public_counters": "Mostrá contadores de prueba social: EPs, sellos, colaboraciones."
     },
     "fields": {
       "title": "Título del bloque (opcional)",
@@ -2324,7 +2326,12 @@
       "record_labels_show_all": "Mostrar todos",
       "record_labels_move_up": "Subir",
       "record_labels_move_down": "Bajar",
-      "record_labels_default_title": "Sellos"
+      "record_labels_default_title": "Sellos",
+      "public_counters_title": "Contadores a mostrar",
+      "public_counters_hint": "Elegí qué contadores aparecen. Solo se muestran los que tienen un valor.",
+      "public_counters_current_value": "Actual: {value}",
+      "public_counters_no_data": "Todavía sin datos en tu perfil",
+      "public_counters_none_visible": "Ninguno de los contadores elegidos tiene valor, así que este bloque no va a aparecer. Cargá datos en el catálogo de tu perfil."
     },
     "smart_link": {
       "destination": "Destino",

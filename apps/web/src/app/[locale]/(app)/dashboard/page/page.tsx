@@ -171,6 +171,11 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
           galleryImages={artist?.galleryImageUrls ?? []}
           releases={artist?.releases ?? []}
           recordLabels={artist?.recordLabels ?? []}
+          counterValues={{
+            eps: artist?.epsReleasedCount ?? 0,
+            labels: artist?.recordLabels?.length ?? 0,
+            collabs: artist?.externalCollabsCount ?? 0,
+          }}
           username={artist?.username ?? undefined}
           textSources={textSourceList}
         />

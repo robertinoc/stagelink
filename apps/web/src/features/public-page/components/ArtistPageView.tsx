@@ -11,7 +11,6 @@ import { PublicPageClient } from './PublicPageClient';
 import { PublicAvatarImage } from './PublicAvatarImage';
 import { PublicCoverImage } from './PublicCoverImage';
 import { SocialIconLink } from './SocialIconLink';
-import { ArtistStatsRow } from './ArtistStatsRow';
 import {
   SpotifyIcon,
   YouTubeIcon,
@@ -406,16 +405,8 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                     ))}
                   </div>
                 )}
-
-                {/* REQ-11 — public counters social-proof row. Component itself
-                    returns null when all three values are missing/zero, so we
-                    don't need an outer conditional here. */}
-                <ArtistStatsRow
-                  epsReleasedCount={artist.epsReleasedCount}
-                  recordLabelsCount={artist.recordLabelsCount}
-                  externalCollabsCount={artist.externalCollabsCount}
-                  locale={artist.locale}
-                />
+                {/* Public counters are now a user-orderable block (public_counters),
+                    no longer auto-rendered in the header. */}
               </div>
 
               <div className="mx-auto mt-10 max-w-5xl space-y-10">

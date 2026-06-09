@@ -26,6 +26,8 @@ import {
   type TechnicalRiderBlockConfig,
   type ReleasesBlockConfig,
   type RecordLabelsBlockConfig,
+  type PublicCountersBlockConfig,
+  type PublicCounterKey,
   type SupportedLocale,
   type SmartMerchProvider,
 } from '@stagelink/types';
@@ -158,6 +160,7 @@ function localizeBlock(
     artistContactEmail?: string | null;
     artistReleases?: ArtistRelease[];
     artistRecordLabels?: RecordLabel[];
+    artistCounters?: { eps: number; labels: number; collabs: number };
   },
 ): PublicBlockDto {
   const localizedContent = (block.localizedContent as BlockLocalizedContent | null) ?? {};
@@ -375,6 +378,33 @@ function localizeBlock(
       config: {
         labelIds,
         labels: resolved,
+      },
+    };
+  }
+
+  if (block.type === 'public_counters') {
+    // Resolve the selected counter keys into { key, value } pairs from the
+    // artist profile, in display order. Empty `show` = all three. Only counters
+    // with a value > 0 are emitted (so zeros never render).
+    const countersConfig = baseConfig as { show?: unknown };
+    const values = options?.artistCounters ?? { eps: 0, labels: 0, collabs: 0 };
+    const allKeys: PublicCounterKey[] = ['eps', 'labels', 'collabs'];
+    const show = Array.isArray(countersConfig.show)
+      ? (countersConfig.show as PublicCounterKey[]).filter((k) => allKeys.includes(k))
+      : [];
+    const keysInOrder = show.length === 0 ? allKeys : show;
+    const counters = keysInOrder
+      .map((key) => ({ key, value: values[key] ?? 0 }))
+      .filter((c) => c.value > 0);
+
+    return {
+      id: block.id,
+      type: block.type,
+      title: localizedTitle,
+      position: block.position,
+      config: {
+        show,
+        counters,
       },
     };
   }
@@ -923,6 +953,11 @@ export class PublicPagesService {
             artistContactEmail: page.artist.contactEmail,
             artistReleases: resolvedReleases,
             artistRecordLabels: resolvedRecordLabels,
+            artistCounters: {
+              eps: page.artist.epsReleasedCount ?? 0,
+              labels: resolvedRecordLabels.length,
+              collabs: page.artist.externalCollabsCount ?? 0,
+            },
           });
         }),
       )
@@ -939,7 +974,9 @@ export class PublicPagesService {
         (block.type !== 'releases' ||
           ((block.config as unknown as ReleasesBlockConfig).releases ?? []).length > 0) &&
         (block.type !== 'record_labels' ||
-          ((block.config as unknown as RecordLabelsBlockConfig).labels ?? []).length > 0),
+          ((block.config as unknown as RecordLabelsBlockConfig).labels ?? []).length > 0) &&
+        (block.type !== 'public_counters' ||
+          ((block.config as unknown as PublicCountersBlockConfig).counters ?? []).length > 0),
     );
 
     return {

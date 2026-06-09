@@ -27,6 +27,7 @@ export const BLOCK_TYPES = [
   'contact_form',
   'releases',
   'record_labels',
+  'public_counters',
 ] as const;
 export type BlockTypeValue = (typeof BLOCK_TYPES)[number];
 

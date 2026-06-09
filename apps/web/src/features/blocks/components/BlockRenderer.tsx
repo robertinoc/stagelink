@@ -13,6 +13,7 @@ import type {
   ContactFormBlockConfig,
   ReleasesBlockConfig,
   RecordLabelsBlockConfig,
+  PublicCountersBlockConfig,
 } from '@stagelink/types';
 import { LinksBlockRenderer } from './LinksBlockRenderer';
 import { MusicEmbedRenderer } from './MusicEmbedRenderer';
@@ -26,6 +27,7 @@ import { TechnicalRiderRenderer } from './TechnicalRiderRenderer';
 import { ContactFormRenderer } from './ContactFormRenderer';
 import { ReleasesBlockRenderer } from './ReleasesBlockRenderer';
 import { RecordLabelsBlockRenderer } from './RecordLabelsBlockRenderer';
+import { PublicCountersBlockRenderer } from './PublicCountersBlockRenderer';
 
 /**
  * Minimal block shape accepted by BlockRenderer.
@@ -175,6 +177,15 @@ export function BlockRenderer({ block, onLinkClick, artistId }: BlockRendererPro
       <RecordLabelsBlockRenderer
         title={block.title}
         config={block.config as RecordLabelsBlockConfig}
+      />
+    );
+  }
+
+  if (block.type === 'public_counters') {
+    return (
+      <PublicCountersBlockRenderer
+        title={block.title}
+        config={block.config as PublicCountersBlockConfig}
       />
     );
   }
