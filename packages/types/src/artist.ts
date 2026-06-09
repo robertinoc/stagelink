@@ -161,6 +161,9 @@ export interface PublicArtist {
   epsReleasedCount: number | null;
   externalCollabsCount: number | null;
   recordLabelsCount: number;
+  // Curated record labels — surfaced on the public page only through the
+  // `record_labels` block (always returned; FE hides when no block uses them).
+  recordLabels: RecordLabel[];
 }
 
 export type PublicPromoSlotKind = 'none' | 'free_branding';

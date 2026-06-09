@@ -2157,7 +2157,8 @@
       "smart_merch": "Smart Merch",
       "technical_rider": "Rider técnico",
       "contact_form": "Formulario de contacto",
-      "releases": "Lanzamientos / EPs"
+      "releases": "Lanzamientos / EPs",
+      "record_labels": "Sellos discográficos"
     },
     "type_descriptions": {
       "links": "Agregá links a tus perfiles, sitio web o cualquier lugar.",
@@ -2170,7 +2171,8 @@
       "smart_merch": "Elegí productos reales desde Printful y agregá un link externo de compra para cada uno.",
       "technical_rider": "Mostrá tu rider técnico y de producción desde tu Press Kit.",
       "contact_form": "Dejá que los visitantes te envíen un mensaje directamente desde tu página.",
-      "releases": "Mostrá los lanzamientos, EPs y álbumes del catálogo de tu perfil."
+      "releases": "Mostrá los lanzamientos, EPs y álbumes del catálogo de tu perfil.",
+      "record_labels": "Destacá los sellos en los que editaste, en el orden que vos quieras."
     },
     "fields": {
       "title": "Título del bloque (opcional)",
@@ -2311,7 +2313,18 @@
       "releases_selected_count": "{selected} de {total} seleccionados",
       "releases_show_all": "Mostrar todos",
       "releases_move_up": "Subir",
-      "releases_move_down": "Bajar"
+      "releases_move_down": "Bajar",
+      "record_labels_empty": "Todavía no tenés sellos en tu perfil",
+      "record_labels_from_profile": "Agregá tus sellos en el catálogo de tu perfil para mostrarlos acá.",
+      "record_labels_go_to_catalog": "Ir al catálogo",
+      "record_labels_title": "Sellos a mostrar",
+      "record_labels_hint": "Elegí qué sellos aparecen y ordenálos como quieras. Dejá todos seleccionados para mostrar todos.",
+      "record_labels_showing_all": "Mostrando los {total} sellos",
+      "record_labels_selected_count": "{selected} de {total} seleccionados",
+      "record_labels_show_all": "Mostrar todos",
+      "record_labels_move_up": "Subir",
+      "record_labels_move_down": "Bajar",
+      "record_labels_default_title": "Sellos"
     },
     "smart_link": {
       "destination": "Destino",

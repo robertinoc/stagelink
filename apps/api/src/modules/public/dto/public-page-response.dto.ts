@@ -3,6 +3,7 @@ import type {
   ArtistRelease,
   BlockType,
   PublicPromoSlotKind,
+  RecordLabel,
   SupportedLocale,
 } from '@stagelink/types';
 
@@ -66,6 +67,9 @@ export interface PublicArtistDto {
   epsReleasedCount: number | null;
   externalCollabsCount: number | null;
   recordLabelsCount: number;
+  // Curated record labels — surfaced on the public page only through the
+  // `record_labels` block. Always returned (possibly empty).
+  recordLabels: RecordLabel[];
 }
 
 // ── Respuesta completa de página pública ──────────────────────

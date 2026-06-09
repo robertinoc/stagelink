@@ -308,6 +308,7 @@ enum BlockType {
   technical_rider
   contact_form
   releases
+  record_labels
 
   @@map("block_type")
 }
