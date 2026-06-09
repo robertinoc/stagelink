@@ -170,6 +170,7 @@ export default async function DashboardPageBuilderPage({ params }: Props) {
           userPlan={billingSummary.effectivePlan}
           galleryImages={artist?.galleryImageUrls ?? []}
           releases={artist?.releases ?? []}
+          recordLabels={artist?.recordLabels ?? []}
           username={artist?.username ?? undefined}
           textSources={textSourceList}
         />

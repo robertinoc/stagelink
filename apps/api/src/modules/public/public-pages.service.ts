@@ -25,6 +25,7 @@ import {
   type ShopifyStoreProduct,
   type TechnicalRiderBlockConfig,
   type ReleasesBlockConfig,
+  type RecordLabelsBlockConfig,
   type SupportedLocale,
   type SmartMerchProvider,
 } from '@stagelink/types';
@@ -156,6 +157,7 @@ function localizeBlock(
     epkTechRequirements?: string | null;
     artistContactEmail?: string | null;
     artistReleases?: ArtistRelease[];
+    artistRecordLabels?: RecordLabel[];
   },
 ): PublicBlockDto {
   const localizedContent = (block.localizedContent as BlockLocalizedContent | null) ?? {};
@@ -346,6 +348,33 @@ function localizeBlock(
       config: {
         releaseIds,
         releases: resolved,
+      },
+    };
+  }
+
+  if (block.type === 'record_labels') {
+    // Resolve stored label IDs into the full label objects from the artist
+    // profile, preserving the block's display order. Empty labelIds = "show all".
+    const labelsConfig = baseConfig as { labelIds?: unknown };
+    const allLabels = options?.artistRecordLabels ?? [];
+    const labelIds = Array.isArray(labelsConfig.labelIds)
+      ? (labelsConfig.labelIds as string[])
+      : [];
+    const resolved =
+      labelIds.length === 0
+        ? allLabels
+        : labelIds
+            .map((id) => allLabels.find((label) => label.id === id))
+            .filter((label): label is RecordLabel => Boolean(label));
+
+    return {
+      id: block.id,
+      type: block.type,
+      title: localizedTitle,
+      position: block.position,
+      config: {
+        labelIds,
+        labels: resolved,
       },
     };
   }
@@ -876,6 +905,12 @@ export class PublicPagesService {
       (release) => release && release.title?.trim(),
     );
 
+    // Curated record labels from the profile, defensively filtered. Shared by
+    // every `record_labels` block so they resolve their IDs.
+    const resolvedRecordLabels = ((page.artist.recordLabels as RecordLabel[] | null) ?? []).filter(
+      (label) => label && typeof label.name === 'string' && label.name.trim(),
+    );
+
     const localizedBlocks = (
       await Promise.all(
         page.blocks.map(async (block) => {
@@ -887,6 +922,7 @@ export class PublicPagesService {
             epkTechRequirements,
             artistContactEmail: page.artist.contactEmail,
             artistReleases: resolvedReleases,
+            artistRecordLabels: resolvedRecordLabels,
           });
         }),
       )
@@ -901,7 +937,9 @@ export class PublicPagesService {
           !!(block.config as unknown as TechnicalRiderBlockConfig).riderInfo ||
           !!(block.config as unknown as TechnicalRiderBlockConfig).techRequirements) &&
         (block.type !== 'releases' ||
-          ((block.config as unknown as ReleasesBlockConfig).releases ?? []).length > 0),
+          ((block.config as unknown as ReleasesBlockConfig).releases ?? []).length > 0) &&
+        (block.type !== 'record_labels' ||
+          ((block.config as unknown as RecordLabelsBlockConfig).labels ?? []).length > 0),
     );
 
     return {
@@ -944,7 +982,8 @@ export class PublicPagesService {
         // counters round-trip the stored values; `null` means "hide" on the FE.
         epsReleasedCount: page.artist.epsReleasedCount ?? null,
         externalCollabsCount: page.artist.externalCollabsCount ?? null,
-        recordLabelsCount: ((page.artist.recordLabels as RecordLabel[] | null) ?? []).length,
+        recordLabelsCount: resolvedRecordLabels.length,
+        recordLabels: resolvedRecordLabels,
       },
       blocks: localizedBlocks,
       promoSlot,

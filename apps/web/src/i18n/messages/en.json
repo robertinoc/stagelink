@@ -2157,7 +2157,8 @@
       "smart_merch": "Smart Merch",
       "technical_rider": "Technical Rider",
       "contact_form": "Contact Form",
-      "releases": "Releases / EPs"
+      "releases": "Releases / EPs",
+      "record_labels": "Record Labels"
     },
     "type_descriptions": {
       "links": "Add clickable links to your profiles, website or anywhere.",
@@ -2170,7 +2171,8 @@
       "smart_merch": "Pick real products from Printful and attach an external purchase link for each one.",
       "technical_rider": "Display your technical and production rider from your EPK.",
       "contact_form": "Let visitors send you a message directly from your page.",
-      "releases": "Showcase the releases, EPs and albums from your profile catalog."
+      "releases": "Showcase the releases, EPs and albums from your profile catalog.",
+      "record_labels": "Highlight the labels you have released on, in your own order."
     },
     "fields": {
       "title": "Block title (optional)",
@@ -2311,7 +2313,18 @@
       "releases_selected_count": "{selected} of {total} selected",
       "releases_show_all": "Show all",
       "releases_move_up": "Move up",
-      "releases_move_down": "Move down"
+      "releases_move_down": "Move down",
+      "record_labels_empty": "No record labels in your profile yet",
+      "record_labels_from_profile": "Add your labels in your profile catalog to show them here.",
+      "record_labels_go_to_catalog": "Go to catalog",
+      "record_labels_title": "Labels to show",
+      "record_labels_hint": "Pick which labels appear and order them as you like. Leave all selected to show every label.",
+      "record_labels_showing_all": "Showing all {total} labels",
+      "record_labels_selected_count": "{selected} of {total} selected",
+      "record_labels_show_all": "Show all",
+      "record_labels_move_up": "Move up",
+      "record_labels_move_down": "Move down",
+      "record_labels_default_title": "Labels"
     },
     "smart_link": {
       "destination": "Destination",

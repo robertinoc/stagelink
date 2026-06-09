@@ -1,4 +1,5 @@
 import type { ArtistRelease } from './artist';
+import type { RecordLabel } from './epk';
 import type { LocalizedTextMap } from './i18n';
 import type {
   SmartMerchDisplayMode,
@@ -27,6 +28,7 @@ export const BLOCK_TYPES = [
   'technical_rider',
   'contact_form',
   'releases',
+  'record_labels',
 ] as const;
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
@@ -250,6 +252,21 @@ export interface ReleasesBlockConfig {
   releases?: ArtistRelease[];
 }
 
+/**
+ * Record Labels block. Surfaces the artist's curated labels (stored on the
+ * profile, `artists.recordLabels`) as a user-orderable block — letting them
+ * highlight the labels they've released on.
+ *
+ * `labelIds` holds the IDs to show, in display order. Empty = "show all in
+ * profile order". Only IDs are stored; the full `RecordLabel[]` is resolved
+ * server-side at serve time (same pattern as releases) and attached as `labels`.
+ */
+export interface RecordLabelsBlockConfig {
+  labelIds: string[];
+  /** Resolved at serve time by the public API (localizeBlock). Not persisted. */
+  labels?: RecordLabel[];
+}
+
 export interface BlockLocalizedContent {
   title?: LocalizedTextMap;
   emailCapture?: EmailCaptureBlockTranslations;
@@ -270,7 +287,8 @@ export type BlockConfig =
   | SmartMerchBlockConfig
   | TechnicalRiderBlockConfig
   | ContactFormBlockConfig
-  | ReleasesBlockConfig;
+  | ReleasesBlockConfig
+  | RecordLabelsBlockConfig;
 
 // ─── Block entity ─────────────────────────────────────────────────────────────
 
@@ -366,4 +384,10 @@ export function isContactFormBlock(
 
 export function isReleasesBlock(block: Block): block is Block & { config: ReleasesBlockConfig } {
   return block.type === 'releases';
+}
+
+export function isRecordLabelsBlock(
+  block: Block,
+): block is Block & { config: RecordLabelsBlockConfig } {
+  return block.type === 'record_labels';
 }

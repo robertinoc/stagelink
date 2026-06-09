@@ -23,6 +23,8 @@ import type {
   ContactFormBlockConfig,
   ReleasesBlockConfig,
   ArtistRelease,
+  RecordLabelsBlockConfig,
+  RecordLabel,
   SupportedLocale,
 } from '@stagelink/types';
 import { SUPPORTED_LOCALES } from '@stagelink/types';
@@ -43,6 +45,8 @@ interface Props {
   }>;
   /** Artist's release catalog from the profile — source for the releases block selector. */
   releases?: ArtistRelease[];
+  /** Artist's curated record labels — source for the record_labels block selector. */
+  recordLabels?: RecordLabel[];
   /**
    * Required for the smart link picker inside the links block form.
    * When absent, the smart link option is hidden.
@@ -1720,6 +1724,8 @@ export function defaultConfig(type: BlockType): BlockConfig {
       return { email: '' };
     case 'releases':
       return { releaseIds: [] };
+    case 'record_labels':
+      return { labelIds: [] };
   }
 }
 
@@ -1885,6 +1891,161 @@ function ReleasesBlockForm({
   );
 }
 
+function RecordLabelsBlockForm({
+  config,
+  onChange,
+  recordLabels,
+}: {
+  config: RecordLabelsBlockConfig;
+  onChange: (c: RecordLabelsBlockConfig) => void;
+  recordLabels?: RecordLabel[];
+}) {
+  const t = useTranslations('blocks.fields');
+  const locale = useLocale();
+  const allLabels = useMemo(() => recordLabels ?? [], [recordLabels]);
+  const allIds = useMemo(() => allLabels.map((l) => l.id), [allLabels]);
+
+  const isShowingAll = config.labelIds.length === 0;
+  const selectedIds = useMemo(
+    () => (isShowingAll ? allIds : config.labelIds.filter((id) => allIds.includes(id))),
+    [isShowingAll, allIds, config.labelIds],
+  );
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+
+  const orderedLabels = useMemo(() => {
+    const byId = new Map(allLabels.map((l) => [l.id, l]));
+    const selected = selectedIds
+      .map((id) => byId.get(id))
+      .filter((l): l is RecordLabel => Boolean(l));
+    const unselected = allLabels.filter((l) => !selectedSet.has(l.id));
+    return [...selected, ...unselected];
+  }, [allLabels, selectedIds, selectedSet]);
+
+  function commit(ids: string[]) {
+    const isAllInOrder = ids.length === allIds.length && ids.every((id, i) => id === allIds[i]);
+    onChange({ ...config, labelIds: isAllInOrder ? [] : ids });
+  }
+
+  function toggle(id: string) {
+    if (selectedSet.has(id)) {
+      commit(selectedIds.filter((x) => x !== id));
+    } else {
+      commit([...selectedIds, id]);
+    }
+  }
+
+  function move(id: string, dir: 'up' | 'down') {
+    const idx = selectedIds.indexOf(id);
+    if (idx === -1) return;
+    const swap = dir === 'up' ? idx - 1 : idx + 1;
+    if (swap < 0 || swap >= selectedIds.length) return;
+    const next = [...selectedIds];
+    const a = next[idx]!;
+    const b = next[swap]!;
+    next[idx] = b;
+    next[swap] = a;
+    commit(next);
+  }
+
+  if (allLabels.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.03] p-4 text-sm text-muted-foreground">
+        <p className="font-medium text-white">{t('record_labels_empty')}</p>
+        <p className="mt-1">
+          {t('record_labels_from_profile')}{' '}
+          <Link
+            href={`/${locale}/dashboard/profile?tab=catalog`}
+            className="font-medium text-primary underline-offset-2 hover:underline"
+          >
+            {t('record_labels_go_to_catalog')}
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-white">{t('record_labels_title')}</p>
+            <p className="text-xs text-muted-foreground">{t('record_labels_hint')}</p>
+            <p className="text-xs text-muted-foreground">
+              {isShowingAll
+                ? t('record_labels_showing_all', { total: allLabels.length })
+                : t('record_labels_selected_count', {
+                    selected: selectedIds.length,
+                    total: allLabels.length,
+                  })}
+            </p>
+          </div>
+          {!isShowingAll && (
+            <button
+              type="button"
+              onClick={() => onChange({ ...config, labelIds: [] })}
+              className="shrink-0 rounded-full border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary hover:text-foreground"
+            >
+              {t('record_labels_show_all')}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <ul className="space-y-2">
+        {orderedLabels.map((label) => {
+          const selected = selectedSet.has(label.id);
+          const orderIndex = selectedIds.indexOf(label.id);
+          return (
+            <li
+              key={label.id}
+              className={`flex items-center gap-3 rounded-xl border p-3 transition ${
+                selected ? 'border-primary/40 bg-primary/[0.06]' : 'border-white/10 bg-white/[0.02]'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={selected}
+                onChange={() => toggle(label.id)}
+                className="h-4 w-4 shrink-0 accent-[#E040FB]"
+                aria-label={label.name}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-white">{label.name}</p>
+                {label.websiteUrl ? (
+                  <p className="truncate text-xs text-muted-foreground">{label.websiteUrl}</p>
+                ) : null}
+              </div>
+              {selected && (
+                <div className="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => move(label.id, 'up')}
+                    disabled={orderIndex <= 0}
+                    aria-label={t('record_labels_move_up')}
+                    className="rounded-md border border-white/10 px-2 py-1 text-xs text-white/70 transition hover:border-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => move(label.id, 'down')}
+                    disabled={orderIndex === selectedIds.length - 1}
+                    aria-label={t('record_labels_move_down')}
+                    className="rounded-md border border-white/10 px-2 py-1 text-xs text-white/70 transition hover:border-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    ↓
+                  </button>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 export function BlockConfigForm({
   type,
   config,
@@ -1894,6 +2055,7 @@ export function BlockConfigForm({
   galleryImages,
   textSources,
   releases,
+  recordLabels,
   artistId,
 }: Props) {
   switch (type) {
@@ -1974,6 +2136,14 @@ export function BlockConfigForm({
           config={config as ReleasesBlockConfig}
           onChange={(c) => onChange(c)}
           releases={releases}
+        />
+      );
+    case 'record_labels':
+      return (
+        <RecordLabelsBlockForm
+          config={config as RecordLabelsBlockConfig}
+          onChange={(c) => onChange(c)}
+          recordLabels={recordLabels}
         />
       );
   }

@@ -16,6 +16,7 @@ import {
   ShoppingBag,
   Shirt,
   Sliders,
+  Tag,
   Trash2,
   Type,
 } from 'lucide-react';
@@ -29,6 +30,7 @@ import type {
   UpdateBlockPayload,
   PlanCode,
   ArtistRelease,
+  RecordLabel,
 } from '@stagelink/types';
 import { BLOCK_TYPES, PLAN_BLOCK_LIMITS } from '@stagelink/types';
 import {
@@ -72,6 +74,8 @@ interface Props {
   }>;
   /** Artist's release catalog — source for the releases block selector + "won't render" warning. */
   releases?: ArtistRelease[];
+  /** Artist's curated record labels — source for the record_labels block selector + warning. */
+  recordLabels?: RecordLabel[];
   username?: string;
 }
 
@@ -89,6 +93,7 @@ const BLOCK_TYPE_ICONS: Record<BlockType, LucideIcon> = {
   technical_rider: Sliders,
   contact_form: MessageSquare,
   releases: Disc3,
+  record_labels: Tag,
 };
 
 /** Brand background colours for music-embed providers (shown in the block row icon). */
@@ -225,6 +230,7 @@ function CreateBlockDialog({
   galleryImages,
   textSources,
   releases,
+  recordLabels,
   onCreated,
   onClose,
 }: {
@@ -236,6 +242,7 @@ function CreateBlockDialog({
   galleryImages?: Props['galleryImages'];
   textSources?: Props['textSources'];
   releases?: Props['releases'];
+  recordLabels?: Props['recordLabels'];
   onCreated: (block: Block) => void;
   onClose: () => void;
 }) {
@@ -365,6 +372,7 @@ function CreateBlockDialog({
                 galleryImages={galleryImages}
                 textSources={textSources}
                 releases={releases}
+                recordLabels={recordLabels}
               />
             )}
 
@@ -393,6 +401,7 @@ function EditBlockSheet({
   galleryImages,
   textSources,
   releases,
+  recordLabels,
   onUpdated,
   onClose,
 }: {
@@ -401,6 +410,7 @@ function EditBlockSheet({
   galleryImages?: Props['galleryImages'];
   textSources?: Props['textSources'];
   releases?: Props['releases'];
+  recordLabels?: Props['recordLabels'];
   onUpdated: (block: Block) => void;
   onClose: () => void;
 }) {
@@ -486,6 +496,7 @@ function EditBlockSheet({
                 galleryImages={galleryImages}
                 textSources={textSources}
                 releases={releases}
+                recordLabels={recordLabels}
               />
 
               {error && <p className="text-sm text-destructive">{error}</p>}
@@ -748,6 +759,7 @@ export function BlockManager({
   galleryImages,
   textSources,
   releases,
+  recordLabels,
   username,
 }: Props) {
   const t = useTranslations('blocks');
@@ -958,6 +970,23 @@ export function BlockManager({
                         'Los lanzamientos seleccionados ya no existen en tu perfil. Editá el bloque y elegí otros.';
                     }
                   }
+                } else if (block.type === 'record_labels') {
+                  const cfg = block.config as { labelIds?: string[] };
+                  const profileLabelCount = recordLabels?.length ?? 0;
+                  const selectedCount = cfg.labelIds?.length ?? 0;
+                  if (profileLabelCount === 0) {
+                    wontRender = true;
+                    wontRenderReason =
+                      'No tenés sellos cargados en tu perfil. Agregalos en Mi Perfil → Catálogo para que este bloque aparezca.';
+                  } else if (selectedCount > 0) {
+                    const validIds = new Set(recordLabels?.map((l) => l.id) ?? []);
+                    const anyValid = cfg.labelIds!.some((id) => validIds.has(id));
+                    if (!anyValid) {
+                      wontRender = true;
+                      wontRenderReason =
+                        'Los sellos seleccionados ya no existen en tu perfil. Editá el bloque y elegí otros.';
+                    }
+                  }
                 }
               }
 
@@ -1010,6 +1039,7 @@ export function BlockManager({
         galleryImages={galleryImages}
         textSources={textSources}
         releases={releases}
+        recordLabels={recordLabels}
         onCreated={handleCreated}
         onClose={() => setCreateOpen(false)}
       />
@@ -1020,6 +1050,7 @@ export function BlockManager({
         galleryImages={galleryImages}
         textSources={textSources}
         releases={releases}
+        recordLabels={recordLabels}
         onUpdated={(updated) => {
           handleUpdated(updated);
           setEditingBlock(null);

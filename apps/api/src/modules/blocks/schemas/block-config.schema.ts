@@ -63,6 +63,8 @@ const MAX_SMART_MERCH_CTA_LENGTH = 40;
 const MAX_SMART_MERCH_PRODUCTS = 12;
 const MAX_RELEASE_ITEMS = 50;
 const MAX_RELEASE_ID_LENGTH = 64;
+const MAX_RECORD_LABEL_ITEMS = 50;
+const MAX_RECORD_LABEL_ID_LENGTH = 64;
 const MAX_LOCALIZED_ITEM_LABELS = 50;
 const MAX_LOCALIZED_ITEM_ID_LENGTH = 64;
 
@@ -591,6 +593,38 @@ function validateReleasesConfig(c: Record<string, unknown>): void {
   }
 }
 
+function validateRecordLabelsConfig(c: Record<string, unknown>): void {
+  // labelIds holds the profile record-label IDs to show, in display order.
+  // Empty array = "show all". Only IDs are stored; the full label objects are
+  // resolved from artist.recordLabels at serve time (localizeBlock).
+  if (!Array.isArray(c['labelIds'])) {
+    throw new BadRequestException('record_labels config.labelIds must be an array');
+  }
+
+  const labelIds = c['labelIds'] as unknown[];
+  if (labelIds.length > MAX_RECORD_LABEL_ITEMS) {
+    throw new BadRequestException(
+      `record_labels config.labelIds must contain at most ${MAX_RECORD_LABEL_ITEMS} items`,
+    );
+  }
+
+  const seen = new Set<string>();
+  for (const [index, value] of labelIds.entries()) {
+    assertNonEmptyString(
+      value,
+      `record_labels config.labelIds[${index}]`,
+      MAX_RECORD_LABEL_ID_LENGTH,
+    );
+    const normalized = (value as string).trim();
+    if (seen.has(normalized)) {
+      throw new BadRequestException(
+        `record_labels config.labelIds[${index}] must be unique within the block`,
+      );
+    }
+    seen.add(normalized);
+  }
+}
+
 function validateSmartMerchConfig(c: Record<string, unknown>): void {
   if (!SMART_MERCH_PROVIDERS.includes(c['provider'] as (typeof SMART_MERCH_PROVIDERS)[number])) {
     throw new BadRequestException(
@@ -975,6 +1009,9 @@ export function validateBlockConfig(type: BlockType, config: unknown): void {
       break;
     case 'releases':
       validateReleasesConfig(config);
+      break;
+    case 'record_labels':
+      validateRecordLabelsConfig(config);
       break;
     default: {
       // Exhaustive guard — TypeScript will error here if a new BlockType
