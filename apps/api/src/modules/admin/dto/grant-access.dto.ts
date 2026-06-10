@@ -2,9 +2,12 @@ import { IsEnum, IsISO8601, IsOptional, IsString, MaxLength } from 'class-valida
 import { PlanTier } from '@prisma/client';
 
 /**
- * Body for POST /api/admin/users/:id/access — grant a temporary
- * (admin-issued) plan to a tenant. Only PRO / PRO+ are valid grants;
- * `free` would be a no-op and is rejected.
+ * Body for POST /api/admin/users/:id/access — grant a manual plan to a
+ * tenant. Only PRO / PRO+ are valid grants; `free` is rejected.
+ *
+ * `expiresAt` is optional:
+ *   - ISO8601 string → grant expires on that date (max 10 years from now)
+ *   - null / omitted  → grant never expires (use for trusted internal accounts)
  */
 export class GrantAccessDto {
   @IsEnum([PlanTier.pro, PlanTier.pro_plus], {
@@ -12,8 +15,11 @@ export class GrantAccessDto {
   })
   plan!: typeof PlanTier.pro | typeof PlanTier.pro_plus;
 
-  @IsISO8601({}, { message: 'expiresAt must be an ISO8601 date string' })
-  expiresAt!: string;
+  // @IsOptional() already skips validators when the value is null or undefined.
+  // Pass null explicitly for a never-expiring grant; omit to default to no expiry.
+  @IsOptional()
+  @IsISO8601({}, { message: 'expiresAt must be an ISO8601 date string or null' })
+  expiresAt?: string | null;
 
   @IsOptional()
   @IsString()

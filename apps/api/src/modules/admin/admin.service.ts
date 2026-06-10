@@ -323,7 +323,7 @@ export class AdminService {
   // raise a tenant's access for a bounded window. The effective access is
   // recomputed via resolveEffectiveAccess() wherever it is consumed.
 
-  private readonly MAX_GRANT_MS = 365 * 24 * 60 * 60 * 1000; // 1 year
+  private readonly MAX_GRANT_MS = 10 * 365 * 24 * 60 * 60 * 1000; // 10 years
 
   /**
    * Resolves the (single) artist + subscription for a target user.
@@ -361,8 +361,15 @@ export class AdminService {
     };
   }
 
-  /** Parses + validates an ISO expiry: must be in the future, max 1 year out. */
-  private parseExpiry(expiresAt: string): Date {
+  /**
+   * Parses + validates an ISO expiry date.
+   *
+   * Returns `null` when `expiresAt` is null/undefined — the grant never
+   * expires (useful for internal / trusted accounts).
+   * When a date string is supplied it must be in the future (≤ 10 years).
+   */
+  private parseExpiry(expiresAt: string | null | undefined): Date | null {
+    if (expiresAt === null || expiresAt === undefined) return null;
     const expiry = new Date(expiresAt);
     if (Number.isNaN(expiry.getTime())) {
       throw new BadRequestException('expiresAt is not a valid date');
@@ -372,19 +379,21 @@ export class AdminService {
       throw new BadRequestException('expiresAt must be in the future');
     }
     if (expiry.getTime() - now > this.MAX_GRANT_MS) {
-      throw new BadRequestException('expiresAt cannot be more than 1 year from now');
+      throw new BadRequestException('expiresAt cannot be more than 10 years from now');
     }
     return expiry;
   }
 
   /**
-   * Grants (or replaces) a manual temporary access for a tenant.
+   * Grants (or replaces) a manual access for a tenant.
    * Upserts the subscription row WITHOUT changing commercial billing fields.
+   *
+   * Pass `expiresAt: null` for a never-expiring grant (internal / trusted accounts).
    */
   async grantAccess(
     targetUserId: string,
     plan: typeof PlanTier.pro | typeof PlanTier.pro_plus,
-    expiresAt: string,
+    expiresAt: string | null | undefined,
     reason: string | undefined,
     actorId: string,
     ipAddress?: string,
@@ -423,7 +432,7 @@ export class AdminService {
         targetUserId,
         targetEmail,
         plan,
-        expiresAt: expiry.toISOString(),
+        expiresAt: expiry?.toISOString() ?? null,
         reason: reason ?? null,
       },
       ipAddress,

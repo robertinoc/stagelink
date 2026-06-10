@@ -298,9 +298,21 @@ function AccessCell({ sub }: { sub: ArtistSubscription | null }) {
   const elevated = sub.accessSource === 'manual_admin_grant' && grantActive;
   const expires = sub.manualAccessExpiresAt ? formatDate(sub.manualAccessExpiresAt) : 'no expiry';
 
+  // Commercial plan is paid but the subscription is not active (canceled, past_due, etc.)
+  const commercialPlanPaid = sub.plan !== 'free';
+  const commercialPlanActive = sub.status === 'active' || sub.status === 'trialing';
+  const commercialPlanCanceled = commercialPlanPaid && !commercialPlanActive;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
-      <PlanBadge plan={sub.plan} />
+      {/* Primary badge: what the user can actually do (effective access) */}
+      <PlanBadge plan={sub.effectiveAccess} />
+      {/* Explain when the underlying Stripe plan is paid but not active */}
+      {commercialPlanCanceled && !grantActive && (
+        <span style={{ fontSize: 10.5, color: 'rgba(255,200,100,0.7)', lineHeight: 1.35 }}>
+          {planLabel(sub.plan)} plan canceled
+        </span>
+      )}
       {grantActive && (
         <span
           style={{ fontSize: 10.5, fontWeight: 600, color: '#E040FB', lineHeight: 1.35 }}
@@ -310,11 +322,6 @@ function AccessCell({ sub }: { sub: ArtistSubscription | null }) {
           }
         >
           ⚡ {planLabel(sub.manualAccessPlan!)} until {expires}
-        </span>
-      )}
-      {elevated && sub.effectiveAccess !== sub.plan && (
-        <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.35)' }}>
-          effective: {planLabel(sub.effectiveAccess)}
         </span>
       )}
     </div>
@@ -761,7 +768,7 @@ function UserRow({
             />
             <MenuItem
               icon="⚡"
-              label={user.subscription?.manualAccessPlan ? 'Manage access' : 'Grant temp access'}
+              label={user.subscription?.manualAccessPlan ? 'Manage access' : 'Grant access'}
               accent="#E040FB"
               disabled={!user.subscription}
               onClick={() => {
@@ -1355,6 +1362,8 @@ function ManageAccessModal({
   const [plan, setPlan] = useState<'pro' | 'pro_plus'>(
     (sub?.manualAccessPlan as 'pro' | 'pro_plus') ?? 'pro',
   );
+  // null expiresAt means "never expires" — only applies to new grants (POST)
+  const [noExpiry, setNoExpiry] = useState<boolean>(false);
   const [expiresAt, setExpiresAt] = useState<string>(
     sub?.manualAccessExpiresAt ? sub.manualAccessExpiresAt.slice(0, 10) : dateInputValue(30),
   );
@@ -1375,7 +1384,7 @@ function ManageAccessModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           plan,
-          expiresAt: new Date(`${expiresAt}T23:59:59`).toISOString(),
+          expiresAt: noExpiry ? null : new Date(`${expiresAt}T23:59:59`).toISOString(),
           reason: reason.trim() || undefined,
         }),
       });
@@ -1594,7 +1603,7 @@ function ManageAccessModal({
               <div className="flex flex-wrap gap-2">
                 {!hasGrant && (
                   <Button type="button" className="flex-1" onClick={() => setMode('grant')}>
-                    Grant temporary access
+                    Grant access
                   </Button>
                 )}
                 {hasGrant && (
@@ -1652,29 +1661,57 @@ function ManageAccessModal({
               </div>
             </div>
             <div>
-              <label
-                htmlFor="grant-expiry"
-                className="mb-1.5 block text-xs font-medium"
-                style={{ color: 'rgba(255,255,255,0.6)' }}
-              >
-                Expires on
-              </label>
-              <input
-                id="grant-expiry"
-                type="date"
-                required
-                min={dateInputValue(1)}
-                max={dateInputValue(365)}
-                value={expiresAt}
-                onChange={(e) => setExpiresAt(e.target.value)}
-                className="w-full rounded-md px-3 py-2 text-sm outline-none focus:ring-2"
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  color: 'var(--foreground)',
-                  colorScheme: 'dark',
-                }}
-              />
+              <div className="mb-1.5 flex items-center justify-between">
+                <label
+                  htmlFor="grant-expiry"
+                  className="block text-xs font-medium"
+                  style={{ color: noExpiry ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.6)' }}
+                >
+                  Expires on
+                </label>
+                <label
+                  className="flex cursor-pointer items-center gap-1.5 text-xs"
+                  style={{ color: 'rgba(255,255,255,0.5)' }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={noExpiry}
+                    onChange={(e) => setNoExpiry(e.target.checked)}
+                    className="h-3.5 w-3.5 rounded"
+                    style={{ accentColor: 'rgb(232,121,249)' }}
+                  />
+                  No expiry
+                </label>
+              </div>
+              {!noExpiry ? (
+                <input
+                  id="grant-expiry"
+                  type="date"
+                  required
+                  min={dateInputValue(1)}
+                  max={dateInputValue(365 * 10)}
+                  value={expiresAt}
+                  onChange={(e) => setExpiresAt(e.target.value)}
+                  className="w-full rounded-md px-3 py-2 text-sm outline-none focus:ring-2"
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    color: 'var(--foreground)',
+                    colorScheme: 'dark',
+                  }}
+                />
+              ) : (
+                <p
+                  className="rounded-md px-3 py-2 text-sm"
+                  style={{
+                    backgroundColor: 'rgba(232,121,249,0.06)',
+                    border: '1px solid rgba(232,121,249,0.2)',
+                    color: 'rgba(232,121,249,0.7)',
+                  }}
+                >
+                  Grant will never expire
+                </p>
+              )}
             </div>
             <ModalField
               id="grant-reason"
