@@ -506,4 +506,31 @@ export class EmailService {
 
     await this.send(to, 'tu stage está encendido', html);
   }
+
+  /**
+   * Notifies an artist that a new fan subscribed to their email list.
+   *
+   * @param to          Artist's email address
+   * @param fanEmail    Email the fan submitted
+   * @param pageTitle   Artist's display name or username (for the email subject)
+   * @param dashboardUrl  Link to the subscribers list in the dashboard
+   */
+  async sendFanSubscribedNotification(
+    to: string,
+    fanEmail: string,
+    artistName: string,
+    dashboardUrl: string,
+  ): Promise<void> {
+    const html = this.buildEmailHtml(
+      '¡Nuevo fan en tu lista!',
+      [
+        `<strong>${fanEmail}</strong> acaba de suscribirse a tu fan list.`,
+        'Podés ver y exportar toda tu lista de fans desde tu dashboard.',
+      ],
+      'Ver mi lista de fans',
+      dashboardUrl,
+    );
+
+    await this.send(to, `Nuevo suscriptor en tu fan list — ${artistName}`, html);
+  }
 }

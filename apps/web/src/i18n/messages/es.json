@@ -2385,7 +2385,7 @@
     "renderer": {
       "embed_unavailable": "Vista previa no disponible",
       "email_capture": {
-        "email_placeholder": "myemail@gmail.com",
+        "email_placeholder": "fan@example.com",
         "submitting": "Suscribiendo…",
         "success_heading": "¡Ya estás dentro!",
         "success_message": "Gracias por suscribirte.",
