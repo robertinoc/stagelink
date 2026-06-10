@@ -296,7 +296,7 @@ describe('AdminService', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
-  it('rejects a grant expiring more than a year out', async () => {
+  it('rejects a grant expiring more than 10 years out', async () => {
     const { service, prisma } = createService();
     mockArtist(prisma);
 
@@ -304,7 +304,8 @@ describe('AdminService', () => {
       service.grantAccess(
         'user_1',
         'pro' as never,
-        new Date(Date.now() + 400 * 86_400_000).toISOString(),
+        // 11 years from now — exceeds the 10-year MAX_GRANT_MS cap
+        new Date(Date.now() + 11 * 365 * 86_400_000).toISOString(),
         undefined,
         'owner_1',
       ),
