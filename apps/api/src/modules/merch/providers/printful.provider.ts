@@ -100,8 +100,18 @@ export class PrintfulProviderService implements MerchProviderAdapter {
     const uniqueIds = [...new Set(ids.map((id) => id.trim()).filter(Boolean))];
     const responses = await Promise.all(
       uniqueIds.map((id) =>
+        // Use the legacy sync-product detail endpoint (`/sync/products/{id}`),
+        // NOT `/store/products/{id}`. The latter only works for Printful stores
+        // on the "Manual Order / API" platform and 503s for Shopify-integrated
+        // stores ("This API endpoint applies only to Printful stores based on
+        // the Manual Order / API platform"), which broke saving a Smart Merch
+        // block for any artist whose Printful is wired through Shopify. The
+        // product LIST path (getProducts) already uses `/sync/products`, so this
+        // keeps both paths on the same compatible endpoint family. The response
+        // shape ({ sync_product, sync_variants }) is what mapSyncProductDetail
+        // expects.
         this.request<PrintfulSyncProductDetailNode>(
-          `/store/products/${encodeURIComponent(id)}`,
+          `/sync/products/${encodeURIComponent(id)}`,
           connection.apiToken,
           {
             allowNotFound: true,
