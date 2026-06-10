@@ -109,44 +109,61 @@ const BLOCK_TYPE_ICONS: Record<BlockType, LucideIcon> = {
  * time, so a category with no available types is hidden entirely.
  */
 interface BlockCategory {
-  key: 'essentials' | 'music_video' | 'career' | 'store' | 'connect';
-  /** Tailwind classes for the icon chip (bg + text colour). */
+  key: 'essentials' | 'music_video' | 'career' | 'connect' | 'store';
+  /** Category eyebrow colour (Space Grotesk uppercase header). */
+  headerText: string;
+  /** Icon chip — gradient bg + ring + glyph colour. */
   iconWrap: string;
-  /** Hover accent for the card. */
+  /** Hover accent for the card (border + tint + glow). */
   cardHover: string;
   types: BlockType[];
 }
 
+// Order matters: Store last, Connect second-to-last (per product direction).
 const BLOCK_CATEGORIES: BlockCategory[] = [
   {
     key: 'essentials',
-    iconWrap: 'bg-violet-500/15 text-violet-300',
-    cardHover: 'hover:border-violet-400/50 hover:bg-violet-500/[0.05]',
+    headerText: 'text-violet-300/90',
+    iconWrap:
+      'bg-gradient-to-br from-violet-500/25 to-violet-500/10 text-violet-200 ring-1 ring-violet-400/20',
+    cardHover:
+      'hover:border-violet-400/40 hover:bg-violet-500/[0.04] hover:shadow-[0_0_24px_-6px_rgba(139,92,246,0.45)]',
     types: ['links', 'text', 'image_gallery'],
   },
   {
     key: 'music_video',
-    iconWrap: 'bg-fuchsia-500/15 text-fuchsia-300',
-    cardHover: 'hover:border-fuchsia-400/50 hover:bg-fuchsia-500/[0.05]',
+    headerText: 'text-fuchsia-300/90',
+    iconWrap:
+      'bg-gradient-to-br from-fuchsia-500/25 to-fuchsia-500/10 text-fuchsia-200 ring-1 ring-fuchsia-400/20',
+    cardHover:
+      'hover:border-fuchsia-400/40 hover:bg-fuchsia-500/[0.04] hover:shadow-[0_0_24px_-6px_rgba(217,70,239,0.45)]',
     types: ['music_embed', 'video_embed'],
   },
   {
     key: 'career',
-    iconWrap: 'bg-amber-500/15 text-amber-300',
-    cardHover: 'hover:border-amber-400/50 hover:bg-amber-500/[0.05]',
+    headerText: 'text-amber-300/90',
+    iconWrap:
+      'bg-gradient-to-br from-amber-500/25 to-amber-500/10 text-amber-200 ring-1 ring-amber-400/20',
+    cardHover:
+      'hover:border-amber-400/40 hover:bg-amber-500/[0.04] hover:shadow-[0_0_24px_-6px_rgba(245,158,11,0.45)]',
     types: ['releases', 'record_labels', 'public_counters'],
   },
   {
-    key: 'store',
-    iconWrap: 'bg-emerald-500/15 text-emerald-300',
-    cardHover: 'hover:border-emerald-400/50 hover:bg-emerald-500/[0.05]',
-    types: ['shopify_store', 'smart_merch'],
+    key: 'connect',
+    headerText: 'text-sky-300/90',
+    iconWrap: 'bg-gradient-to-br from-sky-500/25 to-sky-500/10 text-sky-200 ring-1 ring-sky-400/20',
+    cardHover:
+      'hover:border-sky-400/40 hover:bg-sky-500/[0.04] hover:shadow-[0_0_24px_-6px_rgba(14,165,233,0.45)]',
+    types: ['email_capture', 'contact_form', 'technical_rider'],
   },
   {
-    key: 'connect',
-    iconWrap: 'bg-sky-500/15 text-sky-300',
-    cardHover: 'hover:border-sky-400/50 hover:bg-sky-500/[0.05]',
-    types: ['email_capture', 'contact_form', 'technical_rider'],
+    key: 'store',
+    headerText: 'text-emerald-300/90',
+    iconWrap:
+      'bg-gradient-to-br from-emerald-500/25 to-emerald-500/10 text-emerald-200 ring-1 ring-emerald-400/20',
+    cardHover:
+      'hover:border-emerald-400/40 hover:bg-emerald-500/[0.04] hover:shadow-[0_0_24px_-6px_rgba(16,185,129,0.45)]',
+    types: ['shopify_store', 'smart_merch'],
   },
 ];
 
@@ -381,41 +398,45 @@ function CreateBlockDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl xl:max-w-4xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl xl:max-w-5xl">
         <DialogHeader>
-          <DialogTitle>{t('create_dialog.title')}</DialogTitle>
+          <DialogTitle className="font-[family-name:var(--font-heading)] tracking-tight">
+            {t('create_dialog.title')}
+          </DialogTitle>
           <DialogDescription>{t('create_dialog.subtitle')}</DialogDescription>
         </DialogHeader>
 
         {!selectedType ? (
-          <div className="space-y-5 pt-2">
+          <div className="space-y-5 pt-1">
             {BLOCK_CATEGORIES.map((category) => {
               const types = category.types.filter((type) => availableBlockTypes.includes(type));
               if (types.length === 0) return null;
               return (
                 <div key={category.key} className="space-y-2.5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  <p
+                    className={`font-[family-name:var(--font-heading)] text-[10px] font-bold uppercase tracking-[0.22em] ${category.headerText}`}
+                  >
                     {t(`categories.${category.key}`)}
                   </p>
-                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
                     {types.map((type) => {
                       const TypeIcon = BLOCK_TYPE_ICONS[type];
                       return (
                         <button
                           key={type}
                           onClick={() => selectType(type)}
-                          className={`group flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 ${category.cardHover}`}
+                          className={`group flex flex-col gap-2.5 rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-left transition-all duration-200 hover:-translate-y-0.5 ${category.cardHover}`}
                         >
                           <span
-                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105 ${category.iconWrap}`}
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 ${category.iconWrap}`}
                           >
-                            <TypeIcon className="h-[18px] w-[18px]" />
+                            <TypeIcon className="h-5 w-5" />
                           </span>
                           <span className="min-w-0">
-                            <span className="block text-sm font-semibold text-foreground">
+                            <span className="block font-[family-name:var(--font-heading)] text-[15px] font-bold leading-tight tracking-tight text-foreground">
                               {t(`types.${type}`)}
                             </span>
-                            <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
+                            <span className="mt-1 block text-xs leading-snug text-muted-foreground">
                               {t(`type_descriptions.${type}`)}
                             </span>
                           </span>
