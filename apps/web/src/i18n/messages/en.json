@@ -2432,6 +2432,13 @@
         "error_not_configured": "Contact form is not configured. The site owner needs to add EmailJS credentials.",
         "anonymous": "a fan"
       }
+    },
+    "categories": {
+      "essentials": "Essentials",
+      "music_video": "Music & Video",
+      "career": "Your career",
+      "store": "Store",
+      "connect": "Connect with fans"
     }
   },
   "public_page": {
