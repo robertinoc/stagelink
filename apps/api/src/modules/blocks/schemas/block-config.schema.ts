@@ -491,7 +491,14 @@ function validateEmailCaptureConfig(c: Record<string, unknown>): void {
 
 const VALID_TEXT_BIO_SOURCES = ['short_bio', 'full_bio'] as const;
 
-function validateTextConfig(c: Record<string, unknown>): void {
+/**
+ * @param c              The raw config object for a text block.
+ * @param effectiveTitle The block's effective title after the current request
+ *                       (trimmed string or null/undefined when absent).
+ *                       Used to enforce the "at least title OR body" rule so that
+ *                       a block with only a title (and no body) is valid.
+ */
+function validateTextConfig(c: Record<string, unknown>, effectiveTitle?: string | null): void {
   // Validate htmlMode flag when present.
   if (c['htmlMode'] !== undefined && typeof c['htmlMode'] !== 'boolean') {
     throw new BadRequestException('text config.htmlMode must be a boolean');
@@ -499,7 +506,7 @@ function validateTextConfig(c: Record<string, unknown>): void {
 
   const isHtmlMode = c['htmlMode'] === true;
 
-  // HTML mode: body is raw embed code — allow larger content, skip bioSource.
+  // HTML mode: body is raw embed code — always required (the whole point is the embed).
   if (isHtmlMode) {
     assertNonEmptyString(c['body'], 'text config.body', MAX_HTML_BODY_LENGTH);
     return;
@@ -521,6 +528,34 @@ function validateTextConfig(c: Record<string, unknown>): void {
     return;
   }
 
+  // Markdown mode — body is optional as long as a title is provided.
+  //
+  // Valid combinations:
+  //   title + body  → both visible
+  //   title only    → body is empty/absent — shows title without body
+  //   body only     → body visible, no title heading
+  //   neither       → rejected: the block would render nothing
+  const hasBody = typeof c['body'] === 'string' && c['body'].trim().length > 0;
+  const hasTitle = Boolean(effectiveTitle?.trim());
+
+  if (!hasBody) {
+    if (!hasTitle) {
+      // Both are empty — the block would render nothing.
+      throw new BadRequestException('A text block requires at least a title or body content.');
+    }
+    // Title is present, body is absent/empty — allowed. Validate type and length if sent.
+    if (c['body'] !== undefined && typeof c['body'] !== 'string') {
+      throw new BadRequestException('text config.body must be a string');
+    }
+    if (typeof c['body'] === 'string' && c['body'].length > MAX_TEXT_BODY_LENGTH) {
+      throw new BadRequestException(
+        `text config.body must be ${MAX_TEXT_BODY_LENGTH} characters or fewer`,
+      );
+    }
+    return;
+  }
+
+  // Body is present — run the full non-empty string check.
   assertNonEmptyString(c['body'], 'text config.body', MAX_TEXT_BODY_LENGTH);
 }
 
@@ -1019,7 +1054,20 @@ function parseVideoUrl(provider: (typeof VIDEO_PROVIDERS)[number], sourceUrl: st
  *   - sourceUrl is a safe http(s) URL
  * Does NOT derive embedUrl — call enrichBlockConfig after validate.
  */
-export function validateBlockConfig(type: BlockType, config: unknown): void {
+/**
+ * @param type           Block type from Prisma enum.
+ * @param config         Raw config payload (will be asserted as a plain object).
+ * @param effectiveTitle The block's effective title after the current operation —
+ *                       only used by the text block validator to enforce the
+ *                       "at least title OR body" rule. Pass null/undefined when
+ *                       the title is not being changed and you don't need that check
+ *                       (other block types ignore this parameter entirely).
+ */
+export function validateBlockConfig(
+  type: BlockType,
+  config: unknown,
+  effectiveTitle?: string | null,
+): void {
   assertPlainObject(config);
 
   switch (type) {
@@ -1036,7 +1084,7 @@ export function validateBlockConfig(type: BlockType, config: unknown): void {
       validateEmailCaptureConfig(config);
       break;
     case 'text':
-      validateTextConfig(config);
+      validateTextConfig(config, effectiveTitle);
       break;
     case 'image_gallery':
       validateImageGalleryConfig(config);

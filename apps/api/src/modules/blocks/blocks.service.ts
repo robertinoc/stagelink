@@ -68,7 +68,8 @@ export class BlocksService {
 
     validateBlockTitle(dto.title);
     const blockType = dto.type as BlockType;
-    validateBlockConfig(blockType, dto.config);
+    // Pass the effective title so text blocks can allow an empty body when a title is present.
+    validateBlockConfig(blockType, dto.config, dto.title?.trim() ?? null);
 
     await this.assertFeatureAccessForBlock(artistId, blockType);
 
@@ -184,7 +185,11 @@ export class BlocksService {
           ? (block.config as Record<string, unknown>)
           : {};
       const mergedConfig = { ...existing, ...dto.config };
-      validateBlockConfig(block.type, mergedConfig);
+      // Compute the effective title after this update so the text block validator
+      // can apply the "at least title OR body" rule correctly.
+      const effectiveTitle =
+        dto.title !== undefined ? (dto.title?.trim() ?? null) : (block.title ?? null);
+      validateBlockConfig(block.type, mergedConfig, effectiveTitle);
 
       // Option-B grace: editing an EXISTING block's config is always allowed
       // regardless of plan. Feature gates only apply to creating NEW premium
