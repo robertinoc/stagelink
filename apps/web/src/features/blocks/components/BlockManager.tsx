@@ -120,49 +120,53 @@ interface BlockCategory {
 }
 
 // Order matters: Store last, Connect second-to-last (per product direction).
+// Palette aligned to the StageLink brand (magenta #E040FB / violet #9B30D0 /
+// amber #FBBF24 / cyan #00D4FF / green #4ADE80). Icon chips use a vivid gradient
+// with a ring; eyebrows + hover glow pick up the same accent.
 const BLOCK_CATEGORIES: BlockCategory[] = [
   {
     key: 'essentials',
-    headerText: 'text-violet-300/90',
+    headerText: 'text-fuchsia-300',
     iconWrap:
-      'bg-gradient-to-br from-violet-500/25 to-violet-500/10 text-violet-200 ring-1 ring-violet-400/20',
+      'bg-gradient-to-br from-fuchsia-500/30 to-fuchsia-600/15 text-fuchsia-200 ring-1 ring-fuchsia-400/30',
     cardHover:
-      'hover:border-violet-400/40 hover:bg-violet-500/[0.04] hover:shadow-[0_0_24px_-6px_rgba(139,92,246,0.45)]',
+      'hover:border-fuchsia-400/50 hover:bg-fuchsia-500/[0.06] hover:shadow-[0_0_28px_-4px_rgba(224,64,251,0.5)]',
     types: ['links', 'text', 'image_gallery'],
   },
   {
     key: 'music_video',
-    headerText: 'text-fuchsia-300/90',
+    headerText: 'text-violet-300',
     iconWrap:
-      'bg-gradient-to-br from-fuchsia-500/25 to-fuchsia-500/10 text-fuchsia-200 ring-1 ring-fuchsia-400/20',
+      'bg-gradient-to-br from-violet-500/30 to-violet-600/15 text-violet-200 ring-1 ring-violet-400/30',
     cardHover:
-      'hover:border-fuchsia-400/40 hover:bg-fuchsia-500/[0.04] hover:shadow-[0_0_24px_-6px_rgba(217,70,239,0.45)]',
+      'hover:border-violet-400/50 hover:bg-violet-500/[0.06] hover:shadow-[0_0_28px_-4px_rgba(155,48,208,0.5)]',
     types: ['music_embed', 'video_embed'],
   },
   {
     key: 'career',
-    headerText: 'text-amber-300/90',
+    headerText: 'text-amber-300',
     iconWrap:
-      'bg-gradient-to-br from-amber-500/25 to-amber-500/10 text-amber-200 ring-1 ring-amber-400/20',
+      'bg-gradient-to-br from-amber-400/30 to-amber-500/15 text-amber-200 ring-1 ring-amber-400/30',
     cardHover:
-      'hover:border-amber-400/40 hover:bg-amber-500/[0.04] hover:shadow-[0_0_24px_-6px_rgba(245,158,11,0.45)]',
+      'hover:border-amber-400/50 hover:bg-amber-400/[0.06] hover:shadow-[0_0_28px_-4px_rgba(251,191,36,0.5)]',
     types: ['releases', 'record_labels', 'public_counters'],
   },
   {
     key: 'connect',
-    headerText: 'text-sky-300/90',
-    iconWrap: 'bg-gradient-to-br from-sky-500/25 to-sky-500/10 text-sky-200 ring-1 ring-sky-400/20',
+    headerText: 'text-cyan-300',
+    iconWrap:
+      'bg-gradient-to-br from-cyan-400/30 to-cyan-500/15 text-cyan-200 ring-1 ring-cyan-400/30',
     cardHover:
-      'hover:border-sky-400/40 hover:bg-sky-500/[0.04] hover:shadow-[0_0_24px_-6px_rgba(14,165,233,0.45)]',
+      'hover:border-cyan-400/50 hover:bg-cyan-400/[0.06] hover:shadow-[0_0_28px_-4px_rgba(0,212,255,0.5)]',
     types: ['email_capture', 'contact_form', 'technical_rider'],
   },
   {
     key: 'store',
-    headerText: 'text-emerald-300/90',
+    headerText: 'text-emerald-300',
     iconWrap:
-      'bg-gradient-to-br from-emerald-500/25 to-emerald-500/10 text-emerald-200 ring-1 ring-emerald-400/20',
+      'bg-gradient-to-br from-emerald-400/30 to-emerald-500/15 text-emerald-200 ring-1 ring-emerald-400/30',
     cardHover:
-      'hover:border-emerald-400/40 hover:bg-emerald-500/[0.04] hover:shadow-[0_0_24px_-6px_rgba(16,185,129,0.45)]',
+      'hover:border-emerald-400/50 hover:bg-emerald-400/[0.06] hover:shadow-[0_0_28px_-4px_rgba(74,222,128,0.5)]',
     types: ['shopify_store', 'smart_merch'],
   },
 ];
@@ -407,14 +411,14 @@ function CreateBlockDialog({
         </DialogHeader>
 
         {!selectedType ? (
-          <div className="space-y-5 pt-1">
+          <div className="space-y-4 pt-1">
             {BLOCK_CATEGORIES.map((category) => {
               const types = category.types.filter((type) => availableBlockTypes.includes(type));
               if (types.length === 0) return null;
               return (
-                <div key={category.key} className="space-y-2.5">
+                <div key={category.key} className="space-y-2">
                   <p
-                    className={`font-[family-name:var(--font-heading)] text-[10px] font-bold uppercase tracking-[0.22em] ${category.headerText}`}
+                    className={`font-[family-name:var(--font-heading)] text-[11px] font-bold uppercase tracking-[0.2em] ${category.headerText}`}
                   >
                     {t(`categories.${category.key}`)}
                   </p>
@@ -425,18 +429,18 @@ function CreateBlockDialog({
                         <button
                           key={type}
                           onClick={() => selectType(type)}
-                          className={`group flex flex-col gap-2.5 rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-left transition-all duration-200 hover:-translate-y-0.5 ${category.cardHover}`}
+                          className={`group flex items-center gap-3.5 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 ${category.cardHover}`}
                         >
                           <span
-                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 ${category.iconWrap}`}
+                            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-110 ${category.iconWrap}`}
                           >
-                            <TypeIcon className="h-5 w-5" />
+                            <TypeIcon className="h-[22px] w-[22px]" />
                           </span>
-                          <span className="min-w-0">
-                            <span className="block font-[family-name:var(--font-heading)] text-[15px] font-bold leading-tight tracking-tight text-foreground">
+                          <span className="min-w-0 flex-1">
+                            <span className="block font-[family-name:var(--font-heading)] text-[17px] font-bold leading-tight tracking-tight text-white">
                               {t(`types.${type}`)}
                             </span>
-                            <span className="mt-1 block text-xs leading-snug text-muted-foreground">
+                            <span className="mt-0.5 block text-xs leading-snug text-white/55">
                               {t(`type_descriptions.${type}`)}
                             </span>
                           </span>
