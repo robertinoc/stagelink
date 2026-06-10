@@ -2432,6 +2432,13 @@
         "error_not_configured": "El formulario no está configurado. El admin del sitio debe agregar las credenciales de EmailJS.",
         "anonymous": "un fan"
       }
+    },
+    "categories": {
+      "essentials": "Esenciales",
+      "music_video": "Música y Video",
+      "career": "Tu carrera",
+      "store": "Tienda",
+      "connect": "Conexión con fans"
     }
   },
   "public_page": {

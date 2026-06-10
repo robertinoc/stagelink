@@ -100,6 +100,53 @@ const BLOCK_TYPE_ICONS: Record<BlockType, LucideIcon> = {
   public_counters: BarChart3,
 };
 
+/**
+ * Block types grouped into categories for the "Add a block" selector, each with
+ * its own accent. Types are filtered against availability (plan gates) at render
+ * time, so a category with no available types is hidden entirely.
+ */
+interface BlockCategory {
+  key: 'essentials' | 'music_video' | 'career' | 'store' | 'connect';
+  /** Tailwind classes for the icon chip (bg + text colour). */
+  iconWrap: string;
+  /** Hover accent for the card. */
+  cardHover: string;
+  types: BlockType[];
+}
+
+const BLOCK_CATEGORIES: BlockCategory[] = [
+  {
+    key: 'essentials',
+    iconWrap: 'bg-violet-500/15 text-violet-300',
+    cardHover: 'hover:border-violet-400/50 hover:bg-violet-500/[0.05]',
+    types: ['links', 'text', 'image_gallery'],
+  },
+  {
+    key: 'music_video',
+    iconWrap: 'bg-fuchsia-500/15 text-fuchsia-300',
+    cardHover: 'hover:border-fuchsia-400/50 hover:bg-fuchsia-500/[0.05]',
+    types: ['music_embed', 'video_embed'],
+  },
+  {
+    key: 'career',
+    iconWrap: 'bg-amber-500/15 text-amber-300',
+    cardHover: 'hover:border-amber-400/50 hover:bg-amber-500/[0.05]',
+    types: ['releases', 'record_labels', 'public_counters'],
+  },
+  {
+    key: 'store',
+    iconWrap: 'bg-emerald-500/15 text-emerald-300',
+    cardHover: 'hover:border-emerald-400/50 hover:bg-emerald-500/[0.05]',
+    types: ['shopify_store', 'smart_merch'],
+  },
+  {
+    key: 'connect',
+    iconWrap: 'bg-sky-500/15 text-sky-300',
+    cardHover: 'hover:border-sky-400/50 hover:bg-sky-500/[0.05]',
+    types: ['email_capture', 'contact_form', 'technical_rider'],
+  },
+];
+
 /** Brand background colours for music-embed providers (shown in the block row icon). */
 const MUSIC_PROVIDER_BG: Record<string, string> = {
   spotify: 'bg-[#1DB954]',
@@ -321,21 +368,42 @@ function CreateBlockDialog({
         </DialogHeader>
 
         {!selectedType ? (
-          <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2">
-            {availableBlockTypes.map((type) => {
-              const TypeIcon = BLOCK_TYPE_ICONS[type];
+          <div className="space-y-5 pt-2">
+            {BLOCK_CATEGORIES.map((category) => {
+              const types = category.types.filter((type) => availableBlockTypes.includes(type));
+              if (types.length === 0) return null;
               return (
-                <button
-                  key={type}
-                  onClick={() => selectType(type)}
-                  className="flex flex-col items-start gap-1 rounded-lg border p-4 text-left transition-colors hover:border-primary hover:bg-primary/5"
-                >
-                  <TypeIcon className="h-5 w-5 text-muted-foreground" />
-                  <span className="font-medium">{t(`types.${type}`)}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {t(`type_descriptions.${type}`)}
-                  </span>
-                </button>
+                <div key={category.key} className="space-y-2.5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    {t(`categories.${category.key}`)}
+                  </p>
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                    {types.map((type) => {
+                      const TypeIcon = BLOCK_TYPE_ICONS[type];
+                      return (
+                        <button
+                          key={type}
+                          onClick={() => selectType(type)}
+                          className={`group flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3.5 text-left transition-all duration-200 hover:-translate-y-0.5 ${category.cardHover}`}
+                        >
+                          <span
+                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105 ${category.iconWrap}`}
+                          >
+                            <TypeIcon className="h-[18px] w-[18px]" />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-sm font-semibold text-foreground">
+                              {t(`types.${type}`)}
+                            </span>
+                            <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
+                              {t(`type_descriptions.${type}`)}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </div>
