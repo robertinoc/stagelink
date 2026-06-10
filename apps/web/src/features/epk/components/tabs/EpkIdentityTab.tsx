@@ -150,6 +150,8 @@ interface EpkIdentityTabProps {
   displayedArtistImage: string;
   onSetCoverImage: (url: string) => void;
   onSetAvatarImage: (url: string) => void;
+  /** Whether the artist has EPK feature access (PRO or higher). When false, AI bio generator is disabled. */
+  hasEpkAccess?: boolean;
 }
 
 export function EpkIdentityTab({
@@ -164,6 +166,7 @@ export function EpkIdentityTab({
   displayedArtistImage,
   onSetCoverImage,
   onSetAvatarImage,
+  hasEpkAccess = true,
 }: EpkIdentityTabProps) {
   const t = useTranslations('dashboard.epk.editor');
   const {
@@ -266,6 +269,7 @@ export function EpkIdentityTab({
             <EpkBioGenerator
               artistId={artistId}
               existingHighlights={watchedHighlights.filter(Boolean)}
+              hasAccess={hasEpkAccess}
               onApply={(generated: EpkGenerateBioResponse) => {
                 setValue('headline', generated.headline, { shouldDirty: true });
                 setValue('shortBio', generated.shortBio, { shouldDirty: true });

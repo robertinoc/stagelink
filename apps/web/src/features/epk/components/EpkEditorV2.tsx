@@ -183,10 +183,26 @@ export function EpkEditorV2({
       pressContact: editorData.epk.pressContact ?? '',
       heroImageUrl: editorData.epk.heroImageUrl ?? '',
       galleryImageUrls: (() => {
-        const arr = [...(editorData.epk.galleryImageUrls ?? [])];
-        // Slot 1 = artist portrait; default to profile avatar if not explicitly set.
-        if (!arr[1] && editorData.inherited.avatarUrl) arr[1] = editorData.inherited.avatarUrl;
-        return arr;
+        const raw = [...(editorData.epk.galleryImageUrls ?? [])];
+        const hero = editorData.epk.heroImageUrl;
+        const avatar = editorData.inherited.avatarUrl;
+        const cover = hero || editorData.inherited.coverUrl;
+
+        // Recovery: if slot 0 has a URL different from heroImageUrl AND slot 1 is
+        // empty, the portrait was compacted from slot 1 to slot 0 by the old
+        // filter(Boolean) bug in setGalleryImageAt. Restore proper slot structure.
+        if (raw.length >= 1 && raw[0] && raw[0] !== hero && !raw[1]) {
+          const portrait = raw[0];
+          const slot0 = cover || avatar || portrait;
+          return [slot0, portrait, ...raw.slice(1)].filter(Boolean);
+        }
+
+        // Ensure both system slots are always populated so filter(Boolean) in
+        // setGalleryImageAt never collapses portrait from slot 1 to slot 0.
+        const arr = [...raw];
+        if (!arr[0]) arr[0] = cover || avatar || '';
+        if (!arr[1]) arr[1] = avatar || '';
+        return arr.filter(Boolean);
       })(),
       featuredMedia: editorData.epk.featuredMedia ?? [],
       featuredLinks: editorData.epk.featuredLinks ?? [],
@@ -240,7 +256,14 @@ export function EpkEditorV2({
 
   const displayedCoverImage =
     watchedHeroImageUrl || inherited.coverUrl || inherited.avatarUrl || '';
-  const displayedArtistImage = watchedGallery[1] || inherited.avatarUrl || '';
+  // Resolve portrait: slot 1 is the EPK-specific portrait; fall back to slot 0
+  // if it looks like a compacted portrait (differs from hero cover), then to
+  // the inherited profile avatar.
+  const displayedArtistImage =
+    watchedGallery[1] ||
+    (watchedGallery[0] && watchedGallery[0] !== watchedHeroImageUrl ? watchedGallery[0] : '') ||
+    inherited.avatarUrl ||
+    '';
   const publishReadiness = getEpkPublishReadiness(watchedFormValues);
 
   const profileLinkShortcuts = [
@@ -339,6 +362,13 @@ export function EpkEditorV2({
 
   function setGalleryImageAt(index: number, url: string) {
     const next = [...watchedGallery];
+    // When setting slot 1 (portrait) or higher, ensure slot 0 (cover mirror)
+    // is populated with a valid URL so filter(Boolean) below never collapses
+    // the portrait from slot 1 to slot 0.
+    if (index >= 1 && !next[0]) {
+      const coverFallback = watchedHeroImageUrl || inherited.coverUrl || inherited.avatarUrl;
+      if (coverFallback) next[0] = coverFallback;
+    }
     next[index] = url;
     setValue('galleryImageUrls', next.filter(Boolean), { shouldDirty: true });
   }
@@ -464,7 +494,21 @@ export function EpkEditorV2({
         managementContact: normalizeNullable(updated.epk.managementContact),
         pressContact: normalizeNullable(updated.epk.pressContact),
         heroImageUrl: normalizeNullable(updated.epk.heroImageUrl),
-        galleryImageUrls: updated.epk.galleryImageUrls,
+        galleryImageUrls: (() => {
+          const raw = [...(updated.epk.galleryImageUrls ?? [])];
+          const hero = updated.epk.heroImageUrl;
+          const avatar = updated.inherited.avatarUrl;
+          const cover = hero || updated.inherited.coverUrl;
+          if (raw.length >= 1 && raw[0] && raw[0] !== hero && !raw[1]) {
+            const portrait = raw[0];
+            const slot0 = cover || avatar || portrait;
+            return [slot0, portrait, ...raw.slice(1)].filter(Boolean);
+          }
+          const arr = [...raw];
+          if (!arr[0]) arr[0] = cover || avatar || '';
+          if (!arr[1]) arr[1] = avatar || '';
+          return arr.filter(Boolean);
+        })(),
         featuredMedia: updated.epk.featuredMedia,
         featuredLinks: updated.epk.featuredLinks,
         highlights: updated.epk.highlights,
@@ -577,9 +621,7 @@ export function EpkEditorV2({
                   variant="ghost"
                   type="button"
                   icon={<Icon.Eye size={14} />}
-                  onClick={() =>
-                    window.open(`${sharePath}?_t=${Date.now()}`, '_blank', 'noopener,noreferrer')
-                  }
+                  onClick={() => window.open(sharePath, '_blank', 'noopener,noreferrer')}
                 >
                   {t('header.viewPublic')}
                 </Btn>
@@ -664,6 +706,7 @@ export function EpkEditorV2({
               displayedArtistImage={displayedArtistImage}
               onSetCoverImage={setCoverImage}
               onSetAvatarImage={setAvatarImage}
+              hasEpkAccess={userPlan !== 'free'}
             />
           </>
         )}

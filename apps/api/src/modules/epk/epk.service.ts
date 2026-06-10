@@ -336,6 +336,7 @@ export class EpkService {
     userId: string,
   ): Promise<EpkGenerateBioResponse> {
     await this.membershipService.validateAccess(userId, artistId, 'read');
+    await this.billingEntitlementsService.assertFeatureAccess(artistId, 'epk_builder');
 
     const artist = await this.prisma.artist.findUnique({
       where: { id: artistId },

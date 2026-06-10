@@ -151,10 +151,10 @@ export function EpkCinematicTemplate({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {artist.avatarUrl && (
+            {(epk.galleryImageUrls[1] || artist.avatarUrl) && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={artist.avatarUrl}
+                src={epk.galleryImageUrls[1] || artist.avatarUrl || undefined}
                 alt={artist.displayName}
                 style={{
                   width: 32,
@@ -308,10 +308,10 @@ export function EpkCinematicTemplate({
               gap: 16,
             }}
           >
-            {artist.avatarUrl && (
+            {(epk.galleryImageUrls[1] || artist.avatarUrl) && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={artist.avatarUrl}
+                src={epk.galleryImageUrls[1] || artist.avatarUrl || undefined}
                 alt={artist.displayName}
                 style={{
                   width: 64,
@@ -353,11 +353,11 @@ export function EpkCinematicTemplate({
             {!printMode && <SectionLabel label={t.bio} />}
 
             {/* Artist avatar — always visible when available */}
-            {artist.avatarUrl && !printMode && (
+            {(epk.galleryImageUrls[1] || artist.avatarUrl) && !printMode && (
               <div style={{ marginBottom: 24 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={artist.avatarUrl}
+                  src={epk.galleryImageUrls[1] || artist.avatarUrl || undefined}
                   alt={artist.displayName}
                   style={{
                     width: 100,
