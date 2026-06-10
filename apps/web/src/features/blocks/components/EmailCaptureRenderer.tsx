@@ -12,11 +12,33 @@ interface SubmitPayload {
   website?: string; // honeypot — empty for real users, filled by bots
 }
 
+/**
+ * Reads the sl_ac consent cookie from document.cookie.
+ * Returns '1' (accepted), '0' (refused), or '' (not set / SSR).
+ * Forwarded as X-SL-AC header so the API can record the analytics event.
+ */
+function getConsentHeaderValue(): string {
+  if (typeof document === 'undefined') return '';
+  const match = document.cookie
+    .split(';')
+    .map((c) => c.trim())
+    .find((c) => c.startsWith('sl_ac='));
+  const val = match?.split('=')[1];
+  return val === '1' || val === '0' ? val : '';
+}
+
 async function submitEmail(blockId: string, payload: SubmitPayload): Promise<void> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+
+  // Forward consent cookie so the API can record the analytics event correctly.
+  // Without this header hasTrackingConsent=null and the fan_capture event is skipped.
+  const ac = getConsentHeaderValue();
+  if (ac) headers['X-SL-AC'] = ac;
+
   const res = await fetch(`${apiUrl}/api/public/blocks/${blockId}/subscribers`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(payload),
   });
   if (!res.ok) {

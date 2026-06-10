@@ -2,12 +2,14 @@ import { createHash } from 'crypto';
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { EventType, Prisma } from '@prisma/client';
 import { PrismaService } from '../../lib/prisma.service';
 import { PostHogService } from '../analytics/posthog.service';
+import { EmailService } from '../email/email.service';
 import { ANALYTICS_EVENTS, type EmailCaptureBlockConfig } from '@stagelink/types';
 import type { CreateSubscriberDto } from './dto/create-subscriber.dto';
 import { resolveTrafficFlags } from '../../common/utils/analytics-flags';
@@ -38,9 +40,12 @@ const DEFAULT_CONSENT_LABEL = 'I agree to receive updates from this artist.';
  */
 @Injectable()
 export class PublicSubscribeService {
+  private readonly logger = new Logger(PublicSubscribeService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly posthog: PostHogService,
+    private readonly email: EmailService,
   ) {}
 
   /**
@@ -68,7 +73,7 @@ export class PublicSubscribeService {
       return { created: false };
     }
 
-    // 2. Load block with config and page context
+    // 2. Load block with config and page context (including artist contact email)
     const block = await this.prisma.block.findUnique({
       where: { id: blockId },
       select: {
@@ -79,7 +84,14 @@ export class PublicSubscribeService {
           select: {
             id: true,
             artistId: true,
-            artist: { select: { username: true } },
+            artist: {
+              select: {
+                username: true,
+                displayName: true,
+                contactEmail: true,
+                user: { select: { email: true } },
+              },
+            },
           },
         },
       },
@@ -155,17 +167,22 @@ export class PublicSubscribeService {
       success: true,
     };
 
-    if (flags.hasTrackingConsent) {
+    // PostHog (external) — only fire when consent was explicitly given.
+    if (flags.hasTrackingConsent === true) {
       this.posthog.capture(ANALYTICS_EVENTS.FAN_CAPTURE_SUBMITTED, artistId, eventProps);
     }
 
-    // Local DB event (source of truth for basic analytics dashboard).
-    // analytics_events.ip_hash is NOT NULL (schema constraint), so we must
-    // always provide a value. When IP is unavailable we use hashIp(undefined)
-    // = SHA256('unknown'). This differs from subscriber.ip_hash (nullable) —
-    // an accepted schema-level inconsistency until analytics is migrated to
-    // allow NULL ip_hash as well.
-    if (flags.hasTrackingConsent) {
+    // Local DB event — source of truth for the analytics dashboard fan-capture counter.
+    // Gate: record unless consent was explicitly REFUSED (sl_ac=0).
+    //   hasTrackingConsent=true  → visitor accepted cookies → record
+    //   hasTrackingConsent=null  → header absent (visitor hasn't set cookie yet,
+    //                              or frontend didn't forward it) → still record;
+    //                              an explicit subscription action implies the
+    //                              visitor is engaged and the artist deserves the count
+    //   hasTrackingConsent=false → visitor refused cookies → skip (respect refusal)
+    // analytics_events.ip_hash is NOT NULL (schema constraint) — use hashIp(undefined)
+    // = SHA256('unknown') when IP is unavailable.
+    if (flags.hasTrackingConsent !== false) {
       this.prisma.analyticsEvent
         .create({
           data: {
@@ -177,6 +194,20 @@ export class PublicSubscribeService {
           },
         })
         .catch(() => {});
+    }
+
+    // 6. Notify artist by email — fire-and-forget (never block the response)
+    const artist = block.page.artist;
+    const artistEmail = artist.contactEmail ?? artist.user?.email ?? null;
+    if (artistEmail) {
+      const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://stagelink.art';
+      const dashboardUrl = `${appUrl}/en/dashboard/fans`;
+      const artistName = artist.displayName ?? artist.username ?? 'your page';
+      this.email
+        .sendFanSubscribedNotification(artistEmail, normalizedEmail, artistName, dashboardUrl)
+        .catch((err: unknown) => {
+          this.logger.warn(`Fan subscription notification email failed: ${String(err)}`);
+        });
     }
 
     return { created: true };

@@ -2385,7 +2385,7 @@
     "renderer": {
       "embed_unavailable": "Preview unavailable",
       "email_capture": {
-        "email_placeholder": "myemail@gmail.com",
+        "email_placeholder": "fan@example.com",
         "submitting": "Subscribing…",
         "success_heading": "You're in!",
         "success_message": "Thanks for subscribing.",
