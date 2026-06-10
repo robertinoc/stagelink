@@ -465,24 +465,43 @@ GET /api/public/pages/by-domain (Host header)
 
 ---
 
-## Tipos de Bloque (MVP)
+## Tipos de Bloque
 
-| Tipo          | Descripción                                          |
-| ------------- | ---------------------------------------------------- |
-| `link`        | URL genérica con título e icono                      |
-| `music`       | Embed de Spotify o SoundCloud (auto-detecta por URL) |
-| `video`       | Embed de YouTube o TikTok (auto-detecta por URL)     |
-| `fan_capture` | Formulario de email con consentimiento               |
+La landing pública es **100% block-driven**: el artista elige qué mostrar y en qué
+orden. 13 tipos de bloque (single source of truth: `BLOCK_TYPES` en
+`packages/types/src/block.ts`, sincronizado con el enum Prisma `block_type` y los
+validadores en `block-config.schema.ts`):
+
+| Tipo              | Descripción                                                              |
+| ----------------- | ------------------------------------------------------------------------ |
+| `links`           | Lista de links con título, icono y smart-link opcional                   |
+| `music_embed`     | Embed de Spotify / Apple Music / SoundCloud / YouTube (auto-detecta URL) |
+| `video_embed`     | Embed de YouTube / Vimeo / TikTok (auto-detecta URL)                     |
+| `email_capture`   | Formulario de captura de fans con consentimiento                         |
+| `text`            | Área de texto libre (o bio del perfil vía `bioSource`)                   |
+| `image_gallery`   | Galería desde las imágenes del perfil                                    |
+| `shopify_store`   | Merch desde la tienda Shopify conectada (gated por plan)                 |
+| `smart_merch`     | Productos de Printful con link de compra externo (gated por plan)        |
+| `technical_rider` | Rider técnico inyectado desde el EPK                                     |
+| `contact_form`    | Formulario de contacto (email destino o `artist.contactEmail`)           |
+| `releases`        | Lanzamientos / EPs del catálogo del perfil (perfil-derivado)             |
+| `record_labels`   | Sellos discográficos del perfil, destacables + ordenables (perfil-deriv) |
+| `public_counters` | Contadores de prueba social (EPs / sellos / colaboraciones)              |
+
+Los tres últimos (`releases`, `record_labels`, `public_counters`) son
+**perfil-derivados**: el config guarda solo qué/cuáles mostrar + orden, y el
+backend (`localizeBlock`) resuelve los datos completos desde el perfil al servir.
+Ver [Landing 100% block-driven](#landing-100-block-driven-prs-498508) para detalles.
 
 ---
 
 ## Planes
 
-| Plan | Features                                                                                                                                                                                                                                                  |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Free | 1 página de artista · 5 links de redes sociales · 5 bloques de links · Analytics básicos · EPK básico · `stagelink.art/@user`                                                                                                                             |
-| Pro  | 1 página de artista · 8 links de redes sociales · 10 bloques de links · Analytics avanzados · EPK avanzado · EPK templates · `stagelink.art/@user`                                                                                                        |
-| Pro+ | 1 página de artista · 13 links de redes sociales · Bloques de links ilimitados · Analytics avanzados · Analytics de Spotify · Analytics de YouTube · Múltiples EPK templates · EPK templates personalizados · `stagelink.art/@user` · Soporte prioritario |
+| Plan | Features                                                                                                                                                                                                                                 |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Free | 1 página de artista · 5 links de redes sociales · 5 bloques · Analytics básicos · EPK básico · `stagelink.art/@user`                                                                                                                     |
+| Pro  | 1 página de artista · 8 links de redes sociales · 10 bloques · Analytics avanzados · EPK avanzado · EPK templates · `stagelink.art/@user`                                                                                                |
+| Pro+ | 1 página de artista · 13 links de redes sociales · 50 bloques · Analytics avanzados · Analytics de Spotify · Analytics de YouTube · Múltiples EPK templates · EPK templates personalizados · `stagelink.art/@user` · Soporte prioritario |
 
 ### Feature Gating
 
@@ -815,22 +834,13 @@ SHOPIFY_STOREFRONT_TOKEN=               # Solo plan Pro
 
 ---
 
-#### Orden de bloques respeta el dashboard (fix crítico)
+#### Orden de bloques en `PublicPageClient` (contexto EPK/scoped)
 
-`ArtistPageView` tenía un layout hardcodeado por tipo que ignoraba la posición del usuario:
-
-- Links → sección FEATURED LINKS
-- Music/Video → sección MEDIA DESTACADA
-- Text + rest → sección INFORMACIÓN ADICIONAL
-- Email Capture → sección FAN LIST (siempre al fondo)
-
-El artista podía reordenar bloques en el dashboard pero el orden nunca se reflejaba en la página pública.
-
-**Fix:** `ArtistPageView` ahora renderiza todos los bloques del usuario en el orden exacto de posición (el API ya los devuelve con `ORDER BY position ASC`), usando un único `<PublicPageClient blocks={orderedBlocks} />`. Las secciones con headers fijos fueron eliminadas. Solo el contenido generado por la plataforma (Releases del catálogo, About auto desde bio, EPK/Contacto) sigue siendo fijo al final — no son bloques del usuario.
-
-**Archivos clave:**
-
-- `apps/web/src/features/public-page/components/ArtistPageView.tsx` — refactor principal (-341/+93 líneas)
+PR #494 alineó el orden por posición en `PublicPageClient` (usado en contextos
+scoped). **Ojo histórico:** este fix NO tocó `ArtistPageView` (la landing del
+artista), que siguió agrupando por tipo hasta el PR #498. Ver
+[Landing 100% block-driven](#landing-100-block-driven-prs-498508) para el fix real
+de la landing pública.
 
 ---
 
@@ -862,6 +872,93 @@ La page del dashboard carga `shopifyConnection` + `merchConnection` en paralelo 
 
 - `apps/web/src/features/blocks/components/BlockManager.tsx` — `notifyBlocksChanged()`
 - `apps/web/src/features/blocks/components/PhonePreviewFrame.tsx` — event listener + debounce
+
+---
+
+### Landing 100% block-driven (PRs #498–508)
+
+Convierte la landing pública del artista de un layout mixto (bloques agrupados por
+tipo + secciones automáticas fijas) a un sistema **100% de bloques**, donde el
+artista elige **qué mostrar** y **en qué orden**.
+
+#### Render por posición (PR #498 — cimiento)
+
+`ArtistPageView` agrupaba los bloques por tipo (Featured Links → Featured Media →
+Releases → Merch → Additional Info → Fan List) e **ignoraba el orden de posición**,
+aunque el API ya los devolvía con `ORDER BY position ASC`. Ahora renderiza **todos
+los bloques en un único loop, en orden de `position`**, sin headers de sección —
+cada bloque muestra su propio título opcional.
+
+- Las **CTAs de plataforma** de los bloques media (Spotify / Apple / SoundCloud /
+  YouTube) se preservan vía el helper `renderMediaCta(block)` aplicado por bloque.
+- Ancho por bloque vía `blockWidthClass()` (links / email-capture quedan angostos y
+  centrados; el resto usa el ancho completo).
+- El teaser de bio + la supresión del About auto (`hasCustomAboutBlock`) se mantienen.
+- Archivo: `apps/web/src/features/public-page/components/ArtistPageView.tsx`.
+
+#### Bloques perfil-derivados (PRs #504, #505, #506)
+
+Tres tipos nuevos que **leen la data del perfil** (no la duplican). Patrón común:
+el config guarda solo IDs/keys + orden; el backend `localizeBlock()` resuelve los
+objetos completos al servir (mismo patrón que los `products` de Shopify); los
+bloques sin datos resolubles se filtran de la respuesta pública.
+
+| Bloque            | Lee del perfil        | Config                            | Resuelto a          |
+| ----------------- | --------------------- | --------------------------------- | ------------------- |
+| `releases`        | `artist.releases`     | `{ releaseIds: [] }` (`[]`=todos) | `config.releases[]` |
+| `record_labels`   | `artist.recordLabels` | `{ labelIds: [] }` (`[]`=todos)   | `config.labels[]`   |
+| `public_counters` | eps/labels/collabs    | `{ show: [] }` (`[]`=todos)       | `config.counters[]` |
+
+- **`releases`** (PR #504) — reemplazó la sección auto de Releases. Editor con
+  selección + orden ↑/↓. Renderer: `ReleasesBlockRenderer` (client).
+- **`record_labels`** (PR #505) — feature nueva (los sellos antes solo se veían en
+  el EPK). Agrega `recordLabels` al `PublicArtist`/`PublicArtistDto`. Renderer:
+  `RecordLabelsBlockRenderer` con logos (fallback Clearbit + 📀 vía `RecordLabelLogo`).
+- **`public_counters`** (PR #506) — reemplazó la fila auto de contadores del header
+  (`ArtistStatsRow`). Editor: 3 toggles que muestran el valor actual del perfil.
+  Renderer: `PublicCountersBlockRenderer` — **tarjetas grandes full-width** con
+  número en Space Grotesk + label + acento de color + hover glow (rediseño visual
+  en PR #507).
+
+Cada bloque tiene su badge **"⚠ No visible"** en el dashboard cuando el perfil no
+tiene la data correspondiente (mismo patrón que Shopify/Smart Merch).
+
+**Migración (Releases + Counters reemplazan secciones auto):** scripts idempotentes
+`backfill-releases-block.ts` y `backfill-public-counters-block.ts` en
+`apps/api/src/scripts/` crean el bloque publicado (al final, `config` = "mostrar
+todos") para artistas que ya tenían esa data, para no perder contenido. Soportan
+`--dry-run`. `record_labels` es aditivo → sin migración. **Nota operativa:** la DB
+de prod es **Supabase** (Railway Postgres deprecado); el `.env` local puede tener
+credenciales viejas — correr el backfill con la `DATABASE_URL` de prod, o
+simplemente agregar el bloque a mano desde el dashboard (más rápido para 1 artista).
+
+#### Rediseño del selector de bloques (PR #508)
+
+El modal "Agregar un bloque" pasó de una grilla plana de 13 tarjetas monocromáticas
+a **5 categorías** con iconos a color: Esenciales · Música y Video · Tu carrera ·
+Tienda · Conexión con fans. Definidas en `BLOCK_CATEGORIES` en `BlockManager.tsx`;
+i18n en `blocks.categories.*`. Tipos gated por plan (Shopify/Smart Merch) se siguen
+filtrando; una categoría sin tipos disponibles se oculta entera.
+
+#### Checklist: agregar un nuevo tipo de bloque
+
+1. `packages/types/src/block.ts` — `BLOCK_TYPES` + `{Tipo}BlockConfig` + union
+   `BlockConfig` + type guard `is{Tipo}Block()`.
+2. `apps/api/prisma/schema.prisma` — valor en el enum `block_type` + migración
+   (`ALTER TYPE "block_type" ADD VALUE '...'`). Se aplica sola en deploy (`prisma
+migrate deploy` en el start del API).
+3. `apps/api/src/modules/blocks/dto/index.ts` — sincronizar `BLOCK_TYPES`.
+4. `apps/api/src/modules/blocks/schemas/block-config.schema.ts` —
+   `validate{Tipo}Config()` + case en `validateBlockConfig()` + `.spec.ts`.
+5. `apps/api/src/modules/public/public-pages.service.ts` — case en `localizeBlock()`
+   (+ inyectar data del perfil si aplica) + filtro de bloques vacíos.
+6. `apps/web/.../BlockRenderer.tsx` — dispatch al renderer (client).
+7. `apps/web/.../BlockConfigForm.tsx` — `defaultConfig()` + `{Tipo}Form` + case +
+   threading de la prop de datos del perfil si aplica.
+8. `apps/web/.../BlockManager.tsx` — icono en `BLOCK_TYPE_ICONS`, categoría en
+   `BLOCK_CATEGORIES`, badge `wontRender`, threading de props.
+9. `apps/web/.../dashboard/page/page.tsx` — pasar la data del perfil a `BlockManager`.
+10. i18n `blocks.types.{tipo}` + `blocks.type_descriptions.{tipo}` + campos (en/es).
 
 ---
 
