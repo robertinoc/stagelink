@@ -190,8 +190,28 @@ function hasLocalizedContent(content: BlockLocalizedContent | null | undefined):
 function getBlockConfigValidationMessage(
   config: BlockConfig | null,
   type?: BlockType,
+  /** Effective title after the current edit (trimmed). Used for the text block rule. */
+  title?: string,
 ): string | null {
   if (!config) return null;
+
+  // text block: body is optional when a title is present (and vice-versa).
+  // HTML mode always requires a body (the embed code IS the content).
+  // At least one of title or body must be non-empty.
+  if (type === 'text') {
+    const isHtmlMode = 'htmlMode' in config && (config as { htmlMode?: boolean }).htmlMode === true;
+    const hasBody =
+      'body' in config &&
+      typeof (config as { body?: string }).body === 'string' &&
+      ((config as { body?: string }).body ?? '').trim().length > 0;
+    const hasTitle = Boolean(title?.trim());
+    if (isHtmlMode && !hasBody) {
+      return 'El modo HTML requiere un embed code en el cuerpo del bloque.';
+    }
+    if (!isHtmlMode && !hasBody && !hasTitle) {
+      return 'El bloque de texto requiere al menos un título o un contenido.';
+    }
+  }
 
   // music_embed / video_embed in manual mode require a source URL
   if (type === 'music_embed' || type === 'video_embed') {
@@ -370,7 +390,7 @@ function CreateBlockDialog({
 
   async function handleCreate() {
     if (!selectedType || !config) return;
-    const validationMessage = getBlockConfigValidationMessage(config, selectedType);
+    const validationMessage = getBlockConfigValidationMessage(config, selectedType, title.trim());
     if (validationMessage) {
       setError(validationMessage);
       return;
@@ -554,7 +574,7 @@ function EditBlockSheet({
 
   async function handleSave() {
     if (!block || !config) return;
-    const validationMessage = getBlockConfigValidationMessage(config, block.type);
+    const validationMessage = getBlockConfigValidationMessage(config, block.type, title.trim());
     if (validationMessage) {
       setError(validationMessage);
       return;
