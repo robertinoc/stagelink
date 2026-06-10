@@ -50,9 +50,13 @@ const LOCALIZED_FIELDS: {
 interface SeoTabProps {
   form: UseFormReturn<ProfileFormValues>;
   handle: string; // artist.username
+  /** Whether the artist's plan includes multi-language pages. When false, the localized-content section shows a locked/upsell state. */
+  hasMultiLanguageAccess: boolean;
+  /** Href to the billing/upgrade page. Used in the upsell CTA. */
+  billingHref?: string;
 }
 
-export function SeoTab({ form, handle }: SeoTabProps) {
+export function SeoTab({ form, handle, hasMultiLanguageAccess, billingHref }: SeoTabProps) {
   const { watch, setValue, register } = form;
   const isMobile = useIsMobile();
   const baseLocale = watch('baseLocale');
@@ -310,118 +314,192 @@ export function SeoTab({ form, handle }: SeoTabProps) {
           hint="Tu Press Kit y página pueden mostrarse en varios idiomas. Si un idioma está incompleto, StageLink usa el contenido base como fallback."
         />
 
-        {/* Base language block */}
-        <div
-          style={{
-            borderRadius: 12,
-            background: 'rgba(0,0,0,0.25)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            padding: '14px 16px',
-            marginBottom: 14,
-          }}
-        >
+        {!hasMultiLanguageAccess && (
           <div
             style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.5px',
-              textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.50)',
-              marginBottom: 8,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              padding: '32px 16px',
+              borderRadius: 12,
+              background: 'rgba(0,0,0,0.2)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              textAlign: 'center',
             }}
           >
-            Idioma base del contenido
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            <LangPill flag={baseLocaleInfo.flag} name={baseLocaleInfo.name} state="base" active />
-            <LangPill flag={otherLocaleInfo.flag} name={otherLocaleInfo.name} state={otherState} />
-          </div>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.50)', marginTop: 10 }}>
-            Si otro idioma está incompleto, StageLink va a usar este contenido como fallback.
-          </p>
-        </div>
-
-        {/* Auto-translate banner */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            padding: '14px 18px',
-            borderRadius: 12,
-            background: 'rgba(224,64,251,0.08)',
-            border: '1px solid rgba(224,64,251,0.25)',
-            marginBottom: 22,
-            flexWrap: 'wrap',
-          }}
-        >
-          <Icon.Sparkle size={20} />
-          <p
-            style={{
-              flex: 1,
-              minWidth: 200,
-              fontSize: 13,
-              color: 'rgba(255,255,255,0.70)',
-              lineHeight: 1.5,
-              margin: 0,
-            }}
-          >
-            Completá estos campos con una traducción automática desde{' '}
-            <strong style={{ color: 'white' }}>
-              {baseLocaleInfo.name} → {otherLocaleInfo.name}
-            </strong>
-            . Después podés editar todo antes de guardar.
-          </p>
-          {otherHasContent && !translateConfirm ? (
-            <Btn variant="outline" size="sm" onClick={() => setTranslateConfirm(true)}>
-              Traducir automáticamente
-            </Btn>
-          ) : translateConfirm ? (
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Btn variant="bare" size="sm" onClick={() => setTranslateConfirm(false)}>
-                Cancelar
-              </Btn>
-              <Btn variant="primary" size="sm" onClick={handleAutoTranslate} disabled={translating}>
-                {translating ? 'Traduciendo…' : 'Sobreescribir y traducir'}
-              </Btn>
-            </div>
-          ) : (
-            <Btn variant="outline" size="sm" onClick={handleAutoTranslate} disabled={translating}>
-              {translating ? 'Traduciendo…' : 'Traducir automáticamente'}
-            </Btn>
-          )}
-        </div>
-
-        {/* Localized fields */}
-        <div>
-          {LOCALIZED_FIELDS.map((field, idx) => {
-            const val = (otherTrans as Record<string, string | undefined>)[field.key] ?? '';
-            return (
-              <div
-                key={field.key}
+            <div style={{ fontSize: 28, opacity: 0.5 }}>🔒</div>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 13.5,
+                color: 'rgba(255,255,255,0.55)',
+                lineHeight: 1.5,
+              }}
+            >
+              El contenido localizado está disponible en el plan{' '}
+              <strong style={{ color: 'white' }}>PRO</strong> o superior.
+            </p>
+            {billingHref && (
+              <a
+                href={billingHref}
                 style={{
-                  borderTop: idx === 0 ? '1px solid rgba(255,255,255,0.06)' : undefined,
-                  borderBottom: '1px solid rgba(255,255,255,0.06)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 18px',
+                  borderRadius: 999,
+                  background: 'linear-gradient(135deg, rgba(224,64,251,0.8), rgba(168,85,247,0.8))',
+                  color: 'white',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-heading)',
+                  textDecoration: 'none',
+                  transition: 'opacity 0.15s ease',
                 }}
               >
-                <LocalizedField
-                  label={field.label}
-                  locale={otherLocale.toUpperCase()}
-                  value={val}
-                  onChange={(v) =>
-                    setValue(`translations.${otherLocale}.${field.key}` as never, v as never, {
-                      shouldDirty: true,
-                    })
-                  }
-                  multiline={field.multiline}
-                  rows={field.rows}
-                  maxLength={field.maxLength}
+                Actualizar plan
+              </a>
+            )}
+          </div>
+        )}
+
+        {hasMultiLanguageAccess && (
+          <>
+            {/* Base language block */}
+            <div
+              style={{
+                borderRadius: 12,
+                background: 'rgba(0,0,0,0.25)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                padding: '14px 16px',
+                marginBottom: 14,
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.5px',
+                  textTransform: 'uppercase',
+                  color: 'rgba(255,255,255,0.50)',
+                  marginBottom: 8,
+                }}
+              >
+                Idioma base del contenido
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                <LangPill
+                  flag={baseLocaleInfo.flag}
+                  name={baseLocaleInfo.name}
+                  state="base"
+                  active
+                />
+                <LangPill
+                  flag={otherLocaleInfo.flag}
+                  name={otherLocaleInfo.name}
+                  state={otherState}
                 />
               </div>
-            );
-          })}
-        </div>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.50)', marginTop: 10 }}>
+                Si otro idioma está incompleto, StageLink va a usar este contenido como fallback.
+              </p>
+            </div>
+
+            {/* Auto-translate banner */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                padding: '14px 18px',
+                borderRadius: 12,
+                background: 'rgba(224,64,251,0.08)',
+                border: '1px solid rgba(224,64,251,0.25)',
+                marginBottom: 22,
+                flexWrap: 'wrap',
+              }}
+            >
+              <Icon.Sparkle size={20} />
+              <p
+                style={{
+                  flex: 1,
+                  minWidth: 200,
+                  fontSize: 13,
+                  color: 'rgba(255,255,255,0.70)',
+                  lineHeight: 1.5,
+                  margin: 0,
+                }}
+              >
+                Completá estos campos con una traducción automática desde{' '}
+                <strong style={{ color: 'white' }}>
+                  {baseLocaleInfo.name} → {otherLocaleInfo.name}
+                </strong>
+                . Después podés editar todo antes de guardar.
+              </p>
+              {otherHasContent && !translateConfirm ? (
+                <Btn variant="outline" size="sm" onClick={() => setTranslateConfirm(true)}>
+                  Traducir automáticamente
+                </Btn>
+              ) : translateConfirm ? (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <Btn variant="bare" size="sm" onClick={() => setTranslateConfirm(false)}>
+                    Cancelar
+                  </Btn>
+                  <Btn
+                    variant="primary"
+                    size="sm"
+                    onClick={handleAutoTranslate}
+                    disabled={translating}
+                  >
+                    {translating ? 'Traduciendo…' : 'Sobreescribir y traducir'}
+                  </Btn>
+                </div>
+              ) : (
+                <Btn
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAutoTranslate}
+                  disabled={translating}
+                >
+                  {translating ? 'Traduciendo…' : 'Traducir automáticamente'}
+                </Btn>
+              )}
+            </div>
+
+            {/* Localized fields */}
+            <div>
+              {LOCALIZED_FIELDS.map((field, idx) => {
+                const val = (otherTrans as Record<string, string | undefined>)[field.key] ?? '';
+                return (
+                  <div
+                    key={field.key}
+                    style={{
+                      borderTop: idx === 0 ? '1px solid rgba(255,255,255,0.06)' : undefined,
+                      borderBottom: '1px solid rgba(255,255,255,0.06)',
+                    }}
+                  >
+                    <LocalizedField
+                      label={field.label}
+                      locale={otherLocale.toUpperCase()}
+                      value={val}
+                      onChange={(v) =>
+                        setValue(`translations.${otherLocale}.${field.key}` as never, v as never, {
+                          shouldDirty: true,
+                        })
+                      }
+                      multiline={field.multiline}
+                      rows={field.rows}
+                      maxLength={field.maxLength}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </Bento>
     </div>
   );

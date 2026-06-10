@@ -74,7 +74,7 @@ const PLAN_ORDER: PlanCode[] = ['free', 'pro', 'pro_plus'];
 
 export const PLAN_FEATURE_MATRIX: Record<PlanCode, readonly FeatureKey[]> = {
   free: [],
-  pro: ['remove_stagelink_branding', 'custom_domain', 'epk_builder'],
+  pro: ['remove_stagelink_branding', 'custom_domain', 'epk_builder', 'multi_language_pages'],
   pro_plus: [
     'remove_stagelink_branding',
     'custom_domain',

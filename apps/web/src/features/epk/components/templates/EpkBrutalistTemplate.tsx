@@ -207,10 +207,10 @@ export function EpkBrutalistTemplate({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          {artist.avatarUrl && (
+          {(epk.galleryImageUrls[1] || artist.avatarUrl) && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={artist.avatarUrl}
+              src={epk.galleryImageUrls[1] || artist.avatarUrl || undefined}
               alt={artist.displayName}
               style={{
                 width: printMode ? 36 : 72,

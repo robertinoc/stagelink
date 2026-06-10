@@ -252,10 +252,10 @@ export function EpkStudioTemplate({ epk, locale, printMode = false }: EpkStudioT
         >
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-              {artist.avatarUrl && (
+              {(epk.galleryImageUrls[1] || artist.avatarUrl) && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={artist.avatarUrl}
+                  src={epk.galleryImageUrls[1] || artist.avatarUrl || undefined}
                   alt={artist.displayName}
                   style={{
                     width: printMode ? 64 : 96,

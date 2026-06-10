@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, RefreshCw, X, Check } from 'lucide-react';
+import { Sparkles, RefreshCw, X, Check, Lock } from 'lucide-react';
 import type { EpkAiTone, EpkGenerateBioResponse } from '@stagelink/types';
 import { EPK_AI_TONES } from '@stagelink/types';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,8 @@ interface EpkBioGeneratorProps {
   existingHighlights?: string[];
   /** Called when the user applies the generated content to the form */
   onApply: (result: EpkGenerateBioResponse) => void;
+  /** When false, the button renders as disabled/locked (PRO feature). Defaults to true. */
+  hasAccess?: boolean;
 }
 
 const TONE_LABELS: Record<EpkAiTone, { label: string; description: string }> = {
@@ -30,6 +32,7 @@ export function EpkBioGenerator({
   defaultGenre = '',
   existingHighlights = [],
   onApply,
+  hasAccess = true,
 }: EpkBioGeneratorProps) {
   const [open, setOpen] = useState(false);
   const [genre, setGenre] = useState(defaultGenre);
@@ -94,6 +97,20 @@ export function EpkBioGenerator({
     setPreview(null);
     setError(null);
     setApplied(false);
+  }
+
+  if (!hasAccess) {
+    return (
+      <button
+        type="button"
+        disabled
+        title="AI bio generation is available on PRO and PRO+ plans"
+        className="flex cursor-not-allowed items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-medium text-white/30"
+      >
+        <Lock className="h-4 w-4" />
+        Generate with AI
+      </button>
+    );
   }
 
   if (!open) {

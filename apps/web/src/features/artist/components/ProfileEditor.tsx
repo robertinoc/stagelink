@@ -38,7 +38,6 @@ interface ProfileEditorProps {
 export function ProfileEditor({
   artist,
   hasMultiLanguageAccess,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   billingHref,
   maxSocialLinks = 13,
 }: ProfileEditorProps) {
@@ -227,7 +226,12 @@ export function ProfileEditor({
         </div>
 
         <div style={{ display: activeTab === 'seo' ? 'block' : 'none' }}>
-          <SeoTab form={form} handle={artist.username} />
+          <SeoTab
+            form={form}
+            handle={artist.username}
+            hasMultiLanguageAccess={hasMultiLanguageAccess}
+            billingHref={billingHref}
+          />
         </div>
       </div>
 
