@@ -50,7 +50,8 @@ const MAX_BUTTON_LABEL_LENGTH = 50;
 const MAX_PLACEHOLDER_LENGTH = 100;
 const MAX_CONSENT_LABEL_LENGTH = 200;
 const MAX_SUCCESS_MESSAGE_LENGTH = 200;
-const MAX_TEXT_BODY_LENGTH = 5000;
+const MAX_TEXT_BODY_LENGTH = 2000;
+const MAX_HTML_BODY_LENGTH = 10000;
 const MAX_LINK_ITEMS = 20;
 const MIN_GALLERY_IMAGES = 2;
 const MAX_GALLERY_IMAGES = 6;
@@ -491,6 +492,19 @@ function validateEmailCaptureConfig(c: Record<string, unknown>): void {
 const VALID_TEXT_BIO_SOURCES = ['short_bio', 'full_bio'] as const;
 
 function validateTextConfig(c: Record<string, unknown>): void {
+  // Validate htmlMode flag when present.
+  if (c['htmlMode'] !== undefined && typeof c['htmlMode'] !== 'boolean') {
+    throw new BadRequestException('text config.htmlMode must be a boolean');
+  }
+
+  const isHtmlMode = c['htmlMode'] === true;
+
+  // HTML mode: body is raw embed code — allow larger content, skip bioSource.
+  if (isHtmlMode) {
+    assertNonEmptyString(c['body'], 'text config.body', MAX_HTML_BODY_LENGTH);
+    return;
+  }
+
   // When bioSource is set the block renders the profile bio dynamically — body may be empty.
   if (c['bioSource'] !== undefined) {
     if (
@@ -506,6 +520,7 @@ function validateTextConfig(c: Record<string, unknown>): void {
     }
     return;
   }
+
   assertNonEmptyString(c['body'], 'text config.body', MAX_TEXT_BODY_LENGTH);
 }
 

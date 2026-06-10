@@ -802,6 +802,22 @@ function TextBlockForm({
 }) {
   const t = useTranslations('blocks.fields');
 
+  const isHtmlMode = Boolean(config.htmlMode);
+
+  function toggleHtmlMode() {
+    if (isHtmlMode) {
+      // Switch back to Markdown — clear htmlMode flag
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { htmlMode: _omitted, bioSource: _bio, ...rest } = config;
+      onChange({ ...rest, body: config.body });
+    } else {
+      // Switch to HTML mode — clear bioSource (incompatible)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { bioSource: _omitted, ...rest } = config;
+      onChange({ ...rest, htmlMode: true, body: config.body });
+    }
+  }
+
   // Separate profile bio sources (for the bio selector) from other text sources (for Reuse pills).
   const profileBioSources = (textSources ?? []).filter((s) =>
     (PROFILE_BIO_SOURCE_IDS as readonly string[]).includes(s.id),
@@ -834,90 +850,149 @@ function TextBlockForm({
 
   return (
     <div className="space-y-3">
-      {/* ── Bio Selector (profile sources only) ─────────────────────── */}
-      {profileBioSources.length > 0 && (
-        <div className="rounded-md border border-input bg-muted/20 p-3">
-          <div className="space-y-1">
-            <p className="text-sm font-medium">{t('bio_selector_title')}</p>
-            <p className="text-xs text-muted-foreground">{t('bio_selector_hint')}</p>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {profileBioSources.map((source) => {
-              const bioSource: TextBlockBioSource | undefined = SOURCE_ID_TO_BIO_SOURCE[source.id];
-              if (!bioSource) return null;
-              const isActive = config.bioSource === bioSource;
-              return (
-                <button
-                  key={source.id}
-                  type="button"
-                  onClick={() => (isActive ? clearBioSource() : selectBioSource(bioSource))}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                    isActive
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-input bg-background text-muted-foreground hover:border-primary hover:text-foreground'
-                  }`}
-                >
-                  {source.label}
-                </button>
-              );
-            })}
-            {config.bioSource && (
-              <button
-                type="button"
-                onClick={clearBioSource}
-                className="rounded-full border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-destructive hover:text-destructive"
-              >
-                {t('bio_selector_custom')}
-              </button>
-            )}
-          </div>
-          {bioSourcePreview !== null && (
-            <div className="mt-3 max-h-32 overflow-y-auto rounded-md border border-input bg-background px-3 py-2">
-              <p className="whitespace-pre-wrap text-xs text-muted-foreground">
-                {bioSourcePreview || t('bio_selector_empty_preview')}
-              </p>
-            </div>
-          )}
+      {/* ── Mode toggle: Markdown ↔ HTML/Embed ───────────────────────── */}
+      <div className="flex items-center justify-between rounded-md border border-input bg-muted/20 px-3 py-2.5">
+        <div className="space-y-0.5">
+          <p className="text-sm font-medium">
+            {isHtmlMode ? 'Modo HTML / Embed code' : 'Modo Texto / Markdown'}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {isHtmlMode
+              ? 'Pegá el embed code de Spotify, YouTube, Twitter, etc.'
+              : 'Escribí texto con formato Markdown (negrita, listas, etc.).'}
+          </p>
         </div>
-      )}
+        <button
+          type="button"
+          onClick={toggleHtmlMode}
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none ${
+            isHtmlMode ? 'bg-[#E040FB]' : 'bg-input'
+          }`}
+          role="switch"
+          aria-checked={isHtmlMode}
+        >
+          <span
+            className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform ${
+              isHtmlMode ? 'translate-x-5' : 'translate-x-0'
+            }`}
+          />
+        </button>
+      </div>
 
-      {/* ── Reuse section (non-bio sources) ────────────────────────── */}
-      {otherSources.length > 0 ? (
-        <div className="rounded-md border border-input bg-muted/20 p-3">
-          <div className="space-y-1">
-            <p className="text-sm font-medium">{t('reuse_section_title')}</p>
-            <p className="text-xs text-muted-foreground">{t('reuse_section_hint')}</p>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {otherSources.map((source) => (
-              <button
-                key={source.id}
-                type="button"
-                onClick={() => onChange({ ...config, body: source.body })}
-                className="rounded-full border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary hover:text-foreground"
-              >
-                {source.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {/* ── Custom body textarea (hidden when bioSource is active) ──── */}
-      {!config.bioSource && (
+      {/* ── HTML / Embed mode ─────────────────────────────────────────── */}
+      {isHtmlMode && (
         <div>
-          <label className="mb-1 block text-sm font-medium">{t('body')}</label>
+          <label className="mb-1 block text-sm font-medium">Embed code</label>
           <textarea
             value={config.body}
             onChange={(e) => onChange({ ...config, body: e.target.value })}
-            placeholder={t('body_placeholder')}
-            className="min-h-[180px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            maxLength={2000}
+            placeholder={`Pegá el código HTML aquí...\n\nEjemplo:\n<iframe src="https://open.spotify.com/embed/track/..." ...></iframe>`}
+            className="min-h-[180px] w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs"
+            maxLength={10000}
+            spellCheck={false}
+            autoCorrect="off"
+            autoCapitalize="off"
           />
-          <p className="mt-1 text-xs text-muted-foreground">{config.body.length}/2000</p>
+          <p className="mt-1 text-xs text-muted-foreground">{config.body.length}/10000</p>
+          <div className="mt-2 rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2">
+            <p className="text-xs text-amber-400/80">
+              ⚠️ El contenido HTML se renderiza en un iframe aislado. Los scripts del embed no
+              tienen acceso a tu página ni a la sesión de los visitantes.
+            </p>
+          </div>
         </div>
       )}
-      <p className="text-xs text-muted-foreground">{t('body_locale_hint')}</p>
+
+      {/* ── Markdown mode ─────────────────────────────────────────────── */}
+      {!isHtmlMode && (
+        <>
+          {/* Bio Selector (profile sources only) */}
+          {profileBioSources.length > 0 && (
+            <div className="rounded-md border border-input bg-muted/20 p-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">{t('bio_selector_title')}</p>
+                <p className="text-xs text-muted-foreground">{t('bio_selector_hint')}</p>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {profileBioSources.map((source) => {
+                  const bioSource: TextBlockBioSource | undefined =
+                    SOURCE_ID_TO_BIO_SOURCE[source.id];
+                  if (!bioSource) return null;
+                  const isActive = config.bioSource === bioSource;
+                  return (
+                    <button
+                      key={source.id}
+                      type="button"
+                      onClick={() => (isActive ? clearBioSource() : selectBioSource(bioSource))}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                        isActive
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-input bg-background text-muted-foreground hover:border-primary hover:text-foreground'
+                      }`}
+                    >
+                      {source.label}
+                    </button>
+                  );
+                })}
+                {config.bioSource && (
+                  <button
+                    type="button"
+                    onClick={clearBioSource}
+                    className="rounded-full border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-destructive hover:text-destructive"
+                  >
+                    {t('bio_selector_custom')}
+                  </button>
+                )}
+              </div>
+              {bioSourcePreview !== null && (
+                <div className="mt-3 max-h-32 overflow-y-auto rounded-md border border-input bg-background px-3 py-2">
+                  <p className="whitespace-pre-wrap text-xs text-muted-foreground">
+                    {bioSourcePreview || t('bio_selector_empty_preview')}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Reuse section (non-bio sources) */}
+          {otherSources.length > 0 ? (
+            <div className="rounded-md border border-input bg-muted/20 p-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">{t('reuse_section_title')}</p>
+                <p className="text-xs text-muted-foreground">{t('reuse_section_hint')}</p>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {otherSources.map((source) => (
+                  <button
+                    key={source.id}
+                    type="button"
+                    onClick={() => onChange({ ...config, body: source.body })}
+                    className="rounded-full border border-input bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary hover:text-foreground"
+                  >
+                    {source.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Custom body textarea (hidden when bioSource is active) */}
+          {!config.bioSource && (
+            <div>
+              <label className="mb-1 block text-sm font-medium">{t('body')}</label>
+              <textarea
+                value={config.body}
+                onChange={(e) => onChange({ ...config, body: e.target.value })}
+                placeholder={t('body_placeholder')}
+                className="min-h-[180px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                maxLength={2000}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">{config.body.length}/2000</p>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">{t('body_locale_hint')}</p>
+        </>
+      )}
     </div>
   );
 }
