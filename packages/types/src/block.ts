@@ -173,6 +173,12 @@ export interface TextBlockConfig {
   body: string;
   /** When set, overrides `body` and pulls the corresponding bio from the artist profile. */
   bioSource?: TextBlockBioSource;
+  /**
+   * When true, `body` is treated as raw HTML (embed codes, widgets, etc.) and rendered
+   * inside a sandboxed iframe instead of as Markdown.
+   * `bioSource` is ignored when `htmlMode` is true.
+   */
+  htmlMode?: boolean;
 }
 
 export interface ImageGalleryBlockConfig {
