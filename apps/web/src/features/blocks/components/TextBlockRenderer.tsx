@@ -25,23 +25,67 @@ interface TextBlockRendererProps {
  *   posts its scrollHeight whenever it changes (load, resize, DOM mutations).
  *   The parent React component updates iframe height accordingly.
  *   Clamped to [80, 1200] px to prevent abuse.
+ *
+ *   Why we also inspect iframe[height] attributes:
+ *   Third-party embed codes (Spotify, YouTube, SoundCloud, etc.) declare their
+ *   desired height via an HTML `height` attribute on their <iframe> element, e.g.
+ *   `<iframe height="352" ...>`. Before the external iframe fully loads,
+ *   `document.body.scrollHeight` may still be tiny (~8 px), causing our container
+ *   to clamp at MIN_H and visually crush the player. Reading the attribute directly
+ *   gives us the correct height immediately, before any network round-trip.
+ *   We also fire a series of delayed retries after `load` to handle embed codes
+ *   that create their iframe dynamically via JavaScript (e.g. Twitter/X widgets).
  */
 const AUTO_HEIGHT_SCRIPT = `
 <script>
 (function() {
   var MIN_H = 80, MAX_H = 1200;
-  function send() {
-    var h = Math.min(MAX_H, Math.max(MIN_H,
-      document.documentElement.scrollHeight || document.body.scrollHeight));
-    window.parent.postMessage({ type: 'sl-embed-resize', height: h }, '*');
+  function measure() {
+    // Start with standard scrollHeight
+    var h = document.documentElement.scrollHeight || document.body.scrollHeight || 0;
+
+    // For each iframe in the body, also check:
+    //   1. getBoundingClientRect — works once the iframe is laid out
+    //   2. the height="" attribute — available immediately for static embed codes
+    //      (Spotify, YouTube, SoundCloud all declare height this way)
+    var iframes = document.querySelectorAll('body iframe');
+    for (var i = 0; i < iframes.length; i++) {
+      var el = iframes[i];
+      var rect = el.getBoundingClientRect();
+      // rect.bottom = distance from viewport top to bottom edge of element
+      if (rect.bottom > h) h = rect.bottom;
+      // attribute height (may be present before layout)
+      var attrH = parseInt(el.getAttribute('height') || '0', 10);
+      var attrBottom = rect.top + attrH;
+      if (attrH > 0 && attrBottom > h) h = attrBottom;
+    }
+
+    return Math.min(MAX_H, Math.max(MIN_H, Math.ceil(h)));
   }
-  window.addEventListener('load', send);
+  function send() {
+    window.parent.postMessage({ type: 'sl-embed-resize', height: measure() }, '*');
+  }
+  // Fire on load, then retry at 400 ms / 900 ms / 1800 ms to catch:
+  //   - Spotify / YouTube: attribute height readable immediately but layout
+  //     rect only settles after first paint
+  //   - Twitter / X widgets: create their iframe dynamically via JS → we need
+  //     at least one retry after their script runs
+  window.addEventListener('load', function() {
+    send();
+    setTimeout(send, 400);
+    setTimeout(send, 900);
+    setTimeout(send, 1800);
+  });
   window.addEventListener('resize', send);
   if (window.MutationObserver) {
-    new MutationObserver(send).observe(document.body, {
-      subtree: true, childList: true, attributes: true, characterData: true
-    });
+    // Debounce by 50 ms so rapid DOM mutations don't spam postMessage
+    var timer;
+    new MutationObserver(function() {
+      clearTimeout(timer);
+      timer = setTimeout(send, 50);
+    }).observe(document.body, { subtree: true, childList: true, attributes: true });
   }
+  // Fire once immediately for synchronous embeds (plain HTML, no external deps)
   send();
 })();
 </script>
@@ -49,7 +93,9 @@ const AUTO_HEIGHT_SCRIPT = `
 
 function HtmlEmbedRenderer({ html }: { html: string }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [height, setHeight] = useState(120);
+  // Start at 200 px to avoid jarring height jump on first paint.
+  // The auto-height script will correct this immediately on load.
+  const [height, setHeight] = useState(200);
 
   const handleMessage = useCallback((event: MessageEvent) => {
     if (
@@ -76,9 +122,8 @@ function HtmlEmbedRenderer({ html }: { html: string }) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: transparent; overflow-x: hidden; }
-  body { padding: 4px; }
-  iframe { max-width: 100%; }
+  html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
+  iframe { max-width: 100%; display: block; }
 </style>
 </head>
 <body>
