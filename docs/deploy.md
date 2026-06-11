@@ -208,8 +208,24 @@ pnpm db:migrate:prod
 
 Si usás Supabase:
 
-- `DATABASE_URL` debe apuntar al pooler
-- `DIRECT_URL` debe apuntar a la conexión directa
+- `DATABASE_URL` debe apuntar al **transaction pooler (puerto 6543)** **e incluir
+  los query params** `?pgbouncer=true&connection_limit=10&pool_timeout=20`
+- `DIRECT_URL` debe apuntar a la **conexión directa (puerto 5432)** del pooler
+
+```
+DATABASE_URL=postgresql://USER:PASS@HOST.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=10&pool_timeout=20
+DIRECT_URL=postgresql://USER:PASS@HOST.pooler.supabase.com:5432/postgres
+```
+
+> ⚠️ **Por qué los params son obligatorios.** Sin `pgbouncer=true`, Prisma usa
+> prepared statements que PgBouncer en transaction mode no soporta, lo que produce
+> errores intermitentes de conexión y de autenticación ("Can't reach database
+> server", "authentication failed against database server"). Sin `connection_limit`,
+> Prisma usa su default `num_cpus*2+1` (~97 en Railway), que **satura el pool de
+> Supabase** y genera "Timed out fetching a new connection from the connection pool".
+> Estos tres síntomas aparecieron en Sentry (NODE-4/5/6) hasta que se agregaron los
+> params. `connection_limit=10` es holgado para el tráfico actual; subilo sólo si el
+> pool vuelve a saturarse y el plan de Supabase lo permite.
 
 ### Staging en Railway
 

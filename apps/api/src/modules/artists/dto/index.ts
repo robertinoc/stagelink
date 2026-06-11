@@ -307,6 +307,15 @@ export class UpdateArtistDto {
   @IsUrl({ require_protocol: true }, { message: 'traxsourceUrl must be a valid URL' })
   traxsourceUrl?: string | null;
 
+  // ── Link visibility ───────────────────────────────────────────
+  // Keys of social links that should appear on the public artist page.
+  // Empty array = legacy mode (all non-null links are shown).
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  shownLinks?: string[];
+
   // ── SEO ──────────────────────────────────────────────────────
 
   @IsOptional()
