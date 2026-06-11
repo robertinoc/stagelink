@@ -1042,6 +1042,8 @@ export function BlockManager({
       .slice(planBlockLimit)
       .map((b) => b.id),
   );
+  // Gate the "Add Block" button: count ALL blocks (enabled + disabled).
+  const isAtBlockLimit = blocks.length >= planBlockLimit;
 
   return (
     <div className="space-y-4">
@@ -1061,13 +1063,48 @@ export function BlockManager({
             )}
           </p>
           <button
-            onClick={() => setCreateOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ background: 'var(--sl-grad)' }}
+            onClick={() => !isAtBlockLimit && setCreateOpen(true)}
+            disabled={isAtBlockLimit}
+            aria-disabled={isAtBlockLimit}
+            className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-semibold text-white transition-opacity ${
+              isAtBlockLimit ? 'cursor-not-allowed opacity-40' : 'hover:opacity-90'
+            }`}
+            style={
+              isAtBlockLimit
+                ? { background: 'rgba(255,255,255,0.15)' }
+                : { background: 'var(--sl-grad)' }
+            }
           >
             + {t('add_block')}
           </button>
         </div>
+
+        {/* Block limit banner */}
+        {isAtBlockLimit && (
+          <div className="flex items-start gap-2.5 border-b border-amber-500/20 bg-amber-500/[0.07] px-5 py-3">
+            <span className="mt-px shrink-0 text-amber-400">⚠</span>
+            <p className="text-[12.5px] leading-snug text-amber-300/90">
+              {userPlan === 'pro_plus' ? (
+                <>
+                  Alcanzaste el límite de {planBlockLimit} bloques de tu plan PRO+. Para agregar más
+                  bloques,{' '}
+                  <a
+                    href="mailto:stagelink.qa@gmail.com"
+                    className="font-semibold text-amber-200 underline underline-offset-2 hover:text-white"
+                  >
+                    contactá a soporte
+                  </a>{' '}
+                  para migrar a un Plan Custom.
+                </>
+              ) : (
+                <>
+                  Alcanzaste el límite de {planBlockLimit} bloques de tu plan{' '}
+                  {userPlan === 'pro' ? 'PRO' : 'Free'}. Para agregar más bloques, mejorá tu plan.
+                </>
+              )}
+            </p>
+          </div>
+        )}
 
         {/* Block list */}
         {blocks.length === 0 ? (
