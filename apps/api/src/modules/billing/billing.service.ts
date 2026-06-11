@@ -1293,21 +1293,40 @@ export class BillingService {
   private async resolveArtistIdForStripeSubscription(
     subscription: Stripe.Subscription,
   ): Promise<string | null> {
-    if (subscription.metadata?.artistId) {
-      return subscription.metadata.artistId;
+    let candidateId: string | null = subscription.metadata?.artistId ?? null;
+
+    if (!candidateId) {
+      const customerId =
+        typeof subscription.customer === 'string'
+          ? subscription.customer
+          : subscription.customer.id;
+
+      const existing = await this.prisma.subscription.findFirst({
+        where: {
+          OR: [{ stripeSubscriptionId: subscription.id }, { stripeCustomerId: customerId }],
+        },
+        select: { artistId: true },
+      });
+
+      candidateId = existing?.artistId ?? null;
     }
 
-    const customerId =
-      typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id;
+    if (!candidateId) {
+      return null;
+    }
 
-    const existing = await this.prisma.subscription.findFirst({
-      where: {
-        OR: [{ stripeSubscriptionId: subscription.id }, { stripeCustomerId: customerId }],
-      },
-      select: { artistId: true },
+    // The artistId can come from Stripe metadata that outlived the artist —
+    // e.g. the artist account was deleted but their Stripe subscription still
+    // fires webhooks carrying the old id. Upserting a Subscription row for a
+    // non-existent artist violates the `subscriptions_artist_id_fkey` FK
+    // (Sentry NODE-9), so verify the artist still exists and treat a dangling
+    // reference as "unresolvable" — the caller already logs + skips on null.
+    const artist = await this.prisma.artist.findUnique({
+      where: { id: candidateId },
+      select: { id: true },
     });
 
-    return existing?.artistId ?? null;
+    return artist ? candidateId : null;
   }
 
   private async runWebhookMutation(

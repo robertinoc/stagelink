@@ -26,7 +26,11 @@ describe('BillingService', () => {
       callback(prisma),
     );
     prisma.artist = {
-      findUnique: jest.fn(),
+      // Default: the artist exists. resolveArtistIdForStripeSubscription now
+      // verifies artist existence before upserting a Subscription (guards the
+      // FK violation in Sentry NODE-9). Tests that need a deleted artist can
+      // override with mockResolvedValueOnce(null).
+      findUnique: jest.fn().mockResolvedValue({ id: 'artist_123' }),
     };
     prisma.subscription = {
       findUnique: jest.fn().mockResolvedValue(null),
@@ -532,6 +536,43 @@ describe('BillingService', () => {
         lastStripeEventAt: new Date('2026-04-08T21:20:00.000Z'),
       },
     });
+  });
+
+  it('skips the subscription upsert when the artist no longer exists (avoids FK violation — Sentry NODE-9)', async () => {
+    const { service, prisma, stripe } = createService();
+    const rawBody = Buffer.from('{}');
+
+    // The artist referenced by the Stripe metadata was deleted; its Stripe
+    // subscription still fires webhooks carrying the stale id.
+    prisma.artist.findUnique.mockResolvedValue(null);
+
+    (stripe.webhooks.constructEvent as jest.Mock).mockReturnValue({
+      id: 'evt_deleted',
+      created: 1775683200,
+      type: 'customer.subscription.updated',
+      data: {
+        object: {
+          object: 'subscription',
+          id: 'sub_deleted',
+          status: 'active',
+          cancel_at_period_end: false,
+          customer: 'cus_deleted',
+          metadata: { artistId: 'deleted_artist', plan: PlanTier.pro_plus },
+          items: {
+            data: [{ current_period_end: 1711929600, price: { id: 'price_pro_plus_456' } }],
+          },
+        },
+      },
+    });
+
+    await service.handleWebhook({
+      headers: { 'stripe-signature': 'sig_123' },
+      rawBody,
+    } as never);
+
+    // Webhook is acknowledged, but no Subscription row is written for the
+    // dangling artist id — otherwise Prisma throws the FK constraint error.
+    expect(prisma.subscription.upsert).not.toHaveBeenCalled();
   });
 
   it('rejects Stripe webhooks without a signature before processing the body', async () => {
