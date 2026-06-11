@@ -136,6 +136,8 @@ export const profileSchema = z
     // Music stores (REQ-07)
     beatportUrl: optionalUrl,
     traxsourceUrl: optionalUrl,
+    // Visibility — keys of links shown on public page ([] = all, legacy mode)
+    shownLinks: z.array(z.string()).default([]),
 
     // SEO
     seoTitle: z.string().max(60, 'SEO title must be 60 characters or less').optional(),

@@ -2,7 +2,11 @@
 
 // Tab 2 — Redes y música
 // Platform overview + 4 groups (social / streaming / stores / contact)
+// All platforms are always editable. A "Mostrar en mi página" checkbox next
+// to each filled-in link controls public visibility. Plan limits how many
+// checkboxes can be checked at the same time (Free=5, Pro=8, Pro+=13).
 
+import { useState } from 'react';
 import { type UseFormReturn } from 'react-hook-form';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { Bento } from '@/components/sl/Bento';
@@ -146,23 +150,61 @@ const ALL_PLATFORMS: { key: keyof ProfileFormValues; brand: string; icon: string
 
 interface SocialTabProps {
   form: UseFormReturn<ProfileFormValues>;
-  /** Max platforms allowed by plan (Free=5, Pro=8, Pro+=13). Default 13. */
+  /** Max links that can be shown on the public page (Free=5, Pro=8, Pro+=13). Default 13. */
   maxSocialLinks?: number;
-  /** Billing upgrade href for the lock CTA. */
+  /** Billing upgrade href shown in the limit warning. */
   billingHref?: string;
 }
 
 export function SocialTab({ form, maxSocialLinks = 13, billingHref }: SocialTabProps) {
   const { watch, setValue } = form;
   const isMobile = useIsMobile();
-  // Running index across groups to apply the per-plan limit
-  let globalPlatformIndex = 0;
+  const [limitHit, setLimitHit] = useState(false);
 
   const values = watch();
+  const shownLinks: string[] = values.shownLinks ?? [];
+
   const activePlatforms = ALL_PLATFORMS.filter((p) => {
     const v = values[p.key];
     return typeof v === 'string' && v.trim().length > 0;
   });
+
+  const visibleCount = shownLinks.filter((key) => {
+    // only count keys that still have a URL (auto-cleanup guard)
+    const v = values[key as keyof ProfileFormValues];
+    return typeof v === 'string' && v.trim().length > 0;
+  }).length;
+
+  function toggleShown(key: string, currentlyShown: boolean) {
+    if (currentlyShown) {
+      setLimitHit(false);
+      setValue(
+        'shownLinks',
+        shownLinks.filter((k) => k !== key),
+        { shouldDirty: true },
+      );
+    } else {
+      if (visibleCount >= maxSocialLinks) {
+        setLimitHit(true);
+        return;
+      }
+      setLimitHit(false);
+      setValue('shownLinks', [...shownLinks, key], { shouldDirty: true });
+    }
+  }
+
+  function handleUrlChange(key: keyof ProfileFormValues, newVal: string) {
+    setValue(key, newVal as never, { shouldDirty: true });
+    // If the URL was cleared, auto-remove from shownLinks
+    if (!newVal.trim()) {
+      setValue(
+        'shownLinks',
+        shownLinks.filter((k) => k !== String(key)),
+        { shouldDirty: true },
+      );
+      setLimitHit(false);
+    }
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -210,14 +252,37 @@ export function SocialTab({ form, maxSocialLinks = 13, billingHref }: SocialTabP
             </div>
             <p
               style={{
-                marginTop: 8,
+                marginTop: 6,
                 fontSize: 13,
-                color: 'rgba(255,255,255,0.70)',
+                color: 'rgba(255,255,255,0.65)',
                 lineHeight: 1.5,
               }}
             >
-              Los links vacíos no aparecen en tu página. Solo se muestran los que llenás.
+              Ingresá todos tus links. Usá el checkbox{' '}
+              <strong style={{ color: 'rgba(255,255,255,0.85)' }}>Mostrar en mi página</strong> para
+              elegir cuáles aparecen públicamente
+              {maxSocialLinks < 13 ? ` (máximo ${maxSocialLinks} en tu plan actual)` : ''}.
             </p>
+            {/* Visibility counter */}
+            <div
+              style={{
+                marginTop: 10,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '5px 12px',
+                borderRadius: 20,
+                background: 'rgba(224,64,251,0.12)',
+                border: '1px solid rgba(224,64,251,0.25)',
+              }}
+            >
+              <span style={{ fontSize: 13, color: '#E040FB', fontWeight: 700 }}>
+                {visibleCount}/{maxSocialLinks}
+              </span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
+                visibles en página
+              </span>
+            </div>
           </div>
 
           {/* Right — chip strip */}
@@ -237,10 +302,17 @@ export function SocialTab({ form, maxSocialLinks = 13, billingHref }: SocialTabP
             {ALL_PLATFORMS.map((p) => {
               const v = values[p.key];
               const connected = typeof v === 'string' && v.trim().length > 0;
+              const shown = shownLinks.includes(String(p.key));
               return (
                 <span
-                  key={p.key}
-                  title={p.name}
+                  key={p.key as string}
+                  title={
+                    connected
+                      ? shown
+                        ? `${p.name} — visible en página`
+                        : `${p.name} — oculto`
+                      : p.name
+                  }
                   style={{
                     position: 'relative',
                     width: 32,
@@ -267,7 +339,7 @@ export function SocialTab({ form, maxSocialLinks = 13, billingHref }: SocialTabP
                         width: 9,
                         height: 9,
                         borderRadius: '50%',
-                        background: '#4ADE80',
+                        background: shown ? '#4ADE80' : 'rgba(255,255,255,0.3)',
                         border: '2px solid #1a0a30',
                       }}
                     />
@@ -278,6 +350,38 @@ export function SocialTab({ form, maxSocialLinks = 13, billingHref }: SocialTabP
           </div>
         </div>
       </Bento>
+
+      {/* Limit warning banner */}
+      {limitHit && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 10,
+            padding: '10px 16px',
+            borderRadius: 12,
+            background: 'rgba(251,191,36,0.07)',
+            border: '1px solid rgba(251,191,36,0.2)',
+          }}
+        >
+          <span style={{ fontSize: 16, lineHeight: 1.4 }}>⚠️</span>
+          <p style={{ fontSize: 12.5, color: 'rgba(251,191,36,0.9)', lineHeight: 1.5, margin: 0 }}>
+            Ya tenés {maxSocialLinks} links visibles, que es el máximo de tu plan.
+            {billingHref && (
+              <>
+                {' '}
+                <a
+                  href={billingHref}
+                  style={{ color: '#E040FB', fontWeight: 600, textDecoration: 'none' }}
+                >
+                  Mejorá tu plan
+                </a>{' '}
+                para mostrar más.
+              </>
+            )}
+          </p>
+        </div>
+      )}
 
       {/* Platform groups */}
       {GROUPS.map((group) => {
@@ -299,70 +403,95 @@ export function SocialTab({ form, maxSocialLinks = 13, billingHref }: SocialTabP
             />
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-                gap: 12,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
               }}
             >
               {group.platforms.map((p) => {
-                const platformIndex = globalPlatformIndex++;
-                const isLocked = platformIndex >= maxSocialLinks;
                 const raw = values[p.key];
                 const val = typeof raw === 'string' ? raw : '';
-
-                if (isLocked) {
-                  return (
-                    <div
-                      key={p.key}
-                      style={{
-                        borderRadius: 12,
-                        border: '1px dashed rgba(255,255,255,0.1)',
-                        padding: '10px 14px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        opacity: 0.5,
-                      }}
-                    >
-                      <span style={{ fontSize: 18, filter: 'grayscale(1)' }}>{p.icon}</span>
-                      <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', flex: 1 }}>
-                        {p.name}
-                      </span>
-                      {billingHref ? (
-                        <a
-                          href={billingHref}
-                          style={{
-                            fontSize: 10,
-                            fontWeight: 700,
-                            padding: '3px 8px',
-                            borderRadius: 6,
-                            background: 'rgba(224,64,251,0.12)',
-                            color: '#E040FB',
-                            border: '1px solid rgba(224,64,251,0.25)',
-                            textDecoration: 'none',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          🔒 Upgrade
-                        </a>
-                      ) : (
-                        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>🔒</span>
-                      )}
-                    </div>
-                  );
-                }
+                const hasUrl = val.trim().length > 0;
+                const isShown = shownLinks.includes(String(p.key));
+                const atLimit = !isShown && visibleCount >= maxSocialLinks;
 
                 return (
-                  <SocialField
-                    key={p.key}
-                    name={p.name}
-                    icon={p.icon}
-                    brand={p.brand}
-                    placeholder={p.placeholder}
-                    value={val}
-                    onChange={(v) => setValue(p.key, v as never, { shouldDirty: true })}
-                    helper={p.helper}
-                  />
+                  <div
+                    key={p.key as string}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 6 }}
+                  >
+                    <SocialField
+                      name={p.name}
+                      icon={p.icon}
+                      brand={p.brand}
+                      placeholder={p.placeholder}
+                      value={val}
+                      onChange={(v) => handleUrlChange(p.key, v)}
+                      helper={p.helper}
+                    />
+                    {/* Visibility checkbox — only shown when URL is filled */}
+                    {hasUrl && (
+                      <label
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          cursor: atLimit && !isShown ? 'not-allowed' : 'pointer',
+                          alignSelf: 'flex-start',
+                          paddingLeft: 4,
+                        }}
+                        title={
+                          atLimit && !isShown
+                            ? `Límite de ${maxSocialLinks} links visibles alcanzado`
+                            : isShown
+                              ? 'Quitar de la página pública'
+                              : 'Mostrar en mi página pública'
+                        }
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isShown}
+                          disabled={atLimit && !isShown}
+                          onChange={() => toggleShown(String(p.key), isShown)}
+                          style={{
+                            width: 15,
+                            height: 15,
+                            accentColor: '#E040FB',
+                            cursor: atLimit && !isShown ? 'not-allowed' : 'pointer',
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontSize: 12,
+                            color: isShown
+                              ? 'rgba(255,255,255,0.8)'
+                              : atLimit
+                                ? 'rgba(255,255,255,0.3)'
+                                : 'rgba(255,255,255,0.5)',
+                            fontWeight: isShown ? 600 : 400,
+                          }}
+                        >
+                          Mostrar en mi página
+                        </span>
+                        {isShown && (
+                          <span
+                            style={{
+                              fontSize: 10,
+                              padding: '1px 6px',
+                              borderRadius: 10,
+                              background: 'rgba(74,222,128,0.15)',
+                              color: '#4ADE80',
+                              border: '1px solid rgba(74,222,128,0.3)',
+                              fontWeight: 700,
+                              letterSpacing: 0.3,
+                            }}
+                          >
+                            VISIBLE
+                          </span>
+                        )}
+                      </label>
+                    )}
+                  </div>
                 );
               })}
             </div>

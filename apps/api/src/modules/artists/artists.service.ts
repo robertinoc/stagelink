@@ -57,6 +57,7 @@ interface UpdateArtistPayload {
   tidalUrl?: string | null;
   beatportUrl?: string | null;
   traxsourceUrl?: string | null;
+  shownLinks?: string[];
   seoTitle?: string | null;
   seoDescription?: string | null;
   recordLabels?: {
@@ -317,6 +318,9 @@ export class ArtistsService {
         ...(payload.tidalUrl !== undefined && { tidalUrl: payload.tidalUrl }),
         ...(payload.beatportUrl !== undefined && { beatportUrl: payload.beatportUrl }),
         ...(payload.traxsourceUrl !== undefined && { traxsourceUrl: payload.traxsourceUrl }),
+        ...(payload.shownLinks !== undefined && {
+          shownLinks: payload.shownLinks as unknown as Prisma.InputJsonValue,
+        }),
         ...(payload.seoTitle !== undefined && { seoTitle: payload.seoTitle }),
         ...(payload.seoDescription !== undefined && { seoDescription: payload.seoDescription }),
         ...(recordLabels !== undefined && {

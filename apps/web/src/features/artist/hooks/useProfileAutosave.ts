@@ -111,6 +111,7 @@ export function useProfileAutosave({
       tidalUrl: values.tidalUrl || null,
       beatportUrl: values.beatportUrl || null,
       traxsourceUrl: values.traxsourceUrl || null,
+      shownLinks: values.shownLinks,
       seoTitle: values.seoTitle || null,
       seoDescription: values.seoDescription || null,
       // Only send translations if the user's plan includes multi-language pages.
