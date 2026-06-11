@@ -66,20 +66,19 @@ const SOCIAL_LINK_KEYS = [
 type SocialLinkKey = (typeof SOCIAL_LINK_KEYS)[number];
 
 /**
- * Returns only the social links that should appear on the public page.
- * When shownLinks is empty (legacy / never set), all non-null links are shown.
- * When shownLinks has entries, only those keys are included (and only if non-null).
+ * Returns the social links that should appear on the public page.
+ * Every key is always present (value is string | null) — never undefined.
+ * When shownLinks is empty (legacy / never set), all links are returned as-is.
+ * When shownLinks has entries, only those keys keep their value; others become null.
  */
-function resolveShownLinks(
-  artist: Record<string, unknown>,
-): Partial<Record<SocialLinkKey, string | null>> {
+function resolveShownLinks(artist: Record<string, unknown>): Record<SocialLinkKey, string | null> {
   const shownLinks = Array.isArray(artist.shownLinks) ? (artist.shownLinks as string[]) : [];
-  const result: Partial<Record<SocialLinkKey, string | null>> = {};
+  const result = {} as Record<SocialLinkKey, string | null>;
 
   for (const key of SOCIAL_LINK_KEYS) {
     const value = (artist[key] as string | null | undefined) ?? null;
     if (shownLinks.length === 0) {
-      // Legacy mode — show every non-null link
+      // Legacy mode — show every link as-is
       result[key] = value;
     } else {
       // Explicit visibility — only show checked links
