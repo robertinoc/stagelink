@@ -78,6 +78,7 @@ export function ProfileEditor({
       tidalUrl: artist.tidalUrl ?? '',
       beatportUrl: artist.beatportUrl ?? '',
       traxsourceUrl: artist.traxsourceUrl ?? '',
+      shownLinks: artist.shownLinks ?? [],
       seoTitle: artist.seoTitle ?? '',
       seoDescription: artist.seoDescription ?? '',
       translations: {

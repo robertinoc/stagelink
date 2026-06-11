@@ -42,6 +42,8 @@ export interface Artist {
   // Music stores (REQ-07)
   beatportUrl: string | null;
   traxsourceUrl: string | null;
+  // Link visibility — keys of links shown on the public page ([] = show all, legacy mode)
+  shownLinks: string[];
   // SEO
   seoTitle: string | null;
   seoDescription: string | null;
@@ -79,6 +81,7 @@ export interface UpdateArtistPayload {
   tidalUrl?: string | null;
   beatportUrl?: string | null;
   traxsourceUrl?: string | null;
+  shownLinks?: string[];
   seoTitle?: string | null;
   seoDescription?: string | null;
   recordLabels?: RecordLabel[];

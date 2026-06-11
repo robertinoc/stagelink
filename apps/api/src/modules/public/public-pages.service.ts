@@ -47,6 +47,47 @@ import {
   SMART_MERCH_DEFAULT_PREVIEW_LIMIT,
 } from '../merch/merch.helpers';
 
+/** All social-link keys on the artist record. */
+const SOCIAL_LINK_KEYS = [
+  'instagramUrl',
+  'tiktokUrl',
+  'youtubeUrl',
+  'spotifyUrl',
+  'soundcloudUrl',
+  'websiteUrl',
+  'contactEmail',
+  'appleMusicUrl',
+  'amazonMusicUrl',
+  'deezerUrl',
+  'tidalUrl',
+  'beatportUrl',
+  'traxsourceUrl',
+] as const;
+type SocialLinkKey = (typeof SOCIAL_LINK_KEYS)[number];
+
+/**
+ * Returns the social links that should appear on the public page.
+ * Every key is always present (value is string | null) — never undefined.
+ * When shownLinks is empty (legacy / never set), all links are returned as-is.
+ * When shownLinks has entries, only those keys keep their value; others become null.
+ */
+function resolveShownLinks(artist: Record<string, unknown>): Record<SocialLinkKey, string | null> {
+  const shownLinks = Array.isArray(artist.shownLinks) ? (artist.shownLinks as string[]) : [];
+  const result = {} as Record<SocialLinkKey, string | null>;
+
+  for (const key of SOCIAL_LINK_KEYS) {
+    const value = (artist[key] as string | null | undefined) ?? null;
+    if (shownLinks.length === 0) {
+      // Legacy mode — show every link as-is
+      result[key] = value;
+    } else {
+      // Explicit visibility — only show checked links
+      result[key] = shownLinks.includes(key) ? value : null;
+    }
+  }
+  return result;
+}
+
 /**
  * Hashes an IP address with SHA-256 for privacy-preserving storage.
  * Enables deduplication without persisting raw PII.
@@ -687,6 +728,7 @@ export class PublicPagesService {
             tidalUrl: true,
             beatportUrl: true,
             traxsourceUrl: true,
+            shownLinks: true,
             seoTitle: true,
             seoDescription: true,
             baseLocale: true,
@@ -992,19 +1034,9 @@ export class PublicPagesService {
         category: page.artist.category,
         secondaryCategories: page.artist.secondaryCategories,
         tags: page.artist.tags,
-        instagramUrl: page.artist.instagramUrl,
-        tiktokUrl: page.artist.tiktokUrl,
-        youtubeUrl: page.artist.youtubeUrl,
-        spotifyUrl: page.artist.spotifyUrl,
-        soundcloudUrl: page.artist.soundcloudUrl,
-        websiteUrl: page.artist.websiteUrl,
-        contactEmail: page.artist.contactEmail,
-        appleMusicUrl: page.artist.appleMusicUrl,
-        amazonMusicUrl: page.artist.amazonMusicUrl,
-        deezerUrl: page.artist.deezerUrl,
-        tidalUrl: page.artist.tidalUrl,
-        beatportUrl: page.artist.beatportUrl,
-        traxsourceUrl: page.artist.traxsourceUrl,
+        // Social links — filtered by shownLinks visibility preference.
+        // Empty shownLinks = legacy mode: show every non-null link.
+        ...resolveShownLinks(page.artist),
         seoTitle: localizedArtist.seoTitle,
         seoDescription: localizedArtist.seoDescription,
         baseLocale: normalizeBaseLocale(page.artist.baseLocale ?? DEFAULT_LOCALE),
