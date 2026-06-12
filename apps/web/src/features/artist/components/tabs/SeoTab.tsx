@@ -257,24 +257,20 @@ export function SeoTab({ form, handle, hasMultiLanguageAccess, billingHref }: Se
 
           {/* Source row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <span
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/icon-192.png"
+              alt="StageLink"
+              width={22}
+              height={22}
               style={{
                 width: 22,
                 height: 22,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg,#E040FB,#4A1A8C)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: 'var(--font-heading)',
-                fontSize: 10,
-                fontWeight: 700,
-                color: 'white',
                 flexShrink: 0,
+                objectFit: 'cover',
               }}
-            >
-              SL
-            </span>
+            />
             <span style={{ fontSize: 12.5, color: '#bdc1c6' }}>StageLink</span>
             <span style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.30)' }}>·</span>
             <span style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.50)' }}>
