@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { getArtist } from '@/lib/api/artists';
 import { getBillingEntitlements } from '@/lib/api/billing';
+import { getArtistPages } from '@/lib/api/pages';
 import { getAuthMe } from '@/lib/api/me';
 import { ConnectionErrorState } from '@/components/shared/ConnectionErrorState';
 import { ProfileEditor } from '@/features/artist/components/ProfileEditor';
@@ -47,14 +48,16 @@ export default async function DashboardProfilePage({ params }: DashboardProfileP
   const artistId = me?.artistIds[0];
   if (!artistId) redirect(`/${locale}/onboarding`);
 
-  const [artist, entitlements] = await Promise.all([
+  const [artist, entitlements, pages] = await Promise.all([
     getArtist(artistId, session.accessToken),
     getBillingEntitlements(artistId, session.accessToken).catch(() => null),
+    getArtistPages(artistId, session.accessToken).catch(() => []),
   ]);
   if (!artist) redirect(`/${locale}/onboarding`);
 
   const plan = entitlements?.effectivePlan ?? 'free';
   const maxSocialLinks = plan === 'pro_plus' ? 13 : plan === 'pro' ? 8 : 5;
+  const pageId = pages[0]?.id;
 
   return (
     <ProfileEditor
@@ -62,6 +65,7 @@ export default async function DashboardProfilePage({ params }: DashboardProfileP
       hasMultiLanguageAccess={!!entitlements?.features.multi_language_pages}
       billingHref={`/${locale}/dashboard/billing`}
       maxSocialLinks={maxSocialLinks}
+      pageId={pageId}
     />
   );
 }

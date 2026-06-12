@@ -33,6 +33,8 @@ interface ProfileEditorProps {
   billingHref: string;
   /** Max social/platform links allowed by the current plan (Free=5, Pro=8, Pro+=13). */
   maxSocialLinks?: number;
+  /** The artist's primary page ID — forwarded to SeoTab for block title translation. */
+  pageId?: string;
 }
 
 export function ProfileEditor({
@@ -40,6 +42,7 @@ export function ProfileEditor({
   hasMultiLanguageAccess,
   billingHref,
   maxSocialLinks = 13,
+  pageId,
 }: ProfileEditorProps) {
   const t = useTranslations('dashboard.profile');
   const [activeTab, setActiveTab] = useState<ProfileTabId>('identity');
@@ -232,6 +235,7 @@ export function ProfileEditor({
             handle={artist.username}
             hasMultiLanguageAccess={hasMultiLanguageAccess}
             billingHref={billingHref}
+            pageId={pageId}
           />
         </div>
       </div>

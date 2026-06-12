@@ -15,6 +15,7 @@ import { LocalizedField } from '../LocalizedField';
 import { SubHead } from '../SubHead';
 import { autoTranslateLocalizedFields } from '@/lib/api/localization';
 import type { ProfileFormValues } from '../../schemas/profile.schema';
+import { BlockTitlesSection } from '../BlockTitlesSection';
 
 const TODAY = new Date().toLocaleDateString('es-AR', {
   day: 'numeric',
@@ -54,9 +55,11 @@ interface SeoTabProps {
   hasMultiLanguageAccess: boolean;
   /** Href to the billing/upgrade page. Used in the upsell CTA. */
   billingHref?: string;
+  /** The artist's primary page ID — used to fetch and translate block titles. When undefined the BlockTitlesSection is hidden. */
+  pageId?: string;
 }
 
-export function SeoTab({ form, handle, hasMultiLanguageAccess, billingHref }: SeoTabProps) {
+export function SeoTab({ form, handle, hasMultiLanguageAccess, billingHref, pageId }: SeoTabProps) {
   const { watch, setValue, register } = form;
   const isMobile = useIsMobile();
   const baseLocale = watch('baseLocale');
@@ -497,6 +500,11 @@ export function SeoTab({ form, handle, hasMultiLanguageAccess, billingHref }: Se
           </>
         )}
       </Bento>
+
+      {/* ── Block titles translation ──────────────────────────────────── */}
+      {hasMultiLanguageAccess && pageId && (
+        <BlockTitlesSection pageId={pageId} baseLocale={baseLocale} otherLocale={otherLocale} />
+      )}
     </div>
   );
 }
