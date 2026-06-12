@@ -545,6 +545,8 @@ function EditBlockSheet({
   counterValues,
   onUpdated,
   onClose,
+  onSaveError,
+  externalError,
 }: {
   block: Block | null;
   artistId: string;
@@ -555,6 +557,10 @@ function EditBlockSheet({
   counterValues?: Props['counterValues'];
   onUpdated: (block: Block) => void;
   onClose: () => void;
+  /** Called with the original block + error message when a background save fails. */
+  onSaveError?: (block: Block, message: string) => void;
+  /** Error to show when the editor reopens after a failed optimistic save. */
+  externalError?: string | null;
 }) {
   const t = useTranslations('blocks');
   const [title, setTitle] = useState('');
@@ -568,8 +574,11 @@ function EditBlockSheet({
       setTitle(block.title ?? '');
       setConfig(block.config);
       setLocalizedContent(block.localizedContent ?? {});
-      setError(null);
+      // Restore error from parent when reopened after a failed optimistic save
+      setError(externalError ?? null);
     }
+    // externalError intentionally excluded — only read once on open
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [block]);
 
   async function handleSave() {
@@ -579,25 +588,47 @@ function EditBlockSheet({
       setError(validationMessage);
       return;
     }
-    setSaving(true);
     setError(null);
+
+    const payload: UpdateBlockPayload = {
+      config,
+      // Send title: '' to explicitly clear — the API trims empty strings to null.
+      ...(title.trim() !== (block.title ?? '') && { title: title.trim() }),
+      ...(hasLocalizedContent(localizedContent) && { localizedContent }),
+    };
+    if (!hasLocalizedContent(localizedContent) && block.localizedContent) {
+      payload.localizedContent = null;
+    }
+
+    // Build an optimistic block so the list updates immediately
+    const originalBlock = block;
+    const optimistic: Block = {
+      ...block,
+      title: title.trim() || block.title,
+      config,
+      localizedContent: hasLocalizedContent(localizedContent)
+        ? localizedContent
+        : payload.localizedContent === null
+          ? null
+          : block.localizedContent,
+    };
+
+    // Close sheet & update list immediately (optimistic)
+    onUpdated(optimistic);
+    onClose();
+
+    // Persist in background; revert on failure
     try {
-      const payload: UpdateBlockPayload = {
-        config,
-        // Send title: '' to explicitly clear — the API trims empty strings to null.
-        ...(title.trim() !== (block.title ?? '') && { title: title.trim() }),
-        ...(hasLocalizedContent(localizedContent) && { localizedContent }),
-      };
-      if (!hasLocalizedContent(localizedContent) && block.localizedContent) {
-        payload.localizedContent = null;
-      }
       const updated = await updateBlock(block.id, payload);
       onUpdated(updated);
-      onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('save_error'));
-    } finally {
-      setSaving(false);
+      const msg = err instanceof Error ? err.message : t('save_error');
+      // Let parent handle both the list revert and editor reopen with error
+      if (onSaveError) {
+        onSaveError(originalBlock, msg);
+      } else {
+        onUpdated(originalBlock); // fallback revert if no error handler
+      }
     }
   }
 
@@ -872,7 +903,7 @@ function BlockRow({
       <div className="flex shrink-0 items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
         {toggling && (
           <span className="text-[10px] text-white/40 animate-pulse">
-            {block.isPublished ? t('deactivating') : t('activating')}
+            {block.isPublished ? t('activating') : t('deactivating')}
           </span>
         )}
         <button
@@ -919,6 +950,7 @@ export function BlockManager({
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [editingBlock, setEditingBlock] = useState<Block | null>(null);
+  const [editSaveError, setEditSaveError] = useState<string | null>(null);
   const [draggedBlockId, setDraggedBlockId] = useState<string | null>(null);
   const [dragTargetBlockId, setDragTargetBlockId] = useState<string | null>(null);
 
@@ -1257,11 +1289,22 @@ export function BlockManager({
         releases={releases}
         recordLabels={recordLabels}
         counterValues={counterValues}
+        externalError={editSaveError}
         onUpdated={(updated) => {
           handleUpdated(updated);
           setEditingBlock(null);
+          setEditSaveError(null);
         }}
-        onClose={() => setEditingBlock(null)}
+        onClose={() => {
+          setEditingBlock(null);
+          setEditSaveError(null);
+        }}
+        onSaveError={(original, msg) => {
+          // Revert optimistic update in the block list, then reopen editor with error
+          setBlocks((prev) => prev.map((b) => (b.id === original.id ? original : b)));
+          setEditSaveError(msg);
+          setEditingBlock(original);
+        }}
       />
     </div>
   );

@@ -100,6 +100,8 @@ export function ThemeSelector({ pageId, currentTheme, onThemeChange }: ThemeSele
     setSaving(true);
     try {
       await updatePage(pageId, { theme: { name } });
+      // Notify PhonePreviewFrame (which may be outside this component tree) to refresh
+      window.dispatchEvent(new CustomEvent('stagelink:themeChanged'));
     } catch {
       // Silently revert if save fails — non-critical
     } finally {

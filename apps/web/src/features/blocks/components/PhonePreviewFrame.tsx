@@ -23,6 +23,16 @@ export function PhonePreviewFrame({ username, locale, blocksVersion = 0 }: Phone
     }
   }, [livePreview, blocksVersion, appliedVersion]);
 
+  // Refresh preview when the theme changes (ThemeSelector dispatches this event
+  // from outside the PageBuilderClient tree, so we can't use blocksVersion).
+  useEffect(() => {
+    function onThemeChanged() {
+      setManualKey((k) => k + 1);
+    }
+    window.addEventListener('stagelink:themeChanged', onThemeChanged);
+    return () => window.removeEventListener('stagelink:themeChanged', onThemeChanged);
+  }, []);
+
   const handleRefresh = useCallback(() => {
     setManualKey((k) => k + 1);
   }, []);
