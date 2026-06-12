@@ -39,6 +39,68 @@ import { DEFAULT_LOCALE, type PublicPageResponse, type SupportedLocale } from '@
 // public-api.ts is imported only in Server Components so this is safe.
 const API_URL = process.env.API_URL ?? 'http://localhost:4001';
 
+// ─── Resiliencia de red ────────────────────────────────────────────────────────
+// El backend (Railway) tiene ventanas de ~5-30s de indisponibilidad durante
+// deploys/reinicios. Sin reintentos, cada visita a la landing en esa ventana
+// lanzaba `TypeError: fetch failed` (STAGELINK-WEB-9) o un 5xx (WEB-7) que
+// propagaba a error.tsx → crash de render + ruido en Sentry (WEB-2).
+//
+// Estrategia: reintentar errores transitorios (red caída, timeout, 5xx) con
+// backoff exponencial corto. 3 intentos a 300ms/600ms ≈ 900ms de espera máxima
+// — suficiente para sobrevivir un hipo del backend sin degradar el TTFB cuando
+// el API responde normal (primer intento exitoso = cero overhead).
+const MAX_FETCH_ATTEMPTS = 3;
+const RETRY_BASE_DELAY_MS = 300;
+// Cota por intento — evita que un backend que acepta la conexión pero nunca
+// responde cuelgue el render SSR indefinidamente.
+const FETCH_TIMEOUT_MS = 8000;
+
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Errores transitorios que justifican un reintento (red/conexión o timeout). */
+function isRetryableFetchError(err: unknown): boolean {
+  // undici lanza `TypeError: fetch failed` cuando el host es inalcanzable
+  // (ECONNREFUSED/ENOTFOUND/socket reset) — típico durante un reinicio del API.
+  if (err instanceof TypeError) return true;
+  // AbortSignal.timeout() aborta con un DOMException 'TimeoutError'.
+  if (err instanceof DOMException && err.name === 'TimeoutError') return true;
+  return false;
+}
+
+/**
+ * `fetch` con reintentos para errores transitorios. Reintenta ante:
+ *  - errores de red/conexión (`TypeError: fetch failed`)
+ *  - timeout por intento (`FETCH_TIMEOUT_MS`)
+ *  - respuestas 5xx (backend reiniciando/desplegando)
+ *
+ * NO reintenta respuestas 4xx (404/429 son respuestas válidas del backend que
+ * el caller maneja explícitamente). Tras agotar los intentos, propaga el último
+ * error o devuelve la última respuesta 5xx para que el caller decida.
+ */
+async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < MAX_FETCH_ATTEMPTS; attempt++) {
+    try {
+      // Signal fresco por intento (un AbortSignal no se puede reutilizar).
+      const res = await fetch(url, { ...init, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+      if (res.status >= 500 && attempt < MAX_FETCH_ATTEMPTS - 1) {
+        await sleep(RETRY_BASE_DELAY_MS * 2 ** attempt);
+        continue;
+      }
+      return res;
+    } catch (err) {
+      lastError = err;
+      if (isRetryableFetchError(err) && attempt < MAX_FETCH_ATTEMPTS - 1) {
+        await sleep(RETRY_BASE_DELAY_MS * 2 ** attempt);
+        continue;
+      }
+      throw err;
+    }
+  }
+  // Inalcanzable: el loop siempre retorna (éxito/4xx/5xx-final) o lanza.
+  throw lastError;
+}
+
 async function _fetchPublicPage(
   username: string,
   locale: SupportedLocale = DEFAULT_LOCALE,
@@ -77,7 +139,7 @@ async function _fetchPublicPage(
   const url = new URL(`/api/public/pages/by-username/${encodeURIComponent(username)}`, API_URL);
   url.searchParams.set('locale', locale);
 
-  const res = await fetch(url.toString(), { cache: 'no-store', headers: forwardHeaders });
+  const res = await fetchWithRetry(url.toString(), { cache: 'no-store', headers: forwardHeaders });
 
   if (res.status === 404) return null;
 
