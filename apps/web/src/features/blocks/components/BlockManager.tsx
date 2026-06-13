@@ -555,7 +555,10 @@ function EditBlockSheet({
   releases?: Props['releases'];
   recordLabels?: Props['recordLabels'];
   counterValues?: Props['counterValues'];
-  onUpdated: (block: Block) => void;
+  /** Called to update the block in the parent list.
+   *  Pass `{ silent: true }` for background server-confirm calls so the parent
+   *  does NOT fire `onBlocksChanged` (which would trigger an unnecessary preview refresh). */
+  onUpdated: (block: Block, opts?: { silent?: boolean }) => void;
   onClose: () => void;
   /** Called with the original block + error message when a background save fails. */
   onSaveError?: (block: Block, message: string) => void;
@@ -617,10 +620,13 @@ function EditBlockSheet({
     onUpdated(optimistic);
     onClose();
 
-    // Persist in background; revert on failure
+    // Persist in background; revert on failure.
+    // `silent: true` — the list was already updated optimistically above; this
+    // server-confirm call only reconciles the id/timestamps and must NOT fire
+    // onBlocksChanged again (that would trigger a redundant preview refresh).
     try {
       const updated = await updateBlock(block.id, payload);
-      onUpdated(updated);
+      onUpdated(updated, { silent: true });
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('save_error');
       // Let parent handle both the list revert and editor reopen with error
@@ -719,7 +725,7 @@ function BlockRow({
   isDragging: boolean;
   dragDisabled: boolean;
   onEdit: () => void;
-  onUpdated: (block: Block) => void;
+  onUpdated: (block: Block, opts?: { silent?: boolean }) => void;
   onDeleted: (id: string) => void;
   onMoved: (id: string, direction: 'up' | 'down') => void;
   onDragStart: (id: string) => void;
@@ -976,9 +982,13 @@ export function BlockManager({
     onBlocksChanged?.();
   }
 
-  function handleUpdated(updated: Block) {
+  /** Update the block in the local list. When `silent`, skip `onBlocksChanged` so the
+   *  preview iframe is not refreshed for background server-confirm calls. */
+  function handleUpdated(updated: Block, opts?: { silent?: boolean }) {
     setBlocks((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
-    onBlocksChanged?.();
+    if (!opts?.silent) {
+      onBlocksChanged?.();
+    }
   }
 
   function handleDeleted(id: string) {
@@ -1290,10 +1300,15 @@ export function BlockManager({
         recordLabels={recordLabels}
         counterValues={counterValues}
         externalError={editSaveError}
-        onUpdated={(updated) => {
-          handleUpdated(updated);
-          setEditingBlock(null);
-          setEditSaveError(null);
+        onUpdated={(updated, opts) => {
+          handleUpdated(updated, opts);
+          // Only close + reset on the optimistic (non-silent) call.
+          // The background server-confirm call uses silent:true and must not
+          // re-run these setters (editingBlock is already null at that point).
+          if (!opts?.silent) {
+            setEditingBlock(null);
+            setEditSaveError(null);
+          }
         }}
         onClose={() => {
           setEditingBlock(null);
