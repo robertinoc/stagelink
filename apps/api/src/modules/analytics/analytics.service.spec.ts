@@ -8,6 +8,10 @@ describe('AnalyticsService', () => {
         count: jest.fn().mockResolvedValue(0),
         groupBy: jest.fn().mockResolvedValue([]),
       },
+      subscriber: {
+        count: jest.fn().mockResolvedValue(0),
+        groupBy: jest.fn().mockResolvedValue([]),
+      },
       smartLink: {
         findMany: jest.fn().mockResolvedValue([]),
       },
@@ -84,9 +88,8 @@ describe('AnalyticsService', () => {
   it('requires advanced_fan_insights and keeps fan capture rate zero-safe', async () => {
     const { service, billingEntitlementsService, prisma } = createService();
 
-    prisma.analyticsEvent.count
-      .mockResolvedValueOnce(0) // page views
-      .mockResolvedValueOnce(0); // fan captures
+    prisma.analyticsEvent.count.mockResolvedValueOnce(0); // page views
+    prisma.subscriber.count.mockResolvedValueOnce(0); // fan captures
 
     const result = await service.getFanInsights('artist_123', '30d');
 
@@ -94,6 +97,12 @@ describe('AnalyticsService', () => {
       'artist_123',
       'advanced_fan_insights',
     );
+    expect(prisma.subscriber.count).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        artistId: 'artist_123',
+        status: 'active',
+      }),
+    });
     expect(result.summary.fanCaptureRate).toBe(0);
     expect(result.notes.captureRateFormula).toBe('fan_capture_submit / page_view');
     expect(result.notes.piiIncluded).toBe(false);
