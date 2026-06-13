@@ -795,14 +795,66 @@ function TextBlockForm({
   config,
   onChange,
   textSources,
+  localizedContent,
+  onLocalizedContentChange,
 }: {
   config: TextBlockConfig;
   onChange: (c: TextBlockConfig) => void;
   textSources?: Props['textSources'];
+  localizedContent?: BlockLocalizedContent | null;
+  onLocalizedContentChange?: (localizedContent: BlockLocalizedContent) => void;
 }) {
   const t = useTranslations('blocks.fields');
+  const currentLocale = useLocale();
+  const [activeLocale, setActiveLocale] = useState<SupportedLocale>(
+    currentLocale === 'es' ? 'es' : 'en',
+  );
+  const [translating, setTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState<string | null>(null);
+  const textTranslations = localizedContent?.text ?? { body: {} };
 
   const isHtmlMode = Boolean(config.htmlMode);
+  // Show locale tabs when:
+  //  – the block has plain Markdown body (not bioSource or htmlMode)
+  //  – the parent provided a way to persist translated content (PRO plan)
+  const showLocaleTabs = !isHtmlMode && !config.bioSource && Boolean(onLocalizedContentChange);
+
+  function updateBodyTranslation(value: string) {
+    if (!onLocalizedContentChange) return;
+    const nextBody = { ...(textTranslations.body ?? {}) };
+    if (value.trim()) {
+      nextBody[activeLocale] = value;
+    } else {
+      delete nextBody[activeLocale];
+    }
+    const nextText = Object.keys(nextBody).length > 0 ? { body: nextBody } : undefined;
+    const nextLocalizedContent: BlockLocalizedContent = { ...(localizedContent ?? {}) };
+    if (nextText) {
+      nextLocalizedContent.text = nextText;
+    } else {
+      delete nextLocalizedContent.text;
+    }
+    onLocalizedContentChange(nextLocalizedContent);
+  }
+
+  async function handleAutoTranslateBody() {
+    if (!config.body.trim() || translating) return;
+    setTranslating(true);
+    setTranslateError(null);
+    try {
+      const { autoTranslateLocalizedFields } = await import('@/lib/api/localization');
+      const result = await autoTranslateLocalizedFields({
+        sourceLocale: 'en',
+        targetLocale: activeLocale,
+        values: { body: config.body },
+      });
+      if (result.body) updateBodyTranslation(result.body);
+    } catch (err) {
+      setTranslateError(err instanceof Error ? err.message : 'Auto-translation failed.');
+    } finally {
+      setTranslating(false);
+    }
+  }
 
   function toggleHtmlMode() {
     if (isHtmlMode) {
@@ -990,7 +1042,66 @@ function TextBlockForm({
               <p className="mt-1 text-xs text-muted-foreground">{config.body.length}/2000</p>
             </div>
           )}
-          <p className="text-xs text-muted-foreground">{t('body_locale_hint')}</p>
+
+          {/* ── Locale translations (PRO plan, custom body only) ──────── */}
+          {showLocaleTabs && (
+            <div className="rounded-md border border-input bg-muted/20 p-3">
+              <div className="space-y-2">
+                <div>
+                  <p className="text-sm font-medium">{t('text_localized_section')}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{t('text_localized_hint')}</p>
+                </div>
+
+                {/* Locale pill tabs */}
+                <div className="flex flex-wrap gap-2">
+                  {SUPPORTED_LOCALES.map((localeOption) => (
+                    <button
+                      key={localeOption}
+                      type="button"
+                      onClick={() => setActiveLocale(localeOption)}
+                      className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                        activeLocale === localeOption
+                          ? 'bg-primary text-primary-foreground'
+                          : 'border border-input bg-background text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {localeOption === 'en' ? t('shopify_locale_en') : t('shopify_locale_es')}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Translated body textarea */}
+                <div>
+                  <div className="mb-1 flex items-center justify-between">
+                    <label className="text-sm font-medium">{t('text_localized_body')}</label>
+                    <button
+                      type="button"
+                      onClick={() => void handleAutoTranslateBody()}
+                      disabled={translating || !config.body.trim()}
+                      className="text-xs text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {translating ? t('text_translating') : t('text_auto_translate')}
+                    </button>
+                  </div>
+                  <textarea
+                    value={textTranslations.body?.[activeLocale] ?? ''}
+                    onChange={(e) => updateBodyTranslation(e.target.value)}
+                    placeholder={t('body_placeholder')}
+                    className="min-h-[180px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    maxLength={2000}
+                  />
+                  {translateError && (
+                    <p className="mt-1 text-xs text-destructive">{translateError}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Upsell hint only shown when the locale-tabs section is hidden (free plan / bioSource / htmlMode) */}
+          {!showLocaleTabs && !config.bioSource && !isHtmlMode && (
+            <p className="text-xs text-muted-foreground">{t('body_locale_hint')}</p>
+          )}
         </>
       )}
     </div>
@@ -2264,6 +2375,8 @@ export function BlockConfigForm({
           config={config as TextBlockConfig}
           onChange={(c) => onChange(c)}
           textSources={textSources}
+          localizedContent={localizedContent}
+          onLocalizedContentChange={onLocalizedContentChange}
         />
       );
     case 'image_gallery':
