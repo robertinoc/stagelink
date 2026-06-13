@@ -16,8 +16,7 @@ import type { PublicEpkResponseDto } from './dto/public-epk-response.dto';
 import { buildFallbackFeaturedLinks, normalizeFeaturedLinks } from '../epk/epk.helpers';
 import {
   normalizeBaseLocale,
-  resolveDocumentLocale,
-  resolveDocumentText,
+  resolveFieldLevelLocalizedText,
 } from '../../common/utils/localized-content.util';
 
 @Injectable()
@@ -107,36 +106,16 @@ export class PublicEpkService {
     const fallbackFeaturedLinks = normalizeFeaturedLinks(buildFallbackFeaturedLinks(artist));
     const baseLocale = normalizeBaseLocale(epk.baseLocale ?? artist.baseLocale ?? DEFAULT_LOCALE);
     const baseShortBio = epk.shortBio ?? artist.bio;
+    // When the EPK has its own shortBio, use its translations; otherwise fall back to
+    // the artist's own bio translations (same as the old document-locale logic).
     const effectiveShortBioTranslations = epk.shortBio?.trim()
       ? epkTranslations.shortBio
       : artistTranslations.bio;
-    const contentLocale = resolveDocumentLocale(locale, baseLocale, [
-      { baseValue: artist.displayName, localizedValue: artistTranslations.displayName },
-      { baseValue: baseShortBio, localizedValue: effectiveShortBioTranslations },
-      { baseValue: epk.headline, localizedValue: epkTranslations.headline },
-      { baseValue: epk.fullBio, localizedValue: epkTranslations.fullBio },
-      {
-        baseValue: epk.pressQuote,
-        localizedValue: epkTranslations.pressQuote,
-        required: false,
-      },
-      {
-        baseValue: epk.riderInfo,
-        localizedValue: epkTranslations.riderInfo,
-        required: false,
-      },
-      {
-        baseValue: epk.techRequirements,
-        localizedValue: epkTranslations.techRequirements,
-        required: false,
-      },
-      {
-        baseValue: epk.availabilityNotes,
-        localizedValue: epkTranslations.availabilityNotes,
-        required: false,
-      },
-    ]);
 
+    // Field-level locale resolution: each field independently resolves the best
+    // available text for the requested locale, falling back to DEFAULT_LOCALE
+    // translations → baseValue — instead of forcing the whole document to a single
+    // locale when any one required field is missing a translation.
     return {
       artistId: artist.id,
       epkId: epk.id,
@@ -145,18 +124,12 @@ export class PublicEpkService {
       artist: {
         username: artist.username,
         displayName:
-          resolveDocumentText(
+          resolveFieldLevelLocalizedText(
             artist.displayName,
             artistTranslations.displayName,
-            contentLocale,
-            artist.baseLocale ?? baseLocale,
+            locale,
           ) ?? artist.displayName,
-        bio: resolveDocumentText(
-          artist.bio,
-          artistTranslations.bio,
-          contentLocale,
-          artist.baseLocale ?? baseLocale,
-        ),
+        bio: resolveFieldLevelLocalizedText(artist.bio, artistTranslations.bio, locale),
         avatarUrl: artist.avatarUrl,
         coverUrl: artist.coverUrl,
         websiteUrl: artist.websiteUrl,
@@ -172,43 +145,22 @@ export class PublicEpkService {
         beatportUrl: artist.beatportUrl,
         traxsourceUrl: artist.traxsourceUrl,
       },
-      headline: resolveDocumentText(
-        epk.headline,
-        epkTranslations.headline,
-        contentLocale,
-        baseLocale,
-      ),
+      headline: resolveFieldLevelLocalizedText(epk.headline, epkTranslations.headline, locale),
       shortBio:
-        resolveDocumentText(
-          baseShortBio,
-          effectiveShortBioTranslations,
-          contentLocale,
-          baseLocale,
-        ) ??
-        resolveDocumentText(
-          artist.bio,
-          artistTranslations.bio,
-          contentLocale,
-          artist.baseLocale ?? baseLocale,
-        ),
+        resolveFieldLevelLocalizedText(baseShortBio, effectiveShortBioTranslations, locale) ??
+        resolveFieldLevelLocalizedText(artist.bio, artistTranslations.bio, locale),
       // Fallback chain for fullBio:
-      // 1. EPK's own fullBio (override)
-      // 2. Artist's fullBio from My Profile
+      // 1. EPK's own fullBio (override, field-level resolved)
+      // 2. Artist's fullBio from My Profile (untranslated plain text)
       // 3. Artist's short bio (last resort if no full bio set anywhere)
       fullBio:
-        resolveDocumentText(epk.fullBio, epkTranslations.fullBio, contentLocale, baseLocale) ??
+        resolveFieldLevelLocalizedText(epk.fullBio, epkTranslations.fullBio, locale) ??
         artist.fullBio ??
-        resolveDocumentText(
-          artist.bio,
-          artistTranslations.bio,
-          contentLocale,
-          artist.baseLocale ?? baseLocale,
-        ),
-      pressQuote: resolveDocumentText(
+        resolveFieldLevelLocalizedText(artist.bio, artistTranslations.bio, locale),
+      pressQuote: resolveFieldLevelLocalizedText(
         epk.pressQuote,
         epkTranslations.pressQuote,
-        contentLocale,
-        baseLocale,
+        locale,
       ),
       bookingEmail: epk.bookingEmail,
       managementContact: epk.managementContact,
@@ -218,24 +170,17 @@ export class PublicEpkService {
       featuredMedia: (epk.featuredMedia as unknown as EpkFeaturedMediaItem[]).filter(Boolean),
       featuredLinks: featuredLinks.length > 0 ? featuredLinks : fallbackFeaturedLinks,
       highlights: (epk.highlights as unknown as string[]).filter(Boolean),
-      riderInfo: resolveDocumentText(
-        epk.riderInfo,
-        epkTranslations.riderInfo,
-        contentLocale,
-        baseLocale,
-      ),
-      techRequirements: resolveDocumentText(
+      riderInfo: resolveFieldLevelLocalizedText(epk.riderInfo, epkTranslations.riderInfo, locale),
+      techRequirements: resolveFieldLevelLocalizedText(
         epk.techRequirements,
         epkTranslations.techRequirements,
-        contentLocale,
-        baseLocale,
+        locale,
       ),
       location: epk.location,
-      availabilityNotes: resolveDocumentText(
+      availabilityNotes: resolveFieldLevelLocalizedText(
         epk.availabilityNotes,
         epkTranslations.availabilityNotes,
-        contentLocale,
-        baseLocale,
+        locale,
       ),
       recordLabels: (artist.recordLabels as unknown as RecordLabel[]) ?? [],
       // REQ-11 counters
@@ -243,7 +188,10 @@ export class PublicEpkService {
       externalCollabsCount: artist.externalCollabsCount ?? null,
       recordLabelsCount: ((artist.recordLabels as unknown as RecordLabel[]) ?? []).length,
       locale,
-      contentLocale,
+      // With field-level resolution there is no single "content locale" for the whole
+      // document — each field resolved independently. We report the requested locale so
+      // callers know what was asked for; individual fields carry their own fallback transparently.
+      contentLocale: locale,
       templateId: (EPK_TEMPLATE_IDS as readonly string[]).includes(epk.templateId)
         ? (epk.templateId as EpkTemplateId)
         : 'studio',
