@@ -775,7 +775,7 @@ function BlockRow({
       }}
       onDragEnd={onDragEnd}
       onClick={onEdit}
-      className={`group flex cursor-pointer items-center gap-3 rounded-[14px] px-3 py-3 transition-all hover:bg-white/[0.04] ${isDragging ? 'scale-[0.99] opacity-60' : ''}`}
+      className={`group flex cursor-pointer items-center gap-3 rounded-[14px] px-3 py-3 transition-all hover:bg-white/[0.04] ${isDragging ? 'scale-[0.99] opacity-60' : ''} ${deleting ? 'pointer-events-none opacity-40' : ''}`}
     >
       {/* Drag + order controls */}
       <div className="flex shrink-0 items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
@@ -842,9 +842,35 @@ function BlockRow({
       {/* Title + type */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="truncate text-[14px] font-semibold text-white">
-            {block.title ?? t(`types.${block.type}`)}
-          </p>
+          {deleting ? (
+            <span className="flex items-center gap-2 text-[14px] italic text-white/50">
+              <svg
+                className="h-3.5 w-3.5 animate-spin"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              {t('deleting')}
+            </span>
+          ) : (
+            <p className="truncate text-[14px] font-semibold text-white">
+              {block.title ?? t(`types.${block.type}`)}
+            </p>
+          )}
           {isPrimary && (
             <span
               className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 font-[family-name:var(--font-heading)] text-[9px] font-bold uppercase tracking-[1.5px] text-white"
