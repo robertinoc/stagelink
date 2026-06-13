@@ -15,24 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 
-// ── Logo helpers ──────────────────────────────────────────────────────────────
-
-/** Returns a Clearbit logo URL for a given website URL, or null if the URL is invalid. */
-function getClearbitLogoUrl(websiteUrl: string | null | undefined): string | null {
-  if (!websiteUrl) return null;
-  try {
-    const { hostname } = new URL(websiteUrl);
-    return `https://logo.clearbit.com/${hostname}`;
-  } catch {
-    return null;
-  }
-}
-
-/** Returns the effective logo URL: explicit logoUrl > Clearbit from websiteUrl > null. */
-function effectiveLogoUrl(label: Pick<RecordLabel, 'logoUrl' | 'websiteUrl'>): string | null {
-  if (label.logoUrl) return label.logoUrl;
-  return getClearbitLogoUrl(label.websiteUrl);
-}
+import { resolveRecordLabelLogoSrc } from '@/lib/record-label-logo';
 
 // ── Label logo avatar ────────────────────────────────────────────────────────
 
@@ -234,7 +217,11 @@ export function ProfileRecordLabelsSection({
             <div className="divide-y divide-white/10">
               {labels.map((label, index) => (
                 <div key={label.id} className="flex min-h-[56px] items-center gap-4 px-5 py-3">
-                  <LabelLogo logoUrl={effectiveLogoUrl(label)} name={label.name} size="sm" />
+                  <LabelLogo
+                    logoUrl={resolveRecordLabelLogoSrc(label)}
+                    name={label.name}
+                    size="sm"
+                  />
                   <div className="min-w-0 flex-1 overflow-hidden">
                     <p className="truncate text-sm font-medium text-white">{label.name}</p>
                     {label.websiteUrl ? (
