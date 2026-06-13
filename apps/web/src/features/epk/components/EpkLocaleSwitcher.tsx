@@ -1,7 +1,8 @@
 'use client';
 
 // EpkLocaleSwitcher — compact language toggle for the public EPK page.
-// Renders EN / ES chips; clicking navigates to the same page in the other locale.
+// Renders EN / ES chips; clicking either calls onLocaleChange (client-side
+// translation) or falls back to a full navigation when onLocaleChange is absent.
 // Accepts a `theme` prop so it blends into all 3 template aesthetics.
 
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@stagelink/types';
@@ -16,12 +17,21 @@ interface EpkLocaleSwitcherProps {
   username: string;
   /** Visual theme: 'dark' for Cinematic, 'light' for Studio, 'brand' for Brutalist */
   theme?: 'dark' | 'light' | 'brand';
+  /**
+   * When provided, locale switching is handled client-side (no page reload).
+   * When absent, falls back to window.location.assign for backwards compat.
+   */
+  onLocaleChange?: (locale: SupportedLocale) => void;
+  /** When true, shows a spinner on the active locale chip while translating. */
+  translating?: boolean;
 }
 
 export function EpkLocaleSwitcher({
   currentLocale,
   username,
   theme = 'dark',
+  onLocaleChange,
+  translating = false,
 }: EpkLocaleSwitcherProps) {
   const colors = {
     dark: {
@@ -50,10 +60,14 @@ export function EpkLocaleSwitcher({
     },
   }[theme];
 
-  function handleSwitch(newLocale: string) {
+  function handleSwitch(newLocale: SupportedLocale) {
     if (newLocale === currentLocale) return;
-    // Full reload — the public EPK is server-rendered
-    window.location.assign(`/${newLocale}/${username}/epk`);
+    if (onLocaleChange) {
+      onLocaleChange(newLocale);
+    } else {
+      // Fallback: full page reload (backwards compat when parent hasn't opted in)
+      window.location.assign(`/${newLocale}/${username}/epk`);
+    }
   }
 
   return (
@@ -64,6 +78,7 @@ export function EpkLocaleSwitcher({
           <button
             key={loc}
             type="button"
+            disabled={translating && !active}
             onClick={() => handleSwitch(loc)}
             style={{
               padding: '4px 8px',
@@ -75,7 +90,8 @@ export function EpkLocaleSwitcher({
               background: active ? colors.activeBg : colors.inactiveBg,
               border: `1px solid ${active ? colors.activeBorder : colors.inactiveBorder}`,
               color: active ? colors.activeColor : colors.inactiveColor,
-              cursor: active ? 'default' : 'pointer',
+              cursor: translating || active ? 'default' : 'pointer',
+              opacity: translating && !active ? 0.4 : 1,
               transition: 'all 0.15s',
               display: 'inline-flex',
               alignItems: 'center',
@@ -83,7 +99,31 @@ export function EpkLocaleSwitcher({
             }}
             aria-current={active ? 'true' : undefined}
           >
-            <span style={{ fontSize: 12 }}>{LOCALE_FLAGS[loc] ?? ''}</span>
+            {active && translating ? (
+              <svg
+                style={{ width: 10, height: 10, animation: 'spin 1s linear infinite' }}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+                <circle
+                  style={{ opacity: 0.25 }}
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  style={{ opacity: 0.75 }}
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+            ) : (
+              <span style={{ fontSize: 12 }}>{LOCALE_FLAGS[loc] ?? ''}</span>
+            )}
             {loc}
           </button>
         );

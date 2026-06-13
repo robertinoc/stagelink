@@ -10,6 +10,8 @@ import { EpkShimmerLinks } from '../EpkShimmerLinks';
 import type { PublicEpkResponse, SupportedLocale } from '@stagelink/types';
 import { EpkLightbox } from '../EpkLightbox';
 import { EpkLocaleSwitcher } from '../EpkLocaleSwitcher';
+import { useLocaleTranslation } from '@/lib/hooks/useLocaleTranslation';
+import { extractTranslatableEpkContent, applyTranslationsToEpk } from '@/lib/epk-translation';
 
 interface EpkCinematicTemplateProps {
   epk: PublicEpkResponse;
@@ -42,10 +44,21 @@ const C = {
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export function EpkCinematicTemplate({
-  epk,
-  locale,
+  epk: initialEpk,
+  locale: initialLocale,
   printMode = false,
 }: EpkCinematicTemplateProps) {
+  // ── Client-side auto-translate ─────────────────────────────────────────────
+  const {
+    currentContent: epk,
+    activeLocale: locale,
+    translating,
+    switchLocale,
+  } = useLocaleTranslation(initialEpk, extractTranslatableEpkContent, applyTranslationsToEpk, {
+    baseLocale: initialLocale,
+    pageId: initialEpk.epkId,
+  });
+
   const { artist } = epk;
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [riderOpen, setRiderOpen] = useState(false);
@@ -179,7 +192,13 @@ export function EpkCinematicTemplate({
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <EpkLocaleSwitcher currentLocale={locale} username={artist.username} theme="dark" />
+            <EpkLocaleSwitcher
+              currentLocale={locale}
+              username={artist.username}
+              theme="dark"
+              onLocaleChange={switchLocale}
+              translating={translating}
+            />
             {epk.bookingEmail && (
               <a
                 href={`mailto:${epk.bookingEmail}`}

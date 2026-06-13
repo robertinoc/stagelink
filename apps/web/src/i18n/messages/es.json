@@ -2533,7 +2533,10 @@
       "reject": "No, gracias"
     },
     "language_toggle": {
-      "label": "Cambiar idioma"
+      "label": "Cambiar idioma",
+      "translating": "Traduciendo…",
+      "translate_error": "No se pudo traducir. Intentá de nuevo.",
+      "translate_error_dismiss": "Cerrar"
     },
     "cta": {
       "spotify": "Seguirme en Spotify",

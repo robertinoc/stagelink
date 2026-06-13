@@ -11,6 +11,8 @@ import type { PublicEpkResponse, SupportedLocale } from '@stagelink/types';
 import { EpkShimmerLinks } from '../EpkShimmerLinks';
 import { EpkLightbox } from '../EpkLightbox';
 import { EpkLocaleSwitcher } from '../EpkLocaleSwitcher';
+import { useLocaleTranslation } from '@/lib/hooks/useLocaleTranslation';
+import { extractTranslatableEpkContent, applyTranslationsToEpk } from '@/lib/epk-translation';
 
 interface EpkStudioTemplateProps {
   epk: PublicEpkResponse;
@@ -34,7 +36,22 @@ function SocialIcon({ platform }: { platform: string }) {
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
-export function EpkStudioTemplate({ epk, locale, printMode = false }: EpkStudioTemplateProps) {
+export function EpkStudioTemplate({
+  epk: initialEpk,
+  locale: initialLocale,
+  printMode = false,
+}: EpkStudioTemplateProps) {
+  // ── Client-side auto-translate ─────────────────────────────────────────────
+  const {
+    currentContent: epk,
+    activeLocale: locale,
+    translating,
+    switchLocale,
+  } = useLocaleTranslation(initialEpk, extractTranslatableEpkContent, applyTranslationsToEpk, {
+    baseLocale: initialLocale,
+    pageId: initialEpk.epkId,
+  });
+
   const { artist } = epk;
 
   // Dark mode — detect system preference, allow manual toggle
@@ -193,6 +210,8 @@ export function EpkStudioTemplate({ epk, locale, printMode = false }: EpkStudioT
               currentLocale={locale}
               username={artist.username}
               theme={d ? 'dark' : 'light'}
+              onLocaleChange={switchLocale}
+              translating={translating}
             />
             {/* Book CTA */}
             {epk.bookingEmail && (

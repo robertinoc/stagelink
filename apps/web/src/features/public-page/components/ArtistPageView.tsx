@@ -1,12 +1,17 @@
+'use client';
+
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
-import { Download, FileText, Globe, Instagram, Mail, Sparkles } from 'lucide-react';
-import { getLocale, getTranslations } from 'next-intl/server';
+import { Download, FileText, Globe, Instagram, Mail, Sparkles, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type {
   MusicEmbedBlockConfig,
   PublicPageResponse,
   VideoEmbedBlockConfig,
 } from '@stagelink/types';
+import { SUPPORTED_LOCALES } from '@stagelink/types';
+import { useLocaleTranslation } from '@/lib/hooks/useLocaleTranslation';
+import { extractTranslatablePageContent, applyTranslationsToPage } from '@/lib/page-translation';
 import { PublicPageClient } from './PublicPageClient';
 import { PublicAvatarImage } from './PublicAvatarImage';
 import { PublicCoverImage } from './PublicCoverImage';
@@ -30,10 +35,17 @@ interface ArtistPageViewProps {
 
 type IconComponent = (props: { className?: string }) => React.ReactElement;
 
-export async function ArtistPageView({ page }: ArtistPageViewProps) {
-  const t = await getTranslations('public_page');
-  const locale = await getLocale();
-  const { artist, blocks } = page;
+export function ArtistPageView({ page }: ArtistPageViewProps) {
+  const t = useTranslations('public_page');
+
+  // ── Client-side auto-translate ──────────────────────────────────────────────
+  const { currentContent, activeLocale, translating, translateError, switchLocale, dismissError } =
+    useLocaleTranslation(page, extractTranslatablePageContent, applyTranslationsToPage, {
+      baseLocale: page.locale,
+      pageId: page.pageId,
+    });
+
+  const { artist, blocks } = currentContent;
 
   const socialLinks = [
     artist.instagramUrl && {
@@ -153,7 +165,10 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
   // duplicating the short bio that already appears in the teaser above.
   const hasAboutSection = Boolean(artist.fullBio) && !hasCustomAboutBlock;
   const hasAnyPublicContent =
-    blocks.length > 0 || hasAboutSection || page.publicEpkAvailable || Boolean(artist.contactEmail);
+    blocks.length > 0 ||
+    hasAboutSection ||
+    currentContent.publicEpkAvailable ||
+    Boolean(artist.contactEmail);
 
   function getMusicProvider(block: PublicPageResponse['blocks'][number]): string | null {
     if (block.type !== 'music_embed') return null;
@@ -255,7 +270,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
   // ── Theme mapping ────────────────────────────────────────────────────────────
   // Minimal per-theme overrides for background and glow colours.
   // All other colours remain unchanged to avoid a full CSS-var refactor.
-  const themeName = page.theme?.name ?? 'noche';
+  const themeName = currentContent.theme?.name ?? 'noche';
   const themeStyles: Record<string, { bg: string; glow1: string; glow2: string; glow3: string }> = {
     noche: {
       bg: '#090411',
@@ -308,13 +323,53 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
 
       <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         {/* Language toggle */}
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex justify-end gap-2">
+          {/* Translate error banner */}
+          {translateError && (
+            <div className="flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs text-red-300">
+              <span>{t('language_toggle.translate_error')}</span>
+              <button
+                type="button"
+                onClick={dismissError}
+                className="text-red-400 hover:text-red-200"
+                aria-label={t('language_toggle.translate_error_dismiss')}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+
           <nav
             aria-label={t('language_toggle.label')}
             className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1"
           >
-            {(['en', 'es'] as const).map((lng) =>
-              lng === locale ? (
+            {translating && (
+              <span className="inline-flex items-center gap-1.5 px-2 text-xs text-white/40">
+                <svg
+                  className="h-3 w-3 animate-spin"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
+                </svg>
+                {t('language_toggle.translating')}
+              </span>
+            )}
+            {SUPPORTED_LOCALES.map((lng) =>
+              lng === activeLocale ? (
                 <span
                   key={lng}
                   aria-current="true"
@@ -323,13 +378,15 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                   {lng.toUpperCase()}
                 </span>
               ) : (
-                <Link
+                <button
                   key={lng}
-                  href={`/${lng}/${artist.username}`}
-                  className="inline-flex h-7 min-w-[2.75rem] items-center justify-center rounded-full text-xs font-medium text-white/50 transition hover:text-white/80"
+                  type="button"
+                  disabled={translating}
+                  onClick={() => void switchLocale(lng)}
+                  className="inline-flex h-7 min-w-[2.75rem] items-center justify-center rounded-full text-xs font-medium text-white/50 transition hover:text-white/80 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {lng.toUpperCase()}
-                </Link>
+                </button>
               ),
             )}
           </nav>
@@ -356,7 +413,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
               </div>
 
               <div className="mx-auto max-w-3xl text-center">
-                {page.promoSlot.kind === 'free_branding' && (
+                {currentContent.promoSlot.kind === 'free_branding' && (
                   <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-zinc-300">
                     <Sparkles className="h-3.5 w-3.5 text-violet-300" />
                     StageLink
@@ -397,9 +454,9 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                         label={social.label}
                         color={social.color}
                         platformKey={social.key}
-                        artistId={page.artistId}
+                        artistId={currentContent.artistId}
                         username={artist.username}
-                        pageId={page.pageId}
+                        pageId={currentContent.pageId}
                       >
                         <social.Icon className="h-5 w-5" />
                       </SocialIconLink>
@@ -436,13 +493,13 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                 {blocks.map((block, index) => (
                   <div key={block.id ?? index} className={blockWidthClass(block) || undefined}>
                     <div className="space-y-3">
-                      <PublicPageClient page={page} blocks={[block]} className="" />
+                      <PublicPageClient page={currentContent} blocks={[block]} className="" />
                       {renderMediaCta(block)}
                     </div>
                   </div>
                 ))}
 
-                {(hasAboutSection || page.publicEpkAvailable || artist.contactEmail) && (
+                {(hasAboutSection || currentContent.publicEpkAvailable || artist.contactEmail) && (
                   <section className="space-y-4">
                     {hasAboutSection && (
                       <div className="neon-card-border rounded-[1.5rem] p-[1px]">
@@ -486,9 +543,9 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                       </div>
                     )}
 
-                    {(page.publicEpkAvailable || artist.contactEmail) && (
+                    {(currentContent.publicEpkAvailable || artist.contactEmail) && (
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        {page.publicEpkAvailable && (
+                        {currentContent.publicEpkAvailable && (
                           <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-sm">
                             <div className="space-y-2">
                               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500">
@@ -500,14 +557,14 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                             </div>
                             <div className="mt-6 flex flex-wrap gap-3">
                               <Link
-                                href={`/${locale}/${artist.username}/epk`}
+                                href={`/${activeLocale}/${artist.username}/epk`}
                                 className="inline-flex items-center justify-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/15 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-violet-500/25"
                               >
                                 <FileText className="h-4 w-4" />
                                 {t('actions.view_presskit')}
                               </Link>
                               <Link
-                                href={`/${locale}/${artist.username}/epk/print?download=1`}
+                                href={`/${activeLocale}/${artist.username}/epk/print?download=1`}
                                 className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-zinc-100 transition hover:border-white/20 hover:bg-white/10"
                               >
                                 <Download className="h-4 w-4" />
@@ -543,11 +600,11 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                   <p className="py-10 text-center text-sm text-zinc-500">{t('no_blocks')}</p>
                 )}
 
-                {page.promoSlot.kind === 'free_branding' && (
+                {currentContent.promoSlot.kind === 'free_branding' && (
                   <div className="mx-auto max-w-2xl rounded-[1.5rem] border border-white/10 bg-white/5 p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.28)] backdrop-blur-sm">
                     <p className="text-sm font-medium text-zinc-100">{t('branding_slot.title')}</p>
                     <Link
-                      href={`/${locale}/pricing`}
+                      href={`/${activeLocale}/pricing`}
                       className="mt-4 inline-flex items-center justify-center rounded-full bg-violet-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-400"
                     >
                       {t('branding_slot.cta')}
@@ -556,7 +613,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                       {t.rich('branding_slot.secondary', {
                         brand: (chunks) => (
                           <Link
-                            href={`/${locale}`}
+                            href={`/${activeLocale}`}
                             className="font-semibold text-violet-300 transition hover:text-violet-200"
                           >
                             {chunks}
@@ -564,7 +621,7 @@ export async function ArtistPageView({ page }: ArtistPageViewProps) {
                         ),
                         signup: (chunks) => (
                           <Link
-                            href={`/${locale}/signup`}
+                            href={`/${activeLocale}/signup`}
                             className="font-medium text-zinc-200 underline decoration-zinc-500 underline-offset-4 transition hover:text-white hover:decoration-zinc-300"
                           >
                             {chunks}
