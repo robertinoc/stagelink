@@ -42,7 +42,7 @@ export interface RecordLabel {
   id: string;
   name: string;
   websiteUrl: string | null;
-  /** Explicit logo URL. Falls back to Clearbit (logo.clearbit.com) from websiteUrl. */
+  /** Explicit logo URL. Falls back to Google S2 favicon from websiteUrl when absent. */
   logoUrl: string | null;
 }
 

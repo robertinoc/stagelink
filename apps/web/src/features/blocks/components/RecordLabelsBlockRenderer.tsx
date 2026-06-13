@@ -3,20 +3,11 @@
 import { useTranslations } from 'next-intl';
 import type { RecordLabel, RecordLabelsBlockConfig } from '@stagelink/types';
 import { RecordLabelLogo } from '../../epk/components/RecordLabelLogo';
+import { resolveRecordLabelLogoSrc } from '@/lib/record-label-logo';
 
 interface RecordLabelsBlockRendererProps {
   title: string | null;
   config: RecordLabelsBlockConfig;
-}
-
-/** Resolves a usable logo URL: explicit logoUrl, else Clearbit from the website host. */
-function resolveLogoSrc(label: RecordLabel): string | null {
-  if (label.logoUrl) return label.logoUrl;
-  try {
-    return `https://logo.clearbit.com/${new URL(label.websiteUrl ?? '').hostname}`;
-  } catch {
-    return null;
-  }
 }
 
 /**
@@ -38,7 +29,7 @@ export function RecordLabelsBlockRenderer({ title, config }: RecordLabelsBlockRe
 
       <div className="flex flex-wrap gap-3">
         {labels.map((label) => {
-          const logoSrc = resolveLogoSrc(label);
+          const logoSrc = resolveRecordLabelLogoSrc(label);
           const inner = (
             <>
               <RecordLabelLogo

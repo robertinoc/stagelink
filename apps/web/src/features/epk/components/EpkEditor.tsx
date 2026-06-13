@@ -35,6 +35,7 @@ import { EpkGallerySection } from './EpkGallerySection';
 import { EpkImageUploader } from './EpkImageUploader';
 import { LocalizedEpkContentSection } from './LocalizedEpkContentSection';
 import { RecordLabelLogo } from './RecordLabelLogo';
+import { resolveRecordLabelLogoSrc } from '@/lib/record-label-logo';
 import { epkFormSchema, type EpkFormValues } from '../schemas/epk.schema';
 
 interface EpkEditorProps {
@@ -1268,15 +1269,7 @@ export function EpkEditor({
             <CardContent className="p-0">
               <div className="divide-y divide-white/10">
                 {inherited.recordLabels.map((label: RecordLabel) => {
-                  const logoSrc =
-                    label.logoUrl ??
-                    (() => {
-                      try {
-                        return `https://logo.clearbit.com/${new URL(label.websiteUrl ?? '').hostname}`;
-                      } catch {
-                        return null;
-                      }
-                    })();
+                  const logoSrc = resolveRecordLabelLogoSrc(label);
                   return (
                     <div key={label.id} className="flex items-center gap-3 px-5 py-3">
                       <RecordLabelLogo
