@@ -731,25 +731,16 @@ function BlockRow({
   wontRenderReason?: string;
 }) {
   const t = useTranslations('blocks');
-  const [toggling, setToggling] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const thumbnail = getBlockThumbnail(block);
 
-  async function handleTogglePublish() {
-    // Optimistic update — flip immediately, revert on failure
-    const optimistic: Block = { ...block, isPublished: !block.isPublished };
-    onUpdated(optimistic);
-    setToggling(true);
-    try {
-      const updated = block.isPublished
-        ? await unpublishBlock(block.id)
-        : await publishBlock(block.id);
-      onUpdated(updated);
-    } catch {
-      onUpdated(block); // revert
-    } finally {
-      setToggling(false);
-    }
+  function handleTogglePublish() {
+    // Fire-and-forget: flip immediately, revert silently on failure.
+    // No toggling state — the optimistic update is the only visual feedback needed.
+    const before = block;
+    onUpdated({ ...block, isPublished: !block.isPublished });
+    const req = block.isPublished ? unpublishBlock(block.id) : publishBlock(block.id);
+    void req.then(onUpdated).catch(() => onUpdated(before));
   }
 
   async function handleDelete() {
@@ -901,21 +892,15 @@ function BlockRow({
 
       {/* Publish toggle */}
       <div className="flex shrink-0 items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-        {toggling && (
-          <span className="text-[10px] text-white/40 animate-pulse">
-            {block.isPublished ? t('activating') : t('deactivating')}
-          </span>
-        )}
         <button
           type="button"
           role="switch"
           aria-checked={block.isPublished}
           onClick={(e) => {
             e.stopPropagation();
-            void handleTogglePublish();
+            handleTogglePublish();
           }}
-          disabled={toggling}
-          className={`relative inline-flex h-5 w-9 cursor-pointer rounded-full transition-colors ${block.isPublished ? 'bg-[#E040FB]' : 'bg-white/20'} ${toggling ? 'opacity-60' : ''}`}
+          className={`relative inline-flex h-5 w-9 cursor-pointer rounded-full transition-colors ${block.isPublished ? 'bg-[#E040FB]' : 'bg-white/20'}`}
         >
           <span
             className={`absolute top-0.5 inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${block.isPublished ? 'translate-x-4' : 'translate-x-0.5'}`}
