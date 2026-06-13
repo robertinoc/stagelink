@@ -47,7 +47,10 @@ export function PageTab({ overview, proTrends, fanInsights, locale }: PageTabPro
   const summary = overview?.summary;
   const visits = summary?.pageViews ?? 0;
   const linkClicks = summary?.linkClicks ?? 0;
-  const ctr = summary?.ctr ?? 0;
+  // Backend returns CTR as a decimal fraction (e.g. 0.17 = 17%).
+  // We display it as a percentage everywhere, so multiply by 100 here
+  // and the downstream KpiTile + hero-summary copy both render correctly.
+  const ctr = (summary?.ctr ?? 0) * 100;
   const smartRes = summary?.smartLinkResolutions ?? 0;
 
   const visitsSeries = proTrends?.series.pageViews;
