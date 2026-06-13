@@ -10,6 +10,8 @@ import { EpkShimmerLinks } from '../EpkShimmerLinks';
 import type { EpkBrand, PublicEpkResponse, SupportedLocale } from '@stagelink/types';
 import { EpkLightbox } from '../EpkLightbox';
 import { EpkLocaleSwitcher } from '../EpkLocaleSwitcher';
+import { useLocaleTranslation } from '@/lib/hooks/useLocaleTranslation';
+import { extractTranslatableEpkContent, applyTranslationsToEpk } from '@/lib/epk-translation';
 
 interface EpkBrutalistTemplateProps {
   epk: PublicEpkResponse;
@@ -104,10 +106,21 @@ function Marquee({ text, bg, ink, speed = 40 }: MarqueeProps) {
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export function EpkBrutalistTemplate({
-  epk,
-  locale,
+  epk: initialEpk,
+  locale: initialLocale,
   printMode = false,
 }: EpkBrutalistTemplateProps) {
+  // ── Client-side auto-translate ─────────────────────────────────────────────
+  const {
+    currentContent: epk,
+    activeLocale: locale,
+    translating,
+    switchLocale,
+  } = useLocaleTranslation(initialEpk, extractTranslatableEpkContent, applyTranslationsToEpk, {
+    baseLocale: initialLocale,
+    pageId: initialEpk.epkId,
+  });
+
   const { artist } = epk;
   const brand = mergeBrand(epk.brand);
   const cssVars = buildCssVars(brand);
@@ -260,7 +273,13 @@ export function EpkBrutalistTemplate({
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {!printMode && (
-              <EpkLocaleSwitcher currentLocale={locale} username={artist.username} theme="brand" />
+              <EpkLocaleSwitcher
+                currentLocale={locale}
+                username={artist.username}
+                theme="brand"
+                onLocaleChange={switchLocale}
+                translating={translating}
+              />
             )}
             {epk.bookingEmail && !printMode && (
               <a
