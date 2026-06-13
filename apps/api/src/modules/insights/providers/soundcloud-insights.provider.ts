@@ -150,10 +150,12 @@ export class SoundCloudInsightsProvider implements PlatformInsightsProvider {
         imageUrl: summary.imageUrl,
         externalUrl: summary.externalUrl,
       },
+      // Keys are camelCase for consistency with Spotify/YouTube providers (the
+      // Coming Soon SoundCloud panel will read these once it ships).
       metrics: {
-        followers_count: summary.followersCount,
-        track_count: summary.trackCount,
-        top_tracks_count: resolvedTracks.length,
+        followersCount: summary.followersCount,
+        trackCount: summary.trackCount,
+        topTracksCount: resolvedTracks.length,
       },
       topContent: resolvedTracks.slice(0, SOUNDCLOUD_INSIGHTS_TOP_TRACKS_LIMIT).map((track) => ({
         platform: this.platform,

@@ -138,11 +138,16 @@ export class SpotifyInsightsProvider implements PlatformInsightsProvider {
         imageUrl: summary.imageUrl,
         externalUrl: summary.externalUrl,
       },
+      // Keys are camelCase to match SpotifyPanel.tsx reads (followersTotal,
+      // popularity, genres). Previously these were snake_case which caused
+      // the dashboard to show "—" for every metric even after a successful
+      // sync. `genres` stores the actual names as a comma-separated string
+      // so the panel's arrayMetric() helper can split + render them as pills.
       metrics: {
-        followers_total: summary.followersTotal,
+        followersTotal: summary.followersTotal,
         popularity: summary.popularity,
-        genres_count: genres.length,
-        top_tracks_count: tracks.length,
+        genres: genres.join(', '),
+        topTracksCount: tracks.length,
       },
       topContent: tracks.slice(0, SPOTIFY_INSIGHTS_TOP_TRACKS_LIMIT).map((track) => ({
         platform: this.platform,

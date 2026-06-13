@@ -188,12 +188,16 @@ export class YouTubeInsightsProvider implements PlatformInsightsProvider {
         imageUrl: summary.imageUrl,
         externalUrl: summary.externalUrl,
       },
+      // Keys are camelCase to match YouTubePanel.tsx reads (subscriberCount,
+      // totalViews, videoCount). Previously these were snake_case which caused
+      // the dashboard to show "—" for every YouTube metric even after a
+      // successful sync.
       metrics: {
-        subscriber_count: summary.subscriberCount,
-        total_views: summary.totalViews,
-        video_count: summary.videoCount,
-        recent_videos_count: recentVideos.length,
-        subscribers_hidden: summary.subscribersHidden,
+        subscriberCount: summary.subscriberCount,
+        totalViews: summary.totalViews,
+        videoCount: summary.videoCount,
+        recentVideosCount: recentVideos.length,
+        subscribersHidden: summary.subscribersHidden,
       },
       topContent: recentVideos.map((video) => ({
         platform: this.platform,

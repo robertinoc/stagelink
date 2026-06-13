@@ -165,7 +165,7 @@ describe('InsightsService', () => {
           externalUrl: 'https://open.spotify.com/artist/1',
         },
         metrics: {
-          followers_total: 1200,
+          followersTotal: 1200,
           popularity: 47,
         },
         topContent: [
@@ -193,7 +193,7 @@ describe('InsightsService', () => {
     const spotify = result.platforms.find((platform) => platform.platform === 'spotify');
     expect(spotify?.connection?.displayName).toBe('Robertino on Spotify');
     expect(spotify?.latestSnapshot?.metrics).toEqual({
-      followers_total: 1200,
+      followersTotal: 1200,
       popularity: 47,
     });
     expect(spotify?.latestSnapshot?.topContent).toHaveLength(1);
@@ -201,7 +201,7 @@ describe('InsightsService', () => {
       {
         capturedAt: '2026-04-20T10:05:00.000Z',
         metrics: {
-          followers_total: 1200,
+          followersTotal: 1200,
           popularity: 47,
         },
       },
@@ -404,7 +404,7 @@ describe('InsightsService', () => {
         externalUrl: 'https://open.spotify.com/artist/spotify-artist-id',
       },
       metrics: {
-        followers_total: 6400,
+        followersTotal: 6400,
         popularity: 52,
       },
       topContent: [
@@ -430,7 +430,7 @@ describe('InsightsService', () => {
     );
     expect(result.ok).toBe(true);
     expect(result.connection.lastSyncStatus).toBe('success');
-    expect(result.snapshot.metrics.followers_total).toBe(6400);
+    expect(result.snapshot.metrics.followersTotal).toBe(6400);
     expect(auditService.log).toHaveBeenCalled();
   });
   it('normalizes unexpected sync failures into a service error', async () => {
@@ -722,10 +722,10 @@ describe('InsightsService', () => {
         externalUrl: 'https://www.youtube.com/@googledevelopers',
       },
       metrics: {
-        subscriber_count: 2890000,
-        total_views: 218000000,
-        video_count: 6200,
-        recent_videos_count: 2,
+        subscriberCount: 2890000,
+        totalViews: 218000000,
+        videoCount: 6200,
+        recentVideosCount: 2,
       },
       topContent: [
         {
@@ -750,7 +750,7 @@ describe('InsightsService', () => {
     );
     expect(result.ok).toBe(true);
     expect(result.connection.lastSyncStatus).toBe('success');
-    expect(result.snapshot.metrics.subscriber_count).toBe(2890000);
+    expect(result.snapshot.metrics.subscriberCount).toBe(2890000);
     expect(auditService.log).toHaveBeenCalled();
   });
 
