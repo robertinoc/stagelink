@@ -325,34 +325,43 @@ export class AnalyticsService {
     const dates = buildDateSeries(rangeStart);
     const baseWhere = { artistId, createdAt: { gte: rangeStart }, ...QUALITY_FILTER };
 
+    // ── Source-of-truth for fan-capture metrics is the `subscribers` table ──
+    // The `analytics_events` table stores a parallel `fan_capture_submit` event
+    // for the trend chart, but it has two failure modes that cause divergence
+    // with reality:
+    //   1. Persistence is fire-and-forget (.catch silently swallows errors).
+    //   2. Reads filter by QUALITY_FILTER (is_qa=false, is_bot_suspected=false,
+    //      environment='production'). A submitted fan stays on the artist's
+    //      mailing list regardless of those flags, so the dashboard count
+    //      should reflect that.
+    // Counting subscribers directly avoids both — it's the same record that
+    // drives the fans tab and the notification email. status=active excludes
+    // unsubscribes, matching the public-facing fan count.
+    const subscriberWhere = {
+      artistId,
+      createdAt: { gte: rangeStart },
+      status: 'active' as const,
+    };
+
     const [pageViews, fanCaptures, captureRows, topCaptureBlocksRaw] = await Promise.all([
       this.prisma.analyticsEvent.count({
         where: { ...baseWhere, eventType: 'page_view' },
       }),
-      this.prisma.analyticsEvent.count({
-        where: { ...baseWhere, eventType: 'fan_capture_submit' },
-      }),
+      this.prisma.subscriber.count({ where: subscriberWhere }),
       this.prisma.$queryRaw<FanCaptureTrendRow[]>(Prisma.sql`
         SELECT
           date_trunc('day', created_at) AS day,
           COUNT(*)::int AS captures
-        FROM analytics_events
+        FROM subscribers
         WHERE artist_id = ${artistId}
           AND created_at >= ${rangeStart}
-          AND event_type::text = 'fan_capture_submit'
-          AND is_bot_suspected = false
-          AND is_qa = false
-          AND environment::text = 'production'
+          AND status = 'active'
         GROUP BY 1
         ORDER BY 1 ASC
       `),
-      this.prisma.analyticsEvent.groupBy({
+      this.prisma.subscriber.groupBy({
         by: ['blockId'],
-        where: {
-          ...baseWhere,
-          eventType: 'fan_capture_submit',
-          blockId: { not: null },
-        },
+        where: subscriberWhere,
         _count: { id: true },
         orderBy: { _count: { id: 'desc' } },
         take: 5,
