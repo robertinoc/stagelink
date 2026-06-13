@@ -17,6 +17,7 @@ import {
   type RecordLabel,
   type BlockLocalizedContent,
   type EmailCaptureBlockConfig,
+  type TextBlockConfig,
   type LinksBlockConfig,
   type SmartMerchBlockConfig,
   type SmartMerchProduct,
@@ -446,6 +447,34 @@ function localizeBlock(
       config: {
         show,
         counters,
+      },
+    };
+  }
+
+  if (block.type === 'text') {
+    const textConfig = baseConfig as unknown as TextBlockConfig;
+    // bioSource pulls body from the artist profile (already localized there).
+    // htmlMode is an embed code (technical, not user-translatable).
+    // Only user-authored markdown body benefits from localizedContent.text.
+    if (textConfig.bioSource || textConfig.htmlMode) {
+      return {
+        id: block.id,
+        type: block.type,
+        title: localizedTitle,
+        position: block.position,
+        config: baseConfig,
+      };
+    }
+    return {
+      id: block.id,
+      type: block.type,
+      title: localizedTitle,
+      position: block.position,
+      config: {
+        ...textConfig,
+        body:
+          resolveFieldLevelLocalizedText(textConfig.body, localizedContent.text?.body, locale) ??
+          textConfig.body,
       },
     };
   }

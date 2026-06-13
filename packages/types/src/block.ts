@@ -291,8 +291,16 @@ export interface PublicCountersBlockConfig {
   counters?: { key: PublicCounterKey; value: number }[];
 }
 
+export interface TextBlockTranslations {
+  /** Translated versions of `TextBlockConfig.body` (Markdown text).
+   *  Not used when `htmlMode` or `bioSource` are set — those are either
+   *  technical (embed codes) or pulled live from the profile. */
+  body: LocalizedTextMap;
+}
+
 export interface BlockLocalizedContent {
   title?: LocalizedTextMap;
+  text?: TextBlockTranslations;
   emailCapture?: EmailCaptureBlockTranslations;
   links?: LinksBlockTranslations;
   shopifyStore?: ShopifyStoreBlockTranslations;
