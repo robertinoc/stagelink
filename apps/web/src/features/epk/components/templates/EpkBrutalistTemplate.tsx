@@ -10,6 +10,7 @@ import { EpkShimmerLinks } from '../EpkShimmerLinks';
 import type { EpkBrand, PublicEpkResponse, SupportedLocale } from '@stagelink/types';
 import { EpkLightbox } from '../EpkLightbox';
 import { EpkLocaleSwitcher } from '../EpkLocaleSwitcher';
+import { EpkTranslateErrorToast } from '../EpkTranslateErrorToast';
 import { useLocaleTranslation } from '@/lib/hooks/useLocaleTranslation';
 import { extractTranslatableEpkContent, applyTranslationsToEpk } from '@/lib/epk-translation';
 
@@ -115,9 +116,11 @@ export function EpkBrutalistTemplate({
     currentContent: epk,
     activeLocale: locale,
     translating,
+    translateError,
     switchLocale,
+    dismissError,
   } = useLocaleTranslation(initialEpk, extractTranslatableEpkContent, applyTranslationsToEpk, {
-    baseLocale: initialLocale,
+    baseLocale: initialEpk.contentLocale ?? initialLocale,
     pageId: initialEpk.epkId,
   });
 
@@ -163,6 +166,8 @@ export function EpkBrutalistTemplate({
       recordLabels: 'Releases / Labels',
       printView: 'Print',
       poweredBy: 'POWERED BY STAGELINK.ART',
+      translateError: 'Could not translate. Try again.',
+      translateErrorDismiss: 'Dismiss',
     },
     es: {
       hire: 'Contactar Artista',
@@ -186,6 +191,8 @@ export function EpkBrutalistTemplate({
       recordLabels: 'Releases / Sellos',
       printView: 'Imprimir',
       poweredBy: 'POWERED BY STAGELINK.ART',
+      translateError: 'No se pudo traducir. Intentá de nuevo.',
+      translateErrorDismiss: 'Cerrar',
     },
   };
   const t = L[locale as keyof typeof L] ?? L.en;
@@ -206,6 +213,13 @@ export function EpkBrutalistTemplate({
         fontFamily: "'Arial', 'Helvetica', sans-serif",
       }}
     >
+      {!printMode && translateError && (
+        <EpkTranslateErrorToast
+          message={t.translateError}
+          dismissLabel={t.translateErrorDismiss}
+          onDismiss={dismissError}
+        />
+      )}
       {/* ── Top accent bar ──────────────────────────────────────────────────── */}
       <div style={{ height: 8, background: primary }} />
 
