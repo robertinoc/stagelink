@@ -10,6 +10,7 @@ import { EpkShimmerLinks } from '../EpkShimmerLinks';
 import type { PublicEpkResponse, SupportedLocale } from '@stagelink/types';
 import { EpkLightbox } from '../EpkLightbox';
 import { EpkLocaleSwitcher } from '../EpkLocaleSwitcher';
+import { EpkTranslateErrorToast } from '../EpkTranslateErrorToast';
 import { useLocaleTranslation } from '@/lib/hooks/useLocaleTranslation';
 import { extractTranslatableEpkContent, applyTranslationsToEpk } from '@/lib/epk-translation';
 
@@ -53,9 +54,11 @@ export function EpkCinematicTemplate({
     currentContent: epk,
     activeLocale: locale,
     translating,
+    translateError,
     switchLocale,
+    dismissError,
   } = useLocaleTranslation(initialEpk, extractTranslatableEpkContent, applyTranslationsToEpk, {
-    baseLocale: initialLocale,
+    baseLocale: initialEpk.contentLocale ?? initialLocale,
     pageId: initialEpk.epkId,
   });
 
@@ -94,6 +97,8 @@ export function EpkCinematicTemplate({
       printView: 'Print view',
       poweredBy: 'Powered by StageLink',
       pressQuote: 'Press quote',
+      translateError: 'Could not translate. Try again.',
+      translateErrorDismiss: 'Dismiss',
     },
     es: {
       hire: 'Contactar Artista',
@@ -117,6 +122,8 @@ export function EpkCinematicTemplate({
       printView: 'Imprimir',
       poweredBy: 'Powered by StageLink',
       pressQuote: 'Cita de prensa',
+      translateError: 'No se pudo traducir. Intentá de nuevo.',
+      translateErrorDismiss: 'Cerrar',
     },
   };
   const t = L[locale as keyof typeof L] ?? L.en;
@@ -146,6 +153,13 @@ export function EpkCinematicTemplate({
         fontFamily: "'Inter', system-ui, sans-serif",
       }}
     >
+      {!printMode && translateError && (
+        <EpkTranslateErrorToast
+          message={t.translateError}
+          dismissLabel={t.translateErrorDismiss}
+          onDismiss={dismissError}
+        />
+      )}
       {/* ── Sticky header ───────────────────────────────────────────────────── */}
       {!printMode && (
         <header

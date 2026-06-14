@@ -139,6 +139,10 @@ async function requestResponsesApi(params: {
         format: {
           type: 'json_schema',
           name: 'localized_fields',
+          // strict mode forces the model to return EXACTLY these keys (the schema
+          // already sets additionalProperties:false + required:all). Combined with
+          // the caller sending simple flat keys, this guarantees a clean round-trip.
+          strict: true,
           schema: params.schema,
         },
       },

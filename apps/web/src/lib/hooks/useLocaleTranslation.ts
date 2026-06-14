@@ -123,13 +123,40 @@ export function useLocaleTranslation<T>(
 
       setTranslating(true);
       try {
-        const translated = await autoTranslateLocalizedFields({
-          sourceLocale: baseLocale as 'en' | 'es',
-          targetLocale: newLocale as 'en' | 'es',
-          values: extractable,
+        // ── Indexed-key round-trip ──────────────────────────────────────
+        // Our real keys are ugly (`block.<uuid>.title`, `highlight.0`, …).
+        // LLMs in JSON mode frequently flatten / rename / re-nest dotted &
+        // UUID-bearing keys, so the returned map silently fails to match our
+        // keys on apply → "translates nothing". We send trivial keys
+        // (`f0, f1, …`) that no model will mangle, then map the response back
+        // to the real keys before applying / caching.
+        const entries = Object.entries(extractable);
+        const payloadValues: Record<string, string> = {};
+        entries.forEach(([, value], i) => {
+          payloadValues[`f${i}`] = value;
         });
 
-        // Persist to sessionStorage for next toggle
+        const response = await autoTranslateLocalizedFields({
+          sourceLocale: baseLocale as 'en' | 'es',
+          targetLocale: newLocale as 'en' | 'es',
+          values: payloadValues,
+        });
+
+        const translated: Record<string, string> = {};
+        entries.forEach(([realKey, originalValue], i) => {
+          const indexedKey = `f${i}`;
+          const translatedValue = response[indexedKey];
+          if (translatedValue === undefined && process.env.NODE_ENV !== 'production') {
+            // eslint-disable-next-line no-console
+            console.warn(
+              `[useLocaleTranslation] missing translation for ${indexedKey} (${realKey}) — keeping original`,
+            );
+          }
+          translated[realKey] = translatedValue ?? originalValue;
+        });
+
+        // Persist to sessionStorage for next toggle (keyed by REAL keys so
+        // cache hits + applyFn work unchanged)
         try {
           sessionStorage.setItem(cacheKey(pageId, newLocale), JSON.stringify(translated));
         } catch {

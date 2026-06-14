@@ -41,7 +41,10 @@ export function ArtistPageView({ page }: ArtistPageViewProps) {
   // ── Client-side auto-translate ──────────────────────────────────────────────
   const { currentContent, activeLocale, translating, translateError, switchLocale, dismissError } =
     useLocaleTranslation(page, extractTranslatablePageContent, applyTranslationsToPage, {
-      baseLocale: page.locale,
+      // The text actually served is in `contentLocale` (field-level resolution,
+      // PR #531) — not necessarily the URL `locale`. Translating from the wrong
+      // source language can produce a visual no-op, so prefer contentLocale.
+      baseLocale: page.contentLocale ?? page.locale,
       pageId: page.pageId,
     });
 
