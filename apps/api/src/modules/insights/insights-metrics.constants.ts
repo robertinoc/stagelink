@@ -23,9 +23,9 @@
  * Show side-by-side, never sum.
  */
 export const METRIC_AUDIENCE_SIZE: Record<'spotify' | 'youtube' | 'soundcloud', string> = {
-  spotify: 'followers_total',
-  youtube: 'subscriber_count',
-  soundcloud: 'followers_count',
+  spotify: 'followersTotal',
+  youtube: 'subscriberCount',
+  soundcloud: 'followersCount',
 } as const;
 
 /**
@@ -34,9 +34,9 @@ export const METRIC_AUDIENCE_SIZE: Record<'spotify' | 'youtube' | 'soundcloud', 
  * Conceptually similar but not comparable (a track ≠ a video).
  */
 export const METRIC_CONTENT_COUNT: Record<'spotify' | 'youtube' | 'soundcloud', string> = {
-  spotify: 'top_tracks_count', // number of tracks returned by the top-tracks endpoint (≤ 5)
-  youtube: 'video_count', // total public video count from the channel statistics
-  soundcloud: 'track_count', // total public track count from the user profile
+  spotify: 'topTracksCount', // number of tracks returned by the top-tracks endpoint (≤ 5)
+  youtube: 'videoCount', // total public video count from the channel statistics
+  soundcloud: 'trackCount', // total public track count from the user profile
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -49,13 +49,13 @@ export const METRIC_CONTENT_COUNT: Record<'spotify' | 'youtube' | 'soundcloud', 
  */
 export const SPOTIFY_METRIC_KEYS = {
   /** Number of Spotify followers (public figure, never null) */
-  FOLLOWERS_TOTAL: 'followers_total',
+  FOLLOWERS_TOTAL: 'followersTotal',
   /** Popularity score 0-100 (algorithmic, opaque; may fluctuate frequently) */
   POPULARITY: 'popularity',
-  /** Number of genres in the artist's genre list (informational only) */
-  GENRES_COUNT: 'genres_count',
+  /** Genre names as a comma-separated string (e.g. "techno, acid, hard") */
+  GENRES: 'genres',
   /** Number of top tracks returned at sync time (1–5 usually; 0 if API returned 403) */
-  TOP_TRACKS_COUNT: 'top_tracks_count',
+  TOP_TRACKS_COUNT: 'topTracksCount',
 } as const;
 
 /**
@@ -64,15 +64,15 @@ export const SPOTIFY_METRIC_KEYS = {
  */
 export const YOUTUBE_METRIC_KEYS = {
   /** Subscriber count; null when the channel has hidden its subscriber count */
-  SUBSCRIBER_COUNT: 'subscriber_count',
+  SUBSCRIBER_COUNT: 'subscriberCount',
   /** Cumulative view count across all videos */
-  TOTAL_VIEWS: 'total_views',
+  TOTAL_VIEWS: 'totalViews',
   /** Total public video count on the channel */
-  VIDEO_COUNT: 'video_count',
+  VIDEO_COUNT: 'videoCount',
   /** Number of recent videos fetched at sync time (0–5) */
-  RECENT_VIDEOS_COUNT: 'recent_videos_count',
+  RECENT_VIDEOS_COUNT: 'recentVideosCount',
   /** true when the channel has hidden its subscriber count */
-  SUBSCRIBERS_HIDDEN: 'subscribers_hidden',
+  SUBSCRIBERS_HIDDEN: 'subscribersHidden',
 } as const;
 
 /**
@@ -81,11 +81,11 @@ export const YOUTUBE_METRIC_KEYS = {
  */
 export const SOUNDCLOUD_METRIC_KEYS = {
   /** Public follower count */
-  FOLLOWERS_COUNT: 'followers_count',
+  FOLLOWERS_COUNT: 'followersCount',
   /** Total public track count on the profile */
-  TRACK_COUNT: 'track_count',
+  TRACK_COUNT: 'trackCount',
   /** Number of top tracks returned at sync time (0–5) */
-  TOP_TRACKS_COUNT: 'top_tracks_count',
+  TOP_TRACKS_COUNT: 'topTracksCount',
 } as const;
 
 // ---------------------------------------------------------------------------

@@ -179,8 +179,8 @@ describe('SoundCloudInsightsProvider', () => {
       expect(snapshot.capturedAt).toBeTruthy();
       expect(snapshot.profile.displayName).toBe('The Weeknd');
       expect(snapshot.profile.externalUrl).toBe('https://soundcloud.com/theweeknd');
-      expect(snapshot.metrics['followers_count']).toBe(5000000);
-      expect(snapshot.metrics['track_count']).toBe(42);
+      expect(snapshot.metrics['followersCount']).toBe(5000000);
+      expect(snapshot.metrics['trackCount']).toBe(42);
       expect(snapshot.topContent).toHaveLength(1);
       expect(snapshot.topContent[0]!.title).toBe('Blinding Lights');
       expect(snapshot.topContent[0]!.metricLabel).toBe('Plays');
@@ -201,7 +201,7 @@ describe('SoundCloudInsightsProvider', () => {
       const snapshot = await provider.syncLatestSnapshot({ externalAccountId: '1234567' });
 
       expect(snapshot.topContent).toHaveLength(0);
-      expect(snapshot.metrics['followers_count']).toBe(5000000);
+      expect(snapshot.metrics['followersCount']).toBe(5000000);
     });
   });
 });

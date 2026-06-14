@@ -170,11 +170,11 @@ describe('YouTubeInsightsProvider', () => {
     ).resolves.toMatchObject({
       platform: 'youtube',
       metrics: {
-        subscriber_count: 2890000,
-        total_views: 218000000,
-        video_count: 6200,
-        recent_videos_count: 2,
-        subscribers_hidden: false,
+        subscriberCount: 2890000,
+        totalViews: 218000000,
+        videoCount: 6200,
+        recentVideosCount: 2,
+        subscribersHidden: false,
       },
       topContent: [
         expect.objectContaining({
@@ -251,7 +251,7 @@ describe('YouTubeInsightsProvider', () => {
     ).resolves.toMatchObject({
       platform: 'youtube',
       metrics: expect.objectContaining({
-        recent_videos_count: 0,
+        recentVideosCount: 0,
       }),
       topContent: [],
     });

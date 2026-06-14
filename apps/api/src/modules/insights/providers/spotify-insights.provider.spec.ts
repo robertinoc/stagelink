@@ -117,10 +117,10 @@ describe('SpotifyInsightsProvider', () => {
     ).resolves.toMatchObject({
       platform: 'spotify',
       metrics: {
-        followers_total: 1200,
+        followersTotal: 1200,
         popularity: 42,
-        genres_count: 1,
-        top_tracks_count: 0,
+        genres: 'techno',
+        topTracksCount: 0,
       },
       topContent: [],
     });
@@ -183,10 +183,10 @@ describe('SpotifyInsightsProvider', () => {
     ).resolves.toMatchObject({
       platform: 'spotify',
       metrics: {
-        followers_total: 1200,
+        followersTotal: 1200,
         popularity: 42,
-        genres_count: 1,
-        top_tracks_count: 0,
+        genres: 'techno',
+        topTracksCount: 0,
       },
       topContent: [],
     });
